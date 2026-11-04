@@ -1,6 +1,6 @@
 # calibration
 
-First real project. Measures the fit numbers in `CLAUDE.md` so nothing ships on
+First real project. Measures the fit numbers in `AGENTS.md` so nothing ships on
 a guess. Two halves: a printer tolerance test and a laser kerf test.
 
 ## Part 1: K2 Plus tolerance print (ASA)
@@ -13,7 +13,7 @@ One plate, printed in ASA in the default orientation.
 | Pegs | Same nominal range, printed standing | Press fit against the holes above |
 | Slot | One, with a known-width gauge | Horizontal expansion along a straight edge |
 
-| Measured | How | Fills CLAUDE.md row |
+| Measured | How | Fills AGENTS.md row |
 |---|---|---|
 | Real bore of every hole | Caliper or pin gauge; smallest hole a nominal M3/M4/M5 shank passes freely | K2 Plus hole clearance (ASA) |
 | Which peg holds in which hole by hand pressure | Trial | K2 Plus press fit |
@@ -23,7 +23,7 @@ One plate, printed in ASA in the default orientation.
 
 A comb of slots and a measured square per material.
 
-| Material | Measured | Fills CLAUDE.md row |
+| Material | Measured | Fills AGENTS.md row |
 |---|---|---|
 | 3 mm ply | Square outer size minus model, and slot width minus model, both halved | K40 kerf, 3 mm ply |
 | 3 mm acrylic | Same | K40 kerf, 3 mm acrylic |
