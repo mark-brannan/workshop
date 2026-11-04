@@ -17,8 +17,13 @@ Machines are in `equipment.md`
 ## Commands
 
     uv sync
-    uv run python projects/demo-bracket/model.py
+    uv run python -m shop.build                      # every project, .py and .scad alike
+    uv run python -m shop.build projects/demo-plate  # one project
     uv run pytest -q
+
+`.scad` models build through the Windows OpenSCAD (`src/shop/scad.py`); the
+Nightly is preferred when installed. `projects/README-ab.md` is the measured
+OpenSCAD vs build123d comparison on the two demos.
 
 ## Gallery
 
@@ -26,3 +31,6 @@ Machines are in `equipment.md`
 |---|---|
 | ![bracket](projects/demo-bracket/out/bracket.png) | ![plate](projects/demo-plate/out/plate.png) |
 | ![bracket views](projects/demo-bracket/out/bracket_views.png) | ![plate views](projects/demo-plate/out/plate_views.png) |
+| ![bracket scad](projects/demo-bracket/out/bracket_scad.png) | ![plate scad](projects/demo-plate/out/plate_scad.png) |
+
+Third row: the same parts from `model.scad`, rendered by OpenSCAD.
