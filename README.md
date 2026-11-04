@@ -1,7 +1,7 @@
 # workshop
 My home workshop stuff.
 
-Rules for the agent are in `CLAUDE.md` (not here!)
+Rules for the agent are in `AGENTS.md` (not here!)
 
 Machines are in `equipment.md`
 
