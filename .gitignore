@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# 42 MB ASCII STL, over the 5 MB LFS line and git-lfs is not installed;
+# the 3MF beside it is the print deliverable.
+projects/calibration/out/*.stl

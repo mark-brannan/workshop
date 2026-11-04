@@ -1,46 +1,24 @@
 # Equipment
 
-A form. Fill the "to fill in" cells; keep rows short.
+What the shop has, at the detail a design needs. Not an inventory: rows a
+project depends on get filled when that project needs them.
 
 ## Machines
 
-| Machine | Model | Controller or software | Notes | Consumables |
-|---|---|---|---|---|
-| 3D printer | Creality K2 Plus | OrcaSlicer | Preferred materials ABS and ASA; currently having trouble printing both | Nozzle size: to fill in. Filament on hand: to fill in |
-| Laser | Omtech K40+ | LightBurn | Power supply and tube modified; tube wattage: to fill in. Bed size: to fill in | Lens, mirrors, air assist: to fill in |
-| CNC router | Onefinity Foreman Pro | Masso (confirm) | CAM is hand-written g-code. Work holding: to fill in. Spindle: to fill in | Bits: to fill in |
+| Machine | Model | Controller or software | Notes |
+|---|---|---|---|
+| 3D printer | Creality K2 Plus | OrcaSlicer | Hardened nozzle, swapped by job: usually 0.4 mm, sometimes larger; confirm per print. Preferred materials ABS and ASA, both currently giving trouble. Filament: plenty, not catalogued |
+| Laser | Omtech K40+ | LightBurn | Modified: tube about 6 to 8 in longer than stock, power supply now probably 50 or 60 W (owner's estimate, unmeasured). Bed size unmeasured |
+| CNC router | Onefinity Foreman Pro | Masso (confirm) | CAM is hand-written g-code |
 
 ## Computers
 
-| Machine | Role | Software | Notes |
-|---|---|---|---|
-| Windows PC, WSL2 | Where the agent runs | VS Code, OpenSCAD (Windows install), uv/Python | |
-| Mac, in the workshop | Drives the machines (confirm) | LightBurn, OrcaSlicer (confirm) | |
-
-## Hand tools
-
-| Tool | Model | Notes |
+| Machine | Role | Software |
 |---|---|---|
-| to fill in | | |
+| Windows PC, WSL2 | Where the agent runs | VS Code, OpenSCAD (Windows install), uv/Python |
+| Mac, in the workshop | Drives the machines (confirm) | LightBurn, OrcaSlicer (confirm) |
 
 ## Measuring
 
-| Instrument | Brand | Resolution | Notes |
-|---|---|---|---|
-| Calipers | to fill in | to fill in | The source of truth for every dimension |
-| to fill in | | | |
-
-## Stock on hand
-
-| Material | Thickness / size | Quantity | Notes |
-|---|---|---|---|
-| Ply | to fill in | | |
-| Acrylic | to fill in | | |
-| HDPE | to fill in | | |
-| Lumber | to fill in | | |
-
-## Fasteners on hand
-
-| Type | Size | Quantity | Notes |
-|---|---|---|---|
-| to fill in | | | |
+Several calipers, digital and dial. Calipers are the source of truth for
+every dimension.

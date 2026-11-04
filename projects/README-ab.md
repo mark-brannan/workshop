@@ -57,13 +57,15 @@ round (`right` view). Both renderers are written for every `.scad` build.
 
 ## OpenSCAD DXF notes
 
-- Unitless. 2021.01 writes no HEADER section; the Nightly writes a HEADER
+- Unitless as OpenSCAD writes it (fixed by `finish_dxf`, below). 2021.01 writes no HEADER section; the Nightly writes a HEADER
   with extents but no `$INSUNITS`. Numbers are the model's millimetres.
   ezdxf read the header-less file back with a default `$INSUNITS` of 6
   (metres) in one run; a consumer must not trust that field.
 - Layer names: not possible from plain OpenSCAD; everything lands on layer
-  `0`. LightBurn layer mapping would need one DXF per layer, or an ezdxf
-  pass to re-layer by colour or geometry.
+  `0`. Since this write-up, `shop.scad.finish_dxf` post-processes every
+  OpenSCAD DXF: R2010, `$INSUNITS` 4 (mm), geometry on layer `cut` coloured
+  for its LightBurn layer. Several layers means one OpenSCAD DXF per layer,
+  merged by the same function.
 - Curves: 2021.01 emits one LINE per `$fn` segment (326 entities here);
   the Nightly emits one closed LWPOLYLINE per loop (6 entities). Neither
   writes CIRCLE or ARC.
