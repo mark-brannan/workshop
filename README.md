@@ -1,8 +1,9 @@
 # workshop
+My home workshop stuff.
 
-Code-first CAD for a home workshop: the agent designs, tests and renders parts
-from a photo, caliper numbers and a brief. Rules for the agent are in
-`CLAUDE.md`; the machines are in `equipment.md`.
+Rules for the agent are in `CLAUDE.md` (not here!)
+
+Machines are in `equipment.md`
 
 ## Layout
 
