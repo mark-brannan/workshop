@@ -28,7 +28,7 @@ build-backend = "uv_build"
 module-name = "shop"
 
 [tool.pytest.ini_options]
-testpaths = ["projects"]
+testpaths = ["projects", "tests"]
 addopts = "--import-mode=importlib"
 
 [tool.uv]

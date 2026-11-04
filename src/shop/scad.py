@@ -16,6 +16,8 @@ import subprocess
 import time
 from pathlib import Path
 
+import ezdxf
+
 from .render import render_png
 
 # Searched after $OPENSCAD and a native ``openscad`` on PATH, in this order.
@@ -108,12 +110,53 @@ class OpenSCAD:
         shutil.rmtree(WIN_TEMP / f"shop_{os.getpid()}", ignore_errors=True)
 
 
+# Layer name -> RGB. LightBurn assigns imported DXF geometry to its layers by
+# colour, not by layer name, so each name carries a LightBurn palette colour
+# (00 black, 01 blue, 02 red). Names match the build123d exports ("cut").
+LIGHTBURN_LAYERS = {
+    "cut": (255, 0, 0),  # LightBurn 02
+    "score": (0, 0, 255),  # LightBurn 01
+    "engrave": (0, 0, 0),  # LightBurn 00
+}
+
+
+def finish_dxf(parts: dict[str, Path], out: Path) -> Path:
+    """Merge raw OpenSCAD DXFs into one R2010 DXF in millimetres, one layer each.
+
+    ``parts`` maps a LightBurn layer name to the raw DXF whose geometry goes on
+    it. OpenSCAD writes no units and puts everything on layer ``0``; the output
+    has ``$INSUNITS`` 4 (mm), each layer named and coloured, and every entity
+    on its layer with colour BYLAYER. Lines and polylines are copied as is.
+    """
+    doc = ezdxf.new("R2010", units=ezdxf.units.MM)
+    doc.header["$MEASUREMENT"] = 1  # metric
+    msp = doc.modelspace()
+    for name, src in parts.items():
+        layer = doc.layers.add(name)
+        layer.rgb = LIGHTBURN_LAYERS[name]
+        attribs = {"layer": name}
+        for e in ezdxf.readfile(src).modelspace():
+            kind = e.dxftype()
+            if kind == "LINE":
+                msp.add_line(e.dxf.start, e.dxf.end, dxfattribs=attribs)
+            elif kind == "LWPOLYLINE":
+                msp.add_lwpolyline(e.get_points(), format="xyseb", close=e.closed, dxfattribs=attribs)
+            else:
+                raise ValueError(f"{src}: unexpected {kind} from OpenSCAD")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    doc.saveas(out)
+    return out
+
+
 def has_mode_variable(scad_path: Path) -> bool:
     return re.search(r'^\s*mode\s*=\s*"', scad_path.read_text(), re.M) is not None
 
 
-def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool = False, *, render: bool = True) -> dict:
-    """Write ``name``.stl (and .dxf when ``two_d``) plus PNGs into ``outdir``.
+def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool = False, *, render: bool = True, threemf: bool = False) -> dict:
+    """Write ``name``.stl (and .dxf when ``two_d``, .3mf when asked) plus PNGs into ``outdir``.
+
+    The DXF is in millimetres with its geometry on the LightBurn layer ``cut``
+    (see ``finish_dxf``).
 
     For a 2D model that exposes ``mode = "2d"`` the STL is the extruded form
     (``-D mode="3d"``). Returns format -> path, plus ``times`` (seconds) and
@@ -126,12 +169,19 @@ def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool
     three_d: list[str] = ["-D", 'mode="3d"'] if two_d and has_mode_variable(scad_path) else []
     if two_d:
         dxf = outdir / f"{name}.dxf"
-        osc.run(scad_path, dxf)
+        raw = outdir / f"{name}.raw.dxf"
+        osc.run(scad_path, raw)
+        finish_dxf({"cut": raw}, dxf)
+        raw.unlink()
         paths["dxf"] = dxf
     if not two_d or three_d:
         stl = outdir / f"{name}.stl"
         osc.run(scad_path, stl, *three_d)
         paths["stl"] = stl
+    if threemf:
+        tmf = outdir / f"{name}.3mf"
+        osc.run(scad_path, tmf, *three_d)
+        paths["3mf"] = tmf
     paths["times"]["export"] = time.perf_counter() - t0
 
     if render:

@@ -1,8 +1,8 @@
 """Tests for model.scad: DXF from the 2D form, STL from the 3 mm extrude.
 
-No mesh/DXF equivalent: sketch area from the B-rep, CIRCLE/ARC entity counts
-(OpenSCAD 2021.01 writes every curve as LINE segments) and the layer name
-(plain OpenSCAD always writes layer "0"). Replaced by: closed-loop count in
+No mesh/DXF equivalent: sketch area from the B-rep and CIRCLE/ARC entity
+counts (OpenSCAD 2021.01 writes every curve as LINE segments). The layer name
+and units come from shop.scad.finish_dxf. Replaced by: closed-loop count in
 the DXF, ray probes through the holes in the mesh.
 """
 
@@ -74,11 +74,8 @@ def test_dxf_entities(built):
     ents = list(doc.modelspace())
     # 2021.01 writes every curve as LINE segments; the 2026 nightly writes closed LWPOLYLINEs.
     assert {e.dxftype() for e in ents} <= {"LINE", "LWPOLYLINE"}, {e.dxftype() for e in ents}
-    assert all(e.dxf.layer == "0" for e in ents)  # no layer names from plain OpenSCAD
-    # Unitless in both versions: no $INSUNITS (2021.01 has no HEADER at all).
-    # ezdxf then reports None here, but a header-less file can read back as 6 (metres)
-    # in other readers; consumers must assume the model's mm.
-    assert b"$INSUNITS" not in Path(built["dxf"]).read_bytes()
+    assert all(e.dxf.layer == "cut" for e in ents)  # finish_dxf re-layers OpenSCAD's "0"
+    assert doc.header["$INSUNITS"] == 4  # mm
 
     # Closed loops: outline + 4 holes + slot = 6.
     polys = [e for e in ents if e.dxftype() == "LWPOLYLINE"]

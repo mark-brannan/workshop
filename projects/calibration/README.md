@@ -5,13 +5,23 @@ a guess. Two halves: a printer tolerance test and a laser kerf test.
 
 ## Part 1: K2 Plus tolerance print (ASA)
 
-One plate, printed in ASA in the default orientation.
+One build plate, printed in ASA in the model orientation:
+`out/calibration_scad.3mf` from `model.scad`. Every hole and peg is debossed
+with its modelled diameter.
 
-| Feature | Range | Purpose |
-|---|---|---|
-| Holes | 3.0 to 6.0 mm in 0.1 steps | Which modelled diameter yields which real bore |
-| Pegs | Same nominal range, printed standing | Press fit against the holes above |
-| Slot | One, with a known-width gauge | Horizontal expansion along a straight edge |
+![tolerance print](out/calibration_scad.png)
+
+| Body | Feature | Range | Purpose |
+|---|---|---|---|
+| Hole plate, 84 x 74 x 5 mm | 31 through holes | 3.0 to 6.0 mm in 0.1 steps | Which modelled diameter yields which real bore |
+| Hole plate | Slot | 10.0 x 40 mm | Horizontal expansion on an inside edge |
+| Gauge bar | Outer width | 10.0 x 40 x 5 mm | Horizontal expansion on an outside edge; also tries the slot |
+| 31 peg tabs, 9 x 13 x 2 mm | Peg standing 8 mm, 0.4 mm lead-in | Same as the holes | Press fit against the holes |
+
+Slicer: X-Y hole and contour compensation and elephant-foot compensation at
+0 for this print, or the numbers measure the slicer, not the printer. Note
+the nozzle fitted (equipment.md: it changes). Measure bores mid-depth, away
+from the first layer.
 
 | Measured | How | Fills AGENTS.md row |
 |---|---|---|
