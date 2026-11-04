@@ -1,0 +1,33 @@
+# Cost per push, measured locally on 2026-11-03: 54 s cold uv install, 14 s tests.
+# Budget about 2 minutes per push on a cold cache. One concurrent job, no matrix.
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync
+      - run: uv run pytest -q
+      # OpenSCAD (.scad) models are skipped here for now: no headless OpenSCAD
+      # on the runner yet. Only Python models are built.
+      - name: Build every Python model
+        run: |
+          set -e
+          for m in projects/*/model.py; do
+            echo "== $m"
+            uv run python "$m"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: out
+          path: projects/*/out/**
+          if-no-files-found: error
