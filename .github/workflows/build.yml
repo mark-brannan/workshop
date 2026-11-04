@@ -16,11 +16,14 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync
-      - run: uv run pytest -q
+      # VTK renders off-screen through a virtual X server; the runner has no
+      # EGL or OSMesa, and without a display the render segfaults.
+      - run: sudo apt-get install -y -q xvfb libgl1 libxrender1
+      - run: xvfb-run -a uv run pytest -q
       # shop.build runs every model.py and model.scad; .scad is skipped (not
       # failed) where openscad.exe is absent, which is every runner for now.
       - name: Build every model
-        run: uv run python -m shop.build
+        run: xvfb-run -a uv run python -m shop.build
       - uses: actions/upload-artifact@v4
         with:
           name: out
