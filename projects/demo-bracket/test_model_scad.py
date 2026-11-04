@@ -18,7 +18,7 @@ from shop.scad import build_scad, find_openscad
 from shop.testing import ray_hits
 
 HERE = Path(__file__).parent
-pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad.exe not found")
+pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
 
 
 def scad_params(path: Path) -> dict[str, float]:

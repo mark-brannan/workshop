@@ -1,9 +1,10 @@
 """Build an OpenSCAD model the same way export_all builds a build123d one.
 
-OpenSCAD is the Windows install, driven from WSL. File arguments are
-converted with ``wslpath -w``; the repo is reachable from Windows as a
-``\\\\wsl.localhost`` UNC path. If the exe cannot write to a UNC path the
-output is written to the Windows temp dir and moved back.
+Whichever OpenSCAD this box has: ``$OPENSCAD``, a native ``openscad`` on
+PATH, the macOS app, or the Windows install driven from WSL. For the Windows
+exe, file arguments are converted with ``wslpath -w``; the repo is reachable
+from Windows as a ``\\\\wsl.localhost`` UNC path. If the exe cannot write to a
+UNC path the output is written to the Windows temp dir and moved back.
 """
 
 from __future__ import annotations
@@ -17,9 +18,11 @@ from pathlib import Path
 
 from .render import render_png
 
+# Searched after $OPENSCAD and a native ``openscad`` on PATH, in this order.
 CANDIDATES = (
-    Path("/mnt/c/Program Files/OpenSCAD (Nightly)/openscad.exe"),  # dev snapshot, preferred
-    Path("/mnt/c/Program Files/OpenSCAD/openscad.exe"),  # 2021.01
+    Path("/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD"),  # macOS
+    Path("/mnt/c/Program Files/OpenSCAD (Nightly)/openscad.exe"),  # WSL: dev snapshot, preferred
+    Path("/mnt/c/Program Files/OpenSCAD/openscad.exe"),  # WSL: 2021.01
 )
 WIN_TEMP = Path("/mnt/c/Users/Solace/AppData/Local/Temp")
 ISO_CAMERA = "0,0,0,55,0,25,200"  # gimbal: tx,ty,tz,rx,ry,rz,dist; dist/translate overridden by --viewall/--autocenter
@@ -29,6 +32,9 @@ def find_openscad() -> Path | None:
     env = os.environ.get("OPENSCAD")
     if env and Path(env).exists():
         return Path(env)
+    native = shutil.which("openscad")
+    if native:
+        return Path(native)
     for c in CANDIDATES:
         if c.exists():
             return c
@@ -43,7 +49,8 @@ class OpenSCAD:
     def __init__(self, exe: Path | None = None):
         self.exe = exe or find_openscad()
         if self.exe is None:
-            raise FileNotFoundError("openscad.exe not found; set OPENSCAD=/path/to/openscad.exe")
+            raise FileNotFoundError("openscad not found; set OPENSCAD=/path/to/openscad")
+        self.windows = self.exe.suffix.lower() == ".exe"  # Windows exe driven from WSL
         self._help: str | None = None
         self.staged = False  # route files through the Windows temp dir (see run)
 
@@ -71,6 +78,12 @@ class OpenSCAD:
         """
         out.parent.mkdir(parents=True, exist_ok=True)
         base = [str(self.exe), *self.backend_args(), *args]
+        if not self.windows:
+            cmd = [base[0], "-o", str(out), *base[1:], str(scad)]
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode == 0 and out.exists():
+                return r
+            raise RuntimeError(f"openscad failed ({r.returncode}): {' '.join(cmd)}\n{r.stdout}\n{r.stderr}")
         r = None
         if not self.staged:
             cmd = [base[0], "-o", _winpath(out), *base[1:], _winpath(scad)]

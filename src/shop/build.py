@@ -6,7 +6,7 @@
 ``model.py`` runs as a script (it exports itself). ``model.scad`` builds via
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*``; a model with
 ``mode = "2d"`` at top level is a 2D model and also gets a DXF. Without
-openscad.exe the .scad models are skipped, not failed (CI has none).
+OpenSCAD the .scad models are skipped, not failed (CI has none).
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def build_project(proj: Path) -> int:
     if scad.exists():
         print(f"== {scad}")
         if find_openscad() is None:
-            print("   skipped: openscad.exe not found")
+            print("   skipped: openscad not found on this box")
         else:
             paths = build_scad(scad, proj / "out", f"{name}_scad", two_d=has_mode_variable(scad))
             times = paths.pop("times")

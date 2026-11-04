@@ -10,13 +10,14 @@ library (`src/shop/`) so the second mount costs nothing.
 
 | Tool | Role | Here |
 |---|---|---|
-| OpenSCAD + BOSL2 | Default modeller, the happy path | Windows install driven from WSL through `src/shop/scad.py` (`uv run python -m shop.build`): the Nightly (2026.11.01, Manifold) when present, else 2021.01. BOSL2 not in the system `libraries/` folder yet; install to confirm. A/B against build123d: `projects/README-ab.md` |
+| OpenSCAD + BOSL2 | Default modeller, the happy path | Whatever install the box has, found by `src/shop/scad.py` (`shop build`). On the WSL box, the Windows install: the Nightly (2026.11.01, Manifold) when present, else 2021.01. BOSL2 not in the system `libraries/` folder yet; install to confirm. A/B against build123d: `projects/README-ab.md` |
 | build123d | True fillets on arbitrary edges, STEP export | `uv` project, headless |
 | Render helper | PNG of every build (`src/shop/render.py`) | pyvista off-screen |
 | OrcaSlicer | Front-end for print | user's machine |
 | LightBurn | Front-end for laser | workshop Mac |
 | VS Code | Reads hand-written g-code for the router | |
 | Fusion 360 | Not used unless a 3D-contour CAM job appears | |
+| Fusion scripts | STL merge to STEP (`fusion/merge_stl/`), run inside Fusion | `shop fusion` prints the folder to add |
 
 ## Deliverables by destination
 
@@ -51,6 +52,8 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 | Router end-mill runout | unmeasured | |
 
 ## Repo rules
+
+- Tools differ from box to box. `shop doctor` lists this one's; a build skips what the box lacks, never fails on it.
 
 - Push to `main`. No PRs, no drafts, no "shall I commit" turns.
 - Outputs under `out/` are committed. Git LFS only once a file passes 5 MB, not before.
