@@ -47,6 +47,7 @@ def detect() -> list[Tool]:
         Tool("Fusion 360", "STL merge script, CAM", _first(
             "/Applications/Autodesk Fusion.app",
             "/Applications/Autodesk Fusion 360.app",
+            Path.home() / "Applications/Autodesk Fusion.app",  # Autodesk's Mac installer default
             *_win_appdata("Autodesk/webdeploy"),
         )),
     ]

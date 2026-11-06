@@ -10,7 +10,7 @@ library (`src/shop/`) so the second mount costs nothing.
 
 | Tool | Role | Here |
 |---|---|---|
-| OpenSCAD + BOSL2 | Default modeller, the happy path | Whatever install the box has, found by `src/shop/scad.py` (`shop build`). On the WSL box, the Windows install: the Nightly (2026.11.01, Manifold) when present, else 2021.01. BOSL2 not in the system `libraries/` folder yet; install to confirm. A/B against build123d: `projects/README-ab.md` |
+| OpenSCAD + BOSL2 | Default modeller, the happy path | Whatever install the box has, found by `src/shop/scad.py` (`shop build`). On the WSL box, the Windows install: the Nightly (2026.11.01, Manifold) when present, else 2021.01. BOSL2 not in the system `libraries/` folder yet; install to confirm. On a Mac: `brew install uv` and `brew install --cask openscad@snapshot` (Manifold), BOSL2 cloned into `~/Documents/OpenSCAD/libraries/BOSL2`. A/B against build123d: `projects/README-ab.md` |
 | build123d | True fillets on arbitrary edges, STEP export | `uv` project, headless |
 | Render helper | PNG of every build (`src/shop/render.py`) | pyvista off-screen |
 | OrcaSlicer | Front-end for print | user's machine |
