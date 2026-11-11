@@ -1,22 +1,23 @@
 // K2 Plus chute cover -> straight tube -> flare -> segmented-chute ball.
-// Printed ear down (ear_down = true): the 45 x 11 mm ear face on the bed, ball rim on top, no supports.
-// Modelled installed (ball at z=0, ear up) and flipped at the end. The ear's screw holes run horizontally.
+// Printed as installed (ear_down = false): ball rim on the bed, ear on top, no supports.
+// The ear's screw holes run horizontally, so their tops are cut to a flat-topped teardrop (point up as printed).
 // cover_mesh() at the bottom is chute-cover.3mf unchanged (copy in ref/); everything else is added below it.
 // Source frame of the STL: Y runs ear (+74) to open end (-50.6), U opens toward -Z.
 
 /* [Added section, mm] */
 wall = 1.86;       // same as the cover's walls; also used inside the ball
 ball_h = 30;       // ball profile from its rim (z=0) up to its waist
-trim = 8;          // mm cut off the cover's open end to lengthen the transition; total height unchanged
-flare_h = 2 + trim; // outer square -> round; the corners lean inward as they climb when printed ear down
+trim = 12;         // mm cut off the cover's open end to lengthen the transition; total height unchanged
+flare_h = 2 + trim; // outer square -> round; printed rim down the corners lean out <= 32 deg from vertical
 cone_h = 11;       // the bore's funnel carries on this far into the cover's last run; whole funnel = flare_h + cone_h, ~24 deg lean
-bore_r = 22;       // round bore through the flare (cover's passage is 44.8 x 46.1)
-ear_down = true;   // print upside down: ear on the bed, ball rim on top, no supports. false = ear up
+ear_down = false;  // true = upside down, ear face on the bed: its centre of mass sits 15 mm off the 11 mm footprint
+rim_chamfer = 0.5; // 45 deg off the rim's outer edge, so first-layer squish (elephant foot) cannot flare the mating edge
+hole_flat = 0.3;   // teardrop screw holes: flat top this far above the round hole's top
 tube_h = 0;        // extra closed square run; 0 = the flare starts at the cover's open end
 
 /* [Hidden] */
 $fn = 120;
-k = 6;             // points per polygon edge in the loft
+k = 20;            // points per polygon edge in the loft (chords within 0.03 mm of the ball)
 ctr = [24.24, -51];                       // centre of the cover's section (x, y)
 // cover's open-end section in model frame (x, y), CCW from +Z; y = -source z
 OUT = [[0,-27],[0,-71],[4,-75],[44.48,-75],[48.48,-71],[48.48,-27]];
@@ -27,6 +28,9 @@ BALL = [[0,27.8],[1.2,28.2],[2.3,28.6],[3.5,28.93],[4.7,29.23],[5.9,29.47],[7.1,
         [16.8,29.37],[18,29.1],[19.2,28.8],[20.4,28.45],[21.5,28.05],[22.7,27.6],[23.8,27.1],
         [24.9,26.55],[26.1,26.1],[27.1,25.8],[28.2,25.6],[29.2,25.54],[30,25.53]];
 R_NECK = BALL[len(BALL)-1][1];
+bore_r = R_NECK - wall;                  // round bore meets the ball's inner wall: no ledge at the waist
+HOLES = [[15.0, 149.65], [66.0, 149.65]]; // ear screw holes (x, z installed), r 1.8, through the 1.24 mm plate at y -27..-28.24
+HOLE_R = 1.8;
 z_flare = ball_h - 0.2;                  // flare starts just inside the ball's waist
 z_tube  = ball_h + flare_h;
 z_open  = z_tube + tube_h;               // where the cover's open end sits
@@ -55,11 +59,17 @@ module loft() {   // square tube + flare, hollow, open at the ball end
     }
 }
 
+// Bore ring: where the round bore is wider than the square passage (mid-flats) it narrows on tf,
+// finished below the cover's open end so its walls never overhang the bore; elsewhere it widens on t.
+function bore_ring(t, tf, z) = [for (p = edge_pts(IN)) let(d = p - ctr, c = ctr + bore_r*d/norm(d),
+    q = p + (c - p)*(norm(d) < bore_r ? tf : t)) [q[0], q[1], z]];
+
 module bore_solid() {   // round at the ball's neck, widening to the cover's square passage over flare_h + cone_h
     L = flare_h + cone_h + 0.2;   // the 0.2 is the flare starting just inside the ball
-    skin_solid(concat([ring(IN, bore_r, 1, z_flare - 1)],
-                      [for (i=[0:12]) ring(IN, bore_r, 1 - i/12, z_flare + L*i/12)],
-                      [ring(IN, bore_r, 0, z_flare + L + 0.5)]));
+    i_done = floor((z_open - z_flare)/L*12);   // last ring at or below the cover's open end
+    skin_solid(concat([bore_ring(1, 1, z_flare - 1)],
+                      [for (i=[0:12]) bore_ring(1 - i/12, max(0, 1 - i/i_done), z_flare + L*i/12)],
+                      [bore_ring(0, 0, z_flare + L + 0.5)]));
 }
 
 module cone_fill() {   // closes the cover's open side over its last cone_h and funnels the bore round
@@ -80,6 +90,19 @@ module ball() {
     }
 }
 
+module rim_chamfer_cut() {
+    r0 = BALL[0][1] - rim_chamfer;
+    translate([ctr[0], ctr[1], 0]) rotate_extrude() polygon([[r0 - 1, -1], [40, -1], [40, 40 - r0]]);
+}
+
+module teardrop_cuts() {   // only the overhanging top of each round hole; the hole itself is the owner's
+    for (h = HOLES) translate([h[0], -26.5, h[1]]) mirror([0, 0, ear_down ? 1 : 0]) rotate([90, 0, 0])
+        linear_extrude(2) intersection() {
+            hull() { circle(r = HOLE_R - 0.05, $fn = 48); translate([0, HOLE_R*sqrt(2)]) square(0.01, center = true); }
+            translate([-HOLE_R, 0]) square([2*HOLE_R, HOLE_R + hole_flat]);
+        }
+}
+
 module cover() {   // the owner file, rotated so source Y is up, its open end cut back by trim
     intersection() {
         translate([0, 0, z_open + 50.6 - trim]) rotate([90, 0, 0]) cover_mesh();
@@ -87,7 +110,7 @@ module cover() {   // the owner file, rotated so source Y is up, its open end cu
     }
 }
 
-module part() { cover(); loft(); cone_fill(); ball(); }
+module part() { difference() { union() { cover(); loft(); cone_fill(); ball(); } teardrop_cuts(); rim_chamfer_cut(); } }
 top = z_open + 124.65 - trim;
 if (ear_down) translate([0, 0, top]) rotate([180, 0, 0]) part(); else part();
 

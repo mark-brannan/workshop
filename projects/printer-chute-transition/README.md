@@ -5,19 +5,25 @@ straight down into the ball of the segmented "poop chute" (`catcherforRing.3mf`)
 owner's printed segments attach below it. No bend is added; the jog you see is in the cover.
 
 ```
- ear + screw holes ->  ==|  |     screws go in horizontally (along Y), unchanged
-                         |  |     cover, jog included, unchanged (125 mm)
+ ear + screw holes ->  ==|  |     screws go in horizontally (along Y); hole tops cut to a teardrop
+                         |  |     cover, jog included, otherwise unchanged
                          |  |
  cone_h 11              |  |     inside the cover's last run: U closed, bore funnels square to round
- flare_h 10              /  \     outer square to round in 10 mm (the cover is trimmed 8 mm to pay for it)
+ flare_h 14              /  \     outer square to round in 14 mm (the cover is trimmed 12 mm to pay for it)
  ball_h  30             (    )    ball: widest 59.8 mm, only below the square
-                         \__/     rim on the bed
+                         \__/     rim on the bed, 0.5 mm chamfer on its outer edge
 ```
 
 ## Files (out/)
 
-`printer-chute-transition_scad.3mf` / `.stl`: one part, 157 mm tall, in print orientation
-(printed upside down: the 45 x 11 mm ear face on the bed, ball rim on top, no supports; `ear_down = false` gives the ear-up version, 14 mm flare needed). `.png` / `_views.png`: renders.
+`printer-chute-transition_scad.3mf` / `.stl`: one part, 157 mm tall, in print orientation:
+as installed, ball rim on the bed, ear on top, no supports. A brim is advisable; Orca's
+"inner brim only" keeps it off the rim's mating edge. `.png` / `_views.png`: renders.
+
+Printed rim down, nothing below the ear overhangs more than 32 deg from vertical. What remains
+is the owner's ear: the inside of its top cap (a 38 mm bridge, hidden) and the curved undersides
+of the two screw lugs. Printed ear down instead (`ear_down = true`), the centre of mass sits
+15 mm outside the 11 mm-wide footprint, 86 mm up.
 The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 triangles);
 `ref/` keeps the owner's 3MF and an STL of it.
 
@@ -36,13 +42,16 @@ The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 tri
 | Ball centre | on the cover's section centre | chosen |
 | Ball wall | 1.86 inward from the measured outer surface | the original shell is ~1.0; matched to the cover for strength. Outer shape, which mates with the next segment, is the original |
 | `tube_h` | 0 | no extra square run: the flare starts at the cover's open end (raise it to add one) |
-| `trim`, `flare_h` | 8, 2 + trim = 10 | the cover's open end is cut back 8 mm so the transition is longer at the same total height (156.65 mm). Upside down the outer corners lean inward, no overhang |
-| `cone_h` | 11 | the bore funnel runs flare_h + cone_h = 21 mm, ceiling lean ~24 deg; a brim is advisable for the 45 x 11 mm footprint |
-| `bore_r` | 22 | round bore, inside the cover's 44.8 x 46.1 passage |
+| `trim`, `flare_h` | 12, 2 + trim = 14 | the cover's open end is cut back 12 mm so the transition is longer at the same total height (156.65 mm); the flare's corners lean out at most 32 deg from vertical |
+| `cone_h` | 11 | the bore funnel runs flare_h + cone_h = 25 mm |
+| `bore_r` | ball's inner waist radius, 23.67 | the bore starts flush with the ball's wall (no ledge), narrows to the cover's flats before the cover starts, widens to its corners over the funnel |
+| `rim_chamfer` | 0.5 | first-layer squish cannot flare the rim's mating edge |
+| `hole_flat` | 0.3 | the ear's Ø3.6 holes keep their round lower half; above it 45 deg flanks to a 0.8 mm flat 0.3 mm over the circle, leaving the lug ~1.1 mm above |
 | Ball cut | at the waist, z=30 | below the cone of the original segment, which is not included |
 
 Checks: `uv run pytest -q projects/printer-chute-transition`. Cover unchanged (same wall crossings
-along six vertical rays, same top), watertight, bore open from top to rim. Nothing wider than the
+along six vertical rays, same top), watertight, bore open from top to rim, no overhang flatter
+than 45 deg below the ear, rim chamfer, teardrop holes. Nothing wider than the
 square sits at or above the cover's open end (z=32, installed frame); the ball overhangs only below.
 Nothing here is calibrated for fit.
 

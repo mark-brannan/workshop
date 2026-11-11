@@ -1,4 +1,5 @@
-"""Chute transition: bounding box, volume window, unchanged cover, ball only below the square."""
+"""Chute transition: bounding box, volume window, unchanged cover, ball only below the square,
+printable rim down: no overhang flatter than 45 deg outside the owner's ear, teardrop screw holes."""
 
 import re
 from pathlib import Path
@@ -11,10 +12,13 @@ from shop.testing import ray_hits
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
-TRIM = 8.0     # cut off the cover's open end; the flare is 2 + TRIM
-Z_OPEN = 40.0  # installed frame: ball_h 30 + flare_h 10, where the (trimmed) cover begins
-TOP = 156.65   # the part is printed ear down; the fixture flips it back to the installed frame
+TRIM = 12.0    # cut off the cover's open end; the flare is 2 + TRIM
+Z_OPEN = 44.0  # installed frame: ball_h 30 + flare_h 14, where the (trimmed) cover begins
+TOP = 156.65   # printed as installed: rim on the bed, ear on top
 CONE = 11.0    # the inner funnel inside the cover's last run
+CTR = (24.24, -51.0)
+HOLES = [(15.0, 149.65), (66.0, 149.65)]  # ear screw holes (x, z), r 1.8, plate y -27..-28.24
+EAR_Z = 146.0  # above this is the owner's ear: its 38 mm cap ceiling and its lugs, unchanged
 
 
 @pytest.fixture(scope="module")
@@ -23,8 +27,6 @@ def part(tmp_path_factory):
     src = d / "model.scad"
     src.write_text((HERE / "model.scad").read_text())
     m = trimesh.load(build_scad(src, d, "part", render=False)["stl"])
-    assert np.allclose(m.bounds[0], [-5.7, 21.1, 0], atol=0.1)  # printed ear down: ear face on the bed
-    m.vertices = np.c_[m.vertices[:, 0], -m.vertices[:, 1], TOP - m.vertices[:, 2]]
     return m
 
 
@@ -32,6 +34,7 @@ def part(tmp_path_factory):
 def cover():
     o = trimesh.load(HERE / "ref" / "chute-cover.stl", process=False)
     o.vertices = np.c_[o.vertices[:, 0], -o.vertices[:, 2], o.vertices[:, 1] + Z_OPEN + 50.6 - TRIM]
+    assert o.vertices[:, 2].max() == pytest.approx(TOP, abs=0.01)
     return o
 
 
@@ -65,3 +68,27 @@ def test_ball_is_open_through(part):
     # a vertical ray down the ball's axis passes the waist and leaves through the bottom rim: no floor
     hits = [h[2] for h in ray_hits(part, (24.24, -51, 40), (0, 0, -1))]
     assert hits == []
+
+
+def test_no_flat_overhang_below_the_ear(part):
+    # printed rim down: every downward-facing surface below the owner's ear is within 45 deg of vertical
+    n, c, a = part.face_normals, part.triangles_center, part.area_faces
+    flat = (n[:, 2] < -np.cos(np.radians(45)) - 1e-3) & (c[:, 2] > 0.01) & (c[:, 2] < EAR_Z)
+    assert a[flat].sum() < 2.0, c[flat][:5]  # was 238 mm2 (1.7 mm ledge at the waist); now slivers under one line width
+
+
+def test_rim_chamfer(part):
+    rim = part.vertices[part.vertices[:, 2] < 0.01]
+    r = np.hypot(rim[:, 0] - CTR[0], rim[:, 1] - CTR[1])
+    assert r.max() == pytest.approx(27.3, abs=0.05)  # 27.8 less the 0.5 chamfer
+    assert r.min() == pytest.approx(27.8 - 1.86, abs=0.1)
+
+
+@pytest.mark.parametrize("x,z", HOLES)
+def test_teardrop_holes(part, x, z):
+    through = lambda dz: ray_hits(part, (x, 0, z + dz), (0, -1, 0))  # noqa: E731, across the ear plate
+    assert through(0) == [] and through(-1.7) == []      # the round hole is open
+    assert len(through(-1.95)) == 2                      # its round bottom is the owner's
+    assert through(1.95) == []                           # the teardrop opens above the circle (r 1.8)
+    assert len(through(2.25)) == 2                       # flat top at 2.1 leaves the lug's ligament
+    assert len(ray_hits(part, (x - 1.0, 0, z + 1.9), (0, -1, 0))) == 2  # the 45 deg flank, not a slot
