@@ -7,8 +7,8 @@
 /* [Added section, mm] */
 wall = 1.86;       // same as the cover's walls; also used inside the ball
 ball_h = 30;       // ball profile from its rim (z=0) up to its waist
-flare_h = 20;      // square -> round; corners lean ~23 deg, no support
-tube_h = 12;       // closed square tube, same section as the cover's open end
+flare_h = 14;      // square -> round; corners lean ~31 deg, no support
+tube_h = 0;        // extra closed square run; 0 = the flare starts at the cover's open end
 
 /* [Hidden] */
 $fn = 120;

@@ -11,7 +11,7 @@ from shop.testing import ray_hits
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
-Z_OPEN = 62.0  # ball_h 30 + flare_h 20 + tube_h 12: where the cover's open end sits
+Z_OPEN = 44.0  # ball_h 30 + flare_h 14 + tube_h 0: where the cover's open end sits
 
 
 @pytest.fixture(scope="module")
@@ -31,8 +31,8 @@ def cover():
 
 def test_bounds_volume_watertight(part):
     assert part.is_watertight
-    assert np.allclose(part.bounds, [[-5.7, -80.9, 0], [69.11, -21.1, 186.65]], atol=0.1)
-    assert 50000 < part.volume < 55000  # cover 32334 + tube, flare and ball shells
+    assert np.allclose(part.bounds, [[-5.7, -80.9, 0], [69.11, -21.1, 168.65]], atol=0.1)
+    assert 46000 < part.volume < 52000  # cover 32334 + tube, flare and ball shells
 
 
 def test_cover_unchanged(part, cover):
@@ -46,9 +46,9 @@ def test_cover_unchanged(part, cover):
 
 
 def test_wider_than_square_only_below_it(part):
-    sq = part.vertices[(part.vertices[:, 2] >= 50.0)]
-    assert sq[:, 0].min() >= -0.01  # nothing left of the square's x=0 face at or above the flare top
-    inner = part.vertices[(part.vertices[:, 2] >= 50.0) & (part.vertices[:, 2] <= Z_OPEN)]
+    sq = part.vertices[(part.vertices[:, 2] >= Z_OPEN)]
+    assert sq[:, 0].min() >= -0.01  # nothing left of the square's x=0 face at or above the cover's open end
+    inner = part.vertices[(part.vertices[:, 2] >= Z_OPEN) & (part.vertices[:, 2] <= Z_OPEN + 20)]
     assert inner[:, 0].max() <= 48.5 and inner[:, 1].max() <= -26.9 and inner[:, 1].min() >= -75.1
     ball = part.vertices[part.vertices[:, 2] < 30]
     assert ball[:, 0].min() < -5  # the ball does overhang the square, below it
