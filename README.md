@@ -26,7 +26,7 @@ Then `shop build`, `shop doctor` (which tools this box has), `shop fusion`
 
     uv sync
     uv run python -m shop.build                      # every project, .py and .scad alike
-    uv run python -m shop.build projects/demo-plate  # one project
+    uv run python -m shop.build projects/demo-bracket  # one project
     uv run pytest -q
 
 `.scad` models build through whatever OpenSCAD the box has (`src/shop/scad.py`);
@@ -35,10 +35,10 @@ OpenSCAD vs build123d comparison on the two demos.
 
 ## Gallery
 
-| demo-bracket | demo-plate |
-|---|---|
-| ![bracket](projects/demo-bracket/out/bracket.png) | ![plate](projects/demo-plate/out/plate.png) |
-| ![bracket views](projects/demo-bracket/out/bracket_views.png) | ![plate views](projects/demo-plate/out/plate_views.png) |
-| ![bracket scad](projects/demo-bracket/out/bracket_scad.png) | ![plate scad](projects/demo-plate/out/plate_scad.png) |
+| demo-bracket |
+|---|
+| ![bracket](projects/demo-bracket/out/bracket.png) |
+| ![bracket views](projects/demo-bracket/out/bracket_views.png) |
+| ![bracket scad](projects/demo-bracket/out/bracket_scad.png) |
 
 Third row: the same parts from `model.scad`, rendered by OpenSCAD.
