@@ -1,7 +1,7 @@
 """Build every model in a project dir, Python or OpenSCAD, the same way.
 
     uv run python -m shop.build                      # all projects/*
-    uv run python -m shop.build projects/demo-plate  # one project
+    uv run python -m shop.build projects/demo-bracket  # one project
 
 ``model.py`` runs as a script (it exports itself). ``model.scad`` builds via
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*`` (STL, 3MF, PNGs); a model with
