@@ -12,6 +12,11 @@ flare_h = 2 + trim; // outer square -> round; the corners lean inward as they cl
 cone_h = 11;       // the bore's funnel carries on this far into the cover's last run; whole funnel = flare_h + cone_h, ~24 deg lean
 bore_r = 22;       // round bore through the flare (cover's passage is 44.8 x 46.1)
 ear_down = true;   // print upside down: ear on the bed, ball rim on top, no supports. false = ear up
+tilt = true;       // lean the ear-down part 45 deg so its flat 45 deg back face lies on the bed, U open side up, fins under the overhangs
+fin_t = 1.2;       // fin thickness
+fin_dx = 12;       // fins along the lean, one every fin_dx mm across the part
+fin_dy = 0;        // cross fins, one every fin_dy mm along the lean; 0 = none
+fin_gap = 0.2;     // air between a fin's top and the part, so the fins snap off
 tube_h = 0;        // extra closed square run; 0 = the flare starts at the cover's open end
 
 /* [Hidden] */
@@ -89,7 +94,48 @@ module cover() {   // the owner file, rotated so source Y is up, its open end cu
 
 module part() { cover(); loft(); cone_fill(); ball(); }
 top = z_open + 124.65 - trim;
-if (ear_down) translate([0, 0, top]) rotate([180, 0, 0]) part(); else part();
+slope_c = 38.0;    // the cover's 45 deg back face is the plane y - z = 38 in the ear-down frame (measured on the built part)
+
+module flip() { if (ear_down) translate([0, 0, top]) rotate([180, 0, 0]) children(); else children(); }
+module lean() {
+    if (tilt && ear_down) translate([0, 0, slope_c/sqrt(2)]) rotate([-45, 0, 0]) children();                 // 45 deg back face on the bed
+    else if (tilt) translate([0, 0, (BALL[0][1] - ctr[1])*sin(45)]) rotate([45, 0, 0]) children();          // ball rim edge on the bed, ear up, U open side up
+    else children();
+}
+module placed() { lean() flip() children(); }
+
+// filled outer shapes of the two convex pieces that hang over the bed once leaned
+module loft_outer() intersection() { skin_solid(rings(OUT, R_NECK)); translate([-50, -150, z_flare]) cube([200, 200, z_open - z_flare]); }
+module ball_outer() {
+    prof = concat([[0, 0]], [for (p = BALL) [p[1], p[0]]], [[0, ball_h]]);
+    translate([ctr[0], ctr[1], 0]) rotate_extrude() polygon(prof);
+}
+
+// everything between the bed and a convex piece: its hull with its own shadow, less the piece
+module under(gapped = false) {
+    for (i = [0:1]) difference() {
+        hull() { placed() if (i == 0) loft_outer(); else ball_outer();
+                 linear_extrude(0.01) projection() placed() if (i == 0) loft_outer(); else ball_outer(); }
+        placed() if (i == 0) loft_outer(); else ball_outer();
+    }
+}
+
+module fins() {
+    intersection() {
+        under();
+        union() {
+            for (x = [-10 : fin_dx : 80]) translate([x, -200, 0]) cube([fin_t, 500, 300]);
+            if (fin_dy > 0) for (y = [-200 : fin_dy : 300]) translate([-50, y, 0]) cube([200, fin_t, 300]);
+        }
+    }
+}
+
+placed() part();
+if (tilt) difference() {
+    fins();
+    placed() part();
+    translate([0, 0, -fin_gap]) placed() part();
+}
 
 // chute-cover.3mf, 1212 vertices, 2428 triangles, source frame, unchanged.
 module cover_mesh() polyhedron(

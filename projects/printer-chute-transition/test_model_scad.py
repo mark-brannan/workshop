@@ -21,7 +21,7 @@ CONE = 11.0    # the inner funnel inside the cover's last run
 def part(tmp_path_factory):
     d = tmp_path_factory.mktemp("chute")
     src = d / "model.scad"
-    src.write_text((HERE / "model.scad").read_text())
+    src.write_text((HERE / "model.scad").read_text().replace("tilt = true;", "tilt = false;"))
     m = trimesh.load(build_scad(src, d, "part", render=False)["stl"])
     assert np.allclose(m.bounds[0], [-5.7, 21.1, 0], atol=0.1)  # printed ear down: ear face on the bed
     m.vertices = np.c_[m.vertices[:, 0], -m.vertices[:, 1], TOP - m.vertices[:, 2]]
@@ -65,3 +65,14 @@ def test_ball_is_open_through(part):
     # a vertical ray down the ball's axis passes the waist and leaves through the bottom rim: no floor
     hits = [h[2] for h in ray_hits(part, (24.24, -51, 40), (0, 0, -1))]
     assert hits == []
+
+
+def test_tilted_build_with_fins(tmp_path):
+    """The shipped build: leaned 45 deg, resting on its back face, fins under the overhangs, none inside the bore."""
+    src = tmp_path / "model.scad"
+    src.write_text((HERE / "model.scad").read_text())
+    m = trimesh.load(build_scad(src, tmp_path, "tilted", render=False)["stl"])
+    assert m.bounds[0][2] == pytest.approx(0, abs=0.05)  # fins and the back face share the bed plane
+    assert 60000 < m.volume < 85000                      # part 48227 + fins
+    flat = m.vertices[m.vertices[:, 2] < 0.05]
+    assert len(flat) > 50
