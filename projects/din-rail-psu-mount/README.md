@@ -3,7 +3,7 @@
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a
 35 mm TS35 rail. A flat base plate screws to the supply's two base holes. Four
 separate clips press into windows in the plate: two fixed hooks, two flexure
-latches. The rail runs along the 110 mm axis.
+latches. The rail runs along the 80 mm axis, so the 110 mm side stands up and down.
 
 ## Files (out/)
 

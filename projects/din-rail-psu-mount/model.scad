@@ -1,21 +1,21 @@
 // DIN-rail (TS35, 35 x 7.5 mm) mount for an 80 x 110 mm enclosed AC-DC supply.
 // A flat base plate screws to the PSU's two diagonal holes. Four separate clips
 // press into rectangular windows in the plate: two fixed hooks (-Y) and two
-// flexure latches (+Y). The rail runs along X, the 110 mm axis.
+// flexure latches (+Y). The rail runs along X, the 80 mm axis: the 110 mm side stands up and down.
 // Print the base with the PSU face down (z=0); clips print upright as shown.
 
 /* [Show] */
 part = "print";      // [print:All parts laid out for printing, assembled:Assembled, base:Base plate only, fixed:Fixed clip only, latch:Latch clip only]
 
 /* [Plate] */
-plate_l = 110;       // X
-plate_w = 80;        // Y
+plate_l = 80;        // X, along the rail
+plate_w = 110;       // Y, across the rail (the vertical, long side)
 plate_t = 4;
 corner_r = 3;
 
 /* [PSU mounting holes] (caliper ~, diagonal pair) */
-hole_dx = 75;        // centre to centre along X
-hole_dy = 47;        // centre to centre along Y
+hole_dx = 47;        // centre to centre along X (the 80 mm side)
+hole_dy = 75;        // centre to centre along Y (the 110 mm side)
 hole_d = 2.8;        // M2.5 clearance. The PSU holes take 2.5 mm, 3.3 mm at the very most
 cbore_d = 5.2;       // screw-head pocket on the rail side
 cbore_depth = 2;
