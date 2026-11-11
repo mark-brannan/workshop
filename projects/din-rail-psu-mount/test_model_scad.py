@@ -1,8 +1,8 @@
-"""Tests for the DIN-rail PSU mount: bounding box, volume window, feature counts.
+"""Tests for the DIN-rail PSU mount: bounding boxes, volume windows, feature counts.
 
-Features are counted by vertical ray probes through the STL: a probe through a
-hole or a slot meets nothing; through the plate, top and bottom; through a
-hook lip over the plate, four faces.
+Features are counted by vertical ray probes through the STL. The clip's volume
+and bounding box are checked against the owner's DIN_Clip.stl (1884 mm^3,
+-3.21..41.84 x -3.25..19.48 x 0..6) so a transcription slip in the outline shows.
 """
 
 import re
@@ -24,8 +24,7 @@ def params(path: Path) -> dict[str, float]:
 
 P = params(HERE / "model.scad")
 L, W, T = P["plate_l"], P["plate_w"], P["plate_t"]
-WALL_IN = P["rail_w"] / 2 + P["side_clr"]
-LIP_TOP = T + P["flange_t"] + P["clr"] + P["lip_t"]
+RAIL_CX = (3.12 + 38.37) / 2
 
 
 def build(tmp_path_factory, part: str) -> trimesh.Trimesh:
@@ -36,66 +35,52 @@ def build(tmp_path_factory, part: str) -> trimesh.Trimesh:
 
 
 @pytest.fixture(scope="module")
-def mesh(tmp_path_factory) -> trimesh.Trimesh:
-    return build(tmp_path_factory, "assembled")
+def base(tmp_path_factory):
+    return build(tmp_path_factory, "base")
 
 
 @pytest.fixture(scope="module")
-def layout(tmp_path_factory) -> trimesh.Trimesh:
+def clip(tmp_path_factory):
+    return build(tmp_path_factory, "clip")
+
+
+@pytest.fixture(scope="module")
+def layout(tmp_path_factory):
     return build(tmp_path_factory, "print")
 
 
-def test_print_layout_is_base_plus_four_clips(layout):
-    bodies = layout.split(only_watertight=False)
-    assert len(bodies) == 5
-    assert all(b.is_watertight for b in bodies)
-    # four clips are separate from the plate and lie wholly beside it
-    clips = [b for b in bodies if b.bounds[0][1] > W / 2]
-    assert len(clips) == 4
+def first_z(mesh, x, y):
+    h = ray_hits(mesh, (x, y, 50), (0, 0, -1))
+    return h[0][2] if len(h) else None
 
 
-def hits(mesh, x, y):
-    return len(ray_hits(mesh, (x, y, 20), (0, 0, -1)))
+def test_clip_matches_original(clip):
+    assert clip.is_watertight
+    assert np.allclose(clip.bounds, [[-3.21, -3.25, 0], [41.84, 19.48, P["clip_w"]]], atol=0.02)
+    assert abs(clip.volume - 1884.0) < 5  # original DIN_Clip.stl, at its 6 mm width
 
 
-def test_bounding_box(mesh):
-    lo, hi = mesh.bounds
-    assert np.allclose(lo, [-L / 2, -W / 2, 0], atol=0.05)
-    assert np.allclose(hi, [L / 2, W / 2, LIP_TOP], atol=0.05)
+def test_base_bounds_and_solid(base):
+    assert base.is_watertight
+    assert np.allclose(base.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, T]], atol=0.02)
 
 
-def test_watertight(mesh):
-    assert mesh.is_watertight
-
-
-def test_volume_window(mesh):
-    assert 33000 < mesh.volume < 36500, mesh.volume
-
-
-def test_two_diagonal_holes(mesh):
+def test_two_diagonal_screw_holes(base):
     dx, dy = P["hole_dx"] / 2, P["hole_dy"] / 2
-    assert hits(mesh, -dx, -dy) == 0 and hits(mesh, dx, dy) == 0
-    assert P["hole_d"] <= 3.3  # the PSU's own holes take 3.3 mm at the very most
+    assert first_z(base, -dx, -dy) is None and first_z(base, dx, dy) is None
     # the other diagonal is solid: the PSU has only two holes
-    assert hits(mesh, -dx, dy) == 2 and hits(mesh, dx, -dy) == 2
+    assert np.isclose(first_z(base, -dx, dy), T) and np.isclose(first_z(base, dx, -dy), T)
+    assert P["hole_d"] <= 3.3  # the PSU's own holes take 3.3 mm at the very most
 
 
-def test_latch_beams(mesh):
-    y_in = WALL_IN - P["slot_in"] / 2
-    y_beam = WALL_IN + P["wall_t"] / 2
-    y_out = WALL_IN + P["wall_t"] + P["slot_out"] / 2
-    for x in (-20, 20):  # beyond the hook, still on the beam
-        assert hits(mesh, x, y_in) == 0
-        assert hits(mesh, x, y_beam) == 2
-        assert hits(mesh, x, y_out) == 0
+def test_four_blind_peg_holes(base):
+    floor = T - P["peg_hole_depth"]
+    for sx in (-1, 1):
+        for px in (5.9, 35.9):
+            assert np.isclose(first_z(base, sx * P["clip_x"], px - RAIL_CX), floor, atol=0.02)
 
 
-def test_hook_lips(mesh):
-    y_lip = WALL_IN - P["lip_len"] / 2  # under the lip, over the plate
-    for x in (-8, 8):
-        assert hits(mesh, x, -y_lip) == 4  # fixed hook: plate + lip
-    for x in (-8, 8):
-        assert hits(mesh, x, y_lip) == 2  # latch hook: lip only, slot beneath
-    # clearance between plate top and lip underside is the flange plus clr
-    zs = [p[2] for p in ray_hits(mesh, (8, -y_lip, 20), (0, 0, -1))]
-    assert np.isclose(zs[1] - zs[2], P["flange_t"] + P["clr"], atol=0.01), zs
+def test_print_layout_is_base_plus_two_clips(layout):
+    bodies = layout.split(only_watertight=False)
+    assert len(bodies) == 3 and all(b.is_watertight for b in bodies)
+    assert sum(b.bounds[0][1] > W / 2 for b in bodies) == 2  # both clips beside the plate

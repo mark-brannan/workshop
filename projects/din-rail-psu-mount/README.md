@@ -1,15 +1,18 @@
 # DIN-rail mount for an 80 x 110 mm AC-DC supply
 
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a
-35 mm TS35 rail. A flat base plate screws to the supply's two base holes. Four
-separate clips press into windows in the plate: two fixed hooks, two flexure
-latches. The rail runs along the 80 mm axis, so the 110 mm side stands up and down.
+35 mm TS35 rail. A flat 5 mm base plate screws to the supply's two base holes.
+Two DIN clips press into blind peg holes in the plate. The clip is the owner's
+design (Thingiverse thing:2415668, DIN_Clip.stl), outline copied point for point:
+a fixed lip on one end, a flexing hooked arm on the other, so two clips give two
+fixed and two flex latches. The rail runs along the 80 mm axis, the 110 mm side
+stands up and down.
 
 ## Files (out/)
 
-`din-rail-psu-mount_scad.3mf` / `.stl`: base plate plus the four clips laid out on
-one bed (clips beside the plate, upright). `part` in `model.scad` selects
-`assembled`, `base`, `fixed`, `latch` for single parts (OpenSCAD Customizer).
+`din-rail-psu-mount_scad.3mf` / `.stl`: base plate plus two clips laid out on one
+bed, clips flat as in the original STL. `part` in `model.scad` selects
+`assembled`, `base`, `clip`. Release a clip hook by pushing the arm's hook tip outward.
 
 ## Measured, and from what
 
@@ -26,11 +29,9 @@ one bed (clips beside the plate, upright). `part` in `model.scad` selects
 | Value | Now | Why |
 |---|---|---|
 | `hole_d` | 2.8 | M2.5 clearance; thread of the supply's holes unconfirmed |
-| `press` | 0.1 per side | clip block oversize against its window; tune per printer |
-| TS35 flange 1.0 thick, 35 wide | standard | not measured on the owner's rail |
+| `peg_hole_d` | 4.0 | equal to the peg; tune for the press fit |
+| `clip_w` | 6 | the original width; widen for a stiffer mount |
+| `clip_x` | 25 | clip spacing along the rail |
+| Rail | 35.25 between clip walls | from the original clip; owner's rail reads 34.5 |
 
-Latch geometry is the common flexure-beam DIN clip (ramped lip, in-plane beam,
-pry slot beside it), not copied from a specific design: the Thingiverse breadboard
-mount (thing:2415668) refused automated fetch (HTTP 403), so it was not read.
-
-Release: pry a 2 mm screwdriver blade into the inner slot beside the beam.
+Checks: the clip volume (1884.3) and bounding box match the original STL.
