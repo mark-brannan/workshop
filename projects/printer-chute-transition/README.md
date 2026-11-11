@@ -9,7 +9,7 @@ owner's printed segments attach below it. No bend is added; the jog you see is i
                          |  |     cover, jog included, unchanged (125 mm)
                          |  |
  cone_h 11              |  |     inside the cover's last run: U closed, bore funnels square to round
- flare_h 2               /  \     outer square to round in 2 mm
+ flare_h 10              /  \     outer square to round in 10 mm (the cover is trimmed 8 mm to pay for it)
  ball_h  30             (    )    ball: widest 59.8 mm, only below the square
                          \__/     rim on the bed
 ```
@@ -36,8 +36,8 @@ The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 tri
 | Ball centre | on the cover's section centre | chosen |
 | Ball wall | 1.86 inward from the measured outer surface | the original shell is ~1.0; matched to the cover for strength. Outer shape, which mates with the next segment, is the original |
 | `tube_h` | 0 | no extra square run: the flare starts at the cover's open end (raise it to add one) |
-| `flare_h` | 2 | outer step to the neck; upside down the corners lean inward, no overhang |
-| `cone_h` | 11 | inner funnel inside the cover's last run, ceiling lean ~41 deg; a brim is advisable for the 45 x 11 mm footprint |
+| `trim`, `flare_h` | 8, 2 + trim = 10 | the cover's open end is cut back 8 mm so the transition is longer at the same total height (156.65 mm). Upside down the outer corners lean inward, no overhang |
+| `cone_h` | 11 | the bore funnel runs flare_h + cone_h = 21 mm, ceiling lean ~24 deg; a brim is advisable for the 45 x 11 mm footprint |
 | `bore_r` | 22 | round bore, inside the cover's 44.8 x 46.1 passage |
 | Ball cut | at the waist, z=30 | below the cone of the original segment, which is not included |
 
@@ -57,7 +57,7 @@ Nothing here is calibrated for fit.
 > straight down from the ear. The 3MF's own Z axis is not "up"; along the chute, ear to open
 > end, is vertical. The ball is the last thing at the bottom.
 >
-> 1. Keep `chute-cover.3mf` exactly as is, ear end and screw holes included. Do not change its jog.
+> 1. Keep `chute-cover.3mf` as is, ear end and screw holes included (its open end may be trimmed to lengthen the transition without making the part longer). Do not change its jog.
 > 2. Add no extra square length: at the cover's open end, close the open side and flare
 >    immediately into the ball of `catcherforRing.3mf`, on the same vertical axis. If needed you may also close
 >    (enclose) an additional length of the original U's open side. Keep the whole part as short

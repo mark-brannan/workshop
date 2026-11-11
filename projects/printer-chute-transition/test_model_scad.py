@@ -11,7 +11,8 @@ from shop.testing import ray_hits
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
-Z_OPEN = 32.0  # installed frame: ball_h 30 + flare_h 2 + tube_h 0, where the cover's open end sits
+TRIM = 8.0     # cut off the cover's open end; the flare is 2 + TRIM
+Z_OPEN = 40.0  # installed frame: ball_h 30 + flare_h 10, where the (trimmed) cover begins
 TOP = 156.65   # the part is printed ear down; the fixture flips it back to the installed frame
 CONE = 11.0    # the inner funnel inside the cover's last run
 
@@ -30,7 +31,7 @@ def part(tmp_path_factory):
 @pytest.fixture(scope="module")
 def cover():
     o = trimesh.load(HERE / "ref" / "chute-cover.stl", process=False)
-    o.vertices = np.c_[o.vertices[:, 0], -o.vertices[:, 2], o.vertices[:, 1] + Z_OPEN + 50.6]
+    o.vertices = np.c_[o.vertices[:, 0], -o.vertices[:, 2], o.vertices[:, 1] + Z_OPEN + 50.6 - TRIM]
     return o
 
 
