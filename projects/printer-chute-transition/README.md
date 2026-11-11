@@ -8,15 +8,16 @@ owner's printed segments attach below it. No bend is added; the jog you see is i
  ear + screw holes ->  ==|  |     screws go in horizontally (along Y), unchanged
                          |  |     cover, jog included, unchanged (125 mm)
                          |  |
- flare_h 14              /  \     closes the U and goes square to round at once, ~31 deg lean
+ cone_h 11              |  |     inside the cover's last run: U closed, bore funnels square to round
+ flare_h 2               /  \     outer square to round in 2 mm
  ball_h  30             (    )    ball: widest 59.8 mm, only below the square
                          \__/     rim on the bed
 ```
 
 ## Files (out/)
 
-`printer-chute-transition_scad.3mf` / `.stl`: one part, 169 mm tall, in print orientation
-(ear up, ball rim on the bed, stacked, no supports). `.png` / `_views.png`: renders.
+`printer-chute-transition_scad.3mf` / `.stl`: one part, 157 mm tall, in print orientation
+(printed upside down: the 45 x 11 mm ear face on the bed, ball rim on top, no supports; `ear_down = false` gives the ear-up version, 14 mm flare needed). `.png` / `_views.png`: renders.
 The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 triangles);
 `ref/` keeps the owner's 3MF and an STL of it.
 
@@ -35,12 +36,14 @@ The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 tri
 | Ball centre | on the cover's section centre | chosen |
 | Ball wall | 1.86 inward from the measured outer surface | the original shell is ~1.0; matched to the cover for strength. Outer shape, which mates with the next segment, is the original |
 | `tube_h` | 0 | no extra square run: the flare starts at the cover's open end (raise it to add one) |
-| `flare_h` | 14 | as short as is comfortable: corner lean ~31 deg (20 gives ~23 deg) |
+| `flare_h` | 2 | outer step to the neck; upside down the corners lean inward, no overhang |
+| `cone_h` | 11 | inner funnel inside the cover's last run, ceiling lean ~41 deg; a brim is advisable for the 45 x 11 mm footprint |
+| `bore_r` | 22 | round bore, inside the cover's 44.8 x 46.1 passage |
 | Ball cut | at the waist, z=30 | below the cone of the original segment, which is not included |
 
 Checks: `uv run pytest -q projects/printer-chute-transition`. Cover unchanged (same wall crossings
 along six vertical rays, same top), watertight, bore open from top to rim. Nothing wider than the
-square sits at or above the cover's open end (z=44); the ball overhangs only below.
+square sits at or above the cover's open end (z=32, installed frame); the ball overhangs only below.
 Nothing here is calibrated for fit.
 
 ## The clean prompt (use this to start over)

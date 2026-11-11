@@ -11,7 +11,9 @@ from shop.testing import ray_hits
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
-Z_OPEN = 44.0  # ball_h 30 + flare_h 14 + tube_h 0: where the cover's open end sits
+Z_OPEN = 32.0  # installed frame: ball_h 30 + flare_h 2 + tube_h 0, where the cover's open end sits
+TOP = 156.65   # the part is printed ear down; the fixture flips it back to the installed frame
+CONE = 11.0    # the inner funnel inside the cover's last run
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +21,10 @@ def part(tmp_path_factory):
     d = tmp_path_factory.mktemp("chute")
     src = d / "model.scad"
     src.write_text((HERE / "model.scad").read_text())
-    return trimesh.load(build_scad(src, d, "part", render=False)["stl"])
+    m = trimesh.load(build_scad(src, d, "part", render=False)["stl"])
+    assert np.allclose(m.bounds[0], [-5.7, 21.1, 0], atol=0.1)  # printed ear down: ear face on the bed
+    m.vertices = np.c_[m.vertices[:, 0], -m.vertices[:, 1], TOP - m.vertices[:, 2]]
+    return m
 
 
 @pytest.fixture(scope="module")
@@ -31,17 +36,17 @@ def cover():
 
 def test_bounds_volume_watertight(part):
     assert part.is_watertight
-    assert np.allclose(part.bounds, [[-5.7, -80.9, 0], [69.11, -21.1, 168.65]], atol=0.1)
-    assert 46000 < part.volume < 52000  # cover 32334 + tube, flare and ball shells
+    assert np.allclose(part.bounds, [[-5.7, -80.9, 0], [69.11, -21.1, TOP]], atol=0.1)
+    assert 44000 < part.volume < 50000  # cover 32334 + tube, flare and ball shells
 
 
 def test_cover_unchanged(part, cover):
     # vertical rays through the cover's region give the same wall crossings as the original
     for x, y in [(10, -50), (24, -40), (30, -72), (45, -30), (60, -40), (20, -26)]:
-        a = [h[2] for h in ray_hits(part, (x, y, 300), (0, 0, -1)) if h[2] > Z_OPEN + 0.5]
-        b = [h[2] for h in ray_hits(cover, (x, y, 300), (0, 0, -1)) if h[2] > Z_OPEN + 0.5]
+        a = [h[2] for h in ray_hits(part, (x, y, 300), (0, 0, -1)) if h[2] > Z_OPEN + CONE + 0.5]
+        b = [h[2] for h in ray_hits(cover, (x, y, 300), (0, 0, -1)) if h[2] > Z_OPEN + CONE + 0.5]
         assert np.allclose(a, b, atol=0.01), (x, y)
-    above = part.vertices[part.vertices[:, 2] > Z_OPEN + 0.3]
+    above = part.vertices[part.vertices[:, 2] > Z_OPEN + CONE + 0.3]
     assert above[:, 2].max() == pytest.approx(cover.vertices[:, 2].max(), abs=0.01)
 
 

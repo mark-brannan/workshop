@@ -1,13 +1,16 @@
 // K2 Plus chute cover -> straight tube -> flare -> segmented-chute ball.
-// Print orientation = installed orientation: ball rim on the bed, ear at the top,
-// stacked, no supports. The ear's screw holes run horizontally (along Y).
+// Printed ear down (ear_down = true): the 45 x 11 mm ear face on the bed, ball rim on top, no supports.
+// Modelled installed (ball at z=0, ear up) and flipped at the end. The ear's screw holes run horizontally.
 // cover_mesh() at the bottom is chute-cover.3mf unchanged (copy in ref/); everything else is added below it.
 // Source frame of the STL: Y runs ear (+74) to open end (-50.6), U opens toward -Z.
 
 /* [Added section, mm] */
 wall = 1.86;       // same as the cover's walls; also used inside the ball
 ball_h = 30;       // ball profile from its rim (z=0) up to its waist
-flare_h = 14;      // square -> round; corners lean ~31 deg, no support
+flare_h = 2;       // outer square -> round; the corners lean inward as they climb when printed ear down
+cone_h = 11;       // inner funnel, inside the cover's last straight run: round bore to square, 41 deg lean
+bore_r = 22;       // round bore through the flare (cover's passage is 44.8 x 46.1)
+ear_down = true;   // print upside down: ear on the bed, ball rim on top, no supports. false = ear up
 tube_h = 0;        // extra closed square run; 0 = the flare starts at the cover's open end
 
 /* [Hidden] */
@@ -47,7 +50,19 @@ module loft() {   // square tube + flare, hollow, open at the ball end
             skin_solid(rings(OUT, R_NECK));
             translate([-50, -150, z_flare]) cube([200, 200, z_open - z_flare]);
         }
-        skin_solid(rings(IN, R_NECK - wall));
+        skin_solid([ring(IN, bore_r, 1, z_flare - 1), ring(IN, bore_r, 1, z_open + 0.5)]);
+    }
+}
+
+module cone_fill() {   // closes the cover's open side over its last cone_h and funnels the bore round
+    difference() {
+        translate([0, 0, z_open]) linear_extrude(cone_h) union() {
+            offset(delta = -0.3) polygon(OUT);                       // inside the cover's walls, no shared faces
+            translate([0.3, -29]) square([47.88, 2]);                // the closing wall on the open side
+        }
+        skin_solid(concat([ring(IN, bore_r, 1, z_open - 0.5)],
+                          [for (i=[0:8]) ring(IN, bore_r, 1 - i/8, z_open + cone_h*i/8)],
+                          [ring(IN, bore_r, 0, z_open + cone_h + 0.5)]));
     }
 }
 
@@ -63,7 +78,9 @@ module cover() {   // the unchanged owner file, rotated so source Y is up
     translate([0, 0, z_open + 50.6]) rotate([90, 0, 0]) cover_mesh();
 }
 
-union() { cover(); loft(); ball(); }
+module part() { cover(); loft(); cone_fill(); ball(); }
+top = z_open + 124.65;
+if (ear_down) translate([0, 0, top]) rotate([180, 0, 0]) part(); else part();
 
 // chute-cover.3mf, 1212 vertices, 2428 triangles, source frame, unchanged.
 module cover_mesh() polyhedron(
