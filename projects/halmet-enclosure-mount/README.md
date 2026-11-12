@@ -2,20 +2,23 @@
 
 Purpose: hold a Hat Labs HALMET board in Hat Labs' pre-drilled 158x90x60 mm
 enclosure (SKU ECK-PW158-H). The board's two M3 slots match nothing in the box,
-so a flat printed plate screws to the box's floor bosses and carries two
+so a printed frame screws to the box's floor bosses and carries two
 standoffs for the board.
+
+![frame](out/halmet-enclosure-mount_scad.png)
 
 ![overlay](out/overlay.png)
 
 ## Status
 
 - [x] Board geometry, from the KiCad file
-- [x] 2D overlay (`overlay.py`, `out/overlay.png`)
-- [ ] Enclosure measured with calipers (table below)
-- [ ] `model.scad`, test, render
-- [ ] Printed and fitted
+- [x] 2D overlay (`overlay.py`, `out/overlay.png`; drawn before the owner's numbers, shows the earlier solid plate)
+- [x] `model.scad`, tests, render, 3MF and laser DXF
+- [ ] Fit check in the box, then tune the box parameters
+- [ ] Final print or cut, fitted
 
 ## Known, and from what
+
 
 Board coordinates: origin at the board's lower-left bounding corner, terminal
 blocks on the left, USB tab on the right, component side up.
@@ -33,28 +36,43 @@ blocks on the left, USB tab on the right, component side up.
 | Box outside | 158 x 90 x 60 | vendor page |
 | Box wall holes | six 13 mm, four with PG7 plugs, all on one long wall | vendor page and photos |
 
-## Guessed
+## Estimated
 
-Scaled from the vendor's one top-down photo; perspective makes these +/-5 mm.
-The vendor publishes no drawing and no manufacturer part number.
+The box is too deep for calipers to reach the bosses squarely, so these are the
+owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
-| Value | Now | To measure |
+| Parameter | Now | Source |
 |---|---|---|
-| Holed bosses, end to end | 140 | centre to centre along the box length |
-| Holed bosses, pitch on one end | 22 | centre to centre, three per end |
-| Boss height and hole diameter | 5, 2.6 | depth gauge and a drill shank |
-| Solid posts | 79 x 68.5, same height as the bosses | spacing, and height against the bosses |
-| Inner floor | 150 x 82 | length and width at the floor |
-| Floor to lowest wall fitting | 12 | floor to the underside of the lowest gland nut |
+| `boss_span` | 136 | owner, between 130 and 140 |
+| `boss_pitch` | 21 | owner, approximate |
+| Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
+| Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
+| Inner floor | 151 x 83 | owner |
+| Floor to lowest gland nut | 2 to 3 | owner; the frame stays 14 mm clear of that wall in plan |
+| `screw_d` | 3.4 | guess; the boss hole diameter is unmeasured |
 
 ## Design
 
-- Plate 146 x 56 x 3, flat on the six holed bosses, slotted along the box
-  length so a boss estimate that is a few mm out still fits.
+- An open frame, 144 x 57.5 x 3: two end bars over the bosses, two rails under
+  the board's slot lines, one cross tie. 11 cm3, against 24.5 for a solid plate.
+- Each end bar has three fork slots, open toward the box wall, so a boss
+  anywhere within `slot_reach` (4 mm) of `boss_span` still takes its screw.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
-  insert. Two plain rests under the opposite corners so pushing a plug into a
+  insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
-- The plate is narrower than the gap between the solid posts, so it passes
-  between them whatever their height.
-- A plate, not a grid: a grid earns its keep when the hole positions are not
-  known. Here both ends are known, and a solid plate is stiffer for less print.
+- `board_dy` moves the board, rails and standoffs together, away from the
+  gland-nut wall.
+
+## Fit check
+
+Set `part = "gauge"` with `mode = "3d"` for a 0.8 mm print of the same outline,
+or cut the frame at Z = 0.8 in the slicer. Lay it on the bosses, read where
+each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
+them.
+
+## Laser
+
+`out/halmet-enclosure-mount_scad.dxf` is the same outline with M3 through
+holes where the standoffs go; use two loose 6 mm M3 spacers. 3 mm acrylic
+cuts cleanly but cracks at a fork tine if a screw is overtightened; a printed
+frame is the better part for a boat.
