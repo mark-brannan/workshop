@@ -13,10 +13,10 @@ inside measurements: [`enclosure/`](enclosure/README.md).
 ## Status
 
 - [x] Board geometry, from the KiCad file
-- [x] 2D overlay (`overlay.py`, `out/overlay.png`; drawn before the owner's numbers, shows the earlier solid plate)
+- [x] Board geometry drawn against the box (`overlay.py`)
 - [x] `model.scad`, tests, render, 3MF and laser DXF
 - [x] Rest pads on the four no-hole posts, zip-tie slots, underside pockets over the bosses (`model.scad`, tests)
-- [ ] Build and test the post/tie revision; refresh `out/` and draw `overlay.py` from the built DXF
+- [x] Build and test the post/tie revision; `overlay.py` draws the built DXF (`out/overlay.png`)
 - [ ] Fit check in the box, then tune the box parameters
 - [ ] Final print or cut, fitted
 

@@ -20,6 +20,7 @@ post_dy = 70;        // centre to centre across the width (photo 67 to 69)
 post_h = 2;          // lower than the bosses, so the frame underside steps down to meet them
 frame_w = 75;        // overall width across the post pads
 pad_l = 12;          // pad length along X; covers a post 4 mm either side of post_dx
+gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
 
 /* [Zip-tie strain relief: slot pairs, the tie loops under the frame] */
 tie_w = 4;           // slot length; takes ties up to 3.6 mm wide
@@ -114,6 +115,8 @@ module frame() {
         }
         translate([0, 0, body_t + standoff_h - insert_depth])
             linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+        translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
+            cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
         if (drop > 0) translate([0, 0, -1]) linear_extrude(drop + 1)
             for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
                 translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
