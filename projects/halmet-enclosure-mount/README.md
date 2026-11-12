@@ -2,8 +2,9 @@
 
 Purpose: hold a Hat Labs HALMET board in Hat Labs' pre-drilled 158x90x60 mm
 enclosure (SKU ECK-PW158-H). The board's two M3 slots match nothing in the box,
-so a printed frame screws to the box's floor bosses and carries two
-standoffs for the board.
+so a printed frame screws to the box's six holed floor bosses, rests on its
+four no-hole posts, and carries two standoffs for the board. Box photos and
+inside measurements: [`enclosure/`](enclosure/README.md).
 
 ![frame](out/halmet-enclosure-mount_scad.png)
 
@@ -14,6 +15,8 @@ standoffs for the board.
 - [x] Board geometry, from the KiCad file
 - [x] 2D overlay (`overlay.py`, `out/overlay.png`; drawn before the owner's numbers, shows the earlier solid plate)
 - [x] `model.scad`, tests, render, 3MF and laser DXF
+- [x] Rest pads on the four no-hole posts, zip-tie slots, underside pockets over the bosses (`model.scad`, tests)
+- [ ] Build and test the post/tie revision; refresh `out/` and draw `overlay.py` from the built DXF
 - [ ] Fit check in the box, then tune the box parameters
 - [ ] Final print or cut, fitted
 
@@ -60,6 +63,14 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
   insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
+- Four pads reach out to the no-hole posts, 75 wide overall. The posts sit
+  1.5 below the bosses, so the frame is 4.5 thick and its underside is
+  pocketed 1.5 deep over each boss: Z = 0 rests on the posts, the pocket
+  ceilings sit on the bosses. Set `post_h` equal to `boss_h` for a flat 3 mm
+  frame.
+- Zip-tie strain relief: slot pairs, the tie looping under the frame. Three on
+  a bar along the gland wall, two on the left end bar beside the terminal
+  blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 
