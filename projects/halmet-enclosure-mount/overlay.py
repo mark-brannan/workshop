@@ -145,6 +145,14 @@ for sx in (-1, 1):
 ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
         color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
+# lid-screw columns, one per corner, full height (photo, scaled by the boss span)
+for sx in (-1, 1):
+    for sy in (-1, 1):
+        x0, y0 = sx * P["lid_col_x"], sy * P["lid_col_y"]
+        ax.add_patch(Rectangle((min(x0, sx * 75.5), min(y0, sy * 41.5)), 75.5 - P["lid_col_x"], 41.5 - P["lid_col_y"],
+                               fc=GUESS, ec=GUESS, alpha=0.3, hatch="//"))
+ax.text(70, 30.4, "lid screw\ncolumn", ha="center", va="top", fontsize=6.5, color=GUESS)
+
 # gland wall
 for x in (-12.7, 9.5, 31.1, 51.3):  # photo positions; nuts 2-3 mm above the floor
     ax.add_patch(Rectangle((x - 8.3, -41.5), 16.6, 4.0, fc="#333", ec="none", alpha=0.85))

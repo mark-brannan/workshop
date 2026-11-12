@@ -76,9 +76,9 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   gland-nut wall.
 - Display: four posts at the right end, 18 mm above the frame top, carry a
   0.96" SSD1306 module (M2 heat-set inserts) about 10 mm above the HALMET's
-  top face. The board stays centred: the right end has room once the posts
-  dodge the right-hand boss screws, the ESP32's antenna overhang and the USB
-  plug's path. The module covers the upper right boss screw, so it goes on
+  top face. The board sits 8 mm toward the left end (`board_dx`) so the
+  posts clear the right-hand boss screws, the ESP32's antenna overhang, the
+  USB plug's path and the corner lid-screw column. The module covers the upper right boss screw, so it goes on
   after the frame is screwed down. Hole pattern 23.3 x 23.6 is a generic
   module's; caliper the one in hand and set `oled_hole_dx`/`oled_hole_dy`.
   `oled = 0` drops it. The laser DXF carries only the bars, not the posts.

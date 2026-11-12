@@ -141,5 +141,8 @@ def test_display_posts_clear_board_screws_and_usb():
         for k in (-1, 0, 1):  # M3 pan head, 5.6 diameter, on each right-hand boss
             assert np.hypot(x - SPAN / 2, y - k * PITCH) >= r + 2.8 + 1
         assert x + r < 151 / 2 - 2  # inside the floor
+    # module board (27.3 x 27.8) and posts clear the corner lid-screw column in at least one axis
+    for x, y, hx, hy in [(P["oled_x"], P["oled_y"], 27.3 / 2, 27.8 / 2)] + [(x, y, r, r) for x, y in OLED_POSTS]:
+        assert abs(x) + hx <= P["lid_col_x"] - 0.5 or abs(y) + hy <= P["lid_col_y"] - 0.5
     usb_y = 16.5 - 29 + DY  # USB-C centre; a plug overmold is about 12.5 wide
     assert all(abs(y - usb_y) >= r + 6.5 for _, y in OLED_POSTS)

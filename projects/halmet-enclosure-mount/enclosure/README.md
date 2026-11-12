@@ -25,6 +25,7 @@ Origin at the centre of the floor, X along the length, -Y toward the gland wall.
 | Rest post height | ~2 | | `post_h` 2 |
 | Rest post diameter | | ~5 | |
 | Floor to lowest gland nut | 2 to 3 | | |
+| Lid-screw column, each corner, full height: inner edges | | x 64.8, y 32.4 | `lid_col_x`, `lid_col_y` |
 | Gland nut inner face from centre | | ~37.5 | frame stays inside 37.5 |
 
 The photo has no scale of its own. Its range comes from scaling by two of

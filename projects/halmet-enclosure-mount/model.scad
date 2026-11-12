@@ -14,6 +14,8 @@ screw_d = 3.4;       // clearance for the screw into a boss
 slot_reach = 4;      // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
+lid_col_x = 64.8;    // lid-screw column in each corner, full height: inner edge along X (photo)
+lid_col_y = 32.4;    // and across Y; keep the display clear of both
 
 /* [Rest posts: four no-hole posts on the long sides] */
 post_dx = 80;        // centre to centre along the length (photo 77 to 80)
@@ -33,13 +35,13 @@ tie_bar_xs = [-24, 0, 24];   // slot pairs on the gland-side bar
 tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end bar, between bosses
 
 /* [Board position on the floor] */
-board_dx = 0;
+board_dx = -8;       // toward the left end, to make room for the display
 board_dy = 3;        // away from the gland-nut wall (-Y)
 
 /* [Display: 0.96" SSD1306 module on four raised posts at the right end] */
 oled = 1;            // 0 leaves the display posts off
-oled_x = 58.5;       // module centre; inner posts clear the ESP32 antenna overhang by 2.3
-oled_y = 19.5;       // posts fall between the boss screws and clear the USB plug's path
+oled_x = 50.5;       // module centre; inner posts clear the ESP32 antenna overhang by 2.3
+oled_y = 17;         // posts miss the boss screws, the lid-screw column and the USB plug's path
 oled_hole_dx = 23.3; // hole centres, generic module; caliper the one in hand
 oled_hole_dy = 23.6;
 oled_rise = 18;      // post height above the frame top: module ~10 mm above the HALMET's top face
