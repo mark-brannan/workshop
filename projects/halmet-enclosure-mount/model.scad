@@ -29,7 +29,7 @@ gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
 tie_w = 4;           // slot length; takes ties up to 3.6 mm wide
 tie_t = 2;           // slot width
 tie_gap = 5;         // slot centre to slot centre
-tie_bar_y = -30;     // slot pairs along the gland-side edge
+tie_bar_y = -29;     // slot pairs along the gland-side edge
 tie_bar_xs = [-24, 24];
 tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end, between bosses
 
@@ -51,12 +51,12 @@ oled_insert_depth = 4.5;
 /* [Plate: hex-lightened] */
 plate_t = 3;
 rail_w = 8;          // sets the plate's +Y edge under the board's slot rail
-plate_y_lo = -35;    // gland-side edge between the lid-screw columns
-rim_w = 3;           // solid rim round the outline
-hex_flat = 8;        // hex cell across flats
-hex_web = 2.4;       // wall between cells
-hex_x0 = 0;          // grid offset, set for the most whole cells
-hex_y0 = 1;
+plate_y_lo = -33;    // gland-side edge between the lid-screw columns
+rim_w = 2;           // solid rim round the outline
+hex_flat = 9;         // hex cell across flats
+hex_web = 2.0;       // wall between cells
+hex_x0 = 1.5;        // grid offset
+hex_y0 = 3;
 gauge_t = 0.8;
 
 /* [Standoffs] */
@@ -88,7 +88,7 @@ module outline2d() {
     offset(r = 2) offset(delta = -2) for (r = plate_rects) translate([r[0], r[1]]) square([r[2] - r[0], r[3] - r[1]]);
 }
 
-// Lattice: whole hex cells only, each inside the rim and a web clear of every solid island
+// Lattice: hex cells inside the rim, a web clear of every solid island
 // (screw ends, post pads, standoffs, rests, display posts, tie slots).
 hex_r = hex_flat/sqrt(3);                     // cell circumradius
 hex_pitch = hex_flat + hex_web;
@@ -97,27 +97,32 @@ plate_rects = concat(                         // outline as [x0, y0, x1, y1] box
     [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, -frame_w/2, sx*post_dx/2 + pad_l/2, frame_w/2]],
     oled ? [[oled_x - oled_hole_dx/2 - oled_post_d, y_hi - 1, lid_col_x - 1, oled_y + oled_hole_dy/2 + oled_post_d/2 + 2]] : []);
 keep_rects = concat(
-    [[-100, -100, -bar_x0, 100], [bar_x0, -100, 100, 100]],
-    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, post_dy/2 - 6, sx*post_dx/2 + pad_l/2, 100]],
-    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, -100, sx*post_dx/2 + pad_l/2, -post_dy/2 + 6]],
-    [for (x = tie_bar_xs) [x - tie_gap/2 - tie_t/2 - 3, tie_bar_y - tie_w/2 - 3, x + tie_gap/2 + tie_t/2 + 3, tie_bar_y + tie_w/2 + 3]],
-    [for (y = tie_end_ys) [-bar_x1, y - tie_gap/2 - tie_t/2 - 3, -(bar_x0 + bar_x1)/2 + tie_w/2 + 3, y + tie_gap/2 + tie_t/2 + 3]]);
+    [[-100, -100, -(boss_span/2 - slot_reach - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - screw_d/2 - 1.5, -100, 100, 100]],
+    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, post_dy/2 - 4, sx*post_dx/2 + pad_l/2, 100]],
+    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, -100, sx*post_dx/2 + pad_l/2, -post_dy/2 + 4]],
+    [for (x = tie_bar_xs) [x - tie_gap/2 - tie_t/2 - 2, tie_bar_y - tie_w/2 - 2, x + tie_gap/2 + tie_t/2 + 2, tie_bar_y + tie_w/2 + 2]],
+    [for (y = tie_end_ys) [-bar_x1, y - tie_gap/2 - tie_t/2 - 2, -(bar_x0 + bar_x1)/2 + tie_w/2 + 2, y + tie_gap/2 + tie_t/2 + 2]]);
 keep_discs = concat(   // [x, y, r]
-    [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 3]],
-    [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 4]],
-    oled ? [for (p = oled_posts) [p[0], p[1], oled_post_d/2 + 3]] : []);
+    [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
+    [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
+    oled ? [for (p = oled_posts) [p[0], p[1], oled_post_d/2 + 1.5]] : []);
 
-function in_box(p, r, m) = p[0] >= r[0] + m && p[0] <= r[2] - m && p[1] >= r[1] + m && p[1] <= r[3] - m;
-function hex_pts(c) = [for (k = [0:5]) c + hex_r*[cos(60*k + 30), sin(60*k + 30)]];
-function cell_ok(c) =
-    len([for (v = hex_pts(c)) if (len([for (r = plate_rects) if (in_box(v, r, rim_w)) 1]) == 0) 1]) == 0
-    && len([for (r = keep_rects) if (in_box(c, [r[0] - hex_r - hex_web, r[1] - hex_r - hex_web, r[2] + hex_r + hex_web, r[3] + hex_r + hex_web], 0)) 1]) == 0
-    && len([for (d = keep_discs) if (norm(c - [d[0], d[1]]) < d[2] + hex_r + hex_web) 1]) == 0;
-function cells(x0, y0) = [for (i = [-12:12], j = [-8:8])
-    let (c = [x0 + i*hex_pitch + (j % 2 == 0 ? 0 : hex_pitch/2), y0 + j*hex_pitch*sqrt(3)/2]) if (cell_ok(c)) c];
-hex_cells = cells(hex_x0, hex_y0);
 
-module lattice2d() { for (c = hex_cells) translate(c) offset(r = 0.8) offset(delta = -0.8) rotate(30) circle(r = hex_r, $fn = 6); }
+module keep2d() {
+    for (r = keep_rects) translate([r[0], r[1]]) square([r[2] - r[0], r[3] - r[1]]);
+    for (d = keep_discs) translate([d[0], d[1]]) circle(r = d[2]);
+}
+
+// Full hex grid clipped to the rim and a web clear of the islands; cells cut there stay,
+// slivers narrower than 2.5 mm drop out.
+module lattice2d() {
+    offset(r = 1.25) offset(r = -1.25) intersection() {
+        difference() { offset(delta = -rim_w) outline2d(); offset(delta = hex_web) keep2d(); }
+        for (i = [-12:12], j = [-8:8])
+            translate([hex_x0 + i*hex_pitch + (j % 2 == 0 ? 0 : hex_pitch/2), hex_y0 + j*hex_pitch*sqrt(3)/2])
+                offset(r = 0.8) offset(delta = -0.8) rotate(30) circle(r = hex_r, $fn = 6);
+    }
+}
 
 module solid2d() { difference() { outline2d(); lattice2d(); } }
 
