@@ -2,8 +2,9 @@
 
 Purpose: hold a Hat Labs HALMET board in Hat Labs' pre-drilled 158x90x60 mm
 enclosure (SKU ECK-PW158-H). The board's two M3 slots match nothing in the box,
-so a printed frame screws to the box's floor bosses and carries two
-standoffs for the board.
+so a printed frame screws to the box's six holed floor bosses, rests on its
+four no-hole posts, and carries two standoffs for the board. Box photos and
+inside measurements: [`enclosure/`](enclosure/README.md).
 
 ![frame](out/halmet-enclosure-mount_scad.png)
 
@@ -12,8 +13,12 @@ standoffs for the board.
 ## Status
 
 - [x] Board geometry, from the KiCad file
-- [x] 2D overlay (`overlay.py`, `out/overlay.png`; drawn before the owner's numbers, shows the earlier solid plate)
+- [x] Board geometry drawn against the box (`overlay.py`)
 - [x] `model.scad`, tests, render, 3MF and laser DXF
+- [x] Rest pads on the four no-hole posts, zip-tie slots, underside pockets over the bosses (`model.scad`, tests)
+- [x] Build and test the post/tie revision; `overlay.py` draws the built DXF (`out/overlay.png`)
+- [x] Raised SSD1306 display posts (`model.scad`, tests, overlay)
+- [x] Hex-lightened plate replaces the open frame; every display post on solid plate
 - [ ] Fit check in the box, then tune the box parameters
 - [ ] Final print or cut, fitted
 
@@ -53,15 +58,33 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 ## Design
 
-- An open frame, 144 x 57.5 x 3: two end bars over the bosses, two rails under
-  the board's slot lines, one cross tie. 11 cm3, against 24.5 for a solid plate.
+- One plate, 144 x 75, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
+  2 mm rim. Cells are clipped where they meet a solid island (screw ends, rest
+  pads, standoffs, rests, display posts, tie slots). 25.8 cm3 measured from the
+  STL, against 11 for the earlier open frame; the plate is the stiffer of the two.
+  `hex_flat`, `hex_web`, `rim_w` tune it.
 - Each end bar has three fork slots, open toward the box wall, so a boss
   anywhere within `slot_reach` (4 mm) of `boss_span` still takes its screw.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
   insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
+- Four pads reach out to the no-hole posts, 75 wide overall. The posts sit
+  1.5 below the bosses, so the frame is 4.5 thick and its underside is
+  pocketed 1.5 deep over each boss: Z = 0 rests on the posts, the pocket
+  ceilings sit on the bosses. Set `post_h` equal to `boss_h` for a flat 3 mm
+  frame.
+- Zip-tie strain relief: slot pairs, the tie looping under the frame. Two
+  along the gland-side edge, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
+- Display: four posts at the right end, each in a solid ring joined to the lattice, 18 mm above the frame top, carry a
+  0.96" SSD1306 module (M2 heat-set inserts) about 10 mm above the HALMET's
+  top face. The board sits 8 mm toward the left end (`board_dx`) so the
+  posts clear the right-hand boss screws, the ESP32's antenna overhang, the
+  USB plug's path and the corner lid-screw column. The module covers the upper right boss screw, so it goes on
+  after the frame is screwed down. Hole pattern 23.3 x 23.6 is a generic
+  module's; caliper the one in hand and set `oled_hole_dx`/`oled_hole_dy`.
+  `oled = 0` drops it. The laser DXF carries only the plate, not the posts.
 
 ## Fit check
 
