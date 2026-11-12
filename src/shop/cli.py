@@ -2,7 +2,8 @@
 
     shop build [projects/<slug> ...]   build every project, or the ones named
     shop doctor                        which shop tools this box has
-    shop fusion                        the folder to add in Fusion's Scripts panel
+    shop printer                       K2 Plus status (read-only)
+    shop fusion                      the folder to add in Fusion's Scripts panel
 """
 
 from __future__ import annotations
@@ -37,6 +38,10 @@ def main(argv: list[str] | None = None) -> int:
         return build.main(["shop build", *rest])
     if cmd == "doctor":
         return doctor()
+    if cmd == "printer":
+        from . import printer
+
+        return printer.main()
     if cmd == "fusion":
         base = _fusion_path()
         sep = "\\" if "\\" in base else "/"
