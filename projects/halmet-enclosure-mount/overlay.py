@@ -145,6 +145,19 @@ for sx in (-1, 1):
 ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
         color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
+# light sensor: LM393 photoresistor module on one M3 post and a rest (hole position a photo estimate)
+LC = "#b8860b"
+LX0, LY, LL, LW = P["ldr_x"] - P["ldr_l"] / 2, P["ldr_y"], P["ldr_l"], P["ldr_w"]
+ax.add_patch(Rectangle((LX0, LY - LW / 2), LL, LW, fc="#fff3c4", ec=LC, lw=1.5, alpha=0.75))
+ax.add_patch(Rectangle((LX0 - 20, LY - 1.3), 20, 2.6, fc="#222", ec="none", alpha=0.35))  # right-angle pins + Dupont plug
+ax.add_patch(Circle((LX0 + LL + 2.5, LY), 2.5, fc="#c87a6a", ec=LC, lw=1))  # photoresistor head
+ax.add_patch(Circle((LX0 + P["ldr_hole_in"], LY), P["ldr_post_d"] / 2, fc="none", ec=LC, lw=1.6))
+ax.add_patch(Circle((LX0 + P["ldr_hole_in"], LY), P["ldr_insert_d"] / 2, fc=LC, ec="none"))
+ax.add_patch(Circle((LX0 + P["ldr_rest_in"], LY), 2, fc="none", ec=LC, lw=1.6))
+ax.text(LX0 + 16, LY + LW / 2 + 0.8, f"light sensor 32 x 14, {P['ldr_rise']:g} mm post + rest", ha="center",
+        fontsize=7.5, color=LC, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+ax.text(LX0 - 10, LY - 4.5, "pins + plug", ha="center", fontsize=6.5, color="#444")
+
 # lid-screw columns, one per corner, full height (photo, scaled by the boss span)
 for sx in (-1, 1):
     for sy in (-1, 1):

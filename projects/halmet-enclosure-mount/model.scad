@@ -1,7 +1,8 @@
 // Frame that holds a Hat Labs HALMET board in the 158x90x60 pre-drilled box.
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
-// Four raised posts at the right end carry an SSD1306 display module above the board's level.
+// Four raised posts at the right end carry an SSD1306 display module above the board's level;
+// a post and a rest beside them carry an LM393 photoresistor module at the same height.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
@@ -48,6 +49,19 @@ oled_post_d = 6;
 oled_insert_d = 3.2; // M2 heat-set insert
 oled_insert_depth = 4.5;
 
+/* [Light sensor: LM393 photoresistor module, 32 x 14, one M3 hole] */
+ldr = 1;             // 0 leaves the sensor posts off
+ldr_x = 52;          // module centre; header end toward the board, photoresistor toward the right wall
+ldr_y = -23;         // below the USB plug's path, inside the lid-screw columns
+ldr_l = 32;          // vendor drawing
+ldr_w = 14;
+ldr_hole_in = 7;     // hole centre from the header end, centred across; photo estimate, caliper it
+ldr_rest_in = 26;    // plain rest under the photoresistor end, same height
+ldr_rise = 18;       // same height as the display
+ldr_post_d = 7;
+ldr_insert_d = 4.0;  // M3 heat-set insert
+ldr_insert_depth = 5;
+
 /* [Plate: hex-lightened] */
 plate_t = 3;
 rail_w = 8;          // sets the plate's +Y edge under the board's slot rail
@@ -78,6 +92,9 @@ rail_ys = [for (s = slots) s[1] + board_dy];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach;                   // outer edge
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
+ldr_x0 = ldr_x - ldr_l/2;                             // header end of the module
+ldr_post = [ldr_x0 + ldr_hole_in, ldr_y];
+ldr_rest = [ldr_x0 + ldr_rest_in, ldr_y];
 y_hi = max(boss_pitch + 6, max(rail_ys) + rail_w/2);
 y_lo = min(-boss_pitch - 6, min(rail_ys) - rail_w/2);
 
@@ -105,7 +122,8 @@ keep_rects = concat(
 keep_discs = concat(   // [x, y, r]
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    oled ? [for (p = oled_posts) [p[0], p[1], oled_post_d/2 + 1.5]] : []);
+    oled ? [for (p = oled_posts) [p[0], p[1], oled_post_d/2 + 1.5]] : [],
+    ldr ? [[ldr_post[0], ldr_post[1], ldr_post_d/2 + 1.5], [ldr_rest[0], ldr_rest[1], rest_d/2 + 1.5]] : []);
 
 
 module keep2d() {
@@ -160,9 +178,12 @@ module frame() {
             linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
             linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
             if (oled) linear_extrude(body_t + oled_rise) for (p = oled_posts) translate(p) circle(d = oled_post_d);
+            if (ldr) linear_extrude(body_t + ldr_rise) { translate(ldr_post) circle(d = ldr_post_d); translate(ldr_rest) circle(d = rest_d); }
         }
         if (oled) translate([0, 0, body_t + oled_rise - oled_insert_depth]) linear_extrude(oled_insert_depth + 1)
             for (p = oled_posts) translate(p) circle(d = oled_insert_d);
+        if (ldr) translate([ldr_post[0], ldr_post[1], body_t + ldr_rise - ldr_insert_depth])
+            cylinder(d = ldr_insert_d, h = ldr_insert_depth + 1);
         translate([0, 0, body_t + standoff_h - insert_depth])
             linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
