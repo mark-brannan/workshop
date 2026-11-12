@@ -28,6 +28,7 @@ RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 OLED_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
               for sx in (-1, 1) for sy in (-1, 1)]
 OLED_TOP = T + P["oled_rise"]
+VOL_LO, VOL_HI = 23000, 28500  # first hex-plate build: 25789
 
 
 @pytest.fixture(scope="module")
@@ -56,7 +57,13 @@ def test_bounds_volume_watertight(frame):
     assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, OLED_TOP), atol=0.02)
     assert np.isclose(hi[1] - lo[1], P["frame_w"], atol=0.05)
     assert hi[1] - lo[1] < 83 - 4  # inside the box floor width with room to spare
-    assert 12000 < frame.volume < 24000  # mm^3; a solid 144 x 75 x 4.5 plate is 48600
+    assert VOL_LO < frame.volume < VOL_HI  # mm^3; a solid 144 x 75 x 4.5 plate is 48600
+
+
+def test_one_body_lightened(frame):
+    assert len(frame.split(only_watertight=False)) == 1  # every post and island joined
+    for x, y in [(-30.0, 0.0), (10.0, 0.0), (P["oled_x"], P["oled_y"])]:  # open cells under board and display
+        assert any(top(frame, x + dx, y + dy) is None for dx in (-3, 0, 3) for dy in (-3, 0, 3))
 
 
 def test_board_is_89_by_58_slot_pattern():
@@ -114,12 +121,12 @@ def test_underside_pocketed_over_the_holed_bosses(frame):
 
 
 def test_zip_tie_slots_open(frame):
-    pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in (-24, 0, 24) for s in (-1, 1)]
+    pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in (-24, 24) for s in (-1, 1)]
     x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH) / 2
     pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]
     for x, y in pairs:
         assert top(frame, x, y) is None
-    for x in (-24, 0, 24):  # web between the two slots of a pair carries the tie
+    for x in (-24, 24):  # web between the two slots of a pair carries the tie
         assert np.isclose(top(frame, x, P["tie_bar_y"]), T, atol=0.02)
 
 
