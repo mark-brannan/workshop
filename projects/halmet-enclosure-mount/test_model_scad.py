@@ -25,6 +25,9 @@ SPAN, PITCH, REACH = P["boss_span"], P["boss_pitch"], P["slot_reach"]
 DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
+OLED_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
+              for sx in (-1, 1) for sy in (-1, 1)]
+OLED_TOP = T + P["oled_rise"]
 
 
 @pytest.fixture(scope="module")
@@ -48,11 +51,12 @@ def top(mesh, x, y):
 def test_bounds_volume_watertight(frame):
     assert frame.is_watertight
     lo, hi = frame.bounds
-    assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH, SPAN / 2 + REACH], atol=0.05)
-    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], T + H, atol=0.02)
+    assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH, max(SPAN / 2 + REACH, max(x for x, _ in OLED_POSTS) + P["oled_post_d"] / 2)],
+                       atol=0.05)
+    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, OLED_TOP), atol=0.02)
     assert np.isclose(hi[1] - lo[1], P["frame_w"], atol=0.05)
     assert hi[1] - lo[1] < 83 - 4  # inside the box floor width with room to spare
-    assert 12000 < frame.volume < 22000  # mm^3; a solid 144 x 75 x 4.5 plate is 48600
+    assert 12000 < frame.volume < 24000  # mm^3; a solid 144 x 75 x 4.5 plate is 48600
 
 
 def test_board_is_89_by_58_slot_pattern():
@@ -79,7 +83,7 @@ def test_six_fork_slots_open_over_the_bosses(frame):
             y = k * PITCH
             for off in (-REACH, 0, REACH):  # boss anywhere in the stated reach
                 assert top(frame, sx * (SPAN / 2 + off), y) is None
-            assert np.isclose(top(frame, sx * SPAN / 2, y + PITCH / 2 if k < 1 else y + 4), T, atol=0.02)
+            assert np.isclose(top(frame, sx * SPAN / 2, y + PITCH / 2 if k < 0 else y - 4), T, atol=0.02)
 
 
 def test_laser_profile_is_millimetres_on_cut_layer(built):
@@ -117,3 +121,25 @@ def test_zip_tie_slots_open(frame):
         assert top(frame, x, y) is None
     for x in (-24, 0, 24):  # web between the two slots of a pair carries the tie
         assert np.isclose(top(frame, x, P["tie_bar_y"]), T, atol=0.02)
+
+
+def test_display_posts_with_blind_m2_inserts(frame):
+    for x, y in OLED_POSTS:
+        assert np.isclose(top(frame, x, y), OLED_TOP - P["oled_insert_depth"], atol=0.02)
+        assert np.isclose(top(frame, x + P["oled_insert_d"] / 2 + 0.5, y), OLED_TOP, atol=0.02)
+        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # standing on frame, not in the air
+    assert OLED_TOP > T + H + 1.6 + 8  # module sits well above the HALMET's top face
+
+
+def test_display_posts_clear_board_screws_and_usb():
+    r = P["oled_post_d"] / 2
+    # board right edge: x = 44.5 below board-y 24.7, stepped in to 38.5 above it, but the
+    # ESP32 module overhangs that step to 41.5 (KiCad)
+    for x, y in OLED_POSTS:
+        edge = 41.5 if y - DY > 24.7 - 29 else 44.5
+        assert x - r - (edge + DX) >= 2
+        for k in (-1, 0, 1):  # M3 pan head, 5.6 diameter, on each right-hand boss
+            assert np.hypot(x - SPAN / 2, y - k * PITCH) >= r + 2.8 + 1
+        assert x + r < 151 / 2 - 2  # inside the floor
+    usb_y = 16.5 - 29 + DY  # USB-C centre; a plug overmold is about 12.5 wide
+    assert all(abs(y - usb_y) >= r + 6.5 for _, y in OLED_POSTS)

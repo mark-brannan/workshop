@@ -133,6 +133,18 @@ for x in (-24, 0, 24):
     ax.text(x, P["tie_bar_y"] - 3.4, "tie", ha="center", fontsize=7, color=PLATE)
 ax.text(-65.6, -16, "ties", ha="center", fontsize=7, color=PLATE)
 
+# display module on four raised posts (generic 0.96" SSD1306; hole pattern to caliper)
+OX, OY, ODX, ODY = P["oled_x"], P["oled_y"], P["oled_hole_dx"], P["oled_hole_dy"]
+ax.add_patch(Rectangle((OX - 27.3 / 2, OY - 27.8 / 2), 27.3, 27.8, fc="#e8e0f8", ec="#7a3fd1", lw=1.5, alpha=0.6))
+ax.add_patch(Rectangle((OX - 13.4, OY - 3.9), 26.8, 13.0, fc="#222", ec="none", alpha=0.25))
+for sx in (-1, 1):
+    for sy in (-1, 1):
+        c = (OX + sx * ODX / 2, OY + sy * ODY / 2)
+        ax.add_patch(Circle(c, P["oled_post_d"] / 2, fc="none", ec="#7a3fd1", lw=1.6))
+        ax.add_patch(Circle(c, P["oled_insert_d"] / 2, fc="#7a3fd1", ec="none"))
+ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
+        color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+
 # gland wall
 for x in (-12.7, 9.5, 31.1, 51.3):  # photo positions; nuts 2-3 mm above the floor
     ax.add_patch(Rectangle((x - 8.3, -41.5), 16.6, 4.0, fc="#333", ec="none", alpha=0.85))

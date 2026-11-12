@@ -1,6 +1,7 @@
 // Frame that holds a Hat Labs HALMET board in the 158x90x60 pre-drilled box.
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
+// Four raised posts at the right end carry an SSD1306 display module above the board's level.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
@@ -35,6 +36,17 @@ tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end bar, between bosses
 board_dx = 0;
 board_dy = 3;        // away from the gland-nut wall (-Y)
 
+/* [Display: 0.96" SSD1306 module on four raised posts at the right end] */
+oled = 1;            // 0 leaves the display posts off
+oled_x = 58.5;       // module centre; inner posts clear the ESP32 antenna overhang by 2.3
+oled_y = 19.5;       // posts fall between the boss screws and clear the USB plug's path
+oled_hole_dx = 23.3; // hole centres, generic module; caliper the one in hand
+oled_hole_dy = 23.6;
+oled_rise = 18;      // post height above the frame top: module ~10 mm above the HALMET's top face
+oled_post_d = 6;
+oled_insert_d = 3.2; // M2 heat-set insert
+oled_insert_depth = 4.5;
+
 /* [Frame] */
 plate_t = 3;
 rail_w = 8;
@@ -58,6 +70,7 @@ rests = [[36, 18], [-38.5, -19.5]];
 rail_ys = [for (s = slots) s[1] + board_dy];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach;                   // outer edge
+oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 y_hi = max(boss_pitch + 6, max(rail_ys) + rail_w/2);
 y_lo = min(-boss_pitch - 6, min(rail_ys) - rail_w/2);
 
@@ -76,6 +89,9 @@ module solid2d() {
                 square([pad_l, abs(sy*frame_w/2 - rail)]);
         }
         translate([-post_dx/2, tie_bar_y - tie_bar_w/2]) square([post_dx, tie_bar_w]);
+        if (oled) for (sy = [-1, 1])   // a bar under each pair of display posts
+            translate([oled_x - oled_hole_dx/2 - 4, oled_y + sy*oled_hole_dy/2 - 4])
+                square([min(oled_hole_dx + 8, bar_x1 - oled_x + oled_hole_dx/2 + 4), 8]);
     }
 }
 
@@ -112,7 +128,10 @@ module frame() {
             linear_extrude(body_t) profile(false);
             linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
             linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
+            if (oled) linear_extrude(body_t + oled_rise) for (p = oled_posts) translate(p) circle(d = oled_post_d);
         }
+        if (oled) translate([0, 0, body_t + oled_rise - oled_insert_depth]) linear_extrude(oled_insert_depth + 1)
+            for (p = oled_posts) translate(p) circle(d = oled_insert_d);
         translate([0, 0, body_t + standoff_h - insert_depth])
             linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
