@@ -51,13 +51,13 @@ oled_insert_depth = 4.5;
 
 /* [Light sensor: LM393 photoresistor module, 32 x 14, one M3 hole] */
 ldr = 1;             // 0 leaves the sensor posts off
-ldr_x = 52;          // module centre; header end toward the board, photoresistor toward the right wall
-ldr_y = -23;         // below the USB plug's path, inside the lid-screw columns
+ldr_x = 45;          // module centre line; runs along Y just right of the board, clear of the corner columns
+ldr_y0 = -34;        // header end, on the gland side; header re-soldered straight up
 ldr_l = 32;          // vendor drawing
 ldr_w = 14;
 ldr_hole_in = 7;     // hole centre from the header end, centred across; photo estimate, caliper it
-ldr_rest_in = 26;    // plain rest under the photoresistor end, same height
-ldr_rise = 18;       // same height as the display
+ldr_rest_in = 15;    // plain rest, kept below the USB plug's path
+ldr_rise = 18;       // same height as the display; the module passes over the USB plug
 ldr_post_d = 7;
 ldr_insert_d = 4.0;  // M3 heat-set insert
 ldr_insert_depth = 5;
@@ -92,9 +92,8 @@ rail_ys = [for (s = slots) s[1] + board_dy];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach;                   // outer edge
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
-ldr_x0 = ldr_x - ldr_l/2;                             // header end of the module
-ldr_post = [ldr_x0 + ldr_hole_in, ldr_y];
-ldr_rest = [ldr_x0 + ldr_rest_in, ldr_y];
+ldr_post = [ldr_x, ldr_y0 + ldr_hole_in];
+ldr_rest = [ldr_x, ldr_y0 + ldr_rest_in];
 y_hi = max(boss_pitch + 6, max(rail_ys) + rail_w/2);
 y_lo = min(-boss_pitch - 6, min(rail_ys) - rail_w/2);
 
