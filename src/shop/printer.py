@@ -20,6 +20,11 @@ OBJECTS = [
     "heater_generic chamber_heater",
     "toolhead",
     "filament_switch_sensor filament_sensor",
+    "output_pin fan0",
+    "output_pin fan1",
+    "output_pin fan2",
+    "fan_feedback",
+    "heater_fan hotend_fan",
 ]
 
 
@@ -75,6 +80,14 @@ def format_status(s: dict) -> str:
         lines.append(f"chamber  {sensor['temperature']:.1f} C  target {ch.get('target', 0):.0f}  heater {ch.get('power', 0) * 100:.0f}%")
     pos = s["toolhead"]["position"]
     lines.append(f"toolhead x{pos[0]:.1f} y{pos[1]:.1f} z{pos[2]:.2f}  homed {s['toolhead']['homed_axes'] or 'none'}")
+    pins = [s.get(f"output_pin fan{i}") for i in range(3)]
+    if all(pins):
+        tach = s.get("fan_feedback", {})
+        lines.append(
+            "fans     "
+            + "  ".join(f"P{i} {p['value'] * 100:.0f}% ({tach.get(f'fan{i}_speed', '?')} tach)" for i, p in enumerate(pins))
+            + f"  hotend {s.get('heater_fan hotend_fan', {}).get('speed', 0) * 100:.0f}%"
+        )
     fs = s.get("filament_switch_sensor filament_sensor")
     if fs:
         lines.append(f"filament {'detected' if fs['filament_detected'] else 'NONE'}")
