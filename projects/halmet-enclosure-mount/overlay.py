@@ -129,7 +129,7 @@ dim((-74, 0), (-74, BOSS_PITCH), f"~{BOSS_PITCH:g}", color=GUESS)
 dim((-POST_DX / 2, 40), (POST_DX / 2, 40), f"~{POST_DX:g} posts", color=GUESS)
 dim((-49, -POST_DY / 2), (-49, POST_DY / 2), f"~{POST_DY:g}", color=GUESS)
 dim((60, -P["frame_w"] / 2), (60, P["frame_w"] / 2), f"{P['frame_w']:g} frame", color=PLATE)
-for x in (-24, 0, 24):
+for x in (-24, 24):
     ax.text(x, P["tie_bar_y"] - 3.4, "tie", ha="center", fontsize=7, color=PLATE)
 ax.text(-65.6, -16, "ties", ha="center", fontsize=7, color=PLATE)
 
