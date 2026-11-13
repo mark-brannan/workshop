@@ -84,6 +84,28 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   cell sees the lid with its leads bent up. Bend the header pins down past the board's end; the plug hangs
   toward the plate. Hole position and trimpot height are guesses: caliper them.
 
+## Assembly
+
+`assembly.py` renders the parts in the box from `assembly.scad`. Boards are boxes; part heights,
+the module standoffs (6) and the lid ceiling (16 above the rim) are guesses.
+
+![tier](out/assembly_tier.png)
+![assembled](out/assembly.png)
+![exploded](out/assembly_exploded.png)
+
+Order, on the bench then in the box:
+
+1. Tier: modules onto M2.5 standoffs, screwed up from under the tier.
+2. Plate, out of the box: tier and sensor standoffs, screwed up from below.
+3. Light sensor onto its standoffs.
+4. Plate into the box, six screws through the fork slots.
+5. HALMET onto its standoffs, two screws from above.
+6. Tier onto its standoffs, four screws from above. Then wire everything and fit the lid.
+
+Two fixed steps: the tier covers two right-hand floor screws, (70, 0) and (70, 22.5), and the light sensor's screw.
+So the tier comes off before the plate or the sensor. The standoffs come off only with the plate out of the box.
+The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its left edge is 1.5 mm from the left floor-screw heads.
+
 ## Fit check
 
 `out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm plate with big windows;
