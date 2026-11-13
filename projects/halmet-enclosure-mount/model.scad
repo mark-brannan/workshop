@@ -8,10 +8,10 @@ mode = "2d";         // [2d:laser profile, 3d:print]
 part = "frame";      // [frame, gauge:thin fit check of the same outline]
 
 /* [Box: owner's estimates, tune after a gauge print] */
-boss_span = 136;     // holed bosses, centre to centre along the box length
+boss_span = 140;     // holed bosses, centre to centre: first print, scaled by its own 144 mm length (136 put the screws at the fork mouths)
 boss_pitch = 21;     // neighbouring bosses on one end
 screw_d = 3.4;       // clearance for the screw into a boss
-slot_reach = 4;      // each fork slot accepts the boss this far in or out of boss_span
+slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
 lid_col_x = 64.8;    // lid-screw column in each corner, full height: inner edge along X (photo)
@@ -21,8 +21,8 @@ lid_col_y = 32.4;    // and across Y; keep the display clear of both
 post_dx = 80;        // centre to centre along the length (photo 77 to 80)
 post_dy = 70;        // centre to centre across the width (photo 67 to 69)
 post_h = 2;          // lower than the bosses, so the frame underside steps down to meet them
-frame_w = 75;        // overall width across the post pads
-pad_l = 12;          // pad length along X; covers a post 4 mm either side of post_dx
+frame_w = 75;        // gland side: pads stop at -frame_w/2, short of the gland nuts
+pad_r = 4.5;         // semicircle tab over each rest post (post ~5 diameter)
 gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
 
 /* [Zip-tie strain relief: slot pairs, the tie loops under the frame] */
@@ -34,8 +34,8 @@ tie_bar_xs = [-24, 24];
 tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end, between bosses
 
 /* [Board position on the floor] */
-board_dx = -8;       // toward the left end, to make room for the display
-board_dy = 3;        // away from the gland-nut wall (-Y)
+board_dx = -18.25;   // puts the board's top-left slot standoff over the back-left rest post:
+board_dy = 12.5;     // -post_dx/2 + 21.75, post_dy/2 - 22.5
 
 /* [Display: 0.96" SSD1306 module on four raised posts at the right end] */
 oled = 1;            // 0 leaves the display posts off
@@ -50,8 +50,8 @@ oled_insert_depth = 4.5;
 
 /* [Plate: hex-lightened] */
 plate_t = 3;
-rail_w = 8;          // sets the plate's +Y edge under the board's slot rail
 plate_y_lo = -33;    // gland-side edge between the lid-screw columns
+plate_y_hi = 35;     // back edge between the lid-screw columns, on the rest-post centres
 rim_w = 2;           // solid rim round the outline
 hex_flat = 9;         // hex cell across flats
 hex_web = 2.0;       // wall between cells
@@ -74,18 +74,24 @@ slots = [[-21.75, 22.5], [22.75, -22.5]];
 drop = max(0, boss_h - post_h);   // underside pockets this deep over the holed bosses
 body_t = plate_t + drop;
 rests = [[36, 18], [-38.5, -19.5]];
-rail_ys = [for (s = slots) s[1] + board_dy];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach;                   // outer edge
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
-y_hi = max(boss_pitch + 6, max(rail_ys) + rail_w/2);
-y_lo = min(-boss_pitch - 6, min(rail_ys) - rail_w/2);
+y_hi = boss_pitch + 6;    // end bars
+y_lo = -boss_pitch - 6;
 
 module at_board(pts) { for (p = pts) translate([p[0] + board_dx, p[1] + board_dy]) children(); }
 
 // Outline: one plate over the bosses, the four rest posts, the board and the display.
 module outline2d() {
-    offset(r = 2) offset(delta = -2) for (r = plate_rects) translate([r[0], r[1]]) square([r[2] - r[0], r[3] - r[1]]);
+    intersection() {
+        union() {
+            offset(r = 2) offset(delta = -2) for (r = plate_rects) translate([r[0], r[1]]) square([r[2] - r[0], r[3] - r[1]]);
+            for (sx = [-1, 1], sy = [-1, 1]) translate([sx*post_dx/2, sy*post_dy/2]) circle(r = pad_r);
+            at_board(slots) circle(r = standoff_d/2 + rim_w);
+        }
+        translate([-100, -frame_w/2]) square([200, 100 + frame_w/2]);
+    }
 }
 
 // Lattice: hex cells inside the rim, a web clear of every solid island
@@ -93,16 +99,15 @@ module outline2d() {
 hex_r = hex_flat/sqrt(3);                     // cell circumradius
 hex_pitch = hex_flat + hex_web;
 plate_rects = concat(                         // outline as [x0, y0, x1, y1] boxes
-    [[-bar_x1, y_lo, bar_x1, y_hi], [-lid_col_x + 1, plate_y_lo, lid_col_x - 1, y_lo + 1]],
-    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, -frame_w/2, sx*post_dx/2 + pad_l/2, frame_w/2]],
+    [[-bar_x1, y_lo, bar_x1, y_hi], [-lid_col_x + 1, plate_y_lo, lid_col_x - 1, plate_y_hi]],
+    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_r, -post_dy/2, sx*post_dx/2 + pad_r, plate_y_lo + 1]],  // front tabs reach the posts
     oled ? [[oled_x - oled_hole_dx/2 - oled_post_d, y_hi - 1, lid_col_x - 1, oled_y + oled_hole_dy/2 + oled_post_d/2 + 2]] : []);
 keep_rects = concat(
     [[-100, -100, -(boss_span/2 - slot_reach - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - screw_d/2 - 1.5, -100, 100, 100]],
-    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, post_dy/2 - 4, sx*post_dx/2 + pad_l/2, 100]],
-    [for (sx = [-1, 1]) [sx*post_dx/2 - pad_l/2, -100, sx*post_dx/2 + pad_l/2, -post_dy/2 + 4]],
     [for (x = tie_bar_xs) [x - tie_gap/2 - tie_t/2 - 2, tie_bar_y - tie_w/2 - 2, x + tie_gap/2 + tie_t/2 + 2, tie_bar_y + tie_w/2 + 2]],
     [for (y = tie_end_ys) [-bar_x1, y - tie_gap/2 - tie_t/2 - 2, -(bar_x0 + bar_x1)/2 + tie_w/2 + 2, y + tie_gap/2 + tie_t/2 + 2]]);
 keep_discs = concat(   // [x, y, r]
+    [for (sx = [-1, 1], sy = [-1, 1]) [sx*post_dx/2, sy*post_dy/2, pad_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
     oled ? [for (p = oled_posts) [p[0], p[1], oled_post_d/2 + 1.5]] : []);
