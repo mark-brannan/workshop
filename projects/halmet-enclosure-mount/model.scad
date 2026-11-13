@@ -2,7 +2,7 @@
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
 // A separate tier (part-tier.scad) screws onto it and carries the displays at rim height.
-// Under the tier, two more F/F standoffs carry an LM393 light-sensor module; its photocell peeks out past the tier's left edge.
+// An LM393 light sensor rides in a cradle on the tier, under the OLED; its photocell peeks out past the tier's left edge.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
@@ -71,16 +71,21 @@ seg_hole_dx = 36;    // owner, rough calipers
 seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
-/* [Light sensor under the tier: LM393 photoresistor module, 32 x 14, one M3 hole] */
-ldr_x0 = 24.5;       // photocell end of the module: just past the tier's left edge, so the cell sees the lid
-ldr_y = 23.5;        // module centre line; between the OLED screw heads under the tier (y 13.4) and the back tier standoff
+/* [Light sensor on the tier: LM393 photoresistor module, 32 x 14, one M3 hole] */
+ldr_x0 = 21.5;       // photocell end; as far right as the bent-down header lets it go (see ldr_pin_x)
+ldr_y = 23.8;        // between the OLED's standoff columns, clear of the back-left tier screw head
 ldr_l = 32;          // vendor drawing
 ldr_w = 14;
 ldr_hole_in = 7;     // M3 hole centre from the header end, centred across: photo estimate, caliper it
-ldr_rest_in = 10;    // rest standoff from the photocell end: flat PCB underside between the cell's leads and the trimpot
-ldr_standoff = 19.7; // the same M3 F/F stock as the tier; sits on the plate, screwed up from below
-ldr_part_h = 5;      // tallest part on the module above its PCB (3362 trimpot): guess, caliper it
+ldr_part_h = 5;      // tallest part above its PCB (3362 trimpot): guess, caliper it
 pcb_t = 1.6;
+ldr_ledge = 1.5;     // the module sits on edge ledges this high, clear of its solder stubs
+ldr_wall = 1.2;      // cradle side walls, flush with the PCB top: stop it turning on its one screw
+ldr_fit = 0.3;       // per side
+ldr_pilot = 2.6;     // M3 self-tap from above into a boss under the cradle floor
+ldr_boss_d = 7;
+ldr_boss_h = 5;      // below the tier
+ldr_pin_x = 3.5;     // header pins bent straight down past the header end: Dupont plug within this, under the tier
 
 /* [Plate: hex-lightened] */
 plate_t = 4.5;
@@ -93,7 +98,7 @@ hex_x0 = 1.5;        // grid offset
 hex_y0 = 3;
 gauge_t = 1;          // fit-check plate: five 0.2 mm layers
 gauge_rise = 2;       // fit-check standoffs, rests and tier bosses: stubs this tall, holes through
-gauge_cell = 24;      // fit-check windows: hex cells this wide across flats
+gauge_cell = 24.5;      // fit-check windows: hex cells this wide across flats; 24 left a window tangent to a tier-stub hole
 gauge_web = 4;
 
 /* [Standoffs] */
@@ -117,9 +122,7 @@ seg_x = oled_x;
 seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y + sy*seg_hole_dy/2]];
-ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // screwed: the module's M3 hole
-ldr_rest = [ldr_x0 + ldr_rest_in, ldr_y];           // plain rest under the photocell end
-ldr_posts = [ldr_post, ldr_rest];
+ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // the module's one M3 hole
 tier_z0 = tier_pad_h;                  // standoff feet: top of the pads
 tier_z1 = tier_z0 + tier_standoff + tier_t;  // top of the tier plate
 y_hi = boss_pitch + 6;    // end bars
@@ -153,7 +156,7 @@ keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1], sy = [-1, 1]) [sx*post_dx/2, sy*post_dy/2, pad_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    [for (c = concat(tier_cols, ldr_posts)) [c[0], c[1], tier_boss_d/2]]);
+    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]]);
 
 
 module keep2d() {
@@ -216,8 +219,6 @@ module raised() {
 
 module insert_holes() {
     translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = tier_cols) translate(c) circle(d = insert_d);
-    translate([0, 0, -1]) linear_extrude(body_t + 2) for (c = ldr_posts) translate(c) circle(d = screw_d);   // sensor standoffs sit on the plate
-    translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = ldr_posts) translate(c) circle(d = head_d);
     translate([0, 0, body_t + standoff_h - insert_depth])
         linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
 }
@@ -253,13 +254,13 @@ module gauge() {
             linear_extrude(gauge_t + gauge_rise) {
                 at_board(slots) circle(d = standoff_d);
                 at_board(rests) circle(d = rest_d);
-                for (c = concat(tier_cols, ldr_posts)) translate(c) circle(d = tier_boss_d);
+                for (c = tier_cols) translate(c) circle(d = tier_boss_d);
             }
         }
         translate([0, 0, -1]) linear_extrude(gauge_t + gauge_rise + 2) {
             at_board(slots) circle(d = insert_d);
             at_board(rests) circle(d = 1.5);
-            for (c = concat(tier_cols, ldr_posts)) translate(c) circle(d = insert_d);
+            for (c = tier_cols) translate(c) circle(d = insert_d);
         }
     }
 }
@@ -302,11 +303,35 @@ module tier_band2d() {
     }
 }
 
+// Sensor cradle: a floor bridging the band under the OLED, edge ledges and a pad round the screw that lift
+// the module off its solder stubs, and side walls that stop it turning. Both ends open: photocell and header.
+ldr_c = ldr_w/2 + ldr_fit + ldr_wall;   // floor half-width
+module ldr_floor2d() { offset(r = 1.5) offset(delta = -1.5) translate([ldr_x0, ldr_y - ldr_c]) square([ldr_l, 2*ldr_c]); }
+
+module ldr_cradle() {
+    w = ldr_w + 2*ldr_fit;
+    linear_extrude(ldr_ledge) {
+        for (s = [-1, 1]) translate([ldr_x0, ldr_y + s*(w/2 - 1) - 1]) square([ldr_l, 2]);
+        translate(ldr_post) circle(d = ldr_boss_d);
+    }
+    linear_extrude(ldr_ledge + pcb_t) difference() {
+        for (s = [-1, 1]) translate([ldr_x0 + 1.5, ldr_y + (s < 0 ? -w/2 - ldr_wall : w/2)]) square([ldr_l - 3, ldr_wall]);
+        for (p = oled_posts) translate(p) circle(d = 6.5);   // M2.5 standoffs pass beside the walls
+    }
+}
+
 module tier() {
-    translate([0, 0, tier_z1 - tier_t]) linear_extrude(tier_t) difference() {
-        tier_plate2d();
-        for (c = tier_cols) translate(c) circle(d = screw_d);
-        for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
+    difference() {
+        union() {
+            translate([0, 0, tier_z1 - tier_t]) linear_extrude(tier_t) difference() {
+                union() { tier_plate2d(); ldr_floor2d(); }
+                for (c = tier_cols) translate(c) circle(d = screw_d);
+                for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
+            }
+            translate([0, 0, tier_z1 - 0.01]) intersection() { ldr_cradle(); linear_extrude(10) offset(delta = -0.3) ldr_floor2d(); }
+            translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - ldr_boss_h]) cylinder(d = ldr_boss_d, h = ldr_boss_h + 0.01);
+        }
+        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - ldr_boss_h - 1]) cylinder(d = ldr_pilot, h = 30);
     }
 }
 

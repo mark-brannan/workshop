@@ -29,10 +29,12 @@ PARTS = {
     "oled_header": ("#222222", 1, 72),
     "seg": ("#2456a6", 1, 72),
     "seg_body": ("#f2f2f2", 1, 72),
+    "ldr": ("#1b5fbf", 1, 72),
+    "screws_ldr": ("#333333", 1, 72),
     "screws_tier": ("#333333", 1, 92),
     "lid": ("#9aa4ad", 0.12, 110),
 }
-TIER = ["tier", "screws_m25", "module_standoffs", "oled", "oled_glass", "oled_header", "seg", "seg_body"]
+TIER = ["tier", "screws_m25", "module_standoffs", "oled", "oled_glass", "oled_header", "seg", "seg_body", "ldr", "screws_ldr"]
 
 
 def build(tmp: Path) -> dict[str, pv.PolyData]:
