@@ -49,12 +49,14 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 | Parameter | Now | Source |
 |---|---|---|
 | `boss_span` | 143 | 140 printed, its screws sat at the fork mouths (photo); +3, 1.5 a side |
-| `boss_pitch` | 22 | 21 printed too tight, 22.5 a touch wide (photo); 22 between the two |
+| `boss_pitch` | 21.7 | 21 printed too tight, 22.5 a touch wide, 22 printed; 21.7 next |
+| `end_ext` | 3 | owner; each end bar 3 mm longer (6 in all) |
+| `slot_d` | 2.8 | M2.5 clearance for the six screws into the bosses |
 | Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
 | Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
 | Inner floor | 151 x 83 | owner |
 | Floor to lowest gland nut | 2 to 3 | owner; the frame stays 14 mm clear of that wall in plan |
-| `screw_d` | 3.4 | guess; the boss hole diameter is unmeasured |
+| `screw_d` | 3.4 | M3 clearance for the tier's standoff screws; guess |
 
 ## Design
 
