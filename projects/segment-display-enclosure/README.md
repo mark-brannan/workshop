@@ -10,9 +10,10 @@ Purpose: a small stand-alone box for the TM1637 4-digit segment display module
   inside the shell, four tubes press on the board's flat back, and a tongue
   fills the end-wall notch above the plug.
 
-The right-angle header is on the board's front at one short end, pins pointing
-out past the board edge. A Dupont plug pushes onto them from outside through a
-window in that end wall. Four M2.5 x 12 self-tapping screws go cover -> tube ->
+The right-angle header is on the board's front at one short end; its bent pins
+point out past the board edge, and the Dupont plug goes on at an angle to the
+side. The opening in that end wall runs 5.4 mm from the board's back toward the
+face. Four M2.5 x 12 self-tapping screws go cover -> tube ->
 board -> post, about 5 mm into each post. Outside: 46.5 x 28.5 x 14.6 mm.
 
 `out/segment-display-enclosure_review.png`: shell, cover and an exploded
@@ -27,13 +28,13 @@ assembly with stand-ins, from above, below and the face.
 | Display body | 30 x 14, face 7 above the board | owner, caliper |
 | Display to pin end | 5, exact; the window is anchored here | owner |
 | Display to clean end | 7.1 measured, 6.5 by difference; the display may be ~29.8 at its base | owner, caliper |
+| Header pins | 5 from the board's back to the top of the bend; 6.8 past the board edge | owner, caliper |
 | Display to long edges | 4.5 (-Y, bottom with pins on the right, seen from the front) and 5 | owner, caliper |
 
 ## Guessed
 
 | Value | Now | Why |
 |---|---|---|
-| header pin height | plug window 3.3 tall from the board's front down | right-angle header pins ~1.3 above the board, from the photo |
 | `board_t` | 1.6 | standard PCB |
 | `rear_clear` | 3 | board back to cover: solder joints only |
 | `pilot_d` | 2.2 | M2.5 self-tapping; calibration pending |

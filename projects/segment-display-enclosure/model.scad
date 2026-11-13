@@ -2,8 +2,8 @@
 // Two prints. The shell prints face down: its outer front face is z = 0, the
 // display looks out through a window, and the board's front rests on four posts
 // fused into the corners. The module's right-angle header is on the board's
-// front at the -X end, pins pointing out along -X; a Dupont plug pushes onto
-// them through a window in the -X end wall. The back cover (part-back.scad)
+// front at the -X end; its bent pins point out along -X and the Dupont plug
+// goes on at an angle to the side, through an opening in the -X end wall. The back cover (part-back.scad)
 // closes the box: a tongue fills the end-wall notch above the plug, four tubes
 // press on the board's flat back, and four M2.5 x 12 self-tappers go
 // cover -> tube -> board -> post.
@@ -25,10 +25,11 @@ disp_dy = -0.25;     // 4.5 to the -Y edge, 5 to +Y (caliper); -Y is the bottom 
 disp_recess = 0.5;   // display face sits this far behind the shell's outer face
 window_clear = 0.3;  // per side around the display body
 
-/* [Header] (photo; caliper it) */
+/* [Header] (owner, caliper) */
 hdr_w = 10.2;        // 4 pins x 2.54
-plug_h = 2.54;       // Dupont housing, square
-plug_clear = 0.4;    // per side around the plug
+pin_span = 5;        // board's back surface to the top of the pins' bend
+pin_out = 6.8;       // pins past the board edge
+plug_clear = 0.4;    // added to the opening's height and per side of its width
 
 /* [Shell] */
 wall = 2;
@@ -59,7 +60,7 @@ board_z = disp_recess + disp_h;            // board front face
 shell_h = board_z + board_t + rear_clear;  // rim
 holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2, sy*hole_dy/2]];
 notch_w = hdr_w + 2*plug_clear + 0.5;
-notch_z = board_z - plug_h - 2*plug_clear; // bottom of the plug window
+notch_z = board_z + board_t - pin_span - plug_clear;  // bottom of the end-wall opening
 tongue_clear = 0.2;
 
 module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
@@ -102,7 +103,7 @@ module shell() {
 
 // Back cover, modelled as printed: outer face on the bed, lip, tubes and tongue up.
 module back() {
-    tongue_h = shell_h - board_z;   // fills the notch from the rim down to the board's front
+    tongue_h = shell_h - (board_z + board_t);   // fills the notch from the rim down to the board's back
     difference() {
         union() {
             linear_extrude(cover_t) rrect(out_l, out_w, corner_r);
@@ -126,8 +127,8 @@ module module_standin() {
         for (h = holes) translate(h) circle(d = hole_d);
     }
     translate([disp_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
-    translate([-board_l/2 - 6, -hdr_w/2, board_z - plug_h - 0.2]) cube([8, hdr_w, plug_h]);   // header + pins
-    translate([-out_l/2 - 12, -hdr_w/2, board_z - plug_h - 0.2]) cube([14, hdr_w, plug_h]);   // Dupont plug
+    pz = board_z + board_t - pin_span;
+    translate([-board_l/2 - pin_out, -hdr_w/2, pz]) cube([pin_out + 2.5, hdr_w, 2.54]);   // header + bent pins
 }
 
 if (part == "shell") shell();

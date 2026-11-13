@@ -73,7 +73,7 @@ def test_screw_stack_fits_m2p5x12():
 def test_back_bounds_holes_tongue(back):
     assert back.is_watertight
     top = P["cover_t"] + P["rear_clear"]
-    tongue_top = P["cover_t"] + SHELL_H - BOARD_Z  # tongue reaches the board's front plane
+    tongue_top = P["cover_t"] + SHELL_H - (BOARD_Z + P["board_t"])  # tongue reaches the board's back
     assert np.allclose(back.bounds, [[-OUT_L / 2, -OUT_W / 2, 0], [OUT_L / 2, OUT_W / 2, tongue_top]], atol=0.02)
     for x, y in HOLES:
         assert len(down(back, x, y)) == 0
@@ -86,7 +86,7 @@ def side(mesh, z, y=0):
 
 
 def test_header_end_has_plug_window_and_open_notch(shell):
-    notch_z = BOARD_Z - P["plug_h"] - 2 * P["plug_clear"]
+    notch_z = BOARD_Z + P["board_t"] - P["pin_span"] - P["plug_clear"]
     first_wall = lambda z: side(shell, z)[0][0]
     assert first_wall(notch_z + 0.5) > -IN_L / 2  # plug window: no end wall at plug height
     assert first_wall(SHELL_H - 0.5) > -IN_L / 2  # open to the rim for the cover's tongue
