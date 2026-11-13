@@ -41,13 +41,14 @@ board_dy = 12.5;     // back edge about at the box's back wall (owner checked th
 
 /* [Display tier: a flat plate on four M3 F/F hex standoffs] */
 rim_z = 39;          // box floor to rim (owner)
-tier_t = 2.5;        // its top sits at the rim, give or take 5 (owner)
+tier_t = 2.5;
 tier_x0 = 26;        // left edge; the left side stays open for the USB plug and wiring
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
 tier_cols = [[31, 34.5], [54, 34.5], [37, -11.25], [58, -11.25]];  // standoff centres
 tier_standoff = 19.7;  // M3 F/F hex standoff (owner's calipers)
-tier_boss_d = 8;     // printed pad under each standoff
+tier_boss_d = 8;     // seat round each standoff
+tier_pad = 0;        // printed pad under each tier standoff, above the plate: 0 puts it on the plate
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
 head_h = 2.5;
 m25_d = 2.8;         // module screws: M2.5 through the tier into an F/F standoff under the module
@@ -64,8 +65,8 @@ seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
 /* [Light sensor on the tier: LM393 photoresistor module, 32 x 14, one M3 hole] */
-ldr_x0 = 15;         // photocell end, out on a tongue of the tier past its left edge, clear of the OLED's shadow
-ldr_y = 25.2;        // on the OLED's centre line, between its standoff columns
+ldr_x0 = 35;         // header end; the photocell end pokes out past the OLED's right edge
+ldr_y = 24.8;        // between the OLED's standoff columns, clear of the lid-screw column
 ldr_l = 32;          // vendor drawing
 ldr_w = 14;
 ldr_hole_in = 7;     // M3 hole centre from the header end, centred across: photo estimate, caliper it
@@ -77,9 +78,8 @@ ldr_fit = 0.3;       // per side
 ldr_pilot = 2.6;     // M3 self-tap from above into a boss under the tier
 ldr_boss_d = 7;
 ldr_boss_h = 5;      // below the tier
-plug_l = 22.5;       // right-angle header and Dupont plug past the header end, toward +X
-mod_standoff = 10;   // M2.5 F/F under each display module; the sensor and its trimpot fit beneath the OLED
-tier_drop = 4;       // tier lowered by this so the displays stay near the rim on the taller standoffs
+plug_l = 22.5;       // right-angle header and Dupont plug past the header end, toward -X and the HALMET
+mod_standoff = 20;   // M2.5 F/F under each display module, any length from ~10 up; the sensor fits beneath the OLED
 
 /* [Plate: hex-lightened] */
 plate_t = 4.5;
@@ -116,8 +116,8 @@ seg_x = oled_x;
 seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y + sy*seg_hole_dy/2]];
-ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // the module's one M3 hole
-tier_z1 = rim_z - boss_h - tier_drop;  // top of the tier plate
+ldr_post = [ldr_x0 + ldr_hole_in, ldr_y];   // the module's one M3 hole
+tier_z1 = body_t + tier_pad + tier_standoff + tier_t;  // top of the tier plate
 tier_z0 = tier_z1 - tier_t - tier_standoff;  // standoff feet: top of the pads
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
@@ -265,13 +265,16 @@ module gauge() {
 module tier_plate2d() {
     translate([tier_x0, tier_y0]) square([tier_x1 - tier_x0, lid_col_y - 1 - tier_y0]);
     translate([tier_x0, tier_y0]) square([lid_col_x - 1 - tier_x0, plate_y_hi - tier_y0]);
-    c = ldr_w/2 + ldr_fit + ldr_wall;
-    translate([ldr_x0, ldr_y - c]) square([tier_x0 - ldr_x0 + 1, 2*c]);   // tongue under the photocell end
 }
 
 // Cradle on the tier top: edge ledges and a pad round the screw lift the module off its solder stubs;
 // side walls stop it turning. Both ends open: the photocell at one, the header and plug at the other.
-module ldr_cradle() {
+module ldr_cradle() intersection() {
+    linear_extrude(10) offset(delta = -0.5) tier_plate2d();   // stops short of the lid-column notch
+    ldr_cradle_full();
+}
+
+module ldr_cradle_full() {
     w = ldr_w + 2*ldr_fit;
     x1 = ldr_x0 + ldr_l;
     linear_extrude(ldr_ledge) {

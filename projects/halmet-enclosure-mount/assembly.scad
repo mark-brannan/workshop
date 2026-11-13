@@ -52,7 +52,7 @@ module seg() {
 
 module sensor() {
     z = tier_z1 + ldr_ledge;
-    translate([ldr_x0, ldr_y, z]) {
+    translate([ldr_x0 + ldr_l, ldr_y, z]) mirror([1, 0, 0]) {   // header end at ldr_x0, photocell at the far end
         color("#1b5fbf") translate([0, -ldr_w/2, 0]) cube([ldr_l, ldr_w, pcb_t]);
         color("#2b6fe0") translate([12, -1, pcb_t]) cube([7, 6.6, ldr_part_h]);      // trimpot
         color("#111") translate([19, -5, pcb_t]) cube([5, 4, 1.5]);                  // LM393
