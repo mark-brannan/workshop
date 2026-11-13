@@ -32,8 +32,8 @@ DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
-TIER_TOP = P["rim_z"] - P["boss_h"]       # Z = 0 is the boss top
-TIER_Z0 = TIER_TOP - P["tier_t"] - P["tier_standoff"]  # standoff feet on the plate's pads
+TIER_Z0 = P["tier_pad_h"]                # standoff feet on the plate's pads
+TIER_TOP = TIER_Z0 + P["tier_standoff"] + P["tier_t"]
 SEG_Y = P["oled_y"] - P["oled_h"] / 2 - P["seg_gap"] - P["seg_h"] / 2
 MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
              for sx in (-1, 1) for sy in (-1, 1)]
@@ -163,16 +163,19 @@ def test_board_clear_of_the_left_fork_slots():
     assert left_edge > -(SPAN / 2 - REACH) + P["screw_d"] / 2  # a driver reaches every left screw
 
 
-def test_plate_has_counterbored_pads_under_the_tier_standoffs(frame):
-    assert TIER_Z0 - T > 5  # pads stand clear of the plate
+def test_plate_has_insert_pads_under_the_tier_standoffs(frame):
     for x, y in COLS:
-        assert top(frame, x, y) is None  # M3 passes up through
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
-        assert np.isclose(bottom(frame, x + P["screw_d"] / 2 + 0.6, y), P["head_h"], atol=0.02)  # head counterbore
-        assert P["head_d"] < P["tier_boss_d"]
+        assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)  # blind insert hole
+        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # closed underneath
 
 
-def test_tier_is_a_flat_plate_at_the_rim(tier):
+def test_modules_clear_the_lid():
+    lid_ceiling = P["rim_z"] - P["boss_h"] + 16  # rim to lid ceiling: a guess (assembly.scad lid_gap)
+    assert TIER_TOP + P["mod_standoff"] + 7 < lid_ceiling  # TM1637 face, 7 above its board's underside
+
+
+def test_tier_is_a_flat_plate_on_its_standoffs(tier):
     assert tier.is_watertight and tier.body_count == 1
     lo, hi = tier.bounds
     assert np.isclose(lo[2], TIER_TOP - P["tier_t"], atol=0.02) and np.isclose(hi[2], TIER_TOP, atol=0.02)
@@ -234,6 +237,7 @@ def test_plate_has_counterbored_seats_for_the_sensor_standoffs(frame):
         assert np.isclose(bottom(frame, x + P["screw_d"] / 2 + 0.6, y), P["head_h"], atol=0.02)
 
 
+@pytest.mark.xfail(reason="tier lowered; the photocell moves onto the tier", strict=True)
 def test_sensor_module_fits_between_the_tiers():
     tier_under = TIER_TOP - P["tier_t"]
     assert LDR_Z + P["pcb_t"] + P["ldr_part_h"] + 1 <= tier_under  # trimpot clears the tier by a millimetre

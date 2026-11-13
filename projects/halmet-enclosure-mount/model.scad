@@ -46,9 +46,13 @@ tier_x0 = 26;        // left edge; the left side stays open for the USB plug and
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
 tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
-tier_standoff = 19.7;  // M3 F/F hex standoff (owner's calipers)
+tier_standoff = 19.7;  // M3 hex standoff, into the pad's insert (owner's calipers)
 tier_boss_d = 8;     // printed pad under each standoff
+tier_pad_h = 8;      // pad top above the plate's underside: a blind M3 heat-set insert and a 1.5 floor
+mod_standoff = 10;   // M2.5 F/F standoffs, tier to module: the tallest that clears the lid (lid depth a guess)
 tier_band = 6;       // tier: width of the band through the screws
+tier_fillet = 3;     // tier: inside-corner radius
+tier_round = 1.5;    // tier: outside-corner radius
 tier_join = 12;      // tier: a standoff screw this close to a module screw shares one wider pad
 oled_pin_in = 1.6;   // OLED header pin row from its top edge (generic; caliper it)
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
@@ -115,8 +119,8 @@ seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y +
 ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // screwed: the module's M3 hole
 ldr_rest = [ldr_x0 + ldr_rest_in, ldr_y];           // plain rest under the photocell end
 ldr_posts = [ldr_post, ldr_rest];
-tier_z1 = rim_z - boss_h;              // top of the tier plate
-tier_z0 = tier_z1 - tier_t - tier_standoff;  // standoff feet: top of the pads
+tier_z0 = tier_pad_h;                  // standoff feet: top of the pads
+tier_z1 = tier_z0 + tier_standoff + tier_t;  // top of the tier plate
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
 
@@ -210,8 +214,7 @@ module raised() {
 }
 
 module insert_holes() {
-    translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = tier_cols) translate(c) circle(d = screw_d);
-    translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = tier_cols) translate(c) circle(d = head_d);
+    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = tier_cols) translate(c) circle(d = insert_d);
     translate([0, 0, -1]) linear_extrude(body_t + 2) for (c = ldr_posts) translate(c) circle(d = screw_d);   // sensor standoffs sit on the plate
     translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = ldr_posts) translate(c) circle(d = head_d);
     translate([0, 0, body_t + standoff_h - insert_depth])
@@ -269,7 +272,14 @@ module tier_rect2d() {   // the space the tier may use: clear of the lid-screw c
 
 // A smooth band through the outer screws, a bar between the two modules, wider pads where a standoff
 // screw and a module screw sit close; open under the OLED header so its plug passes through.
-module tier_plate2d() {
+module tier_plate2d() {   // every corner rounded: inside corners tier_fillet, outside corners tier_round
+    offset(r = tier_round) offset(delta = -tier_round) intersection() {
+        tier_rect2d();
+        offset(r = -tier_fillet) offset(delta = tier_fillet) tier_band2d();
+    }
+}
+
+module tier_band2d() {
     pts = concat(tier_cols, oled_posts, seg_posts);
     mods = concat(oled_posts, seg_posts);
     difference() {

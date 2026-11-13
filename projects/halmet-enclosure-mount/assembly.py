@@ -16,7 +16,6 @@ OUT = HERE / "out"
 # component: (colour, opacity, exploded dz). Order is assembly order. The LM393 light sensor is left out for now.
 PARTS = {
     "box": ("#9aa4ad", 0.18, -45),
-    "screws_under": ("#333333", 1, -22),
     "frame": ("#c8a24a", 1, 0),
     "screws_floor": ("#333333", 1, 12),
     "tier_standoffs": ("#d4af37", 1, 22),

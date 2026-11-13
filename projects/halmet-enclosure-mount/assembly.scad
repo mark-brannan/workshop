@@ -8,11 +8,10 @@ show = "frame";      // one component per run; assembly.py loops over them
 floor_t = 2.5;       // guess
 wall_t = 2.5;        // guess
 lid_gap = 16;        // rim to lid ceiling: 60 outside - 39 rim - two walls (guess)
-m25_standoff = 6;    // module standoffs above the tier (guess; TM1637 header is 5 under its board)
 hex_af = 5.5;        // M3 F/F standoff across flats (assumed)
 board_z = body_t + standoff_h;      // HALMET underside
 ldr_z = body_t + ldr_standoff;      // LM393 underside
-mod_z = tier_z1 + m25_standoff;     // OLED and TM1637 underside
+mod_z = tier_z1 + mod_standoff;     // OLED and TM1637 underside
 floor_z = -boss_h;
 
 // HALMET parts from the KiCad footprints (overlay.py): [x, y, w, d, h], board lower-left origin; heights guessed.
@@ -37,7 +36,7 @@ module box() {
     for (sx = [-1, 1], sy = [-1, 1]) scale([sx, sy, 1]) translate([lid_col_x, lid_col_y, floor_z]) cube([75.5 - lid_col_x, 41.5 - lid_col_y, rim_z]);
 }
 
-module lid() { translate([-79, -45, tier_z1 + lid_gap]) cube([158, 90, wall_t]); }
+module lid() { translate([-79, -45, rim_z - boss_h + lid_gap]) cube([158, 90, wall_t]); }
 
 module halmet() {
     translate([board_dx - 44.5, board_dy - 29, board_z]) {
@@ -78,10 +77,9 @@ module ldr() {
 
 module tier_standoffs() { for (c = tier_cols) translate([c[0], c[1], tier_z0]) hexpost(tier_standoff); }
 module ldr_standoffs() { for (c = ldr_posts) translate([c[0], c[1], body_t]) hexpost(ldr_standoff); }
-module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = m25_standoff, $fn = 6); }
+module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = mod_standoff, $fn = 6); }
 
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
-module screws_under() { for (c = tier_cols) translate([c[0], c[1], 0]) head(); }   // in the plate's counterbores
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
 module screws_tier() { for (c = tier_cols) translate([c[0], c[1], tier_z1]) head(); }
 module screws_ldr() { translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2); }
@@ -107,7 +105,6 @@ else if (show == "tier_standoffs") tier_standoffs();
 else if (show == "ldr_standoffs") ldr_standoffs();
 else if (show == "module_standoffs") module_standoffs();
 else if (show == "screws_floor") screws_floor();
-else if (show == "screws_under") screws_under();
 else if (show == "screws_board") screws_board();
 else if (show == "screws_tier") screws_tier();
 else if (show == "screws_ldr") screws_ldr();

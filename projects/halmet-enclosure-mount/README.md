@@ -76,8 +76,8 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   gland-nut wall.
 - Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header toward the back wall)
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
-  It sits on four 19.7 mm M3 F/F standoffs, screwed up through counterbored pads on the plate
-  before the plate goes in the box; four M3 from above hold the tier down.
+  It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
+  hold the tier down. The modules stand 10 mm above it, the tallest that clears the lid (lid depth a guess).
 - Light sensor, under the tier: the LM393 module ([`parts.md`](../../parts.md)) on two more 19.7 mm
   F/F standoffs, seated on the plate and screwed up from below. One takes the module's M3 hole; the other
   is a plain rest under the photocell end. The photocell end sits just past the tier's left edge, so the
@@ -96,7 +96,7 @@ the module standoffs (6) and the lid ceiling (16 above the rim) are guesses. The
 Order, on the bench then in the box:
 
 1. Tier: modules onto M2.5 standoffs, screwed up from under the tier.
-2. Plate, out of the box: tier and sensor standoffs, screwed up from below.
+2. Plate, out of the box: sensor standoffs, screwed up from below. Tier standoffs into the pad inserts, any time.
 3. Light sensor onto its standoffs.
 4. Plate into the box, six screws through the fork slots.
 5. HALMET onto its standoffs, two screws from above.
