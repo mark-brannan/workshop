@@ -78,6 +78,11 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 F/F standoffs, screwed up through counterbored pads on the plate
   before the plate goes in the box; four M3 from above hold the tier down.
+- Light sensor, under the tier: the LM393 module ([`parts.md`](../../parts.md)) on two more 19.7 mm
+  F/F standoffs, seated on the plate and screwed up from below. One takes the module's M3 hole; the other
+  is a plain rest under the photocell end. The photocell end sits just past the tier's left edge, so the
+  cell sees the lid with its leads bent up. Bend the header pins down past the board's end; the plug hangs
+  toward the plate. Hole position and trimpot height are guesses: caliper them.
 
 ## Fit check
 

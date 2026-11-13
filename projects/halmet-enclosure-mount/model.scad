@@ -2,6 +2,7 @@
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
 // A separate tier (part-tier.scad) screws onto it and carries the displays at rim height.
+// Under the tier, two more F/F standoffs carry an LM393 light-sensor module; its photocell peeks out past the tier's left edge.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
@@ -62,6 +63,17 @@ seg_hole_dx = 36;    // owner, rough calipers
 seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
+/* [Light sensor under the tier: LM393 photoresistor module, 32 x 14, one M3 hole] */
+ldr_x0 = 24.5;       // photocell end of the module: just past the tier's left edge, so the cell sees the lid
+ldr_y = 23.5;        // module centre line; between the OLED screw heads under the tier (y 13.4) and the back tier standoff
+ldr_l = 32;          // vendor drawing
+ldr_w = 14;
+ldr_hole_in = 7;     // M3 hole centre from the header end, centred across: photo estimate, caliper it
+ldr_rest_in = 10;    // rest standoff from the photocell end: flat PCB underside between the cell's leads and the trimpot
+ldr_standoff = 19.7; // the same M3 F/F stock as the tier; sits on the plate, screwed up from below
+ldr_part_h = 5;      // tallest part on the module above its PCB (3362 trimpot): guess, caliper it
+pcb_t = 1.6;
+
 /* [Plate: hex-lightened] */
 plate_t = 4.5;
 plate_y_lo = -33;    // gland-side edge between the lid-screw columns
@@ -97,6 +109,9 @@ seg_x = oled_x;
 seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y + sy*seg_hole_dy/2]];
+ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // screwed: the module's M3 hole
+ldr_rest = [ldr_x0 + ldr_rest_in, ldr_y];           // plain rest under the photocell end
+ldr_posts = [ldr_post, ldr_rest];
 tier_z1 = rim_z - boss_h;              // top of the tier plate
 tier_z0 = tier_z1 - tier_t - tier_standoff;  // standoff feet: top of the pads
 y_hi = boss_pitch + 6;    // end bars
@@ -130,7 +145,7 @@ keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1], sy = [-1, 1]) [sx*post_dx/2, sy*post_dy/2, pad_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]]);
+    [for (c = concat(tier_cols, ldr_posts)) [c[0], c[1], tier_boss_d/2]]);
 
 
 module keep2d() {
@@ -194,6 +209,8 @@ module raised() {
 module insert_holes() {
     translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = tier_cols) translate(c) circle(d = screw_d);
     translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = tier_cols) translate(c) circle(d = head_d);
+    translate([0, 0, -1]) linear_extrude(body_t + 2) for (c = ldr_posts) translate(c) circle(d = screw_d);   // sensor standoffs sit on the plate
+    translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = ldr_posts) translate(c) circle(d = head_d);
     translate([0, 0, body_t + standoff_h - insert_depth])
         linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
 }
@@ -229,13 +246,13 @@ module gauge() {
             linear_extrude(gauge_t + gauge_rise) {
                 at_board(slots) circle(d = standoff_d);
                 at_board(rests) circle(d = rest_d);
-                for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+                for (c = concat(tier_cols, ldr_posts)) translate(c) circle(d = tier_boss_d);
             }
         }
         translate([0, 0, -1]) linear_extrude(gauge_t + gauge_rise + 2) {
             at_board(slots) circle(d = insert_d);
             at_board(rests) circle(d = 1.5);
-            for (c = tier_cols) translate(c) circle(d = insert_d);
+            for (c = concat(tier_cols, ldr_posts)) translate(c) circle(d = insert_d);
         }
     }
 }
