@@ -62,7 +62,15 @@ def test_clip_matches_original(clip):
 
 def test_base_bounds_and_solid(base):
     assert base.is_watertight
-    assert np.allclose(base.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, T]], atol=0.02)
+    # the PSU's own footprint, no overhang; seats rise pad_t above the frame
+    assert np.allclose(base.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, T + P["pad_t"]]], atol=0.02)
+    assert T <= 2.5
+    assert 4000 < base.volume < 0.65 * L * W * T  # lightened: the centre is open
+
+
+def test_centre_is_open(base):
+    assert first_z(base, 0, 0) is None
+    assert first_z(base, 0, W / 2 - P["rim_w"] / 2) is not None  # the rim
 
 
 def test_two_diagonal_screw_holes(base):
@@ -70,14 +78,17 @@ def test_two_diagonal_screw_holes(base):
     assert first_z(base, -dx, -dy) is None and first_z(base, dx, dy) is None
     # the other diagonal is solid: the PSU has only two holes
     assert np.isclose(first_z(base, -dx, dy), T) and np.isclose(first_z(base, dx, -dy), T)
-    assert P["hole_d"] <= 3.3  # the PSU's own holes take 3.3 mm at the very most
+    assert 3.3 <= P["hole_d"] <= 3.6  # M3, easy slip fit
 
 
-def test_four_blind_peg_holes(base):
-    floor = T - P["peg_hole_depth"]
+def test_four_peg_holes_through_seats(base):
+    assert T + P["pad_t"] > P["peg_len"]  # the pegs stop short of the PSU face
+    assert P["peg_hole_d"] > P["peg_d"]  # clearance for print artefacts
     for sx in (-1, 1):
         for px in (5.9, 35.9):
-            assert np.isclose(first_z(base, sx * P["clip_x"], px - RAIL_CX), floor, atol=0.02)
+            assert first_z(base, sx * P["clip_x"], px - RAIL_CX) is None
+        # seat top beside the holes
+        assert np.isclose(first_z(base, sx * P["clip_x"], 0), T + P["pad_t"], atol=0.02)
 
 
 def test_print_layout_is_base_plus_two_clips(layout):
