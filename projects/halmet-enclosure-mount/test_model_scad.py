@@ -198,3 +198,29 @@ def test_tier_clears_lid_column_board_and_usb_plug(tier):
     assert P["tier_x0"] - BOARD_RIGHT >= 2
     for z in (12.0, 15.0):  # USB-C plug path along +X from the board edge
         assert not ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0)) or ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0))[0][0] > BOARD_RIGHT + 30
+
+
+@pytest.fixture(scope="module")
+def gauge(tmp_path_factory):
+    d = tmp_path_factory.mktemp("halmet_gauge")
+    for f in ("model.scad", "part-gauge.scad"):
+        (d / f).write_text((HERE / f).read_text())
+    return trimesh.load(build_scad(d / "part-gauge.scad", d, "gauge", render=False)["stl"])
+
+
+def test_gauge_is_a_thin_solid_plate_with_the_frame_outline(gauge, frame):
+    assert gauge.is_watertight and gauge.body_count == 1
+    assert np.allclose(gauge.bounds[:, :2], frame.bounds[:, :2], atol=0.05)
+    assert gauge.volume < frame.volume / 2
+    hex_centre = (P["hex_x0"], P["hex_y0"])   # a hex cell in the frame, solid plate in the gauge
+    assert top(frame, *hex_centre) is None
+    assert np.isclose(top(gauge, *hex_centre), P["gauge_t"], atol=0.02)
+
+
+def test_gauge_keeps_slots_and_raised_features_at_frame_heights(gauge, frame):
+    for sx in (-1, 1):
+        for k in (-1, 0, 1):
+            assert top(gauge, sx * SPAN / 2, k * PITCH) is None
+    for x, y in [*SLOTS, *RESTS, *COLS]:
+        assert np.isclose(top(gauge, x, y), top(frame, x, y), atol=0.02)
+        assert np.isclose(top(gauge, x + 2.7, y), top(frame, x + 2.7, y), atol=0.02) if (x, y) not in RESTS else True

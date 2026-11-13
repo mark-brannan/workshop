@@ -5,7 +5,7 @@
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
-part = "frame";      // [frame, gauge:thin fit check of the same outline, tier:display tier, 3D only]
+part = "frame";      // [frame, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
 
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 140;     // holed bosses, centre to centre: first print, scaled by its own 144 mm length (136 put the screws at the fork mouths)
@@ -75,7 +75,7 @@ hex_flat = 9;         // hex cell across flats
 hex_web = 2.0;       // wall between cells
 hex_x0 = 1.5;        // grid offset
 hex_y0 = 3;
-gauge_t = 0.8;
+gauge_t = 1;          // fit-check plate: five 0.2 mm layers
 
 /* [Standoffs] */
 standoff_h = 6;      // board underside above the frame; clears pin stubs
@@ -185,19 +185,28 @@ module profile(spacer_holes) {
     }
 }
 
+// Standoffs, rests and tier bosses at their true heights, with their insert holes cut.
+module raised() {
+    linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
+    linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
+    linear_extrude(tier_z0) for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+}
+
+module insert_holes() {
+    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1)
+        for (c = tier_cols) translate(c) circle(d = insert_d);
+    translate([0, 0, body_t + standoff_h - insert_depth])
+        linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+}
+
 // Z = 0 is the top of the rest posts; the holed bosses reach up into the pockets.
 module frame() {
     difference() {
         union() {
             linear_extrude(body_t) profile(false);
-            linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
-            linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
-            linear_extrude(tier_z0) for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+            raised();
         }
-        translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1)
-            for (c = tier_cols) translate(c) circle(d = insert_d);
-        translate([0, 0, body_t + standoff_h - insert_depth])
-            linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+        insert_holes();
         tie_chamfers();
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
             cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
@@ -206,6 +215,17 @@ module frame() {
                 translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
                 translate([bar_x1 + 2, 0]) circle(d = boss_d + 2);
             }
+    }
+}
+
+// Fast fit check: the frame's outline, slots and raised features on a thin solid plate, no hex cells.
+module gauge() {
+    difference() {
+        union() {
+            linear_extrude(gauge_t) difference() { outline2d(); fork_slots(); tie_slots(); }
+            raised();
+        }
+        insert_holes();
     }
 }
 
@@ -256,6 +276,6 @@ module tier() {
 }
 
 if (part == "tier") tier();
+else if (part == "gauge") gauge();
 else if (mode == "2d") profile(true);
-else if (part == "gauge") linear_extrude(gauge_t) profile(true);
 else frame();

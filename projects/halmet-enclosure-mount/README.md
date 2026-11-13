@@ -80,8 +80,8 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 ## Fit check
 
-Set `part = "gauge"` with `mode = "3d"` for a 0.8 mm print of the same outline,
-or cut the frame at Z = 0.8 in the slicer. Lay it on the bosses, read where
+`out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm solid plate, no hex cells,
+with the standoffs, rests and tier bosses at full height. Lay it on the bosses, read where
 each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
 them.
 
