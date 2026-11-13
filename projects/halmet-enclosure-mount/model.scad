@@ -9,7 +9,7 @@ part = "frame";      // [frame, gauge:thin fit check of the same outline, tier:d
 
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 140;     // holed bosses, centre to centre: first print, scaled by its own 144 mm length (136 put the screws at the fork mouths)
-boss_pitch = 21;     // neighbouring bosses on one end
+boss_pitch = 22.5;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; photo of that print reads 22.4
 screw_d = 3.4;       // clearance for the screw into a boss
 slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor

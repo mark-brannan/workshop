@@ -49,7 +49,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 | Parameter | Now | Source |
 |---|---|---|
 | `boss_span` | 140 | first print, scaled by its own 144 mm length; 136 put the screws at the fork mouths |
-| `boss_pitch` | 21 | owner, approximate |
+| `boss_pitch` | 22.5 | 21 printed with the outer screws inside their slots; scaled from the photo of that print against its own 21 mm slot pitch |
 | Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
 | Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
 | Inner floor | 151 x 83 | owner |

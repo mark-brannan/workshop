@@ -40,7 +40,7 @@ MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["ol
 MOD_POSTS += [(P["oled_x"] + sx * P["seg_hole_dx"] / 2, SEG_Y + sy * P["seg_hole_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
 USB_Y = 16.5 - 29 + DY                    # USB-C centre on the board's right edge
 BOARD_RIGHT = 44.5 + DX
-VOL_LO, VOL_HI = 23000, 28500  # first hex-plate build: 25789
+VOL_LO, VOL_HI = 23000, 29500  # first hex-plate build: 25789
 
 
 @pytest.fixture(scope="module")
