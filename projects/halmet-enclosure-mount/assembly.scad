@@ -9,7 +9,7 @@ floor_t = 2.5;       // guess
 wall_t = 2.5;        // guess
 hex_af = 5.5;        // M3 F/F standoff across flats (assumed)
 board_z = body_t + standoff_h;      // HALMET underside
-ldr_z = body_t + ldr_standoff;      // LM393 underside
+ldr_z = tier_z1 + ldr_ledge;        // LM393 underside, on its cradle
 mod_z = tier_z1 + mod_standoff;     // OLED and TM1637 underside
 floor_z = -boss_h;
 
@@ -66,16 +66,16 @@ module ldr() {
     translate([ldr_x0, ldr_y - ldr_w/2, ldr_z]) {
         cube([ldr_l, ldr_w, pcb_t]);
         translate([12, 2, pcb_t]) cube([7, 7, ldr_part_h]);                       // trimpot (guess)
-        translate([ldr_l, ldr_w/2 - 4, -2.5]) cube([2.5, 8, 2.5]);                 // header bent down past the end
+        translate([ldr_l - 2.5, ldr_w/2 - 3.8, pcb_t]) cube([2.5, 7.6, 2.5]);      // header
+        for (dy = [-2.54, 0, 2.54]) translate([ldr_l, ldr_w/2 + dy - 0.32, pcb_t + 0.94]) cube([ldr_pin_l, 0.64, 0.64]);   // pins, straight out
     }
-    translate([ldr_x0 + 2.5, ldr_y, ldr_z + pcb_t]) {                             // photocell on leads bent up
-        cylinder(d = 0.6, h = 6, $fn = 8);
-        translate([0, 0, 6]) cylinder(d = 5, h = 2);
+    translate([ldr_x0 - 1, ldr_y, ldr_z + pcb_t]) {                               // photocell on leads bent up
+        cylinder(d = 0.6, h = 3, $fn = 8);
+        translate([0, 0, 3]) cylinder(d = 5, h = 2);
     }
 }
 
 module tier_standoffs() { for (c = tier_cols) translate([c[0], c[1], tier_z0]) hexpost(tier_standoff); }
-module ldr_standoffs() { for (c = ldr_posts) translate([c[0], c[1], body_t]) hexpost(ldr_standoff); }
 module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = mod_standoff, $fn = 6); }
 
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
@@ -101,7 +101,6 @@ else if (show == "seg") seg();
 else if (show == "seg_body") seg_body();
 else if (show == "ldr") ldr();
 else if (show == "tier_standoffs") tier_standoffs();
-else if (show == "ldr_standoffs") ldr_standoffs();
 else if (show == "module_standoffs") module_standoffs();
 else if (show == "screws_floor") screws_floor();
 else if (show == "screws_board") screws_board();
