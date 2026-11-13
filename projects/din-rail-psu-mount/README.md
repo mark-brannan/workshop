@@ -1,21 +1,21 @@
 # DIN-rail mount for an 80 x 110 mm AC-DC supply
 
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a
-35 mm TS35 rail. A 2.5 mm frame, cut to the supply's own 110 x 80 footprint and
-open in the centre, screws to the supply's two base holes with M3 screws. Two DIN
-clips press into peg holes in 1 mm seats on the frame; plate plus seat (3.5) is
-deeper than the pegs (3.25), so the holes go through and a clip can be pushed out
-from behind. The clip is the owner's
-design (Thingiverse thing:2415668, DIN_Clip.stl), outline copied point for point:
-a fixed lip on one end, a flexing hooked arm on the other, so two clips give two
-fixed and two flex latches. The rail runs along the 80 mm axis, the 110 mm side
-stands up and down.
+35 mm TS35 rail, as one printed piece. A 2.5 mm frame, cut to the supply's own 110 x 80
+footprint and open in the centre, screws to the supply's two base holes with M3 screws. Two
+DIN clips are part of the frame: the profile of marauder156's "DIN rail clip basic module"
+(Thingiverse thing:3640994, `DINrail_Clip.stl`, section taken at mid-length), a fixed hook on one
+side and a spring-arm latch on the other, extruded 15 mm along the rail and standing 16 mm off the
+frame. The rail runs along the 80 mm axis, the 110 mm side stands up and down. This replaces the
+earlier two-part design (frame plus separate clips on pegs, thing:2415668), which printed too tight
+at the pegs and weakened every joint.
 
 ## Files (out/)
 
-`din-rail-psu-mount_scad.3mf` / `.stl`: base plate plus two clips laid out on one
-bed, clips flat as in the original STL. `part` in `model.scad` selects
-`assembled`, `base`, `clip`. Release a clip hook by pushing the arm's hook tip outward.
+`din-rail-psu-mount_scad.3mf` / `.stl`: the one piece, PSU face down. No separate clips.
+
+Printing: the barbs over the rail slot overhang as they do in the original, which printed flat;
+look at the slicer preview before trusting it.
 
 ## Measured, and from what
 
@@ -32,11 +32,9 @@ bed, clips flat as in the original STL. `part` in `model.scad` selects
 | Value | Now | Why |
 |---|---|---|
 | `hole_d` | 3.5 | M3 easy slip fit |
-| `peg_hole_d` | 4.2 | the original frame's holes are 4.03 on 4.0 pegs, which printed too tight; tune here |
-| `clip_w` | 6 | the original width; widen for a stiffer mount |
+| `clip_len` | 15 | the original is 12.3; longer for a stiffer mount |
 | `clip_x` | 25 | clip spacing along the rail |
-| Rail | 35.25 between clip walls | from the original clip; owner's rail reads 34.5 |
+| Rail gap | 35 between the hooks | from the original profile; owner's rail reads 34.5 |
 
-Checks: the clip volume (1884.3) and bounding box match the original STL. The
-original frame (`Breadboard_Frame.stl` in the thing's zip) has 4.03-4.04 peg
-holes for the 3.99 pegs: a press fit with no allowance for print artefacts.
+Checks: the section area times 12.3 matches the STL volume (6026 against 6022 mm^3), and the
+bounding box is 60 x 16 across the profile.

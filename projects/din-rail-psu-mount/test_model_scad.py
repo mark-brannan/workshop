@@ -1,8 +1,8 @@
-"""Tests for the DIN-rail PSU mount: bounding boxes, volume windows, feature counts.
+"""Tests for the one-piece DIN-rail PSU mount: bounding box, volume window, feature counts.
 
-Features are counted by vertical ray probes through the STL. The clip's volume
-and bounding box are checked against the owner's DIN_Clip.stl (1884 mm^3,
--3.21..41.84 x -3.25..19.48 x 0..6) so a transcription slip in the outline shows.
+Features are counted by vertical ray probes through the STL. The clip profile comes from
+Thingiverse 3640994 (DINrail_Clip.stl, 6022 mm^3 over 12.3 mm, 60 x 16 mm section), so the
+clip's volume is checked against that at the model's clip_len.
 """
 
 import re
@@ -24,29 +24,13 @@ def params(path: Path) -> dict[str, float]:
 
 P = params(HERE / "model.scad")
 L, W, T = P["plate_l"], P["plate_w"], P["plate_t"]
-RAIL_CX = (3.12 + 38.37) / 2
 
-
-def build(tmp_path_factory, part: str) -> trimesh.Trimesh:
-    d = tmp_path_factory.mktemp(part)
-    src = d / "model.scad"
-    src.write_text((HERE / "model.scad").read_text().replace('part = "print"', f'part = "{part}"', 1))
-    return trimesh.load(build_scad(src, d, part, render=False)["stl"])
 
 
 @pytest.fixture(scope="module")
-def base(tmp_path_factory):
-    return build(tmp_path_factory, "base")
-
-
-@pytest.fixture(scope="module")
-def clip(tmp_path_factory):
-    return build(tmp_path_factory, "clip")
-
-
-@pytest.fixture(scope="module")
-def layout(tmp_path_factory):
-    return build(tmp_path_factory, "print")
+def mount(tmp_path_factory):
+    d = tmp_path_factory.mktemp("mount")
+    return trimesh.load(build_scad(HERE / "model.scad", d, "mount", render=False)["stl"])
 
 
 def first_z(mesh, x, y):
@@ -54,44 +38,41 @@ def first_z(mesh, x, y):
     return h[0][2] if len(h) else None
 
 
-def test_clip_matches_original(clip):
-    assert clip.is_watertight
-    assert np.allclose(clip.bounds, [[-3.21, -3.25, 0], [41.84, 19.48, P["clip_w"]]], atol=0.02)
-    assert abs(clip.volume - 1884.0) < 5  # original DIN_Clip.stl, at its 6 mm width
+CLIP_TOP = T + 16.012  # frame plus the profile's 10 + 6.012 depth
 
 
-def test_base_bounds_and_solid(base):
-    assert base.is_watertight
-    # the PSU's own footprint, no overhang; seats rise pad_t above the frame
-    assert np.allclose(base.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, T + P["pad_t"]]], atol=0.02)
+def test_one_watertight_piece(mount):
+    assert mount.is_watertight
+    assert len(mount.split(only_watertight=False)) == 1
+
+
+def test_bounds(mount):
+    # the PSU's own footprint, no overhang; the clips stand 16 mm above the frame
+    assert np.allclose(mount.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, CLIP_TOP]], atol=0.05)
     assert T <= 2.5
-    assert 4000 < base.volume < 0.65 * L * W * T  # lightened: the centre is open
 
 
-def test_centre_is_open(base):
-    assert first_z(base, 0, 0) is None
-    assert first_z(base, 0, W / 2 - P["rim_w"] / 2) is not None  # the rim
+def test_volume_is_frame_plus_two_clips(mount):
+    clips = 2 * 6022.0 / 12.3 * P["clip_len"]
+    assert clips < mount.volume < clips + 0.75 * L * W * T
 
 
-def test_two_diagonal_screw_holes(base):
+def test_centre_is_open(mount):
+    assert first_z(mount, 0, 0) is None
+    assert first_z(mount, 0, W / 2 - P["rim_w"] / 2) is not None  # the rim
+
+
+def test_two_diagonal_screw_holes(mount):
     dx, dy = P["hole_dx"] / 2, P["hole_dy"] / 2
-    assert first_z(base, -dx, -dy) is None and first_z(base, dx, dy) is None
+    assert first_z(mount, -dx, -dy) is None and first_z(mount, dx, dy) is None
     # the other diagonal is solid: the PSU has only two holes
-    assert np.isclose(first_z(base, -dx, dy), T) and np.isclose(first_z(base, dx, -dy), T)
+    assert np.isclose(first_z(mount, -dx, dy), T) and np.isclose(first_z(mount, dx, -dy), T)
     assert 3.3 <= P["hole_d"] <= 3.6  # M3, easy slip fit
 
 
-def test_four_peg_holes_through_seats(base):
-    assert T + P["pad_t"] > P["peg_len"]  # the pegs stop short of the PSU face
-    assert P["peg_hole_d"] > P["peg_d"]  # clearance for print artefacts
+def test_clips_stand_on_the_frame_and_clear_the_rail(mount):
     for sx in (-1, 1):
-        for px in (5.9, 35.9):
-            assert first_z(base, sx * P["clip_x"], px - RAIL_CX) is None
-        # seat top beside the holes
-        assert np.isclose(first_z(base, sx * P["clip_x"], 0), T + P["pad_t"], atol=0.02)
-
-
-def test_print_layout_is_base_plus_two_clips(layout):
-    bodies = layout.split(only_watertight=False)
-    assert len(bodies) == 3 and all(b.is_watertight for b in bodies)
-    assert sum(b.bounds[0][1] > W / 2 for b in bodies) == 2  # both clips beside the plate
+        x = sx * P["clip_x"]
+        assert first_z(mount, x, 25) > T + 5  # the fixed hook stands well clear of the frame
+        # the rail slot is open to the rail side at its centre, but for the profile's back bar
+        assert first_z(mount, x, 0.5) < CLIP_TOP - 5

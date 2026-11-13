@@ -31,4 +31,4 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 |---|---|---|---|
 | M3 F/F hex standoff, the owner's stock | 19.7 long, 5.5 across flats (assumed) | owner, caliper (length) | halmet-enclosure-mount |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
-| DIN clip | Thingiverse thing:2415668, `DIN_Clip.stl` | owner's design | din-rail-psu-mount |
+| DIN clip | Thingiverse thing:3640994, `DINrail_Clip.stl`, integrated in the frame | owner's choice of design | din-rail-psu-mount |

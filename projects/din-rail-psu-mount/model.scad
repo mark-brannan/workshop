@@ -1,14 +1,10 @@
-// DIN-rail (TS35) mount for an 80 x 110 mm enclosed AC-DC supply.
-// A 2.5 mm lightened frame, the PSU's own footprint, screws (M3) to its two diagonal holes. Two DIN clips,
-// the owner's design (Thingiverse thing:2415668, "Half Height Breadboard DIN
-// Mount", DIN_Clip.stl), press into peg holes in raised seats on the frame. Each clip has a
-// fixed hook on one end and a flexing hooked arm on the other, so two clips
-// give two fixed and two flex latches. The rail runs along X, the 80 mm axis:
-// the 110 mm side stands up and down.
-// Print the base with the PSU face down (z = 0). Clips print flat as shown.
-
-/* [Show] */
-part = "print";      // [print:All parts laid out for printing, assembled:Assembled, base:Base plate only, clip:One clip only]
+// DIN-rail (TS35) mount for an 80 x 110 mm enclosed AC-DC supply, one piece.
+// A 2.5 mm lightened frame, the PSU's own footprint, screws (M3) to its two diagonal holes.
+// Two DIN clips are part of the frame: the profile of marauder156's "DIN rail clip basic module
+// for own modification" (Thingiverse thing:3640994, DINrail_Clip.stl), a fixed hook on one side and a
+// spring-arm latch on the other, extruded along the rail and standing on the frame. The rail runs
+// along X, the 80 mm axis; the 110 mm side stands up and down.
+// Print with the PSU face down (z = 0). No supports are planned for the barbs; check the slicer preview.
 
 /* [Plate] */
 plate_l = 80;        // X, along the rail: the PSU's footprint, no overhang
@@ -16,7 +12,6 @@ plate_w = 110;       // Y, across the rail (the vertical, long side)
 plate_t = 2.5;       // the frame
 corner_r = 3;
 rim_w = 6;           // perimeter band of the lightened frame
-strip_w = 12;        // solid band under each clip, rim to rim, joined to the side rim
 boss_d = 11;         // solid round around each screw hole
 
 /* [PSU mounting holes] (caliper ~, diagonal pair) */
@@ -25,87 +20,50 @@ hole_dy = 75;        // centre to centre along Y (the 110 mm side)
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
 
 /* [Clips] */
-clip_w = 6;          // clip thickness along the rail; 6 is the original design
+clip_len = 15;       // each clip's length along the rail; the original STL is 12.3
 clip_x = 25;         // clip centre distance from the plate centre, along the rail
-peg_d = 4.0;         // the clip's two pegs, from the original STL
-peg_len = 3.25;
-peg_hole_d = 4.2;    // hole in the plate: 4.0 was zero clearance and printed too tight
-pad_t = 1.0;         // seat under each clip, so the 3.25 pegs stop short of the PSU
-pad_margin = 2;      // seat beyond the clip outline, each side
+strip_pad = 3;       // solid frame band beyond each clip's length, each side
 
 /* [Hidden] */
 $fn = 48;
-// Clip outline from DIN_Clip.stl, mm. Origin = clip base corner; y up is away
-// from the plate. Rail seat is y = 12.18, hook lips at y = 13.18. The flex arm
-// is the left stem with the long hook; the right lip is fixed.
-clip_outer = [[0,0],[0.71,15.61],[-3.21,19.48],[0.17,18.79],[0.75,18.64],[1.3,18.42],[1.84,18.15],
-  [2.33,17.82],[2.8,17.44],[3.22,17.02],[3.59,16.55],[3.91,16.04],[4.17,15.51],[4.38,14.95],
-  [4.52,14.37],[4.6,13.77],[4.62,13.18],[2.37,13.18],[2.37,3.18],[2.38,3.08],[2.48,2.91],
-  [2.65,2.81],[2.75,2.8],[2.84,2.81],[3.01,2.91],[3.07,2.99],[3.12,3.18],[3.12,12.18],
-  [38.37,12.18],[38.37,13.18],[35.98,14.47],[35.91,14.55],[35.84,14.74],[35.87,14.95],
-  [35.99,15.12],[36.08,15.18],[41.84,15.18],[41.84,0]];
-clip_hole = [[8.62,2.5],[36.34,2.5],[36.76,2.53],[37.18,2.62],[37.58,2.77],[37.96,2.98],[38.3,3.23],
-  [38.6,3.54],[38.86,3.88],[39.07,4.25],[39.22,4.65],[39.31,5.07],[39.34,5.5],[39.34,9.68],
-  [8.62,9.68],[8.19,9.65],[7.78,9.55],[7.37,9.41],[7.0,9.2],[6.66,8.94],[6.35,8.64],[6.1,8.3],
-  [5.89,7.92],[5.74,7.52],[5.65,7.1],[5.62,6.68],[5.62,5.5],[5.65,5.07],[5.74,4.65],[5.89,4.25],
-  [6.1,3.88],[6.35,3.54],[6.66,3.23],[7.0,2.98],[7.37,2.77],[7.78,2.62],[8.19,2.53]];
-peg_xs = [5.9, 35.9];                 // peg centres along the clip
-rail_cx = (3.12 + 38.37) / 2;         // 20.745: rail centreline in clip coordinates
+// Clip profile from DINrail_Clip.stl, a section at mid-length, mm. Back face (on the frame) is y = 10;
+// y falls away from the frame. The rail centre line is x = 0.5. Two voids free the spring arm and
+// the fixed hook's relief; the outline is simplified within 0.03 mm.
+clip_outer = [[-30,10],[30,10],[30,3],[29.91,2.51],[29.7,2.06],[29.39,1.68],[29,1.38],[21.55,-2.86],[21.21,-2.96],[20.85,-2.99],[18,-2.99],[15.35,-2.47],[15.35,-1.74],[18,-1.19],[18,-0],[14.34,-0],[13.89,0.05],[13.47,0.19],[13.09,0.43],[12.77,0.75],[12.54,1.13],[12.39,1.55],[12.34,2],[12.34,4.1],[12.31,4.34],[12.21,4.57],[12.07,4.77],[11.88,4.93],[11.66,5.04],[11.42,5.09],[11.17,5.08],[10.94,5.01],[10.72,4.88],[10.55,4.71],[10.42,4.5],[10.35,4.26],[10.34,4.01],[12,-1],[11.98,-5.24],[11.9,-5.45],[11.71,-5.71],[11.44,-5.91],[11.23,-5.99],[8.94,-6.01],[8.73,-5.98],[8.34,-5.78],[8.19,-5.62],[8.01,-5.23],[7.98,-1.01],[7.14,2.78],[6.89,3.37],[6.71,3.64],[6.53,3.9],[6.06,4.33],[5.51,4.66],[4.9,4.86],[4.26,4.93],[-4.18,4.93],[-4.84,4.86],[-5.47,4.64],[-6.03,4.29],[-6.5,3.83],[-6.86,3.27],[-7.09,2.65],[-8,-1],[-8,-5.04],[-8.11,-5.46],[-8.38,-5.8],[-8.78,-5.99],[-11.05,-6.01],[-11.27,-5.98],[-11.66,-5.78],[-11.82,-5.63],[-12,-5.23],[-12.03,-1.03],[-10.79,3.5],[-10.75,3.85],[-10.82,4.19],[-11.09,4.56],[-11.51,4.77],[-14,4.8],[-14.46,4.91],[-14.82,5.22],[-14.94,5.43],[-15,5.66],[-15.01,6.15],[-15.08,6.39],[-15.2,6.61],[-15.37,6.79],[-15.59,6.92],[-15.82,6.99],[-16.07,7.01],[-16.32,6.96],[-16.54,6.85],[-16.73,6.69],[-16.88,6.49],[-16.97,6.26],[-17,0],[-18,0],[-18,-1],[-17,-1.28],[-17,-2.27],[-18.03,-5.18],[-18.35,-5.5],[-18.73,-5.75],[-18.94,-5.83],[-19.16,-5.9],[-19.62,-5.96],[-24.21,-5.94],[-28.86,-4.68],[-29.25,-4.48],[-29.41,-4.34],[-29.57,-4.19],[-29.82,-3.84],[-29.97,-3.43],[-30.03,-3],[-30.03,-1],[-28.43,-1],[-28.41,-2.57],[-28.32,-2.76],[-28.16,-2.9],[-26.84,-3.24],[-26.54,-3.11],[-26.41,-2.93],[-26.37,-2.72],[-28.59,5.34],[-28.72,5.62],[-28.92,5.85],[-29.65,6.24],[-29.91,6.58],[-29.98,6.79]];
+clip_void1 = [[28.54,3.18],[28.54,4.8],[13.54,4.8],[13.54,2],[13.56,1.81],[13.72,1.49],[14.01,1.26],[14.37,1.2],[19.2,1.2],[19.2,-1.79],[20.79,-1.79],[21.08,-1.74],[21.34,-1.63],[28.15,2.5],[28.43,2.8]];
+clip_void2 = [[-23.17,-2.89],[-25.52,5.47],[-25.84,5.82],[-26.06,5.92],[-26.53,5.97],[-26.98,5.79],[-27.28,5.42],[-27.37,5.07],[-27.35,4.72],[-24.95,-4.22],[-24.76,-4.6],[-24.42,-4.86],[-24,-4.96],[-19.42,-4.93],[-19.03,-4.75],[-18.75,-4.41],[-18,-2.04],[-19,-1.77],[-19,0.99],[-18,0.99],[-18,5.99],[-18.1,6.42],[-18.38,6.77],[-18.57,6.89],[-19,6.99],[-19.5,6.99],[-19.93,6.89],[-20.28,6.62],[-20.47,6.22],[-20.5,-2.46],[-20.6,-2.88],[-20.87,-3.23],[-21.26,-3.43],[-22.49,-3.43],[-22.89,-3.24],[-23.05,-3.08]];
 
-// Clip in its own frame: profile in XY, thickness along Z, pegs toward -Y.
-module clip() {
-    linear_extrude(clip_w) difference() { polygon(clip_outer); polygon(clip_hole); }
-    for (px = peg_xs) translate([px, 0.01, clip_w / 2]) rotate([90, 0, 0]) cylinder(d = peg_d, h = peg_len + 0.01);
-}
-
-// Clip installed: base on the seat top, rail centreline at y = 0, centred on x = cx.
-module clip_placed(cx) {
-    translate([cx - clip_w / 2, 0, plate_t + pad_t]) rotate([90, 0, 90])
-        translate([-rail_cx, 0, 0]) clip();
-}
-// Plate position of a peg, for the blind holes.
-function peg_y(px) = px - rail_cx;
-
-// Clip seat footprint on the plate, along Y: the clip's base runs x = -3.21..41.84 in its own frame.
-seat_y0 = -3.21 - rail_cx - pad_margin;
-seat_y1 = 41.84 - rail_cx + pad_margin;
+rail_cx = 0.5;
+clip_h = 10 + 6.012;   // back face to the lowest hook, y = 10 .. -6.012
+strip_w = clip_len + 2*strip_pad;
 holes = [[-hole_dx/2, -hole_dy/2], [hole_dx/2, hole_dy/2]];
+
+// Clip profile (x across the rail, y toward the rail) laid into plate axes: Y across, Z up from the frame,
+// extruded along X, centred on x = 0. The back face (profile y = 10) sits on the frame, 0.01 into it.
+module clip() {
+    multmatrix([[0, 0, 1, -clip_len/2], [1, 0, 0, -rail_cx], [0, -1, 0, plate_t + 10 - 0.01], [0, 0, 0, 1]])
+        linear_extrude(clip_len) difference() { polygon(clip_outer); polygon(clip_void1); polygon(clip_void2); }
+}
 
 module outline() offset(r = corner_r) square([plate_l - 2*corner_r, plate_w - 2*corner_r], center = true);
 
-// Perimeter rim, a solid band from each clip out to the side, a boss round each screw hole; the rest is open.
+// Perimeter rim, a solid band under each clip out to the side rim, a boss round each screw hole; the rest is open.
 module frame2d() intersection() { outline(); union() {
     difference() { outline(); offset(delta = -rim_w) outline(); }
-    for (sx = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0]) translate([clip_x - strip_w/2, -plate_w/2]) square([plate_l/2 - clip_x + strip_w/2, plate_w]);
+    for (sx = [-1, 1]) translate([sx*clip_x - strip_w/2, -plate_w/2]) square([strip_w, plate_w]);
     for (h = holes) translate(h) circle(d = boss_d);
 } }
 
 module base() {
     difference() {
-        union() {
-            linear_extrude(plate_t) frame2d();
-            for (sx = [-1, 1]) translate([sx*clip_x - clip_w/2 - pad_margin, seat_y0, 0])
-                cube([clip_w + 2*pad_margin, seat_y1 - seat_y0, plate_t + pad_t]);
-        }
+        linear_extrude(plate_t) frame2d();
         for (h = holes) translate([h[0], h[1], -1]) cylinder(d = hole_d, h = plate_t + 2);
-        // through holes: plate plus seat is 3.5, the pegs 3.25
-        for (sx = [-1, 1], px = peg_xs)
-            translate([sx*clip_x, peg_y(px), -1]) cylinder(d = peg_hole_d, h = plate_t + pad_t + 2);
     }
 }
 
-module assembled() {
+module mount() {
     base();
-    for (sx = [-1, 1]) clip_placed(sx*clip_x);
+    for (sx = [-1, 1]) translate([sx*clip_x, 0, 0]) clip();
 }
 
-module print_layout() {
-    base();
-    // clips lie flat beside the plate, in the original STL orientation
-    for (i = [0, 1]) translate([-44 + i*50, plate_w/2 + 8, 0]) clip();
-}
-
-if (part == "base") base();
-else if (part == "clip") clip();
-else if (part == "assembled") assembled();
-else print_layout();
+mount();
