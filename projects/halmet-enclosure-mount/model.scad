@@ -77,9 +77,11 @@ ldr_y = 23.8;        // between the OLED's standoff columns, clear of the back-l
 ldr_l = 31;          // owner, caliper
 ldr_w = 14;
 ldr_hole_in = 7;     // hole centre from the header end, centred across: its rim 5 from that end and both edges (owner)
-ldr_part_h = 5;      // tallest part above its PCB (3362 trimpot): guess, caliper it
+ldr_part_h = 4.6;    // trimpot above the board top: 6.2 from the board's underside (owner)
 pcb_t = 1.6;
 ldr_ledge = 1.5;     // the module sits on edge ledges this high, clear of its solder stubs
+ldr_lip = 1.2;       // how far a ledge reaches in under the board's edge: solder pads sit 1.4 in
+ldr_cell_clear = 4;  // nothing under the photocell end this far in: solder from the cell's leads
 ldr_wall = 1.2;      // cradle side walls, flush with the PCB top: stop it turning on its one screw
 ldr_fit = 0.3;       // per side
 ldr_pilot = 2.6;     // M3 self-tap from above into a boss under the cradle floor
@@ -311,7 +313,8 @@ module ldr_floor2d() { offset(r = 1.5) offset(delta = -1.5) translate([ldr_x0, l
 module ldr_cradle() {
     w = ldr_w + 2*ldr_fit;
     linear_extrude(ldr_ledge) {
-        for (s = [-1, 1]) translate([ldr_x0, ldr_y + s*(w/2 - 1) - 1]) square([ldr_l, 2]);
+        for (s = [-1, 1]) translate([ldr_x0 + ldr_cell_clear, ldr_y + (s < 0 ? -w/2 : w/2 - ldr_fit - ldr_lip)])
+            square([ldr_l - ldr_cell_clear, ldr_fit + ldr_lip]);
         translate(ldr_post) circle(d = ldr_boss_d);
     }
     linear_extrude(ldr_ledge + pcb_t) difference() {
