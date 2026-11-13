@@ -39,3 +39,5 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 - 2026-11-12 19:05: key login works. SSH snapshot `~/k2-backups/2026-11-12-1905-ssh-printer_data.tar.gz` (config, database, /etc/dropbear, /etc/config).
 - 2026-11-12 19:06: step 2 found password SSH on for root, adbd listening on 0.0.0.0:5037.
 - 2026-11-12 19:10: printer accepts 2 keys (this Mac, WSL box), not all machines; password SSH stays on until it does.
+- 2026-11-12 19:35: step 3 applied (`chamber_soak.cfg`, include in printer.cfg, 2 calls in START_PRINT); Klipper ready; PLA no-op ok.
+- 2026-11-12 19:35: camera not readable by the agent: no snapshot URL, Fluidd camera tile black.
