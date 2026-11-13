@@ -25,7 +25,7 @@ def lists(path: Path) -> dict[str, list]:
 
 P = params(HERE / "model.scad")
 LISTS = lists(HERE / "model.scad")
-DROP = max(0.0, P["boss_h"] - P["post_h"])
+DROP = 0.0  # flat underside resting on the bosses
 T, H = P["plate_t"] + DROP, P["standoff_h"]  # T: full body thickness
 SPAN, PITCH, REACH = P["boss_span"], P["boss_pitch"], P["slot_reach"]
 DX, DY = P["board_dx"], P["board_dy"]
@@ -33,7 +33,7 @@ SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
 TIER_Z0 = T + P["tier_boss_h"]            # column feet on the plate's bosses
-TIER_TOP = P["rim_z"] - P["post_h"]       # Z = 0 is the rest-post top, 2 above the floor
+TIER_TOP = P["rim_z"] - P["boss_h"]       # Z = 0 is the boss top
 SEG_Y = P["oled_y"] - P["oled_h"] / 2 - P["seg_gap"] - P["seg_h"] / 2
 MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
              for sx in (-1, 1) for sy in (-1, 1)]
@@ -124,23 +124,31 @@ def bottom(mesh, x, y):
     return h[0][2] if h else None
 
 
-def test_pads_rest_on_the_four_posts(frame):
+def test_pads_cover_the_four_posts(frame):
     for sx in (-1, 1):
         for sy in (-1, 1):
             for ox in (-4, 0, 4):  # post anywhere within 4 mm of post_dx
                 assert np.isclose(bottom(frame, sx * P["post_dx"] / 2 + ox, sy * P["post_dy"] / 2), 0, atol=0.02)
 
 
-def test_underside_pocketed_over_the_holed_bosses(frame):
+def test_underside_flat_over_bosses_and_posts(frame):
+    assert DROP == 0
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             x, y = sx * SPAN / 2, k * PITCH + (P["screw_d"] / 2 + 1.5)  # beside the slot, over the boss rim
-            assert np.isclose(bottom(frame, x, y), DROP, atol=0.02)
-            assert np.isclose(top(frame, x, y), T, atol=0.02)
+            assert np.isclose(bottom(frame, x, y), 0, atol=0.02)
+
+
+def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
+    for x in LISTS["tie_bar_xs"]:
+        outer = x + P["tie_gap"] / 2 + P["tie_t"] / 2  # outer edge of the right-hand slot
+        assert np.isclose(bottom(frame, outer + P["tie_c"] / 2, P["tie_bar_y"]), P["tie_c"] / 2, atol=0.05)
+        web = x + P["tie_gap"] / 2 - P["tie_t"] / 2 - 0.2  # web side stays square
+        assert np.isclose(bottom(frame, web, P["tie_bar_y"]), 0, atol=0.02)
 
 
 def test_zip_tie_slots_open(frame):
-    assert len(LISTS["tie_bar_xs"]) == 4  # four gland-side ties
+    assert len(LISTS["tie_bar_xs"]) == 6  # six gland-side ties
     pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in LISTS["tie_bar_xs"] for s in (-1, 1)]
     x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH) / 2
     pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]

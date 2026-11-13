@@ -68,13 +68,10 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
   insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
-- Four pads reach out to the no-hole posts, 75 wide overall. The posts sit
-  1.5 below the bosses, so the frame is 4.5 thick and its underside is
-  pocketed 1.5 deep over each boss: Z = 0 rests on the posts, the pocket
-  ceilings sit on the bosses. Set `post_h` equal to `boss_h` for a flat 3 mm
-  frame.
-- Zip-tie strain relief: slot pairs, the tie looping under the frame. Four
-  along the gland-side edge, one under each gland nut, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
+- Flat underneath, resting on the six bosses. Four pads reach over the no-hole posts, which sit
+  about 1 mm lower; a 1 mm stick-on pad on each closes the gap if the plate rocks.
+- Zip-tie strain relief: slot pairs, the tie looping under the frame. Six
+  along the gland-side edge, chamfered underneath where the tie turns, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 - Display tier, a separate print (`part-tier.scad`, prints upside down): a top plate at the rim

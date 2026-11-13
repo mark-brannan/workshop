@@ -20,7 +20,7 @@ lid_col_y = 32.4;    // and across Y; keep the display clear of both
 /* [Rest posts: four no-hole posts on the long sides] */
 post_dx = 80;        // centre to centre along the length (photo 77 to 80)
 post_dy = 70;        // centre to centre across the width (photo 67 to 69)
-post_h = 2;          // lower than the bosses, so the frame underside steps down to meet them
+post_h = 2.5;        // ~1 below the bosses (owner); the flat frame clears them by that, a stick-on pad closes it
 frame_w = 75;        // gland side: pads stop at -frame_w/2, short of the gland nuts
 pad_r = 4.5;         // semicircle tab over each rest post (post ~5 diameter)
 gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
@@ -29,8 +29,9 @@ gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
 tie_w = 4;           // slot length; takes ties up to 3.6 mm wide
 tie_t = 2;           // slot width
 tie_gap = 5;         // slot centre to slot centre
+tie_c = 1;           // underside chamfer on each slot's outer edge, where the tie turns under
 tie_bar_y = -29;     // slot pairs along the gland-side edge
-tie_bar_xs = [-12.7, 9.5, 31.1, 51.3];  // one under each gland nut (photo)
+tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
 tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end, between bosses
 
 /* [Board position on the floor] */
@@ -61,12 +62,12 @@ oled_x = 49.65;      // back posts inside the plate's back edge, right edge 0.5 
 oled_y = 25.2;
 seg_w = 41;          // TM1637 4-digit module (owner)
 seg_h = 23;
-seg_hole_dx = 38;    // read off the perfboard grid in the photo; caliper
+seg_hole_dx = 36;    // owner, rough calipers
 seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
 /* [Plate: hex-lightened] */
-plate_t = 3;
+plate_t = 4.5;
 plate_y_lo = -33;    // gland-side edge between the lid-screw columns
 plate_y_hi = 39.5;   // back edge between the lid-screw columns, tangent to the rear post tabs
 rim_w = 2;           // solid rim round the outline
@@ -88,7 +89,7 @@ spacer_hole_d = 3.2; // laser and gauge: M3 through a loose spacer
 $fn = 48;
 // From HALMET.kicad_pcb, relative to the centre of the 89 x 58 board.
 slots = [[-21.75, 22.5], [22.75, -22.5]];
-drop = max(0, boss_h - post_h);   // underside pockets this deep over the holed bosses
+drop = 0;            // flat underside on the bosses: pockets over them printed badly
 body_t = plate_t + drop;
 rests = [[36, 18], [-38.5, -19.5]];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
@@ -98,7 +99,7 @@ seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y + sy*seg_hole_dy/2]];
 tier_z0 = body_t + tier_boss_h;        // column feet
-tier_z1 = rim_z - post_h;              // top of the tier plate
+tier_z1 = rim_z - boss_h;              // top of the tier plate
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
 
@@ -153,14 +154,19 @@ module lattice2d() {
 
 module solid2d() { difference() { outline2d(); lattice2d(); } }
 
-module tie_pair(along_x) {
-    for (s = [-1, 1]) translate(along_x ? [s*tie_gap/2, 0] : [0, s*tie_gap/2])
-        square(along_x ? [tie_t, tie_w] : [tie_w, tie_t], center = true);
+// Children at each tie slot's centre: slot length along local Y, local +X away from its pair's web.
+module tie_each() {
+    for (x = tie_bar_xs, s = [-1, 1]) translate([x + s*tie_gap/2, tie_bar_y]) mirror([s < 0 ? 1 : 0, 0]) children();
+    for (y = tie_end_ys, s = [-1, 1]) translate([-(bar_x0 + bar_x1)/2, y + s*tie_gap/2]) rotate(90) mirror([s < 0 ? 1 : 0, 0]) children();
 }
 
-module tie_slots() {
-    for (x = tie_bar_xs) translate([x, tie_bar_y]) tie_pair(true);
-    for (y = tie_end_ys) translate([-(bar_x0 + bar_x1)/2, y]) tie_pair(false);
+module tie_slots() { tie_each() square([tie_t, tie_w], center = true); }
+
+module tie_chamfers() {
+    tie_each() hull() {
+        translate([0, 0, -1]) linear_extrude(1) translate([tie_c/2, 0]) square([tie_t + tie_c, tie_w + 0.02], center = true);
+        translate([0, 0, tie_c]) linear_extrude(0.01) square([tie_t - 0.02, tie_w + 0.02], center = true);
+    }
 }
 
 module fork_slots() {
@@ -192,6 +198,7 @@ module frame() {
             for (c = tier_cols) translate(c) circle(d = insert_d);
         translate([0, 0, body_t + standoff_h - insert_depth])
             linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+        tie_chamfers();
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
             cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
         if (drop > 0) translate([0, 0, -1]) linear_extrude(drop + 1)

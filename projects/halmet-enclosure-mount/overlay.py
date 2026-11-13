@@ -80,7 +80,7 @@ for e in ezdxf.readfile(HERE / "out" / "halmet-enclosure-mount_scad.dxf").models
         pts = [(x, y) for x, y, *_ in e.get_points()]
         ax.add_patch(Polygon(pts, closed=e.closed, fc=PLATE, alpha=0.10, ec="none"))
         ax.add_patch(Polygon(pts, closed=e.closed, fc="none", ec=PLATE, lw=1.4, zorder=5))
-ax.text(-62, -40.2, f"frame, {P['plate_t'] + max(0, P['boss_h'] - P['post_h']):g} mm (built from model.scad)",
+ax.text(-62, -40.2, f"frame, {P['plate_t']:g} mm (built from model.scad)",
         fontsize=9, color=PLATE)
 
 # bosses + plate slots over them
