@@ -40,4 +40,5 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 - 2026-11-12 19:06: step 2 found password SSH on for root, adbd listening on 0.0.0.0:5037.
 - 2026-11-12 19:10: printer accepts 2 keys (this Mac, WSL box), not all machines; password SSH stays on until it does.
 - 2026-11-12 19:35: step 3 applied (`chamber_soak.cfg`, include in printer.cfg, 2 calls in START_PRINT); Klipper ready; PLA no-op ok.
+- 2026-11-12 19:56: ASA test stopped (e-stop, restart) for a PETG print. In 24 min the bed went 63→~89 °C at full power and never reached 100; chamber heater target 55, power 0%. Cause unknown: firmware gating or a heater fault. Test the chamber heater alone next.
 - 2026-11-12 19:35: camera not readable by the agent: no snapshot URL, Fluidd camera tile black.
