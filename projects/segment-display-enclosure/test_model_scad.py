@@ -45,13 +45,14 @@ def down(mesh, x, y):
 def test_shell_bounds_volume(shell):
     assert shell.is_watertight
     assert np.allclose(shell.bounds, [[-OUT_L / 2, -OUT_W / 2, 0], [OUT_L / 2, OUT_W / 2, SHELL_H]], atol=0.02)
-    assert 6_000 < shell.volume < 12_000
+    assert 3_500 < shell.volume < 7_000
 
 
 def test_window_fits_display_and_is_through(shell):
-    assert len(down(shell, 0, 0)) == 0
-    assert len(down(shell, P["disp_l"] / 2 + 0.2, P["disp_w"] / 2 + 0.2)) == 0  # clearance at the corner
-    assert len(down(shell, P["disp_l"] / 2 + 1.0, 0)) > 0  # face beyond the window
+    cx, cy = P["disp_dx"], P["disp_dy"]
+    assert len(down(shell, cx, cy)) == 0
+    assert len(down(shell, cx + P["disp_l"] / 2 + 0.2, cy + P["disp_w"] / 2 + 0.2)) == 0  # clearance at the corner
+    assert len(down(shell, cx + P["disp_l"] / 2 + 1.0, cy)) > 0  # face beyond the window
 
 
 def test_display_face_recessed_board_on_posts():
@@ -64,20 +65,41 @@ def test_four_blind_pilot_posts_at_board_height(shell):
         assert np.isclose(down(shell, x + P["pilot_d"] / 2 + 0.4, y)[0][2], BOARD_Z, atol=0.02)
 
 
-def test_screw_stack_fits_m2p5x20():
-    engage = 20 - P["cover_t"] - P["rear_clear"] - P["board_t"]
+def test_screw_stack_fits_m2p5x12():
+    engage = 12 - P["cover_t"] - P["rear_clear"] - P["board_t"]
     assert engage >= 4 and engage <= BOARD_Z - (P["face_t"] - 1)
 
 
-def test_back_bounds_holes_cable(back):
+def test_back_bounds_holes_tongue(back):
     assert back.is_watertight
     top = P["cover_t"] + P["rear_clear"]
-    assert np.allclose(back.bounds, [[-OUT_L / 2, -OUT_W / 2, 0], [OUT_L / 2, OUT_W / 2, top]], atol=0.02)
+    tongue_top = P["cover_t"] + SHELL_H - BOARD_Z  # tongue reaches the board's front plane
+    assert np.allclose(back.bounds, [[-OUT_L / 2, -OUT_W / 2, 0], [OUT_L / 2, OUT_W / 2, tongue_top]], atol=0.02)
     for x, y in HOLES:
         assert len(down(back, x, y)) == 0
         assert np.isclose(down(back, x + P["screw_clear_d"] / 2 + 0.4, y)[0][2], top, atol=0.02)
-    assert len(down(back, P["cable_x"], 0)) == 0
-    assert len(down(back, -P["cable_x"], 0)) > 0
+    assert len(down(back, 0, 0)) > 0  # no openings in the cover's middle
+
+
+def side(mesh, z, y=0):
+    return ray_hits(mesh, (-50, y, z), (1, 0, 0))
+
+
+def test_header_end_has_plug_window_and_open_notch(shell):
+    notch_z = BOARD_Z - P["plug_h"] - 2 * P["plug_clear"]
+    first_wall = lambda z: side(shell, z)[0][0]
+    assert first_wall(notch_z + 0.5) > -IN_L / 2  # plug window: no end wall at plug height
+    assert first_wall(SHELL_H - 0.5) > -IN_L / 2  # open to the rim for the cover's tongue
+    assert np.isclose(first_wall(notch_z - 0.5), -OUT_L / 2, atol=0.05)  # wall below the window
+    assert np.isclose(side(shell, notch_z + 0.5, y=P["board_w"] / 2)[0][0], -OUT_L / 2, atol=0.05)  # wall beside it
+    assert notch_z > P["face_t"]
+
+
+def test_posts_clear_display():
+    disp_end = abs(P["disp_dx"]) + P["disp_l"] / 2 + P["window_clear"]
+    hole_to_disp_y = P["hole_dy"] / 2 - (P["disp_w"] / 2 + P["window_clear"])
+    assert disp_end > P["hole_dx"] / 2 - P["post_d"] / 2  # posts must be clipped, so check the pilot keeps a wall
+    assert hole_to_disp_y - P["pilot_d"] / 2 >= 0.9
 
 
 def test_lip_fits_inside_shell():
