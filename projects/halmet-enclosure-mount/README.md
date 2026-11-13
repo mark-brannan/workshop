@@ -6,6 +6,9 @@ so a printed frame screws to the box's six holed floor bosses, rests on its
 four no-hole posts, and carries two standoffs for the board. Box photos and
 inside measurements: [`enclosure/`](enclosure/README.md).
 
+Part of the references live in the symphony project, not here: the sensor and wire plan
+(`intermediate_files/claude_slop/halmet-engine-plan.md`) and the firmware (`firmware/halmet/`).
+
 ![frame](out/halmet-enclosure-mount_scad.png)
 
 ![overlay](out/overlay.png)
