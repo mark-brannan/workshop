@@ -16,12 +16,12 @@ hole_dx = 37.5;      // centre to centre, long side
 hole_dy = 19;        // centre to centre, short side
 hole_d = 2.8;
 
-/* [Display] (calipers, owner; offset from the photo) */
+/* [Display] (calipers, owner) */
 disp_l = 30;
 disp_w = 14;
 disp_h = 7;          // display face above the board's front
-disp_dx = -1.9;      // toward the header end; photo estimate, caliper it
-disp_dy = 0;
+disp_dx = -1.35;     // toward the header (-X): clean end 7.1 (caliper), pin end 4.4 by difference (owner est. ~5)
+disp_dy = -0.25;     // 4.5 to the -Y edge, 5 to +Y (caliper); -Y is the bottom edge seen from the front, pins on the right
 disp_recess = 0.5;   // display face sits this far behind the shell's outer face
 window_clear = 0.3;  // per side around the display body
 

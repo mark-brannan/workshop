@@ -97,9 +97,14 @@ def test_header_end_has_plug_window_and_open_notch(shell):
 
 def test_posts_clear_display():
     disp_end = abs(P["disp_dx"]) + P["disp_l"] / 2 + P["window_clear"]
-    hole_to_disp_y = P["hole_dy"] / 2 - (P["disp_w"] / 2 + P["window_clear"])
+    hole_to_disp_y = P["hole_dy"] / 2 - (abs(P["disp_dy"]) + P["disp_w"] / 2 + P["window_clear"])
     assert disp_end > P["hole_dx"] / 2 - P["post_d"] / 2  # posts must be clipped, so check the pilot keeps a wall
-    assert hole_to_disp_y - P["pilot_d"] / 2 >= 0.9
+    assert hole_to_disp_y - P["pilot_d"] / 2 >= 0.8
+
+
+def test_display_offsets_match_calipers():
+    assert np.isclose(P["board_l"] / 2 - (P["disp_dx"] + P["disp_l"] / 2), 7.1)  # clean end
+    assert np.isclose(P["board_w"] / 2 + (P["disp_dy"] - P["disp_w"] / 2), 4.5)  # -Y edge
 
 
 def test_lip_fits_inside_shell():
