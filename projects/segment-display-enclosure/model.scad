@@ -1,8 +1,12 @@
-// Small enclosure for the segment display module (the one on the halmet tier).
+// Small enclosure for the TM1637 4-digit segment display module.
 // Two prints. The shell prints face down: its outer front face is z = 0, the
-// display looks out through a window, and the board screws up against four
-// posts. The back cover (part-back.scad) closes it; its four tubes press on the
-// board's back, and four M2.5 x 20 self-tappers go cover -> tube -> board -> post.
+// display looks out through a window, and the board's front rests on four posts
+// fused into the corners. The module's right-angle header is on the board's
+// front at the -X end, pins pointing out along -X; a Dupont plug pushes onto
+// them through a window in the -X end wall. The back cover (part-back.scad)
+// closes the box: a tongue fills the end-wall notch above the plug, four tubes
+// press on the board's flat back, and four M2.5 x 12 self-tappers go
+// cover -> tube -> board -> post.
 
 /* [Board] (calipers, owner) */
 board_l = 41.5;
@@ -12,23 +16,28 @@ hole_dx = 37.5;      // centre to centre, long side
 hole_dy = 19;        // centre to centre, short side
 hole_d = 2.8;
 
-/* [Display] (calipers, owner) */
+/* [Display] (calipers, owner; offset from the photo) */
 disp_l = 30;
 disp_w = 14;
 disp_h = 7;          // display face above the board's front
-disp_dx = 0;         // display centre off board centre; guessed centred
+disp_dx = -1.9;      // toward the header end; photo estimate, caliper it
 disp_dy = 0;
 disp_recess = 0.5;   // display face sits this far behind the shell's outer face
 window_clear = 0.3;  // per side around the display body
+
+/* [Header] (photo; caliper it) */
+hdr_w = 10.2;        // 4 pins x 2.54
+plug_h = 2.54;       // Dupont housing, square
+plug_clear = 0.4;    // per side around the plug
 
 /* [Shell] */
 wall = 2;
 face_t = 2;
 board_clear = 0.5;   // per side, board edge to inner wall
 corner_r = 2;
-post_d = 5.6;         // fuses into the walls
+post_d = 5;
 pilot_d = 2.2;       // M2.5 self-tapping into plastic, calibration pending
-rear_clear = 11;     // board back to cover; header pins and wires live here
+rear_clear = 3;      // board back to cover: solder joints only
 
 /* [Back cover] */
 cover_t = 2.5;
@@ -37,9 +46,6 @@ lip_t = 1.2;
 lip_clear = 0.25;    // per side, guessed, unmeasured fit
 tube_d = 4.8;
 screw_clear_d = 2.9;
-cable_l = 9;         // cable slot through the cover, at the -X end
-cable_w = 4;
-cable_x = -13;
 
 part = "shell";      // shell | back | assembly
 
@@ -52,8 +58,31 @@ out_w = in_w + 2*wall;
 board_z = disp_recess + disp_h;            // board front face
 shell_h = board_z + board_t + rear_clear;  // rim
 holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2, sy*hole_dy/2]];
+notch_w = hdr_w + 2*plug_clear + 0.5;
+notch_z = board_z - plug_h - 2*plug_clear; // bottom of the plug window
+tongue_clear = 0.2;
 
 module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
+
+// Keep-out for the display body inside the shell.
+module disp_keepout() {
+    translate([disp_dx, disp_dy, 0])
+        square([disp_l + 2*window_clear, disp_w + 2*window_clear], center = true);
+}
+
+// Corner post: a round boss around the hole, filled out to the corner walls,
+// clipped clear of the display body.
+module posts_2d() {
+    difference() {
+        for (h = holes) hull() {
+            translate(h) circle(d = post_d);
+            translate([sign(h[0])*in_l/2, sign(h[1])*in_w/2]) square(0.01, center = true);
+            translate([sign(h[0])*in_l/2, h[1]]) square(0.01, center = true);
+            translate([h[0], sign(h[1])*in_w/2]) square(0.01, center = true);
+        }
+        disp_keepout();
+    }
+}
 
 module shell() {
     difference() {
@@ -62,16 +91,18 @@ module shell() {
                 linear_extrude(shell_h) rrect(out_l, out_w, corner_r);
                 translate([0, 0, face_t]) linear_extrude(shell_h) square([in_l, in_w], center = true);
             }
-            for (h = holes) translate([h[0], h[1], 0]) cylinder(d = post_d, h = board_z);
+            linear_extrude(board_z) posts_2d();
         }
-        translate([disp_dx, disp_dy, -1])
-            linear_extrude(face_t + 2) square([disp_l + 2*window_clear, disp_w + 2*window_clear], center = true);
+        translate([0, 0, -1]) linear_extrude(face_t + 2) disp_keepout();
         for (h = holes) translate([h[0], h[1], face_t - 1]) cylinder(d = pilot_d, h = board_z);
+        // header end: open from the rim down to the bottom of the plug window
+        translate([-out_l/2 - 1, -notch_w/2, notch_z]) cube([wall + 2, notch_w, shell_h]);
     }
 }
 
-// Back cover, modelled as printed: outer face on the bed, lip and tubes up.
+// Back cover, modelled as printed: outer face on the bed, lip, tubes and tongue up.
 module back() {
+    tongue_h = shell_h - board_z;   // fills the notch from the rim down to the board's front
     difference() {
         union() {
             linear_extrude(cover_t) rrect(out_l, out_w, corner_r);
@@ -80,24 +111,29 @@ module back() {
                 square([in_l - 2*lip_clear - 2*lip_t, in_w - 2*lip_clear - 2*lip_t], center = true);
             }
             for (h = holes) translate([h[0], h[1], 0]) cylinder(d = tube_d, h = cover_t + rear_clear);
+            // tongue sits in the -X end wall's notch
+            translate([-out_l/2, -(notch_w/2 - tongue_clear), 0])
+                cube([wall, notch_w - 2*tongue_clear, cover_t + tongue_h]);
         }
         for (h = holes) translate([h[0], h[1], -1]) cylinder(d = screw_clear_d, h = cover_t + rear_clear + 2);
-        translate([cable_x, 0, -1]) linear_extrude(cover_t + lip_h + 2) rrect(cable_l, cable_w, cable_w/2 - 0.01);
     }
 }
 
-module board() {
-    color("darkgreen") translate([0, 0, board_z]) linear_extrude(board_t) difference() {
+// Stand-ins for review renders only: board, display, header and plug.
+module module_standin() {
+    translate([0, 0, board_z]) linear_extrude(board_t) difference() {
         square([board_l, board_w], center = true);
         for (h = holes) translate(h) circle(d = hole_d);
     }
-    color("dimgray") translate([disp_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
+    translate([disp_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
+    translate([-board_l/2 - 6, -hdr_w/2, board_z - plug_h - 0.2]) cube([8, hdr_w, plug_h]);   // header + pins
+    translate([-out_l/2 - 12, -hdr_w/2, board_z - plug_h - 0.2]) cube([14, hdr_w, plug_h]);   // Dupont plug
 }
 
 if (part == "shell") shell();
 else if (part == "back") back();
 else {
     shell();
-    %board();
-    translate([0, 0, shell_h + cover_t]) mirror([0, 0, 1]) back();
+    module_standin();
+    translate([0, 0, shell_h + cover_t + 10]) mirror([0, 0, 1]) back();  // exploded 10 mm
 }
