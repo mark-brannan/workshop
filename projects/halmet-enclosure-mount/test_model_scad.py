@@ -32,7 +32,7 @@ DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
-TIER_TOP = P["rim_z"] - P["boss_h"]       # Z = 0 is the boss top
+TIER_TOP = P["rim_z"] - P["boss_h"] - P["tier_drop"]  # Z = 0 is the boss top
 TIER_Z0 = TIER_TOP - P["tier_t"] - P["tier_standoff"]  # standoff feet on the plate's pads
 SEG_Y = P["oled_y"] - P["oled_h"] / 2 - P["seg_gap"] - P["seg_h"] / 2
 MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
@@ -164,7 +164,7 @@ def test_board_clear_of_the_left_fork_slots():
 
 
 def test_plate_has_counterbored_pads_under_the_tier_standoffs(frame):
-    assert TIER_Z0 - T > 5  # pads stand clear of the plate
+    assert TIER_Z0 - T > 3  # pads stand clear of the plate
     for x, y in COLS:
         assert top(frame, x, y) is None  # M3 passes up through
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
@@ -175,7 +175,8 @@ def test_plate_has_counterbored_pads_under_the_tier_standoffs(frame):
 def test_tier_is_a_flat_plate_at_the_rim(tier):
     assert tier.is_watertight and tier.body_count == 1
     lo, hi = tier.bounds
-    assert np.isclose(lo[2], TIER_TOP - P["tier_t"], atol=0.02) and np.isclose(hi[2], TIER_TOP, atol=0.02)
+    assert np.isclose(lo[2], TIER_TOP - P["tier_t"] - P["ldr_boss_h"], atol=0.02)  # the sensor's screw boss hangs below
+    assert np.isclose(hi[2], TIER_TOP + P["ldr_ledge"] + P["pcb_t"], atol=0.02)  # cradle walls on top
     assert hi[0] < 151 / 2 - 2 and hi[1] <= P["plate_y_hi"] + 0.01  # inside the floor
 
 
@@ -220,36 +221,37 @@ def test_gauge_keeps_fork_slots_and_marks_raised_features_with_holes(gauge):
         assert top(gauge, x + P["insert_d"] / 2 + 0.7, y) == pytest.approx(P["gauge_t"] + P["gauge_rise"], abs=0.02)
 
 
-# Light sensor: an LM393 module on two F/F standoffs on the plate, under the display tier
+# Light sensor: an LM393 module in a cradle on the tier, under the OLED, one M3 screw
 LDR_X0, LDR_Y, LDR_L, LDR_W = P["ldr_x0"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
-LDR_POSTS = [(LDR_X0 + LDR_L - P["ldr_hole_in"], LDR_Y), (LDR_X0 + P["ldr_rest_in"], LDR_Y)]
-LDR_Z = T + P["ldr_standoff"]  # module underside
-HEX_R = 5.5 / 3 ** 0.5  # M3 hex standoff, 5.5 across flats: corner radius
+LDR_HOLE = (LDR_X0 + LDR_L - P["ldr_hole_in"], LDR_Y)
+LDR_Z = TIER_TOP + P["ldr_ledge"]  # module underside
+M25_R = 5 / 3 ** 0.5  # M2.5 hex standoff, 5 across flats: corner radius
 
 
-def test_plate_has_counterbored_seats_for_the_sensor_standoffs(frame):
-    for x, y in LDR_POSTS:
-        assert top(frame, x, y) is None  # M3 passes up through
-        assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), T, atol=0.02)  # solid seat on the plate
-        assert np.isclose(bottom(frame, x + P["screw_d"] / 2 + 0.6, y), P["head_h"], atol=0.02)
+def test_cradle_ledges_walls_and_screw_boss(tier):
+    w = LDR_W + 2 * P["ldr_fit"]
+    mid = LDR_X0 + 4
+    for s in (-1, 1):
+        assert top(tier, mid, LDR_Y + s * (w / 2 - 1)) == pytest.approx(LDR_Z, abs=0.02)  # edge ledge
+        assert top(tier, mid, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
+    assert top(tier, mid, LDR_Y) == pytest.approx(TIER_TOP, abs=0.02)  # open between the ledges for solder stubs
+    assert top(tier, *LDR_HOLE) is None  # pilot through
+    assert top(tier, LDR_HOLE[0] + P["ldr_pilot"] / 2 + 1, LDR_HOLE[1]) == pytest.approx(LDR_Z, abs=0.02)
+    assert bottom(tier, LDR_HOLE[0] + P["ldr_pilot"] / 2 + 1, LDR_HOLE[1]) == pytest.approx(
+        TIER_TOP - P["tier_t"] - P["ldr_boss_h"], abs=0.02)
 
 
-def test_sensor_module_fits_between_the_tiers():
-    tier_under = TIER_TOP - P["tier_t"]
-    assert LDR_Z + P["pcb_t"] + P["ldr_part_h"] + 1 <= tier_under  # trimpot clears the tier by a millimetre
-    assert LDR_Z > T + H + 1.6 + 6  # above the HALMET's own components where the photocell end overhangs it
-    assert LDR_X0 < P["tier_x0"]  # photocell end out past the tier's left edge, open to the lid
-    assert LDR_X0 > BOARD_RIGHT - 2  # but not reaching back over the board
+def test_sensor_fits_under_the_oled_and_sees_the_lid():
+    oled_under = TIER_TOP + P["mod_standoff"]
+    assert LDR_Z + P["pcb_t"] + P["ldr_part_h"] + 1 <= oled_under  # trimpot clears the OLED by a millimetre
+    assert LDR_X0 + 3 < P["oled_x"] - P["oled_w"] / 2 - 5  # photocell well out from under the OLED
+    for cx, cy in MOD_POSTS[:4]:  # OLED standoffs pass beside the cradle walls
+        assert abs(cy - LDR_Y) > LDR_W / 2 + P["ldr_fit"] + P["ldr_wall"] + M25_R
+    assert TIER_TOP - P["tier_t"] > T + H + 1.6 + 10  # tongue over the HALMET clears its tall parts
 
 
-def test_sensor_module_clear_of_the_tier_standoffs_and_module_screws():
-    x0, x1, y0, y1 = LDR_X0, LDR_X0 + LDR_L, LDR_Y - LDR_W / 2, LDR_Y + LDR_W / 2
-    for cx, cy in COLS:  # standoffs run the full height between the plates
-        dx, dy = max(x0 - cx, 0, cx - x1), max(y0 - cy, 0, cy - y1)
-        assert (dx * dx + dy * dy) ** 0.5 > HEX_R + 0.5
-    for cx, cy in MOD_POSTS:  # M2.5 heads under the tier: keep them off the module's footprint
-        dx, dy = max(x0 - cx, 0, cx - x1), max(y0 - cy, 0, cy - y1)
-        assert (dx * dx + dy * dy) ** 0.5 > 2.5
-    for x, y in LDR_POSTS:  # standoffs clear of the USB-C plug path along +X
-        assert abs(y - USB_Y) > HEX_R + 5
-    assert LDR_X0 + LDR_L + 3 + 2.5 < 151 / 2 - 5  # header pins bent down past the end, plug clear of the wall
+def test_sensor_plug_clear_of_the_wall_and_lid_column():
+    plug_end = LDR_X0 + LDR_L + P["plug_l"]
+    assert plug_end < 151 / 2 - 5  # room for the wires to turn
+    assert LDR_Y + 3.8 < P["lid_col_y"]  # plug passes below the lid-screw column's reach
+    assert LDR_Z + P["pcb_t"] + 2.5 + 1 < TIER_TOP + P["mod_standoff"]  # and under the OLED

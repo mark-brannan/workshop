@@ -4,7 +4,6 @@
 include <model.scad>
 part = "assembly";
 show = "boards";      // [tiers, boards]
-mod_standoff = 6;     // M2.5 F/F under each display module: guess
 
 hex_d = 5.5 / cos(30);
 module hexpost(p, z0, z1, c = "goldenrod") color(c) translate([p[0], p[1], z0]) cylinder(d = hex_d, h = z1 - z0, $fn = 6);
@@ -52,20 +51,20 @@ module seg() {
 }
 
 module sensor() {
-    z = body_t + ldr_standoff;
-    for (p = ldr_posts) hexpost(p, body_t, z);
+    z = tier_z1 + ldr_ledge;
     translate([ldr_x0, ldr_y, z]) {
         color("#1b5fbf") translate([0, -ldr_w/2, 0]) cube([ldr_l, ldr_w, pcb_t]);
         color("#2b6fe0") translate([12, -1, pcb_t]) cube([7, 6.6, ldr_part_h]);      // trimpot
         color("#111") translate([19, -5, pcb_t]) cube([5, 4, 1.5]);                  // LM393
         color("#c0392b") translate([-1.5, 0, pcb_t + 3]) cylinder(d = 5, h = 2);     // photocell, leads bent up
         color("silver") for (dy = [-1.3, 1.3]) translate([-1.5, dy, pcb_t]) cylinder(d = 0.5, h = 3);
-        color("#222") translate([ldr_l, -3.75, -2.5 - 12]) cube([2.5, 7.5, 12]);     // header bent down, Dupont plug
+        color("silver") translate([ldr_l - ldr_hole_in, 0, pcb_t]) cylinder(d = 5.5, h = 2);   // M3 head
+        color("#222") translate([ldr_l - 2.5, -3.8, pcb_t]) cube([2.5, 7.6, 2.5]);    // right-angle header
+        color("#333") translate([ldr_l + 8.5, -3.8, pcb_t]) cube([14, 7.6, 2.5]);     // Dupont plug
     }
 }
 
 color("#c9cdd3") frame();
 for (c = tier_cols) hexpost(c, tier_z0, tier_z1 - tier_t);
 color("#b49be0", 0.9) tier();
-if (show == "boards") { halmet(); oled(); seg(); }
-sensor();
+if (show == "boards") { halmet(); oled(); seg(); sensor(); }
