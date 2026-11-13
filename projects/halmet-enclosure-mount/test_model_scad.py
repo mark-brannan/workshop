@@ -208,19 +208,19 @@ def gauge(tmp_path_factory):
     return trimesh.load(build_scad(d / "part-gauge.scad", d, "gauge", render=False)["stl"])
 
 
-def test_gauge_is_a_thin_solid_plate_with_the_frame_outline(gauge, frame):
+def test_gauge_is_a_thin_open_plate_with_the_frame_outline(gauge, frame):
     assert gauge.is_watertight and gauge.body_count == 1
     assert np.allclose(gauge.bounds[:, :2], frame.bounds[:, :2], atol=0.05)
-    assert gauge.volume < frame.volume / 2
-    hex_centre = (P["hex_x0"], P["hex_y0"])   # a hex cell in the frame, solid plate in the gauge
-    assert top(frame, *hex_centre) is None
-    assert np.isclose(top(gauge, *hex_centre), P["gauge_t"], atol=0.02)
+    assert gauge.bounds[1, 2] == pytest.approx(P["gauge_t"] + P["gauge_rise"], abs=0.02)
+    assert 4000 < gauge.volume < 9000  # mm^3; first windowed build 6699, solid 1 mm plate 12062
 
 
-def test_gauge_keeps_slots_and_raised_features_at_frame_heights(gauge, frame):
+def test_gauge_keeps_fork_slots_and_marks_raised_features_with_holes(gauge):
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             assert top(gauge, sx * SPAN / 2, k * PITCH) is None
+            assert top(gauge, sx * SPAN / 2, k * PITCH + (PITCH / 2 if k < 0 else -4)) == pytest.approx(P["gauge_t"], abs=0.02)
     for x, y in [*SLOTS, *RESTS, *COLS]:
-        assert np.isclose(top(gauge, x, y), top(frame, x, y), atol=0.02)
-        assert np.isclose(top(gauge, x + 2.7, y), top(frame, x + 2.7, y), atol=0.02) if (x, y) not in RESTS else True
+        assert top(gauge, x, y) is None  # centre holed through
+    for x, y in [*SLOTS, *COLS]:
+        assert top(gauge, x + P["insert_d"] / 2 + 0.7, y) == pytest.approx(P["gauge_t"] + P["gauge_rise"], abs=0.02)

@@ -76,6 +76,9 @@ hex_web = 2.0;       // wall between cells
 hex_x0 = 1.5;        // grid offset
 hex_y0 = 3;
 gauge_t = 1;          // fit-check plate: five 0.2 mm layers
+gauge_rise = 2;       // fit-check standoffs, rests and tier bosses: stubs this tall, holes through
+gauge_cell = 24;      // fit-check windows: hex cells this wide across flats
+gauge_web = 4;
 
 /* [Standoffs] */
 standoff_h = 6;      // board underside above the frame; clears pin stubs
@@ -143,12 +146,13 @@ module keep2d() {
 
 // Full hex grid clipped to the rim and a web clear of the islands; cells cut there stay,
 // slivers narrower than 2.5 mm drop out.
-module lattice2d() {
+module lattice2d(flat = hex_flat, web = hex_web, x0 = hex_x0, y0 = hex_y0, rim = rim_w) {
+    r = flat/sqrt(3); pitch = flat + web;
     offset(r = 1.25) offset(r = -1.25) intersection() {
-        difference() { offset(delta = -rim_w) outline2d(); offset(delta = hex_web) keep2d(); }
+        difference() { offset(delta = -rim) outline2d(); offset(delta = web) keep2d(); }
         for (i = [-12:12], j = [-8:8])
-            translate([hex_x0 + i*hex_pitch + (j % 2 == 0 ? 0 : hex_pitch/2), hex_y0 + j*hex_pitch*sqrt(3)/2])
-                offset(r = 0.8) offset(delta = -0.8) rotate(30) circle(r = hex_r, $fn = 6);
+            translate([x0 + i*pitch + (j % 2 == 0 ? 0 : pitch/2), y0 + j*pitch*sqrt(3)/2])
+                offset(r = 0.8) offset(delta = -0.8) rotate(30) circle(r = r, $fn = 6);
     }
 }
 
@@ -218,14 +222,26 @@ module frame() {
     }
 }
 
-// Fast fit check: the frame's outline, slots and raised features on a thin solid plate, no hex cells.
+// Fast fit check: the frame's outline and slots on a thin plate with big windows; short stubs mark
+// the standoffs, rests and tier bosses, each holed through at its centre.
 module gauge() {
     difference() {
         union() {
-            linear_extrude(gauge_t) difference() { outline2d(); fork_slots(); tie_slots(); }
-            raised();
+            linear_extrude(gauge_t) difference() {
+                outline2d(); fork_slots(); tie_slots();
+                lattice2d(gauge_cell, gauge_web, 0, 0, 4);
+            }
+            linear_extrude(gauge_t + gauge_rise) {
+                at_board(slots) circle(d = standoff_d);
+                at_board(rests) circle(d = rest_d);
+                for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+            }
         }
-        insert_holes();
+        translate([0, 0, -1]) linear_extrude(gauge_t + gauge_rise + 2) {
+            at_board(slots) circle(d = insert_d);
+            at_board(rests) circle(d = 1.5);
+            for (c = tier_cols) translate(c) circle(d = insert_d);
+        }
     }
 }
 

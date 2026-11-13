@@ -80,8 +80,8 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 ## Fit check
 
-`out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm solid plate, no hex cells,
-with the standoffs, rests and tier bosses at full height. Lay it on the bosses, read where
+`out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm plate with big windows;
+2 mm stubs, holed through, mark the standoffs, rests and tier bosses. Lay it on the bosses, read where
 each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
 them.
 
