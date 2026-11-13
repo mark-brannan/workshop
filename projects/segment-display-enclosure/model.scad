@@ -22,11 +22,14 @@ disp_w = 14;
 disp_h = 7;          // display face above the board's front
 disp_dx = -0.75;     // toward the header (-X): pin end 5 (owner, exact); clean end measured 7.1, 6.5 by difference
 disp_dy = -0.25;     // 4.5 to the -Y edge, 5 to +Y (caliper); -Y is the bottom edge seen from the front, pins on the right
-disp_recess = 0.5;   // display face sits this far behind the shell's outer face
+disp_recess_min = 0.5;  // display face at least this far behind the outer face; the plug may push it deeper
+window_chamfer = 1;  // 45 deg flare on the outer face, so the recess doesn't narrow the view
 window_clear = 0.3;  // per side around the display body
 
-/* [Header] (photo; caliper it) */
+/* [Header] (owner, caliper) */
 hdr_w = 10.2;        // 4 pins x 2.54
+pin_h = 5;           // pin centre above the board's front
+pin_out = 6.8;       // pins past the board edge; the plug slides through the wall onto them
 plug_h = 2.54;       // Dupont housing, square
 plug_clear = 0.4;    // per side around the plug
 
@@ -55,11 +58,14 @@ in_l = board_l + 2*board_clear;
 in_w = board_w + 2*board_clear;
 out_l = in_l + 2*wall;
 out_w = in_w + 2*wall;
-board_z = disp_recess + disp_h;            // board front face
+// board front face: deep enough for the display, and for the plug to clear the face
+board_z = max(disp_recess_min + disp_h, face_t + pin_h + plug_h/2 + plug_clear);
+disp_recess = board_z - disp_h;
 shell_h = board_z + board_t + rear_clear;  // rim
 holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2, sy*hole_dy/2]];
 notch_w = hdr_w + 2*plug_clear + 0.5;
-notch_z = board_z - plug_h - 2*plug_clear; // bottom of the plug window
+notch_z = board_z - pin_h - plug_h/2 - plug_clear;   // bottom of the plug window
+window_top = board_z - pin_h + plug_h/2 + plug_clear; // top of the plug window = tongue's lower end
 tongue_clear = 0.2;
 
 module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
@@ -94,6 +100,10 @@ module shell() {
             linear_extrude(board_z) posts_2d();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) disp_keepout();
+        translate([disp_dx, disp_dy, -0.01]) linear_extrude(window_chamfer + 0.01, scale = [
+            (disp_l + 2*window_clear) / (disp_l + 2*window_clear + 2*window_chamfer),
+            (disp_w + 2*window_clear) / (disp_w + 2*window_clear + 2*window_chamfer)])
+            square([disp_l + 2*window_clear + 2*window_chamfer, disp_w + 2*window_clear + 2*window_chamfer], center = true);
         for (h = holes) translate([h[0], h[1], face_t - 1]) cylinder(d = pilot_d, h = board_z);
         // header end: open from the rim down to the bottom of the plug window
         translate([-out_l/2 - 1, -notch_w/2, notch_z]) cube([wall + 2, notch_w, shell_h]);
@@ -102,7 +112,7 @@ module shell() {
 
 // Back cover, modelled as printed: outer face on the bed, lip, tubes and tongue up.
 module back() {
-    tongue_h = shell_h - board_z;   // fills the notch from the rim down to the board's front
+    tongue_h = shell_h - window_top;   // fills the notch from the rim down to the top of the plug
     difference() {
         union() {
             linear_extrude(cover_t) rrect(out_l, out_w, corner_r);
@@ -126,8 +136,9 @@ module module_standin() {
         for (h = holes) translate(h) circle(d = hole_d);
     }
     translate([disp_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
-    translate([-board_l/2 - 6, -hdr_w/2, board_z - plug_h - 0.2]) cube([8, hdr_w, plug_h]);   // header + pins
-    translate([-out_l/2 - 12, -hdr_w/2, board_z - plug_h - 0.2]) cube([14, hdr_w, plug_h]);   // Dupont plug
+    pz = board_z - pin_h - plug_h/2;
+    translate([-board_l/2 - pin_out, -hdr_w/2, pz]) cube([pin_out + 2.5, hdr_w, plug_h]);   // header + pins
+    translate([-board_l/2 - pin_out - 8, -hdr_w/2, pz]) cube([14, hdr_w, plug_h]);          // Dupont plug, 6 on the pins
 }
 
 if (part == "shell") shell();
