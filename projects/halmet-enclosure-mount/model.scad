@@ -46,9 +46,9 @@ tier_x0 = 26;        // left edge; the left side stays open for the USB plug and
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
 tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
-tier_standoff = 19.7;  // M3 hex standoff, into the pad's insert (owner's calipers)
+tier_standoff = 19.7;  // M3 F/F hex standoff, screwed down onto the pad by an M3 from under the plate (owner's calipers)
 tier_boss_d = 8;     // printed pad under each standoff
-tier_pad_h = 8;      // pad top above the plate's underside: a blind M3 heat-set insert and a 1.5 floor
+tier_pad_h = 8;      // pad top above the plate's underside: 2.7 counterbore, then 5.3 of body for the screw to pass
 mod_standoff = 15;   // M2.5 F/F standoffs, tier to module: the tallest that clears the lid
 lid_depth = 17;      // rim to lid ceiling (owner, caliper; the gasket may add 0.5)
 tier_band = 6;       // tier: width of the band through the screws
@@ -100,13 +100,13 @@ hex_x0 = 1.5;        // grid offset
 hex_y0 = 3;
 gauge_t = 1;          // fit-check plate: five 0.2 mm layers
 gauge_rise = 2;       // fit-check standoffs, rests and tier bosses: stubs this tall, holes through
-gauge_cell = 24.5;      // fit-check windows: hex cells this wide across flats; 24 left a window tangent to a tier-stub hole
+gauge_cell = 25;      // fit-check windows: hex cells this wide across flats; 24 and 24.5 left a window tangent to a tier-stub hole
 gauge_web = 4;
 
 /* [Standoffs] */
 standoff_h = 6;      // board underside above the frame; clears pin stubs
 standoff_d = 8;
-insert_d = 4.0;      // M3 heat-set insert
+insert_d = 4.2;      // M3 heat-set insert, ~4.8 OD (owner, by eye): a 0.6 interference hole; the gauge print checks it
 insert_depth = 6.5;  // blind, from the standoff top
 rest_d = 4;          // plain rests on the other diagonal
 spacer_hole_d = 3.2; // laser and gauge: M3 through a loose spacer
@@ -158,7 +158,7 @@ keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1], sy = [-1, 1]) [sx*post_dx/2, sy*post_dy/2, pad_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]]);
+    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2 + 1.5]]);
 
 
 module keep2d() {
@@ -220,7 +220,9 @@ module raised() {
 }
 
 module insert_holes() {
-    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = tier_cols) translate(c) circle(d = insert_d);
+    // tier pads: M3 from under the plate into the F/F standoff, head sunk flush in a counterbore
+    translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = tier_cols) translate(c) circle(d = screw_d);
+    translate([0, 0, -1]) linear_extrude(head_h + 0.2 + 1) for (c = tier_cols) translate(c) circle(d = head_d + 0.4, $fn = 50);
     translate([0, 0, body_t + standoff_h - insert_depth])
         linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
 }

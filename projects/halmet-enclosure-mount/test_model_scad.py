@@ -163,11 +163,11 @@ def test_board_clear_of_the_left_fork_slots():
     assert left_edge > -(SPAN / 2 - REACH) + P["screw_d"] / 2  # a driver reaches every left screw
 
 
-def test_plate_has_insert_pads_under_the_tier_standoffs(frame):
+def test_plate_has_screw_pads_under_the_tier_standoffs(frame):
     for x, y in COLS:
-        assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
-        assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)  # blind insert hole
-        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # closed underneath
+        assert np.isclose(top(frame, x + P["screw_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
+        assert top(frame, x, y) is None or top(frame, x, y) < 0  # hole clear through
+        assert np.isclose(bottom(frame, x + P["screw_d"] / 2 + 0.3, y), P["head_h"] + 0.2, atol=0.02)  # counterbore floor
 
 
 def test_modules_clear_the_lid():
