@@ -95,11 +95,11 @@ class OpenSCAD:
         if WIN_TEMP.is_dir():
             stage = WIN_TEMP / f"shop_{os.getpid()}"
             stage.mkdir(exist_ok=True)
-            for f in scad.parent.glob("*.scad"):
+            for f in (*scad.parent.glob("*.scad"), *scad.parent.glob("*.stl")):  # .stl: import() inputs
                 shutil.copy(f, stage / f.name)
             s_out = stage / out.name
             cmd = [base[0], "-o", _winpath(s_out), *base[1:], _winpath(stage / scad.name)]
-            r = subprocess.run(cmd, capture_output=True, text=True)
+            r = subprocess.run(cmd, capture_output=True, text=True, cwd=stage)
             if r.returncode == 0 and s_out.exists():
                 shutil.move(str(s_out), str(out))
                 self.staged = True

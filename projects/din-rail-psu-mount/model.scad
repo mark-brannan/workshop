@@ -1,111 +1,90 @@
-// DIN-rail (TS35) mount for an 80 x 110 mm enclosed AC-DC supply.
-// A 2.5 mm lightened frame, the PSU's own footprint, screws (M3) to its two diagonal holes. Two DIN clips,
-// the owner's design (Thingiverse thing:2415668, "Half Height Breadboard DIN
-// Mount", DIN_Clip.stl), press into peg holes in raised seats on the frame. Each clip has a
-// fixed hook on one end and a flexing hooked arm on the other, so two clips
-// give two fixed and two flex latches. The rail runs along X, the 80 mm axis:
-// the 110 mm side stands up and down.
-// Print the base with the PSU face down (z = 0). Clips print flat as shown.
-
-/* [Show] */
-part = "print";      // [print:All parts laid out for printing, assembled:Assembled, base:Base plate only, clip:One clip only]
+// DIN-rail (TS35) mount for an 58 x 85 mm enclosed AC-DC supply, one piece, low profile.
+// A 2.5 mm lightened frame, the PSU's own footprint, screws (M3) to its two diagonal holes.
+// Two DIN clips are part of the frame: Maxstupo's "DIN Rail Clip (Heat Insert Version)", Printables
+// model 420009 (CC BY 4.0), imported from ref_din_clip_heat_insert.stl. Its two heat-insert screw holes
+// are filled, since the clip is no longer a separate part. A fixed hook on one side and a spring latch on
+// the other hold the rail flange 4.1 mm off the PSU face. The rail runs along X, the 58 mm axis; the
+// 85 mm side stands up and down. The plate runs 15 mm past the PSU's lower end, with chamfered zip-tie
+// slot pairs there for strain relief (the tie loops under the plate, where no PSU sits).
+// Print with the PSU face down (z = 0).
 
 /* [Plate] */
-plate_l = 80;        // X, along the rail: the PSU's footprint, no overhang
-plate_w = 110;       // Y, across the rail (the vertical, long side)
+plate_l = 58;        // X, along the rail: the PSU's footprint (box, caliper), no overhang
+plate_w = 85;        // Y, across the rail (the vertical, long side): the PSU's footprint
+ext = 15;            // the plate continues this far past the PSU's lower end (-Y), for the zip ties
 plate_t = 2.5;       // the frame
 corner_r = 3;
 rim_w = 6;           // perimeter band of the lightened frame
-strip_w = 12;        // solid band under each clip, rim to rim, joined to the side rim
-boss_d = 11;         // solid round around each screw hole
+boss_d = 10;         // solid round around each screw hole
 
 /* [PSU mounting holes] (caliper ~, diagonal pair) */
 hole_dx = 47;        // centre to centre along X (the 80 mm side)
 hole_dy = 75;        // centre to centre along Y (the 110 mm side)
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
 
+/* [Zip-tie strain relief: slot pairs in the extension, the tie loops under the plate] */
+tie_w = 5.5;         // slot length across the tie: takes ties up to 5 mm wide (standard), small ones too
+tie_t = 2.2;         // slot width
+tie_gap = 5;         // slot centre to slot centre, along Y
+tie_c = 1.2;         // underside chamfer on each slot's outer edge, where the tie turns under
+tie_xs = [-18, 0, 18];  // pair positions along X
+
 /* [Clips] */
-clip_w = 6;          // clip thickness along the rail; 6 is the original design
-clip_x = 25;         // clip centre distance from the plate centre, along the rail
-peg_d = 4.0;         // the clip's two pegs, from the original STL
-peg_len = 3.25;
-peg_hole_d = 4.2;    // hole in the plate: 4.0 was zero clearance and printed too tight
-pad_t = 1.0;         // seat under each clip, so the 3.25 pegs stop short of the PSU
-pad_margin = 2;      // seat beyond the clip outline, each side
+clip_x = 13.5;         // clip centre distance from the plate centre, along the rail
+clip_len = 18;       // each clip's length along the rail: the model's own 18 mm
+strip_pad = 2;       // solid frame band beyond each clip's length, each side
 
 /* [Hidden] */
 $fn = 48;
-// Clip outline from DIN_Clip.stl, mm. Origin = clip base corner; y up is away
-// from the plate. Rail seat is y = 12.18, hook lips at y = 13.18. The flex arm
-// is the left stem with the long hook; the right lip is fixed.
-clip_outer = [[0,0],[0.71,15.61],[-3.21,19.48],[0.17,18.79],[0.75,18.64],[1.3,18.42],[1.84,18.15],
-  [2.33,17.82],[2.8,17.44],[3.22,17.02],[3.59,16.55],[3.91,16.04],[4.17,15.51],[4.38,14.95],
-  [4.52,14.37],[4.6,13.77],[4.62,13.18],[2.37,13.18],[2.37,3.18],[2.38,3.08],[2.48,2.91],
-  [2.65,2.81],[2.75,2.8],[2.84,2.81],[3.01,2.91],[3.07,2.99],[3.12,3.18],[3.12,12.18],
-  [38.37,12.18],[38.37,13.18],[35.98,14.47],[35.91,14.55],[35.84,14.74],[35.87,14.95],
-  [35.99,15.12],[36.08,15.18],[41.84,15.18],[41.84,0]];
-clip_hole = [[8.62,2.5],[36.34,2.5],[36.76,2.53],[37.18,2.62],[37.58,2.77],[37.96,2.98],[38.3,3.23],
-  [38.6,3.54],[38.86,3.88],[39.07,4.25],[39.22,4.65],[39.31,5.07],[39.34,5.5],[39.34,9.68],
-  [8.62,9.68],[8.19,9.65],[7.78,9.55],[7.37,9.41],[7.0,9.2],[6.66,8.94],[6.35,8.64],[6.1,8.3],
-  [5.89,7.92],[5.74,7.52],[5.65,7.1],[5.62,6.68],[5.62,5.5],[5.65,5.07],[5.74,4.65],[5.89,4.25],
-  [6.1,3.88],[6.35,3.54],[6.66,3.23],[7.0,2.98],[7.37,2.77],[7.78,2.62],[8.19,2.53]];
-peg_xs = [5.9, 35.9];                 // peg centres along the clip
-rail_cx = (3.12 + 38.37) / 2;         // 20.745: rail centreline in clip coordinates
-
-// Clip in its own frame: profile in XY, thickness along Z, pegs toward -Y.
-module clip() {
-    linear_extrude(clip_w) difference() { polygon(clip_outer); polygon(clip_hole); }
-    for (px = peg_xs) translate([px, 0.01, clip_w / 2]) rotate([90, 0, 0]) cylinder(d = peg_d, h = peg_len + 0.01);
-}
-
-// Clip installed: base on the seat top, rail centreline at y = 0, centred on x = cx.
-module clip_placed(cx) {
-    translate([cx - clip_w / 2, 0, plate_t + pad_t]) rotate([90, 0, 90])
-        translate([-rail_cx, 0, 0]) clip();
-}
-// Plate position of a peg, for the blind holes.
-function peg_y(px) = px - rail_cx;
-
-// Clip seat footprint on the plate, along Y: the clip's base runs x = -3.21..41.84 in its own frame.
-seat_y0 = -3.21 - rail_cx - pad_margin;
-seat_y1 = 41.84 - rail_cx + pad_margin;
+// The clip in its own frame: x across the rail (0..60), y along it (-9..9), z up from the PSU face (0..7.5).
+// The rail centre line is x = 27.05 (hook lips at 9.8 and 44.3); the flange seat is z = 4.1.
+rail_cx = 27.05;
+strip_w = clip_len + 2*strip_pad;
 holes = [[-hole_dx/2, -hole_dy/2], [hole_dx/2, hole_dy/2]];
 
-module outline() offset(r = corner_r) square([plate_l - 2*corner_r, plate_w - 2*corner_r], center = true);
-
-// Perimeter rim, a solid band from each clip out to the side, a boss round each screw hole; the rest is open.
-module frame2d() intersection() { outline(); union() {
-    difference() { outline(); offset(delta = -rim_w) outline(); }
-    for (sx = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0]) translate([clip_x - strip_w/2, -plate_w/2]) square([plate_l/2 - clip_x + strip_w/2, plate_w]);
-    for (h = holes) translate(h) circle(d = boss_d);
-} }
-
-module base() {
-    difference() {
-        union() {
-            linear_extrude(plate_t) frame2d();
-            for (sx = [-1, 1]) translate([sx*clip_x - clip_w/2 - pad_margin, seat_y0, 0])
-                cube([clip_w + 2*pad_margin, seat_y1 - seat_y0, plate_t + pad_t]);
-        }
-        for (h = holes) translate([h[0], h[1], -1]) cylinder(d = hole_d, h = plate_t + 2);
-        // through holes: plate plus seat is 3.5, the pegs 3.25
-        for (sx = [-1, 1], px = peg_xs)
-            translate([sx*clip_x, peg_y(px), -1]) cylinder(d = peg_hole_d, h = plate_t + pad_t + 2);
+// The two heat-insert holes, filled: the one at x = 5 runs through the fixed hook (7.5), the one at
+// x = 56 through the shelf (4.6).
+module clip() {
+    translate([0, 0, 0.01]) rotate([0, 0, 90]) translate([-rail_cx, 0, 0]) union() {  // 0.01 into the frame, not coplanar
+        import("ref_din_clip_heat_insert.stl");
+        translate([5, 0, 0]) cylinder(d = 4.3, h = 7.5);
+        translate([56, 0, 0]) cylinder(d = 4.3, h = 4.6);
     }
 }
 
-module assembled() {
-    base();
-    for (sx = [-1, 1]) clip_placed(sx*clip_x);
+tie_y = -plate_w/2 - ext/2;   // the slot pairs' centre line, mid-extension
+module outline() translate([0, -ext/2]) offset(r = corner_r) square([plate_l - 2*corner_r, plate_w + ext - 2*corner_r], center = true);
+
+// Perimeter rim, a solid band under each clip out to the side rim, a boss round each screw hole; the rest is open.
+module frame2d() intersection() { outline(); union() {
+    difference() { outline(); offset(delta = -rim_w) outline(); }
+    for (sx = [-1, 1]) translate([sx*clip_x - strip_w/2, -plate_w/2]) square([strip_w, plate_w]);
+    translate([-plate_l/2, -plate_w/2 - ext]) square([plate_l, ext + rim_w]);   // the extension is solid
+    for (h = holes) translate(h) circle(d = boss_d);
+} }
+
+// Each slot: local X along global X (the slot's length), local Y along global Y; s = -1 / +1 is the lower / upper
+// slot of its pair, its chamfer opening away from the web between them.
+module tie_slots() { for (x = tie_xs, s = [-1, 1]) translate([x, tie_y + s*tie_gap/2, -1]) linear_extrude(plate_t + 2) square([tie_w, tie_t], center = true); }
+module tie_chamfers() {
+    for (x = tie_xs, s = [-1, 1]) translate([x, tie_y + s*tie_gap/2]) hull() {
+        translate([0, s*tie_c/2, -0.5]) linear_extrude(0.5) square([tie_w, tie_t + tie_c], center = true);
+        translate([0, 0, tie_c]) linear_extrude(0.01) square([tie_w, tie_t], center = true);
+    }
 }
 
-module print_layout() {
-    base();
-    // clips lie flat beside the plate, in the original STL orientation
-    for (i = [0, 1]) translate([-44 + i*50, plate_w/2 + 8, 0]) clip();
+module base() {
+    difference() {
+        linear_extrude(plate_t) frame2d();
+        for (h = holes) translate([h[0], h[1], -1]) cylinder(d = hole_d, h = plate_t + 2);
+        tie_slots();
+        tie_chamfers();
+    }
 }
 
-if (part == "base") base();
-else if (part == "clip") clip();
-else if (part == "assembled") assembled();
-else print_layout();
+module mount() {
+    base();
+    for (sx = [-1, 1]) translate([sx*clip_x, 0, 0]) clip();
+}
+
+mount();
