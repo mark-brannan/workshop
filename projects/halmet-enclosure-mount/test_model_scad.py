@@ -32,8 +32,8 @@ DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
-TIER_Z0 = T + P["tier_boss_h"]            # column feet on the plate's bosses
 TIER_TOP = P["rim_z"] - P["boss_h"]       # Z = 0 is the boss top
+TIER_Z0 = TIER_TOP - P["tier_t"] - P["tier_standoff"]  # standoff feet on the plate's pads
 SEG_Y = P["oled_y"] - P["oled_h"] / 2 - P["seg_gap"] - P["seg_h"] / 2
 MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
              for sx in (-1, 1) for sy in (-1, 1)]
@@ -163,33 +163,27 @@ def test_board_clear_of_the_left_fork_slots():
     assert left_edge > -(SPAN / 2 - REACH) + P["screw_d"] / 2  # a driver reaches every left screw
 
 
-def test_plate_has_insert_bosses_under_the_tier_columns(frame):
+def test_plate_has_counterbored_pads_under_the_tier_standoffs(frame):
+    assert TIER_Z0 - T > 5  # pads stand clear of the plate
     for x, y in COLS:
-        assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)
+        assert top(frame, x, y) is None  # M3 passes up through
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
+        assert np.isclose(bottom(frame, x + P["screw_d"] / 2 + 0.6, y), P["head_h"], atol=0.02)  # head counterbore
+        assert P["head_d"] < P["tier_boss_d"]
 
 
-def test_tier_one_body_at_the_rim(tier):
-    assert tier.is_watertight
-    assert len(tier.split(only_watertight=False)) == 1
+def test_tier_is_a_flat_plate_at_the_rim(tier):
+    assert tier.is_watertight and tier.body_count == 1
     lo, hi = tier.bounds
-    assert np.isclose(lo[2], TIER_Z0, atol=0.02)
-    assert np.isclose(hi[2], TIER_TOP + P["module_rise"], atol=0.02)
-    assert np.isclose(top(tier, P["tier_x0"] + 1, 0), TIER_TOP, atol=0.02)
+    assert np.isclose(lo[2], TIER_TOP - P["tier_t"], atol=0.02) and np.isclose(hi[2], TIER_TOP, atol=0.02)
     assert hi[0] < 151 / 2 - 2 and hi[1] <= P["plate_y_hi"] + 0.01  # inside the floor
 
 
-def test_tier_columns_land_on_the_bosses_with_driver_access(tier):
-    for x, y in COLS:
-        assert np.isclose(bottom(tier, x + P["screw_d"] / 2 + 0.5, y), TIER_Z0, atol=0.02)
-        assert np.isclose(top(tier, x, y + P["screw_d"] / 2 + 0.5), TIER_Z0 + P["tier_boss_h"], atol=0.02)  # seat, open above
-        assert top(tier, x, y) is None  # screw passes through
-
-
-def test_tier_module_posts_take_m25_self_tappers(tier):
-    for x, y in MOD_POSTS:
+def test_tier_holes_for_standoff_screws_and_module_screws(tier):
+    for x, y in [*COLS, *MOD_POSTS]:
         assert top(tier, x, y) is None
-        assert np.isclose(top(tier, x + P["pilot_d"] / 2 + 0.5, y), TIER_TOP + P["module_rise"], atol=0.02)
+    for x, y in COLS:
+        assert np.isclose(top(tier, x + P["screw_d"] / 2 + 0.6, y), TIER_TOP, atol=0.02)  # plate seats on the standoff
 
 
 def test_tier_clears_lid_column_board_and_usb_plug(tier):

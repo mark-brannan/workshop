@@ -141,14 +141,14 @@ for x in L("tie_bar_xs"):
     ax.text(x, P["tie_bar_y"] - 3.4, "tie", ha="center", fontsize=7, color=PLATE)
 ax.text(-65.6, -16, "ties", ha="center", fontsize=7, color=PLATE)
 
-# display tier (separate part): top plate at the rim, walls front/right/back, screw columns, two modules
+# display tier (separate part): flat plate at the rim on four F/F standoffs, two modules
 TIER = "#7a3fd1"
 x0, x1, y0 = P["tier_x0"], P["tier_x1"], P["tier_y0"]
 xc, yc, yb = P["lid_col_x"] - 1, P["lid_col_y"] - 1, P["plate_y_hi"]
 ax.add_patch(Polygon([(x0, y0), (x1, y0), (x1, yc), (xc, yc), (xc, yb), (x0, yb)], closed=True, fc="none", ec=TIER,
                      lw=1.6, ls="--", zorder=6))
 for c in L("tier_cols"):
-    ax.add_patch(Circle(c, P["col_d"] / 2, fc="none", ec=TIER, lw=1.2, zorder=6))
+    ax.add_patch(Circle(c, P["tier_boss_d"] / 2, fc="none", ec=TIER, lw=1.2, zorder=6))
     ax.add_patch(Circle(c, P["screw_d"] / 2, fc=TIER, ec="none", zorder=6))
 OX, OY, OW, OH = P["oled_x"], P["oled_y"], P["oled_w"], P["oled_h"]
 SW, SH = P["seg_w"], P["seg_h"]
@@ -158,7 +158,7 @@ for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled
     ax.add_patch(Rectangle((cx - w / 2, cy - h / 2), w, h, fc="#e8e0f8", ec=TIER, lw=1.5, alpha=0.6, zorder=6))
     for sx in (-1, 1):
         for sy in (-1, 1):
-            ax.add_patch(Circle((cx + sx * dx / 2, cy + sy * dy / 2), P["mod_post_d"] / 2, fc=TIER, ec="none", zorder=7))
+            ax.add_patch(Circle((cx + sx * dx / 2, cy + sy * dy / 2), P["m25_d"] / 2 + 1, fc=TIER, ec="none", zorder=7))
     ax.text(cx, cy, name, ha="center", va="center", fontsize=7.5, color=TIER, zorder=8,
             bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,

@@ -38,22 +38,18 @@ tie_end_ys = [-10.5, 10.5];  // slot pairs on the left end, between bosses
 board_dx = -20.75;   // left edge just clear of the left fork slots
 board_dy = 12.5;     // back edge about at the box's back wall (owner checked the fit)
 
-/* [Display tier: separate part, screwed to four M3-insert bosses on the plate] */
+/* [Display tier: a flat plate on four M3 F/F hex standoffs] */
 rim_z = 39;          // box floor to rim (owner)
-tier_t = 2.5;        // top plate; its top sits at the rim
+tier_t = 2.5;        // its top sits at the rim, give or take 5 (owner)
 tier_x0 = 26;        // left edge; the left side stays open for the USB plug and wiring
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
-wall_t = 2;
-wall_x = 60;         // right wall, inside the plate's end bar
-tier_cols = [[31, 34.5], [54, 34.5], [37, -11.25], [58, -11.25]];  // screw columns
-col_d = 9.5;
-col_bore = 6.2;      // M3 pan head and driver, from above through the top plate
-tier_boss_h = 3;     // M3-insert bosses on the plate under the columns
-tier_boss_d = 8;
-module_rise = 3;     // module standoffs above the tier top; clears parts on the module's back
-mod_post_d = 5;
-pilot_d = 2.2;       // M2.5 self-tapping, through standoff and plate
+tier_cols = [[31, 34.5], [54, 34.5], [37, -11.25], [58, -11.25]];  // standoff centres
+tier_standoff = 19.7;  // M3 F/F hex standoff (owner's calipers)
+tier_boss_d = 8;     // printed pad under each standoff
+head_d = 6.5;        // M3 pan head, screwed up from under the plate
+head_h = 2.5;
+m25_d = 2.8;         // module screws: M2.5 through the tier into an F/F standoff under the module
 oled_w = 27.3;       // 0.96" SSD1306, generic
 oled_h = 27.8;
 oled_hole_dx = 23.3; // caliper the one in hand
@@ -101,8 +97,8 @@ seg_x = oled_x;
 seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
 seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y + sy*seg_hole_dy/2]];
-tier_z0 = body_t + tier_boss_h;        // column feet
 tier_z1 = rim_z - boss_h;              // top of the tier plate
+tier_z0 = tier_z1 - tier_t - tier_standoff;  // standoff feet: top of the pads
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
 
@@ -122,8 +118,6 @@ module outline2d() {
 
 // Lattice: hex cells inside the rim, a web clear of every solid island
 // (screw ends, post pads, standoffs, rests, display posts, tie slots).
-hex_r = hex_flat/sqrt(3);                     // cell circumradius
-hex_pitch = hex_flat + hex_web;
 plate_rects = concat(                         // outline as [x0, y0, x1, y1] boxes
     [[-bar_x1, y_lo, bar_x1, y_hi], [-lid_col_x + 1, plate_y_lo, lid_col_x - 1, plate_y_hi]],
     [for (sx = [-1, 1]) [sx*post_dx/2 - pad_r, -post_dy/2, sx*post_dx/2 + pad_r, plate_y_lo + 1]]);  // front tabs reach the posts
@@ -189,7 +183,8 @@ module profile(spacer_holes) {
     }
 }
 
-// Standoffs, rests and tier bosses at their true heights, with their insert holes cut.
+// Standoffs, rests and tier pads at their true heights; the board standoffs take inserts,
+// the pads an M3 from below into the tier standoff, its head counterbored.
 module raised() {
     linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
     linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
@@ -197,8 +192,8 @@ module raised() {
 }
 
 module insert_holes() {
-    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1)
-        for (c = tier_cols) translate(c) circle(d = insert_d);
+    translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = tier_cols) translate(c) circle(d = screw_d);
+    translate([0, 0, -1]) linear_extrude(head_h + 1) for (c = tier_cols) translate(c) circle(d = head_d);
     translate([0, 0, body_t + standoff_h - insert_depth])
         linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
 }
@@ -245,48 +240,24 @@ module gauge() {
     }
 }
 
-// Tier, in box coordinates (Z = 0 on the rest posts). Top plate at the rim, three walls
-// (left side open), four hollow screw columns onto the plate's bosses, modules on short posts.
+// Tier, in box coordinates (Z = 0 on the rest posts): a flat plate at the rim on four F/F standoffs,
+// screwed down from above; modules on M2.5 F/F standoffs, screwed up from below.
 module tier_plate2d() {
     translate([tier_x0, tier_y0]) square([tier_x1 - tier_x0, lid_col_y - 1 - tier_y0]);
     translate([tier_x0, tier_y0]) square([lid_col_x - 1 - tier_x0, plate_y_hi - tier_y0]);
 }
 
-module wall_hex2d(l, h) {   // hex windows, a vertex toward the plate so the tier prints upside down unsupported
-    offset(r = 1) offset(r = -1) intersection() {
-        translate([3, 3]) square([l - 6, h - 6]);
-        for (i = [-1:12], j = [0:4])
-            translate([i*hex_pitch + (j % 2 == 0 ? 0 : hex_pitch/2), 3 + hex_r + j*hex_pitch*sqrt(3)/2])
-                rotate(30) circle(r = hex_r, $fn = 6);
-    }
-}
-
-module tier_wall(p0, p1) {   // a wall from p0 to p1 (plan), wall_t thick on its left
-    l = norm(p1 - p0); h = tier_z1 - tier_t - tier_z0;
-    translate([p0[0], p0[1], tier_z0]) rotate([0, 0, atan2(p1[1] - p0[1], p1[0] - p0[0])]) rotate([90, 0, 0])
-        translate([0, 0, -wall_t]) linear_extrude(wall_t) difference() { square([l, h + 0.01]); wall_hex2d(l, h); }
-}
-
 module tier() {
-    yb = plate_y_hi - wall_t;
-    difference() {
-        union() {
-            translate([0, 0, tier_z1 - tier_t]) linear_extrude(tier_t) tier_plate2d();
-            tier_wall([tier_x0, tier_y0], [wall_x, tier_y0]);
-            tier_wall([wall_x, tier_y0], [wall_x, plate_y_hi]);
-            tier_wall([wall_x, plate_y_hi], [tier_x0, plate_y_hi]);
-            translate([0, 0, tier_z0]) linear_extrude(tier_z1 - tier_z0) for (c = tier_cols) translate(c) circle(d = col_d);
-            translate([0, 0, tier_z1]) linear_extrude(module_rise) for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = mod_post_d);
-        }
-        translate([0, 0, tier_z0 - 1]) linear_extrude(tier_z1 + module_rise + 2) {
-            for (c = tier_cols) translate(c) circle(d = screw_d);
-            for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = pilot_d);
-        }
-        translate([0, 0, tier_z0 + tier_boss_h]) linear_extrude(tier_z1) for (c = tier_cols) translate(c) circle(d = col_bore);
-        translate([0, 0, tier_z1 - tier_t - 0.01]) linear_extrude(tier_t + 1.01) offset(r = 1.5) offset(delta = -1.5) {
-            // wire windows inside each module's hole pattern; the OLED's reaches toward its header edge
-            translate([oled_x - oled_hole_dx/2 + 4, oled_y - oled_hole_dy/2 + 4]) square([oled_hole_dx - 8, oled_hole_dy/2 - 4 + oled_h/2 - 2]);
-            translate([seg_x - seg_hole_dx/2 + 4, seg_y - seg_hole_dy/2 + 4]) square([seg_hole_dx - 8, seg_hole_dy - 8]);
+    translate([0, 0, tier_z1 - tier_t]) linear_extrude(tier_t) difference() {
+        tier_plate2d();
+        for (c = tier_cols) translate(c) circle(d = screw_d);
+        for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
+        offset(r = 1.5) offset(delta = -1.5) difference() {
+            union() {   // wire windows inside each module's hole pattern; the OLED's reaches toward its header edge
+                translate([oled_x - oled_hole_dx/2 + 4, oled_y - oled_hole_dy/2 + 4]) square([oled_hole_dx - 8, oled_hole_dy/2 - 4 + oled_h/2 - 2]);
+                translate([seg_x - seg_hole_dx/2 + 4, seg_y - seg_hole_dy/2 + 4]) square([seg_hole_dx - 8, seg_hole_dy - 8]);
+            }
+            for (c = tier_cols) translate(c) circle(d = tier_boss_d + 2);   // standoff seats stay solid
         }
     }
 }
