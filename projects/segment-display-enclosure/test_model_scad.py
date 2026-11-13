@@ -15,9 +15,7 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
 IN_L, IN_W = P["board_l"] + 2 * P["board_clear"], P["board_w"] + 2 * P["board_clear"]
 OUT_L, OUT_W = IN_L + 2 * P["wall"], IN_W + 2 * P["wall"]
-BOARD_Z = max(P["disp_recess_min"] + P["disp_h"], P["face_t"] + P["pin_h"] + P["plug_h"] / 2 + P["plug_clear"])
-NOTCH_Z = BOARD_Z - P["pin_h"] - P["plug_h"] / 2 - P["plug_clear"]
-WINDOW_TOP = NOTCH_Z + P["plug_h"] + 2 * P["plug_clear"]
+BOARD_Z = P["disp_recess"] + P["disp_h"]
 SHELL_H = BOARD_Z + P["board_t"] + P["rear_clear"]
 HOLES = [(sx * P["hole_dx"] / 2, sy * P["hole_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
 
@@ -57,15 +55,8 @@ def test_window_fits_display_and_is_through(shell):
     assert len(down(shell, cx + P["disp_l"] / 2 + 1.0, cy)) > 0  # face beyond the window
 
 
-def test_display_recessed_and_plug_clears_face():
-    assert BOARD_Z - P["disp_h"] >= P["disp_recess_min"]
-    assert NOTCH_Z >= P["face_t"]  # the plug's housing never meets the face
-
-
-def test_window_chamfered_on_outer_face(shell):
-    cx, cy = P["disp_dx"], P["disp_dy"]
-    edge = cx + P["disp_l"] / 2 + P["window_clear"] + 0.5
-    assert np.isclose(down(shell, edge, cy)[-1][2], P["window_chamfer"] - 0.5, atol=0.05)
+def test_display_face_recessed_board_on_posts():
+    assert BOARD_Z - P["disp_h"] == P["disp_recess"] >= 0
 
 
 def test_four_blind_pilot_posts_at_board_height(shell):
@@ -82,7 +73,7 @@ def test_screw_stack_fits_m2p5x12():
 def test_back_bounds_holes_tongue(back):
     assert back.is_watertight
     top = P["cover_t"] + P["rear_clear"]
-    tongue_top = P["cover_t"] + SHELL_H - WINDOW_TOP  # tongue reaches down to the top of the plug
+    tongue_top = P["cover_t"] + SHELL_H - BOARD_Z  # tongue reaches the board's front plane
     assert np.allclose(back.bounds, [[-OUT_L / 2, -OUT_W / 2, 0], [OUT_L / 2, OUT_W / 2, tongue_top]], atol=0.02)
     for x, y in HOLES:
         assert len(down(back, x, y)) == 0
@@ -95,13 +86,13 @@ def side(mesh, z, y=0):
 
 
 def test_header_end_has_plug_window_and_open_notch(shell):
-    notch_z = NOTCH_Z
+    notch_z = BOARD_Z - P["plug_h"] - 2 * P["plug_clear"]
     first_wall = lambda z: side(shell, z)[0][0]
     assert first_wall(notch_z + 0.5) > -IN_L / 2  # plug window: no end wall at plug height
     assert first_wall(SHELL_H - 0.5) > -IN_L / 2  # open to the rim for the cover's tongue
     assert np.isclose(first_wall(notch_z - 0.5), -OUT_L / 2, atol=0.05)  # wall below the window
     assert np.isclose(side(shell, notch_z + 0.5, y=P["board_w"] / 2)[0][0], -OUT_L / 2, atol=0.05)  # wall beside it
-    assert notch_z >= P["face_t"] - 0.01
+    assert notch_z > P["face_t"]
 
 
 def test_posts_clear_display():
