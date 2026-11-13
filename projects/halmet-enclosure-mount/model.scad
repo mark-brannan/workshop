@@ -55,7 +55,7 @@ tier_band = 6;       // tier: width of the band through the screws
 tier_fillet = 3;     // tier: inside-corner radius
 tier_round = 1.5;    // tier: outside-corner radius
 tier_join = 12;      // tier: a standoff screw this close to a module screw shares one wider pad
-oled_pin_in = 1.6;   // OLED header pin row from its top edge (generic; caliper it)
+oled_pin_in = 1.6;   // OLED header pin row from its bottom edge, the glands' side (owner: pins at the bottom; caliper it)
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
 head_h = 2.5;
 m25_d = 2.8;         // module screws: M2.5 through the tier into an F/F standoff under the module
@@ -275,7 +275,7 @@ module tier_rect2d() {   // the space the tier may use: clear of the lid-screw c
 }
 
 // A smooth band through the outer screws, a bar between the two modules, wider pads where a standoff
-// screw and a module screw sit close; solid from the bar back but for a notch under the OLED header.
+// screw and a module screw sit close; a notch in the bar under the OLED header.
 module tier_plate2d() {   // every corner rounded: inside corners tier_fillet, outside corners tier_round
     offset(r = tier_round) offset(delta = -tier_round) intersection() {
         tier_rect2d();
@@ -305,7 +305,7 @@ module tier_band2d() {
                     hull() { translate(c) circle(d = tier_boss_d + 2); translate(p) circle(d = tier_band + 1); }
             }
         }
-        translate([oled_x - 6.5, oled_y + oled_hole_dy/2 - tier_band]) square([13, 15]);   // OLED header pins
+        translate([oled_x - 6.5, oled_y - oled_h/2 + oled_pin_in - 3]) square([13, 6]);   // OLED header pins, bottom edge: cuts the bar between the modules
     }
 }
 

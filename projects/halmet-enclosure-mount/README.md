@@ -74,7 +74,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   along the gland-side edge, chamfered underneath where the tie turns, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
-- Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header toward the back wall)
+- Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header at the bottom edge, toward the glands, over the bar between the modules)
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
   hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
