@@ -48,8 +48,8 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 | Parameter | Now | Source |
 |---|---|---|
-| `boss_span` | 140 | first print, scaled by its own 144 mm length; 136 put the screws at the fork mouths |
-| `boss_pitch` | 22.5 | 21 printed with the outer screws inside their slots; scaled from the photo of that print against its own 21 mm slot pitch |
+| `boss_span` | 143 | 140 printed, its screws sat at the fork mouths (photo); +3, 1.5 a side |
+| `boss_pitch` | 22 | 21 printed too tight, 22.5 a touch wide (photo); 22 between the two |
 | Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
 | Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
 | Inner floor | 151 x 83 | owner |
@@ -58,7 +58,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 ## Design
 
-- One plate, 145 x 77, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
+- One plate, 148 x 77, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
   2 mm rim. Cells are clipped where they meet a solid island (screw ends, rest
   pads, standoffs, rests, tier bosses, tie slots). 25.8 cm3 measured from the
   STL, against 11 for the earlier open frame; the plate is the stiffer of the two.
