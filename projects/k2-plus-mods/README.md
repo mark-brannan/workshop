@@ -34,3 +34,4 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 ## Log
 
 - 2026-11-12: plan written; step 0 pending.
+- 2026-11-12 18:55: step 0 done (printer idle). Step 1 blocked: key login refused, `ssh-copy-id` unfinished.
