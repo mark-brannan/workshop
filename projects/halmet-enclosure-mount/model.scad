@@ -9,8 +9,8 @@ mode = "2d";         // [2d:laser profile, 3d:print]
 part = "frame";      // [frame, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
 
 /* [Box: owner's estimates, tune after a gauge print] */
-boss_span = 140;     // holed bosses, centre to centre: first print, scaled by its own 144 mm length (136 put the screws at the fork mouths)
-boss_pitch = 22.5;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; photo of that print reads 22.4
+boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
+boss_pitch = 22;     // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 between the two
 screw_d = 3.4;       // clearance for the screw into a boss
 slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor
