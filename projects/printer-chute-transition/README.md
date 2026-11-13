@@ -1,31 +1,41 @@
 # K2 Plus chute cover to segmented-chute ball
 
-Purpose: carry the K2 Plus exhaust chute (`ref/chute-cover.3mf`, the owner's file, unchanged)
-straight down into the ball of the segmented "poop chute" (`catcherforRing.3mf`), so the
-owner's printed segments attach below it. No bend is added; the jog you see is in the cover.
+Purpose: carry the K2 Plus exhaust chute (`ref/chute-cover.3mf`, the owner's file) straight down
+into the ball of the segmented "poop chute" (`ref/catcherforRing.3mf`), so the owner's printed
+segments attach below it. No bend is added; the jog you see is in the cover.
+
+Two prints that plug together. The one-piece version (157 mm tall, 4 hours) failed an hour in.
 
 ```
- ear + screw holes ->  ==|  |     screws go in horizontally (along Y); hole tops cut to a teardrop
-                         |  |     cover, jog included, otherwise unchanged
+ ear + screw holes ->  ==|  |      COVER: the owner's file, 12 mm trimmed off its open end
                          |  |
- cone_h 11              |  |     inside the cover's last run: U closed, bore funnels square to round
- flare_h 14              /  \     outer square to round in 14 mm (the cover is trimmed 12 mm to pay for it)
- ball_h  30             (    )    ball: widest 59.8 mm, only below the square
-                         \__/     rim on the bed, 0.5 mm chamfer on its outer edge
+                         |  |
+ spigot_h 15            ||  ||     spigot: goes up inside the cover's U; its 4th wall closes the open side
+ lip_h 4               [||  ||]    lip: outside, three sides; the cover's cut end drops into the slot between
+ flare_h 14              /  \      ADAPTER: square to round
+ ball_h 30              (    )     ball: 0.8 mm wall, original outer profile
+                         \__/      rim on the bed
 ```
+
+`out/joint-section.png` is the joint in section, drawn from the built meshes.
 
 ## Files (out/)
 
-`printer-chute-transition_scad.3mf` / `.stl`: one part, 157 mm tall, in print orientation:
-as installed, ball rim on the bed, ear on top, no supports. A brim is advisable; Orca's
-"inner brim only" keeps it off the rim's mating edge. `.png` / `_views.png`: renders.
+| File | What | Print |
+|---|---|---|
+| `printer-chute-transition_adapter.3mf` / `.stl` | ball, flare, spigot, lip; 59 mm tall | as installed, ball rim on the bed, no supports. The rim is a 0.5 mm ring: use a brim (Orca's "inner brim only" keeps it off the mating edge) |
+| `printer-chute-transition_cover.3mf` / `.stl` | the owner's cover, 112.65 mm long | lying as the owner's file lies, ear plate and U edges on the bed; orient as you printed the original |
+| `printer-chute-transition_scad.*` | both, mated, as installed (156.65 mm) | not a print: the picture |
 
-Printed rim down, nothing below the ear overhangs more than 32 deg from vertical. What remains
-is the owner's ear: the inside of its top cap (a 38 mm bridge, hidden) and the curved undersides
-of the two screw lugs. Printed ear down instead (`ear_down = true`), the centre of mass sits
-15 mm outside the 11 mm-wide footprint, 86 mm up.
-The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 triangles);
-`ref/` keeps the owner's 3MF and an STL of it.
+## The joint
+
+The cover's cut end drops 4 mm into a slot and its walls slide 15 mm down the outside of the spigot.
+Six crush ribs on the spigot (two per mating face) stand 0.15 mm past the gap; they push the U's legs
+out against the lip, which stops them springing, so the slot at a rib is 0.05 mm narrower than the wall.
+The lip stands 1.3 mm proud of the square on three sides for 4 mm; there is none at the printer's panel.
+
+Fastening is open: the first print is to see the fit. PETG is the usual material and takes glue poorly;
+heat (a soldering-iron tack through the lip) is the other candidate.
 
 ## Measured, and from what
 
@@ -34,28 +44,32 @@ The cover is embedded in `model.scad` as `cover_mesh()` (1212 vertices, 2428 tri
 | Cover open-end section | 48.48 x 48, walls 1.86, 4 mm chamfers on the top corners | `chute-cover.3mf` vertices |
 | Cover length | 125 (ear at +74, open end at -50.6 in its own frame) | same |
 | Ball outer profile | rim 27.8, widest 29.92 at 10.8, waist 25.53 at 30 (radii) | `catcherforRing.3mf` vertices |
+| Ball wall | 0.77 to 0.83 | `catcherforRing.3mf`, sliced at six heights |
 
 ## Chosen, not measured
 
 | Value | Now | Why |
 |---|---|---|
 | Ball centre | on the cover's section centre | chosen |
-| Ball wall | 1.86 inward from the measured outer surface | the original shell is ~1.0; matched to the cover for strength. Outer shape, which mates with the next segment, is the original |
-| `tube_h` | 0 | no extra square run: the flare starts at the cover's open end (raise it to add one) |
-| `trim`, `flare_h` | 12, 2 + trim = 14 | the cover's open end is cut back 12 mm so the transition is longer at the same total height (156.65 mm); the flare's corners lean out at most 32 deg from vertical |
-| `cone_h` | 11 | the bore funnel runs flare_h + cone_h = 25 mm |
-| `bore_r` | ball's inner waist radius, 23.67 | the bore starts flush with the ball's wall (no ledge), narrows to the cover's flats before the cover starts, widens to its corners over the funnel |
-| `rim_chamfer` | 0.5 | first-layer squish cannot flare the rim's mating edge |
-| `hole_flat` | 0.3 | the ear's Ø3.6 holes keep their round lower half; above it 45 deg flanks to a 0.8 mm flat 0.3 mm over the circle, leaving the lug ~1.1 mm above |
+| `ball_wall` | 0.8 | the original segment's; the one-piece part had 1.86 |
+| `trim`, `flare_h` | 12, 2 + trim = 14 | the cover's open end is cut back 12 mm so the installed height stays 156.65 mm; the flare's corners lean out at most 34 deg from vertical |
+| `spigot_h`, `spigot_wall` | 15, 1.2 | engagement inside the cover |
+| `spigot_clear`, `lip_clear` | 0.25, 0.1 | guesses: the fit table is uncalibrated |
+| `rib_crush` | 0.15 | guess; raise for a tighter pinch |
+| `lip_h`, `lip_wall` | 4, 1.2 | "a few mm" of outer sleeve |
+| `rim_chamfer` | 0.3 | first-layer squish cannot flare the rim's mating edge; leaves 0.5 mm of the 0.8 wall on the bed |
 | Ball cut | at the waist, z=30 | below the cone of the original segment, which is not included |
 
-Checks: `uv run pytest -q projects/printer-chute-transition`. Cover unchanged (same wall crossings
-along six vertical rays, same top), watertight, bore open from top to rim, no overhang flatter
-than 45 deg below the ear, rim chamfer, teardrop holes. Nothing wider than the
-square sits at or above the cover's open end (z=32, installed frame); the ball overhangs only below.
-Nothing here is calibrated for fit.
+The flare thickens from 0.8 mm at the ball to 4.6 mm under the slot's floor (lip + cover wall + spigot).
+
+Checks: `uv run pytest -q projects/printer-chute-transition`. Both parts watertight; cover identical to
+the owner's above the cut; ball wall and outer profile; bore open; no overhang flatter than 45 deg on the
+adapter; slot widths with and without a rib; lip on three sides only; spigot 0.25 mm clear of the cover
+over its whole height. Nothing here is calibrated for fit.
 
 ## The clean prompt (use this to start over)
+
+This describes the one-piece part that the two prints replaced.
 
 > Build a printable part: extend `chute-cover.3mf` straight down into the ball of
 > `catcherforRing.3mf`. No bend, no L shape. Files: `C:\Users\Solace\Downloads\chute-cover.3mf`

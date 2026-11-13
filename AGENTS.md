@@ -5,6 +5,7 @@ minimal human toil. The user designs by sending a photo of a real object, calipe
 measurements and a brief. **Calipers are truth; the photo is topology.**
 A measured object that will be mounted, clamped or fitted again goes in the
 library (`src/shop/`) so the second mount costs nothing.
+Its dimensions, part number and their source go in [`parts.md`](parts.md) the day they are measured.
 
 ## Tools and roles
 

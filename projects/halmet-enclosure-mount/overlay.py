@@ -21,6 +21,13 @@ PLATE = "#2f6feb"
 
 HERE = Path(__file__).parent
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
+SCAD = (HERE / "model.scad").read_text()
+
+
+def L(name):
+    """A list parameter from model.scad, e.g. [1, 2] or [[1, 2], [3, 4]]."""
+    import json
+    return json.loads(re.search(rf"^{name}\s*=\s*(\[.*?\]);", SCAD, re.M).group(1))
 
 # ---- enclosure floor: estimates, see enclosure/README.md ----
 FLOOR_L, FLOOR_W = 151.0, 83.0
@@ -71,8 +78,9 @@ for e in ezdxf.readfile(HERE / "out" / "halmet-enclosure-mount_scad.dxf").models
         ax.plot([e.dxf.start.x, e.dxf.end.x], [e.dxf.start.y, e.dxf.end.y], color=PLATE, lw=1.6)
     elif e.dxftype() == "LWPOLYLINE":
         pts = [(x, y) for x, y, *_ in e.get_points()]
-        ax.add_patch(Polygon(pts, closed=e.closed, fc=PLATE, alpha=0.12, ec=PLATE, lw=1.6))
-ax.text(-62, -40.2, f"frame, {P['plate_t'] + max(0, P['boss_h'] - P['post_h']):g} mm (built from model.scad)",
+        ax.add_patch(Polygon(pts, closed=e.closed, fc=PLATE, alpha=0.10, ec="none"))
+        ax.add_patch(Polygon(pts, closed=e.closed, fc="none", ec=PLATE, lw=1.4, zorder=5))
+ax.text(-62, -40.2, f"frame, {P['plate_t']:g} mm (built from model.scad)",
         fontsize=9, color=PLATE)
 
 # bosses + plate slots over them
@@ -86,11 +94,11 @@ for sx in (-1, 1):
         ax.add_patch(Circle((sx * POST_DX / 2, sy * POST_DY / 2), 2.6, fc="#cfc9b8", ec=GUESS, lw=1.5))
 ax.annotate("rest post x4, no hole;\npads rest on these", (POST_DX / 2, POST_DY / 2), (50, 40.5), fontsize=8, color=GUESS,
             arrowprops=dict(arrowstyle="-", color=GUESS))
-ax.annotate("screw boss x6;\nfork slots allow +/-4", (-70, 22), (-77, 31), fontsize=8, color=GUESS,
+ax.annotate(f"screw boss x6;\nfork slots allow +/-{P['slot_reach']:g}", (-70, 22), (-77, 31), fontsize=8, color=GUESS,
             arrowprops=dict(arrowstyle="-", color=GUESS))
 
 # board
-ax.add_patch(Polygon([b(p) for p in outline], closed=True, fc="#d8f0dc", ec=KNOWN, lw=2, alpha=0.9))
+ax.add_patch(Polygon([b(p) for p in outline], closed=True, fc="#d8f0dc", ec=KNOWN, lw=2, alpha=0.35, zorder=4))
 for name, x, y, w, h in [
     ("terminal blocks", 1.0, 33.5, 41.0, 8.0),
     ("terminal blocks", 1.0, 23.2, 37.5, 8.0),
@@ -100,7 +108,7 @@ for name, x, y, w, h in [
     ("2x10 hdr", 55.0, 48.5, 24.5, 5.2),
     ("2x4", 7.6, 46.0, 10.5, 5.2),
 ]:
-    ax.add_patch(Rectangle(b((x, y)), w, h, fc="white", ec="#666", lw=0.8))
+    ax.add_patch(Rectangle(b((x, y)), w, h, fc="none", ec="#666", lw=0.8, ls="--", zorder=4))
     ax.text(*b((x + w / 2, y + h / 2)), name, ha="center", va="center", fontsize=7, color="#444")
 for s in SLOTS:
     c = b(s)
@@ -129,35 +137,42 @@ dim((-74, 0), (-74, BOSS_PITCH), f"~{BOSS_PITCH:g}", color=GUESS)
 dim((-POST_DX / 2, 40), (POST_DX / 2, 40), f"~{POST_DX:g} posts", color=GUESS)
 dim((-49, -POST_DY / 2), (-49, POST_DY / 2), f"~{POST_DY:g}", color=GUESS)
 dim((60, -P["frame_w"] / 2), (60, P["frame_w"] / 2), f"{P['frame_w']:g} frame", color=PLATE)
-for x in (-24, 24):
+for x in L("tie_bar_xs"):
     ax.text(x, P["tie_bar_y"] - 3.4, "tie", ha="center", fontsize=7, color=PLATE)
 ax.text(-65.6, -16, "ties", ha="center", fontsize=7, color=PLATE)
 
-# display module on four raised posts (generic 0.96" SSD1306; hole pattern to caliper)
-OX, OY, ODX, ODY = P["oled_x"], P["oled_y"], P["oled_hole_dx"], P["oled_hole_dy"]
-ax.add_patch(Rectangle((OX - 27.3 / 2, OY - 27.8 / 2), 27.3, 27.8, fc="#e8e0f8", ec="#7a3fd1", lw=1.5, alpha=0.6))
-ax.add_patch(Rectangle((OX - 13.4, OY - 3.9), 26.8, 13.0, fc="#222", ec="none", alpha=0.25))
-for sx in (-1, 1):
-    for sy in (-1, 1):
-        c = (OX + sx * ODX / 2, OY + sy * ODY / 2)
-        ax.add_patch(Circle(c, P["oled_post_d"] / 2, fc="none", ec="#7a3fd1", lw=1.6))
-        ax.add_patch(Circle(c, P["oled_insert_d"] / 2, fc="#7a3fd1", ec="none"))
-ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
-        color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+# display tier (separate part): flat plate at the rim on four F/F standoffs, two modules
+TIER = "#7a3fd1"
+x0, x1, y0 = P["tier_x0"], P["tier_x1"], P["tier_y0"]
+xc, yc, yb = P["lid_col_x"] - 1, P["lid_col_y"] - 1, P["plate_y_hi"]
+ax.add_patch(Polygon([(x0, y0), (x1, y0), (x1, yc), (xc, yc), (xc, yb), (x0, yb)], closed=True, fc="none", ec=TIER,
+                     lw=1.6, ls="--", zorder=6))
+for c in L("tier_cols"):
+    ax.add_patch(Circle(c, P["tier_boss_d"] / 2, fc="none", ec=TIER, lw=1.2, zorder=6))
+    ax.add_patch(Circle(c, P["screw_d"] / 2, fc=TIER, ec="none", zorder=6))
+OX, OY, OW, OH = P["oled_x"], P["oled_y"], P["oled_w"], P["oled_h"]
+SW, SH = P["seg_w"], P["seg_h"]
+SY = OY - OH / 2 - P["seg_gap"] - SH / 2
+for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled_hole_dy"], "SSD1306"),
+                                     (OX, SY, SW, SH, P["seg_hole_dx"], P["seg_hole_dy"], "TM1637 4-digit")]:
+    ax.add_patch(Rectangle((cx - w / 2, cy - h / 2), w, h, fc="#e8e0f8", ec=TIER, lw=1.5, alpha=0.6, zorder=6))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            ax.add_patch(Circle((cx + sx * dx / 2, cy + sy * dy / 2), P["m25_d"] / 2 + 1, fc=TIER, ec="none", zorder=7))
+    ax.text(cx, cy, name, ha="center", va="center", fontsize=7.5, color=TIER, zorder=8,
+            bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,
+        color=TIER, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
-# light sensor: LM393 photoresistor module, header end +X, one M3 post and a rest (hole position a photo estimate)
-LC = "#b8860b"
-LX, LY, LL, LW = P["ldr_x"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
-ax.add_patch(Rectangle((LX - LL / 2, LY - LW / 2), LL, LW, fc="#fff3c4", ec=LC, lw=1.5, alpha=0.75))
-ax.add_patch(Rectangle((LX + LL / 2, LY - 1.3), 20, 2.6, fc="#222", ec="none", alpha=0.35))  # right-angle pins + Dupont plug
-ax.add_patch(Circle((LX - LL / 2 + 2.5, LY), 2.5, fc="#c87a6a", ec=LC, lw=1))  # photoresistor, bent up to the lid
-ax.add_patch(Circle((LX + LL / 2 - P["ldr_hole_in"], LY), P["ldr_post_d"] / 2, fc="none", ec=LC, lw=1.6))
-ax.add_patch(Circle((LX + LL / 2 - P["ldr_hole_in"], LY), P["ldr_insert_d"] / 2, fc=LC, ec="none"))
-ax.add_patch(Circle((P["ldr_rest_x"], P["ldr_rest_y"]), 2, fc="none", ec=LC, lw=1.6))
-ax.text(LX - 4, LY + 1.5, f"light sensor 32 x 14, {P['ldr_rise']:g} mm post + rest", ha="center", fontsize=7, color=LC,
-        bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
-ax.text(LX + LL / 2 + 10, LY + 2, "pins + plug", ha="center", fontsize=6.5, color="#444")
-ax.text(LX - LL / 2 + 2.5, LY - 4.5, "photocell,\nbent up", ha="center", va="top", fontsize=6, color=LC)
+# light sensor on the tier, in a cradle under the OLED; photocell at the left end, header pins at the right
+SENS = "#b8336a"
+lx0, ly, ll, lw = P["ldr_x0"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
+ax.add_patch(Rectangle((lx0, ly - lw / 2), ll, lw, fc="#f7dbe6", ec=SENS, lw=1.5, ls=":", alpha=0.8, zorder=7))
+ax.add_patch(Circle((lx0 + ll - P["ldr_hole_in"], ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
+ax.add_patch(Circle((lx0 - 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell
+ax.add_patch(Rectangle((lx0 + ll, ly - 3.2), P["ldr_pin_l"], 6.4, fc="#333", ec="none", zorder=8))  # header pins, straight out
+ax.text(lx0 + ll / 2, ly - lw / 2 - 1, "LM393 light sensor in a cradle on the tier, under the OLED",
+        ha="center", va="top", fontsize=6.5, color=SENS, zorder=9, bbox=dict(fc="white", ec="none", pad=0.5, alpha=0.85))
 
 # USB plug path, reserved from the board edge to the wall
 ax.add_patch(Rectangle((36.5, -15.5), 39, 12, fc="none", ec="#888", lw=1, ls="--"))
