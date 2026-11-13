@@ -161,17 +161,19 @@ for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled
             ax.add_patch(Circle((cx + sx * dx / 2, cy + sy * dy / 2), P["m25_d"] / 2 + 1, fc=TIER, ec="none", zorder=7))
     ax.text(cx, cy, name, ha="center", va="center", fontsize=7.5, color=TIER, zorder=8,
             bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
-ax.text(x0 + 1, y0 - 3, f"tier (dashed): top {P['plate_t'] + P['tier_pad'] + P['tier_standoff'] + P['tier_t']:g} above the bosses; displays on {P['mod_standoff']:g} M2.5 F/F", fontsize=7,
+ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,
         color=TIER, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
 # light sensor under the tier: LM393 module on two F/F standoffs on the plate, photocell past the tier's left edge
 SENS = "#b8336a"
 lx0, ly, ll, lw = P["ldr_x0"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
 ax.add_patch(Rectangle((lx0, ly - lw / 2), ll, lw, fc="#f7dbe6", ec=SENS, lw=1.5, ls=":", alpha=0.8, zorder=7))
-ax.add_patch(Circle((lx0 + P["ldr_hole_in"], ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
-ax.add_patch(Circle((lx0 + ll + 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell, leads bent up
-ax.add_patch(Rectangle((lx0 - P["plug_l"], ly - 3.8), P["plug_l"], 7.6, fc="#333", ec="none", alpha=0.6, zorder=8))  # header and plug
-ax.text(lx0 + ll / 2, ly - lw / 2 - 1, "LM393 light sensor in a cradle on the tier, under the OLED",
+for x in (lx0 + ll - P["ldr_hole_in"], lx0 + P["ldr_rest_in"]):
+    ax.add_patch(Circle((x, ly), 5.5 / 3 ** 0.5, fc="none", ec=SENS, lw=1.2, zorder=8))
+    ax.add_patch(Circle((x, ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
+ax.add_patch(Circle((lx0 - 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell, leads bent up
+ax.add_patch(Rectangle((lx0 + ll, ly - 3.75), 3, 7.5, fc="#333", ec="none", zorder=8))  # header, pins bent down
+ax.text(lx0 + ll / 2, ly - lw / 2 - 1, f"LM393 light sensor, {P['ldr_standoff']:g} F/F standoffs, under the tier",
         ha="center", va="top", fontsize=6.5, color=SENS, zorder=9, bbox=dict(fc="white", ec="none", pad=0.5, alpha=0.85))
 
 # lid-screw columns, one per corner, full height (photo, scaled by the boss span)
