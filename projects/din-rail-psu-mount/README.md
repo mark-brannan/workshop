@@ -35,3 +35,18 @@ This is the preferred clip style for DIN mounts here, over a clip lifted higher 
 | Rail gap | 34.5 between the hook lips | from the clip's own model; owner's rail reads 34.5 |
 
 Checks: the clip's bounding box (60 x 18 x 7.5) and volume (4488 mm^3) match the Printables STL.
+
+## Notes for the next session (2026-11-13)
+
+- **The supply's box is 58 x 85 mm** (owner, caliper). The first brief said 8 x 11 cm; the earlier plates were built
+  to 80 x 110 and were wrong. The 47 x 75 hole spacing fits the 58 x 85 box (about 5 mm in from each edge).
+- **Holes:** `hole_d` 3.5 for M3, an easy slip fit, unprinted as of this note. The earlier plates had 2.8 (M2.5) and were
+  too small for M3. The supply's own holes take 2.5 mm, 3.3 mm at the very most.
+- **Zip-tie extension:** the plate runs 15 mm past the supply's lower end (`ext`), with three slot pairs
+  (`tie_xs`, 5.5 x 2.2 slots, 5 mm apart, 1.2 mm underside chamfer on each outer edge), after the halmet fixture.
+- **Slicing:** the owner's draft settings are "My 0.24mm Lightening Draft @Creality K2 Plus 0.4 nozzle", SUNLU PETG,
+  10% lightning infill, 2 walls, plus `brim_ears`. The full resolved settings are in the tail of any g-code OrcaSlicer made
+  with them (the halmet gauge job on the printer was one). The owner slices by hand in OrcaSlicer.
+- **Printer:** `shop printer` is read-only. Moonraker file upload works with the key `shop printer` already reads, but
+  accepts g-code only, not 3mf. `orca-slicer.exe --slice` on this WSL box exits 5 with no message even given the
+  full settings; unexplained, not worth chasing before the owner asks.
