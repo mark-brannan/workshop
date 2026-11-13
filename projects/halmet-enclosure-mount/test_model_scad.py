@@ -251,15 +251,16 @@ def test_sensor_fits_under_the_oled_and_clear_of_its_standoffs():
         assert abs(cy - LDR_Y) > LDR_W / 2 + M25_HEX_R + 0.3
 
 
-def test_bent_down_plug_clears_the_tier_standoffs_and_screw_heads():
+def test_board_and_straight_pins_clear_the_tier_screw_heads():
     x_end = LDR_X0 + LDR_L
-    plug = (x_end + 0.5, LDR_Y - 3.8, x_end + P["ldr_pin_x"], LDR_Y + 3.8)  # hangs below the tier
-    for cx, cy in COLS:
-        dx, dy = max(plug[0] - cx, 0, cx - plug[2]), max(plug[1] - cy, 0, cy - plug[3])
-        assert (dx * dx + dy * dy) ** 0.5 > M3_HEX_R
-        board = (LDR_X0, LDR_Y - LDR_W / 2, x_end, LDR_Y + LDR_W / 2)  # and the board clears the screw heads on top
+    board = (LDR_X0, LDR_Y - LDR_W / 2, x_end, LDR_Y + LDR_W / 2)
+    pins = (x_end, LDR_Y - 3.2, x_end + P["ldr_pin_l"], LDR_Y + 3.2)
+    for cx, cy in COLS:  # M3 heads on the tier top: the board clears them in plan
         dx, dy = max(board[0] - cx, 0, cx - board[2]), max(board[1] - cy, 0, cy - board[3])
         assert (dx * dx + dy * dy) ** 0.5 > P["head_d"] / 2 + 0.3
+    pin_z = LDR_Z + P["pcb_t"] + 0.94  # right-angle pins run ~1 above the board top
+    assert pin_z > TIER_TOP + P["head_h"] + 0.5  # and the pins pass over the back-right head
+    assert LDR_X0 >= P["tier_x0"] - 1  # photocell end at the tier's left edge, none of it over the HALMET
 
 
 def test_photocell_end_clear_of_the_halmet_in_plan():

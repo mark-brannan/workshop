@@ -67,7 +67,7 @@ module ldr() {
         cube([ldr_l, ldr_w, pcb_t]);
         translate([12, 2, pcb_t]) cube([7, 7, ldr_part_h]);                       // trimpot (guess)
         translate([ldr_l - 2.5, ldr_w/2 - 3.8, pcb_t]) cube([2.5, 7.6, 2.5]);      // header
-        translate([ldr_l + 0.5, ldr_w/2 - 3.8, -ldr_ledge - tier_t - 14]) cube([2.5, 7.6, 14]);   // pins bent down, Dupont plug
+        for (dy = [-2.54, 0, 2.54]) translate([ldr_l, ldr_w/2 + dy - 0.32, pcb_t + 0.94]) cube([ldr_pin_l, 0.64, 0.64]);   // pins, straight out
     }
     translate([ldr_x0 - 1, ldr_y, ldr_z + pcb_t]) {                               // photocell on leads bent up
         cylinder(d = 0.6, h = 3, $fn = 8);

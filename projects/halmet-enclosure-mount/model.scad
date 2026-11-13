@@ -71,12 +71,12 @@ seg_hole_dx = 36;    // owner, rough calipers
 seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
-/* [Light sensor on the tier: LM393 photoresistor module, 32 x 14, one M3 hole] */
-ldr_x0 = 21.5;       // photocell end; as far right as the bent-down header lets it go (see ldr_pin_x)
+/* [Light sensor on the tier: LM393 photoresistor module, 31 x 14, one M3 hole (owner's, on hand)] */
+ldr_x0 = 25.5;       // photocell end, at the tier's left edge; as far right as the back-right tier screw head allows
 ldr_y = 23.8;        // between the OLED's standoff columns, clear of the back-left tier screw head
-ldr_l = 32;          // vendor drawing
+ldr_l = 31;          // owner, caliper
 ldr_w = 14;
-ldr_hole_in = 7;     // M3 hole centre from the header end, centred across: photo estimate, caliper it
+ldr_hole_in = 7;     // hole centre from the header end, centred across: its rim 5 from that end and both edges (owner)
 ldr_part_h = 5;      // tallest part above its PCB (3362 trimpot): guess, caliper it
 pcb_t = 1.6;
 ldr_ledge = 1.5;     // the module sits on edge ledges this high, clear of its solder stubs
@@ -85,7 +85,7 @@ ldr_fit = 0.3;       // per side
 ldr_pilot = 2.6;     // M3 self-tap from above into a boss under the cradle floor
 ldr_boss_d = 7;
 ldr_boss_h = 5;      // below the tier
-ldr_pin_x = 3.5;     // header pins bent straight down past the header end: Dupont plug within this, under the tier
+ldr_pin_l = 6;       // header pins past the header end (owner); bend or swap them once the module is placed
 
 /* [Plate: hex-lightened] */
 plate_t = 4.5;

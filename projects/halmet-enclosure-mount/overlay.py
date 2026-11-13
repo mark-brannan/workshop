@@ -164,13 +164,13 @@ for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled
 ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,
         color=TIER, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
-# light sensor on the tier, in a cradle under the OLED; photocell at the left end, header bent down at the right
+# light sensor on the tier, in a cradle under the OLED; photocell at the left end, header pins at the right
 SENS = "#b8336a"
 lx0, ly, ll, lw = P["ldr_x0"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
 ax.add_patch(Rectangle((lx0, ly - lw / 2), ll, lw, fc="#f7dbe6", ec=SENS, lw=1.5, ls=":", alpha=0.8, zorder=7))
 ax.add_patch(Circle((lx0 + ll - P["ldr_hole_in"], ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
 ax.add_patch(Circle((lx0 - 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell
-ax.add_patch(Rectangle((lx0 + ll + 0.5, ly - 3.8), 2.5, 7.6, fc="#333", ec="none", zorder=8))  # plug, hanging below
+ax.add_patch(Rectangle((lx0 + ll, ly - 3.2), P["ldr_pin_l"], 6.4, fc="#333", ec="none", zorder=8))  # header pins, straight out
 ax.text(lx0 + ll / 2, ly - lw / 2 - 1, "LM393 light sensor in a cradle on the tier, under the OLED",
         ha="center", va="top", fontsize=6.5, color=SENS, zorder=9, bbox=dict(fc="white", ec="none", pad=0.5, alpha=0.85))
 
