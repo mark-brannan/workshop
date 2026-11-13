@@ -72,7 +72,7 @@ def top(mesh, x, y):
 def test_bounds_volume_watertight(frame):
     assert frame.is_watertight
     lo, hi = frame.bounds
-    assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH, SPAN / 2 + REACH], atol=0.05)
+    assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH - P["end_ext"], SPAN / 2 + REACH + P["end_ext"]], atol=0.05)
     assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0), atol=0.02)
     assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, P["plate_y_hi"]], atol=0.05)  # straight back edge
     assert hi[1] < 83 / 2  # inside the box floor
@@ -135,7 +135,7 @@ def test_underside_flat_over_bosses_and_posts(frame):
     assert DROP == 0
     for sx in (-1, 1):
         for k in (-1, 0, 1):
-            x, y = sx * SPAN / 2, k * PITCH + (P["screw_d"] / 2 + 1.5)  # beside the slot, over the boss rim
+            x, y = sx * SPAN / 2, k * PITCH + (P["slot_d"] / 2 + 1.5)  # beside the slot, over the boss rim
             assert np.isclose(bottom(frame, x, y), 0, atol=0.02)
 
 
@@ -150,7 +150,7 @@ def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
 def test_zip_tie_slots_open(frame):
     assert len(LISTS["tie_bar_xs"]) == 6  # six gland-side ties
     pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in LISTS["tie_bar_xs"] for s in (-1, 1)]
-    x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH) / 2
+    x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
     pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]
     for x, y in pairs:
         assert top(frame, x, y) is None
@@ -160,7 +160,7 @@ def test_zip_tie_slots_open(frame):
 
 def test_board_clear_of_the_left_fork_slots():
     left_edge = -44.5 + DX
-    assert left_edge > -(SPAN / 2 - REACH) + P["screw_d"] / 2  # a driver reaches every left screw
+    assert left_edge > -(SPAN / 2 - REACH) + P["slot_d"] / 2  # a driver reaches every left screw
 
 
 def test_plate_has_insert_pads_under_the_tier_standoffs(frame):

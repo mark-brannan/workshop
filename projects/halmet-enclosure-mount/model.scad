@@ -10,8 +10,10 @@ part = "frame";      // [frame, gauge:thin solid fit check with the raised featu
 
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
-boss_pitch = 22;     // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 between the two
-screw_d = 3.4;       // clearance for the screw into a boss
+boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 printed; 21.7 next
+screw_d = 3.4;       // M3 clearance: the tier's standoff screws
+slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (fork slots)
+end_ext = 3;         // each end bar reaches this much past the slots' reach
 slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
@@ -119,7 +121,7 @@ drop = 0;            // flat underside on the bosses: pockets over them printed 
 body_t = plate_t + drop;
 rests = [[36, 18], [-38.5, -19.5]];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
-bar_x1 = boss_span/2 + slot_reach;                   // outer edge
+bar_x1 = boss_span/2 + slot_reach + end_ext;                   // outer edge
 seg_x = oled_x;
 seg_y = oled_y - oled_h/2 - seg_gap - seg_h/2;
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
@@ -197,8 +199,8 @@ module tie_chamfers() {
 
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-        translate([boss_span/2 - slot_reach, 0]) circle(d = screw_d);
-        translate([bar_x1 + 2, 0]) circle(d = screw_d);
+        translate([boss_span/2 - slot_reach, 0]) circle(d = slot_d);
+        translate([bar_x1 + 2, 0]) circle(d = slot_d);
     }
 }
 
