@@ -275,7 +275,7 @@ module tier_rect2d() {   // the space the tier may use: clear of the lid-screw c
 }
 
 // A smooth band through the outer screws, a bar between the two modules, wider pads where a standoff
-// screw and a module screw sit close; open under the OLED header so its plug passes through.
+// screw and a module screw sit close; solid from the bar back but for a notch under the OLED header.
 module tier_plate2d() {   // every corner rounded: inside corners tier_fillet, outside corners tier_round
     offset(r = tier_round) offset(delta = -tier_round) intersection() {
         tier_rect2d();
@@ -295,13 +295,17 @@ module tier_band2d() {
                     offset(r = 3) offset(delta = -3 - tier_band/2) hull() for (p = pts) translate(p) circle(d = 0.01);
                 }
                 hull() for (p = [oled_posts[0], oled_posts[2], seg_posts[1], seg_posts[3]]) translate(p) circle(d = tier_band);
+                hull() {   // solid behind the bar: the OLED's posts and the two back standoffs
+                    for (p = oled_posts) translate(p) circle(d = tier_band + 1);
+                    for (c = tier_cols) if (c[1] > 0) translate(c) circle(d = tier_boss_d + 2);
+                }
                 for (c = tier_cols) translate(c) circle(d = tier_boss_d + 2);
                 for (p = mods) translate(p) circle(d = tier_band + 1);
                 for (c = tier_cols, p = mods) if (norm(c - p) < tier_join)
                     hull() { translate(c) circle(d = tier_boss_d + 2); translate(p) circle(d = tier_band + 1); }
             }
         }
-        translate([oled_x - 6.5, oled_y + oled_hole_dy/2 - tier_band]) square([13, 15]);
+        translate([oled_x - 6.5, oled_y + oled_hole_dy/2 - tier_band]) square([13, 15]);   // OLED header pins
     }
 }
 
