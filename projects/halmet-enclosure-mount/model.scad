@@ -2,7 +2,7 @@
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
 // Four raised posts at the right end carry an SSD1306 display module above the board's level;
-// a post and a rest beside them carry an LM393 photoresistor module at the same height.
+// a post and a rest at the top-left carry an LM393 photoresistor module at the same height.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
@@ -51,13 +51,14 @@ oled_insert_depth = 4.5;
 
 /* [Light sensor: LM393 photoresistor module, 32 x 14, one M3 hole] */
 ldr = 1;             // 0 leaves the sensor posts off
-ldr_x = 45;          // module centre line; runs along Y just right of the board, clear of the corner columns
-ldr_y0 = -34;        // header end, on the gland side; header re-soldered straight up
+ldr_x = -48.5;        // module centre; along the top wall, overhanging the board's upper-left edge
+ldr_y = 30;          // clear of the top-left lid-screw column
 ldr_l = 32;          // vendor drawing
 ldr_w = 14;
-ldr_hole_in = 7;     // hole centre from the header end, centred across; photo estimate, caliper it
-ldr_rest_in = 15;    // plain rest, kept below the USB plug's path
-ldr_rise = 18;       // same height as the display; the module passes over the USB plug
+ldr_hole_in = 7;     // hole centre from the header end (+X), centred across; photo estimate, caliper it
+ldr_rest_x = -57;    // plain rest under the photoresistor end, on the plate
+ldr_rest_y = 26;
+ldr_rise = 18;       // same height as the display
 ldr_post_d = 7;
 ldr_insert_d = 4.0;  // M3 heat-set insert
 ldr_insert_depth = 5;
@@ -92,8 +93,8 @@ rail_ys = [for (s = slots) s[1] + board_dy];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach;                   // outer edge
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [oled_x + sx*oled_hole_dx/2, oled_y + sy*oled_hole_dy/2]];
-ldr_post = [ldr_x, ldr_y0 + ldr_hole_in];
-ldr_rest = [ldr_x, ldr_y0 + ldr_rest_in];
+ldr_post = [ldr_x + ldr_l/2 - ldr_hole_in, ldr_y];
+ldr_rest = [ldr_rest_x, ldr_rest_y];
 y_hi = max(boss_pitch + 6, max(rail_ys) + rail_w/2);
 y_lo = min(-boss_pitch - 6, min(rail_ys) - rail_w/2);
 

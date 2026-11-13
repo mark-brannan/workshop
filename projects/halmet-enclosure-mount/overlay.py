@@ -145,17 +145,20 @@ for sx in (-1, 1):
 ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
         color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
-# light sensor: LM393 photoresistor module along Y, one M3 post and a rest (hole position a photo estimate)
+# light sensor: LM393 photoresistor module, header end +X, one M3 post and a rest (hole position a photo estimate)
 LC = "#b8860b"
-LX, LY0, LL, LW = P["ldr_x"], P["ldr_y0"], P["ldr_l"], P["ldr_w"]
-ax.add_patch(Rectangle((LX - LW / 2, LY0), LW, LL, fc="#fff3c4", ec=LC, lw=1.5, alpha=0.75))
-ax.add_patch(Rectangle((LX - 4, LY0 + 0.6), 8, 2.6, fc="#222", ec="none", alpha=0.5))  # header, straight up
-ax.add_patch(Circle((LX, LY0 + LL + 2.5), 2.5, fc="#c87a6a", ec=LC, lw=1))  # photoresistor head
-ax.add_patch(Circle((LX, LY0 + P["ldr_hole_in"]), P["ldr_post_d"] / 2, fc="none", ec=LC, lw=1.6))
-ax.add_patch(Circle((LX, LY0 + P["ldr_hole_in"]), P["ldr_insert_d"] / 2, fc=LC, ec="none"))
-ax.add_patch(Circle((LX, LY0 + P["ldr_rest_in"]), 2, fc="none", ec=LC, lw=1.6))
-ax.text(LX + LW / 2 + 1, LY0 + 20, f"light sensor\n32 x 14\n{P['ldr_rise']:g} mm post\n+ rest\nheader\nstraight up",
-        ha="left", va="center", fontsize=7, color=LC, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+LX, LY, LL, LW = P["ldr_x"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
+ax.add_patch(Rectangle((LX - LL / 2, LY - LW / 2), LL, LW, fc="#fff3c4", ec=LC, lw=1.5, alpha=0.75))
+ax.add_patch(Rectangle((LX + LL / 2, LY - 1.3), 20, 2.6, fc="#222", ec="none", alpha=0.35))  # right-angle pins + Dupont plug
+ax.add_patch(Circle((LX - LL / 2 + 2.5, LY), 2.5, fc="#c87a6a", ec=LC, lw=1))  # photoresistor, bent up to the lid
+ax.add_patch(Circle((LX + LL / 2 - P["ldr_hole_in"], LY), P["ldr_post_d"] / 2, fc="none", ec=LC, lw=1.6))
+ax.add_patch(Circle((LX + LL / 2 - P["ldr_hole_in"], LY), P["ldr_insert_d"] / 2, fc=LC, ec="none"))
+ax.add_patch(Circle((P["ldr_rest_x"], P["ldr_rest_y"]), 2, fc="none", ec=LC, lw=1.6))
+ax.text(LX - 4, LY + 1.5, f"light sensor 32 x 14, {P['ldr_rise']:g} mm post + rest", ha="center", fontsize=7, color=LC,
+        bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+ax.text(LX + LL / 2 + 10, LY + 2, "pins + plug", ha="center", fontsize=6.5, color="#444")
+ax.text(LX - LL / 2 + 2.5, LY - 4.5, "photocell,\nbent up", ha="center", va="top", fontsize=6, color=LC)
+
 # USB plug path, reserved from the board edge to the wall
 ax.add_patch(Rectangle((36.5, -15.5), 39, 12, fc="none", ec="#888", lw=1, ls="--"))
 ax.text(70, -2.5, "USB plug path", ha="right", fontsize=6.5, color="#666")
