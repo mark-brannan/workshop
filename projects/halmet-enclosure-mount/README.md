@@ -74,7 +74,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   along the gland-side edge, chamfered underneath where the tie turns, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
-- Display tier, a separate flat print (`part-tier.scad`): a plate at the rim carrying the 0.96" SSD1306
+- Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header toward the back wall)
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 F/F standoffs, screwed up through counterbored pads on the plate
   before the plate goes in the box; four M3 from above hold the tier down.
@@ -87,7 +87,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 ## Assembly
 
 `assembly.py` renders the parts in the box from `assembly.scad`. Boards are boxes; part heights,
-the module standoffs (6) and the lid ceiling (16 above the rim) are guesses.
+the module standoffs (6) and the lid ceiling (16 above the rim) are guesses. The light sensor is left out of the views for now.
 
 ![tier](out/assembly_tier.png)
 ![assembled](out/assembly.png)

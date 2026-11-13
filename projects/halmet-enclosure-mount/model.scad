@@ -45,9 +45,12 @@ tier_t = 2.5;        // its top sits at the rim, give or take 5 (owner)
 tier_x0 = 26;        // left edge; the left side stays open for the USB plug and wiring
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
-tier_cols = [[31, 34.5], [54, 34.5], [37, -11.25], [58, -11.25]];  // standoff centres
+tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
 tier_standoff = 19.7;  // M3 F/F hex standoff (owner's calipers)
 tier_boss_d = 8;     // printed pad under each standoff
+tier_band = 6;       // tier: width of the band through the screws
+tier_join = 12;      // tier: a standoff screw this close to a module screw shares one wider pad
+oled_pin_in = 1.6;   // OLED header pin row from its top edge (generic; caliper it)
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
 head_h = 2.5;
 m25_d = 2.8;         // module screws: M2.5 through the tier into an F/F standoff under the module
@@ -259,9 +262,33 @@ module gauge() {
 
 // Tier, in box coordinates (Z = 0 on the rest posts): a flat plate at the rim on four F/F standoffs,
 // screwed down from above; modules on M2.5 F/F standoffs, screwed up from below.
-module tier_plate2d() {
+module tier_rect2d() {   // the space the tier may use: clear of the lid-screw columns
     translate([tier_x0, tier_y0]) square([tier_x1 - tier_x0, lid_col_y - 1 - tier_y0]);
     translate([tier_x0, tier_y0]) square([lid_col_x - 1 - tier_x0, plate_y_hi - tier_y0]);
+}
+
+// A smooth band through the outer screws, a bar between the two modules, wider pads where a standoff
+// screw and a module screw sit close; open under the OLED header so its plug passes through.
+module tier_plate2d() {
+    pts = concat(tier_cols, oled_posts, seg_posts);
+    mods = concat(oled_posts, seg_posts);
+    difference() {
+        intersection() {
+            tier_rect2d();
+            union() {
+                difference() {
+                    offset(r = tier_band/2) hull() for (p = pts) translate(p) circle(d = 0.01);
+                    offset(r = 3) offset(delta = -3 - tier_band/2) hull() for (p = pts) translate(p) circle(d = 0.01);
+                }
+                hull() for (p = [oled_posts[0], oled_posts[2], seg_posts[1], seg_posts[3]]) translate(p) circle(d = tier_band);
+                for (c = tier_cols) translate(c) circle(d = tier_boss_d + 2);
+                for (p = mods) translate(p) circle(d = tier_band + 1);
+                for (c = tier_cols, p = mods) if (norm(c - p) < tier_join)
+                    hull() { translate(c) circle(d = tier_boss_d + 2); translate(p) circle(d = tier_band + 1); }
+            }
+        }
+        translate([oled_x - 6.5, oled_y + oled_hole_dy/2 - tier_band]) square([13, 15]);
+    }
 }
 
 module tier() {
@@ -269,13 +296,6 @@ module tier() {
         tier_plate2d();
         for (c = tier_cols) translate(c) circle(d = screw_d);
         for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
-        offset(r = 1.5) offset(delta = -1.5) difference() {
-            union() {   // wire windows inside each module's hole pattern; the OLED's reaches toward its header edge
-                translate([oled_x - oled_hole_dx/2 + 4, oled_y - oled_hole_dy/2 + 4]) square([oled_hole_dx - 8, oled_hole_dy/2 - 4 + oled_h/2 - 2]);
-                translate([seg_x - seg_hole_dx/2 + 4, seg_y - seg_hole_dy/2 + 4]) square([seg_hole_dx - 8, seg_hole_dy - 8]);
-            }
-            for (c = tier_cols) translate(c) circle(d = tier_boss_d + 2);   // standoff seats stay solid
-        }
     }
 }
 

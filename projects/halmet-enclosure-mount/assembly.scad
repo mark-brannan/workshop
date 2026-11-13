@@ -53,6 +53,13 @@ module halmet() {
 module oled() {
     translate([oled_x - oled_w/2, oled_y - oled_h/2, mod_z]) cube([oled_w, oled_h, pcb_t]);
 }
+module oled_header() {   // pins out the back at the top edge, a Dupont plug on them through the tier
+    translate([oled_x, oled_y + oled_h/2 - oled_pin_in, mod_z]) {
+        translate([-5.08, -1.27, -2.5]) cube([10.16, 2.54, 2.5]);
+        translate([-5.08, -1.27, -2.5 - 14]) cube([10.16, 2.54, 14 - 6]);
+        for (i = [0:3]) translate([-3.81 + i*2.54 - 0.32, -0.32, -8.5]) cube([0.64, 0.64, 8.5]);
+    }
+}
 module oled_glass() { translate([oled_x - 13, oled_y - 9.5 - 2, mod_z + pcb_t]) cube([26, 19, 1.5]); }
 module seg() { translate([seg_x - seg_w/2, seg_y - seg_h/2, mod_z]) cube([seg_w, seg_h, pcb_t]); }
 module seg_body() { translate([seg_x - 15, seg_y - 7, mod_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
@@ -74,7 +81,7 @@ module ldr_standoffs() { for (c = ldr_posts) translate([c[0], c[1], body_t]) hex
 module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = m25_standoff, $fn = 6); }
 
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
-module screws_under() { for (c = concat(tier_cols, ldr_posts)) translate([c[0], c[1], 0]) head(); }   // in the plate's counterbores
+module screws_under() { for (c = tier_cols) translate([c[0], c[1], 0]) head(); }   // in the plate's counterbores
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
 module screws_tier() { for (c = tier_cols) translate([c[0], c[1], tier_z1]) head(); }
 module screws_ldr() { translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2); }
@@ -91,6 +98,7 @@ else if (show == "frame") frame();
 else if (show == "tier") tier();
 else if (show == "halmet") halmet();
 else if (show == "oled") oled();
+else if (show == "oled_header") oled_header();
 else if (show == "oled_glass") oled_glass();
 else if (show == "seg") seg();
 else if (show == "seg_body") seg_body();

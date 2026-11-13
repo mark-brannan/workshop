@@ -13,29 +13,27 @@ from shop.scad import OpenSCAD
 HERE = Path(__file__).parent
 OUT = HERE / "out"
 
-# component: (colour, opacity, exploded dz). Order is assembly order.
+# component: (colour, opacity, exploded dz). Order is assembly order. The LM393 light sensor is left out for now.
 PARTS = {
     "box": ("#9aa4ad", 0.18, -45),
     "screws_under": ("#333333", 1, -22),
     "frame": ("#c8a24a", 1, 0),
     "screws_floor": ("#333333", 1, 12),
     "tier_standoffs": ("#d4af37", 1, 22),
-    "ldr_standoffs": ("#d4af37", 1, 22),
     "halmet": ("#1f6f3f", 1, 32),
     "screws_board": ("#333333", 1, 44),
-    "ldr": ("#2456a6", 1, 44),
-    "screws_ldr": ("#333333", 1, 54),
     "tier": ("#e0c07a", 1, 72),
     "screws_m25": ("#333333", 1, 72),
     "module_standoffs": ("#d4af37", 1, 72),
     "oled": ("#2456a6", 1, 72),
     "oled_glass": ("#111111", 1, 72),
+    "oled_header": ("#222222", 1, 72),
     "seg": ("#2456a6", 1, 72),
     "seg_body": ("#f2f2f2", 1, 72),
     "screws_tier": ("#333333", 1, 92),
     "lid": ("#9aa4ad", 0.12, 110),
 }
-TIER = ["tier", "screws_m25", "module_standoffs", "oled", "oled_glass", "seg", "seg_body"]
+TIER = ["tier", "screws_m25", "module_standoffs", "oled", "oled_glass", "oled_header", "seg", "seg_body"]
 
 
 def build(tmp: Path) -> dict[str, pv.PolyData]:
