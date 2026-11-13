@@ -1,29 +1,38 @@
-// DIN-rail (TS35) mount for an 80 x 110 mm enclosed AC-DC supply, one piece, low profile.
+// DIN-rail (TS35) mount for an 58 x 85 mm enclosed AC-DC supply, one piece, low profile.
 // A 2.5 mm lightened frame, the PSU's own footprint, screws (M3) to its two diagonal holes.
 // Two DIN clips are part of the frame: Maxstupo's "DIN Rail Clip (Heat Insert Version)", Printables
 // model 420009 (CC BY 4.0), imported from ref_din_clip_heat_insert.stl. Its two heat-insert screw holes
 // are filled, since the clip is no longer a separate part. A fixed hook on one side and a spring latch on
-// the other hold the rail flange 4.1 mm off the PSU face. The rail runs along X, the 80 mm axis; the
-// 110 mm side stands up and down.
+// the other hold the rail flange 4.1 mm off the PSU face. The rail runs along X, the 58 mm axis; the
+// 85 mm side stands up and down. The plate runs 15 mm past the PSU's lower end, with chamfered zip-tie
+// slot pairs there for strain relief (the tie loops under the plate, where no PSU sits).
 // Print with the PSU face down (z = 0).
 
 /* [Plate] */
-plate_l = 80;        // X, along the rail: the PSU's footprint, no overhang
-plate_w = 110;       // Y, across the rail (the vertical, long side)
+plate_l = 58;        // X, along the rail: the PSU's footprint (box, caliper), no overhang
+plate_w = 85;        // Y, across the rail (the vertical, long side): the PSU's footprint
+ext = 15;            // the plate continues this far past the PSU's lower end (-Y), for the zip ties
 plate_t = 2.5;       // the frame
 corner_r = 3;
 rim_w = 6;           // perimeter band of the lightened frame
-boss_d = 11;         // solid round around each screw hole
+boss_d = 10;         // solid round around each screw hole
 
 /* [PSU mounting holes] (caliper ~, diagonal pair) */
 hole_dx = 47;        // centre to centre along X (the 80 mm side)
 hole_dy = 75;        // centre to centre along Y (the 110 mm side)
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
 
+/* [Zip-tie strain relief: slot pairs in the extension, the tie loops under the plate] */
+tie_w = 5.5;         // slot length across the tie: takes ties up to 5 mm wide (standard), small ones too
+tie_t = 2.2;         // slot width
+tie_gap = 5;         // slot centre to slot centre, along Y
+tie_c = 1.2;         // underside chamfer on each slot's outer edge, where the tie turns under
+tie_xs = [-18, 0, 18];  // pair positions along X
+
 /* [Clips] */
-clip_x = 25;         // clip centre distance from the plate centre, along the rail
+clip_x = 13.5;         // clip centre distance from the plate centre, along the rail
 clip_len = 18;       // each clip's length along the rail: the model's own 18 mm
-strip_pad = 3;       // solid frame band beyond each clip's length, each side
+strip_pad = 2;       // solid frame band beyond each clip's length, each side
 
 /* [Hidden] */
 $fn = 48;
@@ -43,19 +52,33 @@ module clip() {
     }
 }
 
-module outline() offset(r = corner_r) square([plate_l - 2*corner_r, plate_w - 2*corner_r], center = true);
+tie_y = -plate_w/2 - ext/2;   // the slot pairs' centre line, mid-extension
+module outline() translate([0, -ext/2]) offset(r = corner_r) square([plate_l - 2*corner_r, plate_w + ext - 2*corner_r], center = true);
 
 // Perimeter rim, a solid band under each clip out to the side rim, a boss round each screw hole; the rest is open.
 module frame2d() intersection() { outline(); union() {
     difference() { outline(); offset(delta = -rim_w) outline(); }
     for (sx = [-1, 1]) translate([sx*clip_x - strip_w/2, -plate_w/2]) square([strip_w, plate_w]);
+    translate([-plate_l/2, -plate_w/2 - ext]) square([plate_l, ext + rim_w]);   // the extension is solid
     for (h = holes) translate(h) circle(d = boss_d);
 } }
+
+// Each slot: local X along global X (the slot's length), local Y along global Y; s = -1 / +1 is the lower / upper
+// slot of its pair, its chamfer opening away from the web between them.
+module tie_slots() { for (x = tie_xs, s = [-1, 1]) translate([x, tie_y + s*tie_gap/2, -1]) linear_extrude(plate_t + 2) square([tie_w, tie_t], center = true); }
+module tie_chamfers() {
+    for (x = tie_xs, s = [-1, 1]) translate([x, tie_y + s*tie_gap/2]) hull() {
+        translate([0, s*tie_c/2, -0.5]) linear_extrude(0.5) square([tie_w, tie_t + tie_c], center = true);
+        translate([0, 0, tie_c]) linear_extrude(0.01) square([tie_w, tie_t], center = true);
+    }
+}
 
 module base() {
     difference() {
         linear_extrude(plate_t) frame2d();
         for (h = holes) translate([h[0], h[1], -1]) cylinder(d = hole_d, h = plate_t + 2);
+        tie_slots();
+        tie_chamfers();
     }
 }
 
