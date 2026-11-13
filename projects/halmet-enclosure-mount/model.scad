@@ -281,5 +281,5 @@ module tier() {
 
 if (part == "tier") tier();
 else if (part == "gauge") gauge();
-else if (mode == "2d") profile(true);
-else frame();
+else if (part == "frame" && mode == "2d") profile(true);
+else if (part == "frame") frame();   // any other part (assembly.scad) draws nothing here
