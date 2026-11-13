@@ -78,16 +78,15 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
   hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
-- Light sensor, under the tier: the LM393 module ([`parts.md`](../../parts.md)) on two more 19.7 mm
-  F/F standoffs, seated on the plate and screwed up from below. One takes the module's M3 hole; the other
-  is a plain rest under the photocell end. The photocell end sits just past the tier's left edge, so the
-  cell sees the lid with its leads bent up. Bend the header pins down past the board's end; the plug hangs
-  toward the plate. Hole position and trimpot height are guesses: caliper them.
+- Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
+  between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
+  It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 self-taps from above
+  through its hole into a boss under the cradle. Bend the header pins down.
 
 ## Assembly
 
 `assembly.py` renders the parts in the box from `assembly.scad`. Boards are boxes; part heights,
-are guesses. The light sensor is left out of the views for now.
+are guesses.
 
 ![tier](out/assembly_tier.png)
 ![assembled](out/assembly.png)
@@ -95,15 +94,14 @@ are guesses. The light sensor is left out of the views for now.
 
 Order, on the bench then in the box:
 
-1. Tier: modules onto M2.5 standoffs, screwed up from under the tier.
-2. Plate, out of the box: sensor standoffs, screwed up from below. Tier standoffs into the pad inserts, any time.
-3. Light sensor onto its standoffs.
-4. Plate into the box, six screws through the fork slots.
-5. HALMET onto its standoffs, two screws from above.
-6. Tier onto its standoffs, four screws from above. Then wire everything and fit the lid.
+1. Tier: light sensor into its cradle, one screw from above; then modules onto M2.5 standoffs, screwed up from under the tier.
+2. Plate, out of the box: tier standoffs into the pad inserts, any time.
+3. Plate into the box, six screws through the fork slots.
+4. HALMET onto its standoffs, two screws from above.
+5. Tier onto its standoffs, four screws from above. Then wire everything and fit the lid.
 
-Two fixed steps: the tier covers two right-hand floor screws, (70, 0) and (70, 22.5), and the light sensor's screw.
-So the tier comes off before the plate or the sensor. The standoffs come off only with the plate out of the box.
+Two fixed steps: the tier covers two right-hand floor screws, (70, 0) and (70, 22.5),
+so the tier comes off before the plate. The standoffs come off only with the plate out of the box.
 The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its left edge is 1.5 mm from the left floor-screw heads.
 
 ## Fit check

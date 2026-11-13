@@ -164,17 +164,19 @@ for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled
 ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,
         color=TIER, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
-# light sensor under the tier: LM393 module on two F/F standoffs on the plate, photocell past the tier's left edge
+# light sensor on the tier, in a cradle under the OLED; photocell at the left end, header pins at the right
 SENS = "#b8336a"
 lx0, ly, ll, lw = P["ldr_x0"], P["ldr_y"], P["ldr_l"], P["ldr_w"]
 ax.add_patch(Rectangle((lx0, ly - lw / 2), ll, lw, fc="#f7dbe6", ec=SENS, lw=1.5, ls=":", alpha=0.8, zorder=7))
-for x in (lx0 + ll - P["ldr_hole_in"], lx0 + P["ldr_rest_in"]):
-    ax.add_patch(Circle((x, ly), 5.5 / 3 ** 0.5, fc="none", ec=SENS, lw=1.2, zorder=8))
-    ax.add_patch(Circle((x, ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
-ax.add_patch(Circle((lx0 - 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell, leads bent up
-ax.add_patch(Rectangle((lx0 + ll, ly - 3.75), 3, 7.5, fc="#333", ec="none", zorder=8))  # header, pins bent down
-ax.text(lx0 + ll / 2, ly - lw / 2 - 1, f"LM393 light sensor, {P['ldr_standoff']:g} F/F standoffs, under the tier",
+ax.add_patch(Circle((lx0 + ll - P["ldr_hole_in"], ly), P["screw_d"] / 2, fc=SENS, ec="none", zorder=8))
+ax.add_patch(Circle((lx0 - 1, ly), 2.5, fc="#c0392b", ec=SENS, zorder=8))  # photocell
+ax.add_patch(Rectangle((lx0 + ll, ly - 3.2), P["ldr_pin_l"], 6.4, fc="#333", ec="none", zorder=8))  # header pins, straight out
+ax.text(lx0 + ll / 2, ly - lw / 2 - 1, "LM393 light sensor in a cradle on the tier, under the OLED",
         ha="center", va="top", fontsize=6.5, color=SENS, zorder=9, bbox=dict(fc="white", ec="none", pad=0.5, alpha=0.85))
+
+# USB plug path, reserved from the board edge to the wall
+ax.add_patch(Rectangle((36.5, -15.5), 39, 12, fc="none", ec="#888", lw=1, ls="--"))
+ax.text(70, -2.5, "USB plug path", ha="right", fontsize=6.5, color="#666")
 
 # lid-screw columns, one per corner, full height (photo, scaled by the boss span)
 for sx in (-1, 1):
