@@ -171,7 +171,7 @@ def test_plate_has_insert_pads_under_the_tier_standoffs(frame):
 
 
 def test_modules_clear_the_lid():
-    lid_ceiling = P["rim_z"] - P["boss_h"] + 16  # rim to lid ceiling: a guess (assembly.scad lid_gap)
+    lid_ceiling = P["rim_z"] - P["boss_h"] + P["lid_depth"]
     assert TIER_TOP + P["mod_standoff"] + 7 < lid_ceiling  # TM1637 face, 7 above its board's underside
 
 

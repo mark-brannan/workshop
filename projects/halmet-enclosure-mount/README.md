@@ -77,7 +77,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header toward the back wall)
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
-  hold the tier down. The modules stand 10 mm above it, the tallest that clears the lid (lid depth a guess).
+  hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
 - Light sensor, under the tier: the LM393 module ([`parts.md`](../../parts.md)) on two more 19.7 mm
   F/F standoffs, seated on the plate and screwed up from below. One takes the module's M3 hole; the other
   is a plain rest under the photocell end. The photocell end sits just past the tier's left edge, so the
@@ -87,7 +87,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 ## Assembly
 
 `assembly.py` renders the parts in the box from `assembly.scad`. Boards are boxes; part heights,
-the module standoffs (6) and the lid ceiling (16 above the rim) are guesses. The light sensor is left out of the views for now.
+are guesses. The light sensor is left out of the views for now.
 
 ![tier](out/assembly_tier.png)
 ![assembled](out/assembly.png)

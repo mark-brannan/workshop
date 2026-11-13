@@ -7,7 +7,6 @@ show = "frame";      // one component per run; assembly.py loops over them
 /* [Stand-ins: guesses unless marked] */
 floor_t = 2.5;       // guess
 wall_t = 2.5;        // guess
-lid_gap = 16;        // rim to lid ceiling: 60 outside - 39 rim - two walls (guess)
 hex_af = 5.5;        // M3 F/F standoff across flats (assumed)
 board_z = body_t + standoff_h;      // HALMET underside
 ldr_z = body_t + ldr_standoff;      // LM393 underside
@@ -36,7 +35,7 @@ module box() {
     for (sx = [-1, 1], sy = [-1, 1]) scale([sx, sy, 1]) translate([lid_col_x, lid_col_y, floor_z]) cube([75.5 - lid_col_x, 41.5 - lid_col_y, rim_z]);
 }
 
-module lid() { translate([-79, -45, rim_z - boss_h + lid_gap]) cube([158, 90, wall_t]); }
+module lid() { translate([-79, -45, rim_z - boss_h + lid_depth]) cube([158, 90, wall_t]); }
 
 module halmet() {
     translate([board_dx - 44.5, board_dy - 29, board_z]) {
