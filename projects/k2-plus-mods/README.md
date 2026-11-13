@@ -38,3 +38,4 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 - 2026-11-12 18:58: step 1 done over Moonraker's file API, no SSH: `~/k2-backups/2026-11-12-1858-config.tar.gz`, 12 files.
 - 2026-11-12 19:05: key login works. SSH snapshot `~/k2-backups/2026-11-12-1905-ssh-printer_data.tar.gz` (config, database, /etc/dropbear, /etc/config).
 - 2026-11-12 19:06: step 2 found password SSH on for root, adbd listening on 0.0.0.0:5037.
+- 2026-11-12 19:10: printer accepts 2 keys (this Mac, WSL box), not all machines; password SSH stays on until it does.
