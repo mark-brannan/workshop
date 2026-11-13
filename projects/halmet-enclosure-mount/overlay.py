@@ -71,7 +71,8 @@ for e in ezdxf.readfile(HERE / "out" / "halmet-enclosure-mount_scad.dxf").models
         ax.plot([e.dxf.start.x, e.dxf.end.x], [e.dxf.start.y, e.dxf.end.y], color=PLATE, lw=1.6)
     elif e.dxftype() == "LWPOLYLINE":
         pts = [(x, y) for x, y, *_ in e.get_points()]
-        ax.add_patch(Polygon(pts, closed=e.closed, fc=PLATE, alpha=0.12, ec=PLATE, lw=1.6))
+        ax.add_patch(Polygon(pts, closed=e.closed, fc=PLATE, alpha=0.10, ec="none"))
+        ax.add_patch(Polygon(pts, closed=e.closed, fc="none", ec=PLATE, lw=1.4, zorder=5))
 ax.text(-62, -40.2, f"frame, {P['plate_t'] + max(0, P['boss_h'] - P['post_h']):g} mm (built from model.scad)",
         fontsize=9, color=PLATE)
 
@@ -86,11 +87,11 @@ for sx in (-1, 1):
         ax.add_patch(Circle((sx * POST_DX / 2, sy * POST_DY / 2), 2.6, fc="#cfc9b8", ec=GUESS, lw=1.5))
 ax.annotate("rest post x4, no hole;\npads rest on these", (POST_DX / 2, POST_DY / 2), (50, 40.5), fontsize=8, color=GUESS,
             arrowprops=dict(arrowstyle="-", color=GUESS))
-ax.annotate("screw boss x6;\nfork slots allow +/-4", (-70, 22), (-77, 31), fontsize=8, color=GUESS,
+ax.annotate(f"screw boss x6;\nfork slots allow +/-{P['slot_reach']:g}", (-70, 22), (-77, 31), fontsize=8, color=GUESS,
             arrowprops=dict(arrowstyle="-", color=GUESS))
 
 # board
-ax.add_patch(Polygon([b(p) for p in outline], closed=True, fc="#d8f0dc", ec=KNOWN, lw=2, alpha=0.9))
+ax.add_patch(Polygon([b(p) for p in outline], closed=True, fc="#d8f0dc", ec=KNOWN, lw=2, alpha=0.35, zorder=4))
 for name, x, y, w, h in [
     ("terminal blocks", 1.0, 33.5, 41.0, 8.0),
     ("terminal blocks", 1.0, 23.2, 37.5, 8.0),
@@ -100,7 +101,7 @@ for name, x, y, w, h in [
     ("2x10 hdr", 55.0, 48.5, 24.5, 5.2),
     ("2x4", 7.6, 46.0, 10.5, 5.2),
 ]:
-    ax.add_patch(Rectangle(b((x, y)), w, h, fc="white", ec="#666", lw=0.8))
+    ax.add_patch(Rectangle(b((x, y)), w, h, fc="none", ec="#666", lw=0.8, ls="--", zorder=4))
     ax.text(*b((x + w / 2, y + h / 2)), name, ha="center", va="center", fontsize=7, color="#444")
 for s in SLOTS:
     c = b(s)
