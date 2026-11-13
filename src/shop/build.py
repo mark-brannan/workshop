@@ -5,7 +5,8 @@
 
 ``model.py`` runs as a script (it exports itself). ``model.scad`` builds via
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*`` (STL, 3MF, PNGs); a model with
-``mode = "2d"`` at top level is a 2D model and also gets a DXF. Without
+``mode = "2d"`` at top level is a 2D model and also gets a DXF. Each
+``part-<name>.scad`` beside it is a further printed part, built to ``out/<slug>_<name>.*``. Without
 OpenSCAD the .scad models are skipped, not failed (CI has none).
 """
 
@@ -27,13 +28,15 @@ def build_project(proj: Path) -> int:
     if py.exists():
         print(f"== {py}")
         rc |= subprocess.run([sys.executable, str(py)], cwd=proj).returncode
-    scad = proj / "model.scad"
-    if scad.exists():
+    for scad in [proj / "model.scad", *sorted(proj.glob("part-*.scad"))]:
+        if not scad.exists():
+            continue
         print(f"== {scad}")
         if find_openscad() is None:
             print("   skipped: openscad not found on this box")
         else:
-            paths = build_scad(scad, proj / "out", f"{name}_scad", two_d=has_mode_variable(scad), threemf=True)
+            stem = "scad" if scad.name == "model.scad" else scad.stem.removeprefix("part-")
+            paths = build_scad(scad, proj / "out", f"{name}_{stem}", two_d=has_mode_variable(scad), threemf=True)
             times = paths.pop("times")
             print(f"   {paths.pop('version')}; " + ", ".join(f"{k} {v:.2f}s" for k, v in times.items()))
             for k, v in paths.items():

@@ -48,7 +48,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 | Parameter | Now | Source |
 |---|---|---|
-| `boss_span` | 136 | owner, between 130 and 140 |
+| `boss_span` | 140 | first print, scaled by its own 144 mm length; 136 put the screws at the fork mouths |
 | `boss_pitch` | 21 | owner, approximate |
 | Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
 | Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
@@ -58,13 +58,13 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 ## Design
 
-- One plate, 144 x 75, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
+- One plate, 145 x 77, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
   2 mm rim. Cells are clipped where they meet a solid island (screw ends, rest
-  pads, standoffs, rests, display posts, tie slots). 25.8 cm3 measured from the
+  pads, standoffs, rests, tier bosses, tie slots). 25.8 cm3 measured from the
   STL, against 11 for the earlier open frame; the plate is the stiffer of the two.
   `hex_flat`, `hex_web`, `rim_w` tune it.
 - Each end bar has three fork slots, open toward the box wall, so a boss
-  anywhere within `slot_reach` (4 mm) of `boss_span` still takes its screw.
+  anywhere within `slot_reach` (2.5 mm) of `boss_span` still takes its screw.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
   insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
@@ -73,18 +73,13 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   pocketed 1.5 deep over each boss: Z = 0 rests on the posts, the pocket
   ceilings sit on the bosses. Set `post_h` equal to `boss_h` for a flat 3 mm
   frame.
-- Zip-tie strain relief: slot pairs, the tie looping under the frame. Two
-  along the gland-side edge, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
+- Zip-tie strain relief: slot pairs, the tie looping under the frame. Four
+  along the gland-side edge, one under each gland nut, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
-- Display: four posts at the right end, each in a solid ring joined to the lattice, 18 mm above the frame top, carry a
-  0.96" SSD1306 module (M2 heat-set inserts) about 10 mm above the HALMET's
-  top face. The board sits 8 mm toward the left end (`board_dx`) so the
-  posts clear the right-hand boss screws, the ESP32's antenna overhang, the
-  USB plug's path and the corner lid-screw column. The module covers the upper right boss screw, so it goes on
-  after the frame is screwed down. Hole pattern 23.3 x 23.6 is a generic
-  module's; caliper the one in hand and set `oled_hole_dx`/`oled_hole_dy`.
-  `oled = 0` drops it. The laser DXF carries only the plate, not the posts.
+- Display tier, a separate print (`part-tier.scad`, prints upside down): a top plate at the rim
+  carries the 0.96" SSD1306 and, below it, a TM1637 4-digit module, both on M2.5 self-tap posts.
+  It screws to four M3-insert bosses on the plate; fit it after the plate is screwed down.
 
 ## Fit check
 

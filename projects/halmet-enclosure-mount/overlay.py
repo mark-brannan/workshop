@@ -21,6 +21,13 @@ PLATE = "#2f6feb"
 
 HERE = Path(__file__).parent
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
+SCAD = (HERE / "model.scad").read_text()
+
+
+def L(name):
+    """A list parameter from model.scad, e.g. [1, 2] or [[1, 2], [3, 4]]."""
+    import json
+    return json.loads(re.search(rf"^{name}\s*=\s*(\[.*?\]);", SCAD, re.M).group(1))
 
 # ---- enclosure floor: estimates, see enclosure/README.md ----
 FLOOR_L, FLOOR_W = 151.0, 83.0
@@ -130,21 +137,32 @@ dim((-74, 0), (-74, BOSS_PITCH), f"~{BOSS_PITCH:g}", color=GUESS)
 dim((-POST_DX / 2, 40), (POST_DX / 2, 40), f"~{POST_DX:g} posts", color=GUESS)
 dim((-49, -POST_DY / 2), (-49, POST_DY / 2), f"~{POST_DY:g}", color=GUESS)
 dim((60, -P["frame_w"] / 2), (60, P["frame_w"] / 2), f"{P['frame_w']:g} frame", color=PLATE)
-for x in (-24, 24):
+for x in L("tie_bar_xs"):
     ax.text(x, P["tie_bar_y"] - 3.4, "tie", ha="center", fontsize=7, color=PLATE)
 ax.text(-65.6, -16, "ties", ha="center", fontsize=7, color=PLATE)
 
-# display module on four raised posts (generic 0.96" SSD1306; hole pattern to caliper)
-OX, OY, ODX, ODY = P["oled_x"], P["oled_y"], P["oled_hole_dx"], P["oled_hole_dy"]
-ax.add_patch(Rectangle((OX - 27.3 / 2, OY - 27.8 / 2), 27.3, 27.8, fc="#e8e0f8", ec="#7a3fd1", lw=1.5, alpha=0.6))
-ax.add_patch(Rectangle((OX - 13.4, OY - 3.9), 26.8, 13.0, fc="#222", ec="none", alpha=0.25))
-for sx in (-1, 1):
-    for sy in (-1, 1):
-        c = (OX + sx * ODX / 2, OY + sy * ODY / 2)
-        ax.add_patch(Circle(c, P["oled_post_d"] / 2, fc="none", ec="#7a3fd1", lw=1.6))
-        ax.add_patch(Circle(c, P["oled_insert_d"] / 2, fc="#7a3fd1", ec="none"))
-ax.text(OX, OY - 16.2, f"SSD1306, {P['oled_rise']:g} mm posts, M2 inserts", ha="center", fontsize=7.5,
-        color="#7a3fd1", bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+# display tier (separate part): top plate at the rim, walls front/right/back, screw columns, two modules
+TIER = "#7a3fd1"
+x0, x1, y0 = P["tier_x0"], P["tier_x1"], P["tier_y0"]
+xc, yc, yb = P["lid_col_x"] - 1, P["lid_col_y"] - 1, P["plate_y_hi"]
+ax.add_patch(Polygon([(x0, y0), (x1, y0), (x1, yc), (xc, yc), (xc, yb), (x0, yb)], closed=True, fc="none", ec=TIER,
+                     lw=1.6, ls="--", zorder=6))
+for c in L("tier_cols"):
+    ax.add_patch(Circle(c, P["col_d"] / 2, fc="none", ec=TIER, lw=1.2, zorder=6))
+    ax.add_patch(Circle(c, P["screw_d"] / 2, fc=TIER, ec="none", zorder=6))
+OX, OY, OW, OH = P["oled_x"], P["oled_y"], P["oled_w"], P["oled_h"]
+SW, SH = P["seg_w"], P["seg_h"]
+SY = OY - OH / 2 - P["seg_gap"] - SH / 2
+for (cx, cy, w, h, dx, dy, name) in [(OX, OY, OW, OH, P["oled_hole_dx"], P["oled_hole_dy"], "SSD1306"),
+                                     (OX, SY, SW, SH, P["seg_hole_dx"], P["seg_hole_dy"], "TM1637 4-digit")]:
+    ax.add_patch(Rectangle((cx - w / 2, cy - h / 2), w, h, fc="#e8e0f8", ec=TIER, lw=1.5, alpha=0.6, zorder=6))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            ax.add_patch(Circle((cx + sx * dx / 2, cy + sy * dy / 2), P["mod_post_d"] / 2, fc=TIER, ec="none", zorder=7))
+    ax.text(cx, cy, name, ha="center", va="center", fontsize=7.5, color=TIER, zorder=8,
+            bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
+ax.text(x0 + 1, y0 - 3, f"tier (dashed): top at the rim, {P['rim_z']:g} above the floor; M2.5 self-tap posts", fontsize=7,
+        color=TIER, bbox=dict(fc="white", ec="none", pad=0.6, alpha=0.85))
 
 # lid-screw columns, one per corner, full height (photo, scaled by the boss span)
 for sx in (-1, 1):
