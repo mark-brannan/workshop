@@ -29,7 +29,7 @@ def test_status_reports_job_progress_and_temperatures():
     assert "50%  layer 47/94  0h30m of ~1h04m" in out
     assert "139.8 / 140 C" in out and "30.2 / 50 C" in out
     assert "chamber  16.6 C" in out
-    assert "P0 50% (4000 tach)  P1 0% (0 tach)  P2 100% (9000 tach)  hotend 100%" in out
+    assert "part 50% (4000 tach)  chamber 0% (0 tach)  aux 100% (9000 tach)  hotend 100%" in out
 
 
 def test_idle_printer_skips_job_lines():
@@ -41,4 +41,4 @@ def test_idle_printer_skips_job_lines():
 def test_missing_optional_objects_are_tolerated():
     bare = {k: v for k, v in STATUS.items() if k not in ("temperature_sensor chamber_temp", "filament_switch_sensor filament_sensor")}
     out = format_status(bare)
-    assert "chamber" not in out and "filament" not in out
+    assert "chamber  " not in out and "filament " not in out

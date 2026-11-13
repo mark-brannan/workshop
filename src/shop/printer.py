@@ -28,6 +28,9 @@ OBJECTS = [
 ]
 
 
+FANS = ["part", "chamber", "aux"]  # fan0..fan2
+
+
 def _key() -> str:
     if os.environ.get("K2PLUS_API_KEY"):
         return os.environ["K2PLUS_API_KEY"]
@@ -85,7 +88,7 @@ def format_status(s: dict) -> str:
         tach = s.get("fan_feedback", {})
         lines.append(
             "fans     "
-            + "  ".join(f"P{i} {p['value'] * 100:.0f}% ({tach.get(f'fan{i}_speed', '?')} tach)" for i, p in enumerate(pins))
+            + "  ".join(f"{FANS[i]} {p['value'] * 100:.0f}% ({tach.get(f'fan{i}_speed', '?')} tach)" for i, p in enumerate(pins))
             + f"  hotend {s.get('heater_fan hotend_fan', {}).get('speed', 0) * 100:.0f}%"
         )
     fs = s.get("filament_switch_sensor filament_sensor")
