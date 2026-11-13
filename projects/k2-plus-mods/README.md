@@ -35,3 +35,4 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 
 - 2026-11-12: plan written; step 0 pending.
 - 2026-11-12 18:55: step 0 done (printer idle). Step 1 blocked: key login refused, `ssh-copy-id` unfinished.
+- 2026-11-12 18:58: step 1 done over Moonraker's file API, no SSH: `~/k2-backups/2026-11-12-1858-config.tar.gz`, 12 files.
