@@ -143,3 +143,22 @@ def test_slot_inner_bottom_edges_are_rounded(mount):
             assert h[0][2] > 1.0  # back cut away right by the edge
             h = ray_hits(mount, (x, TIE_Y, -5), (0, 0, 1))
             assert np.isclose(h[0][2], 0)  # web centre still flat on the back
+
+
+@pytest.fixture(scope="module")
+def gauge(tmp_path_factory):
+    d = tmp_path_factory.mktemp("psu_gauge")
+    for f in ("model.scad", "part-gauge.scad"):
+        (d / f).write_text((HERE / f).read_text())
+    return trimesh.load(build_scad(d / "part-gauge.scad", d, "gauge", render=False)["stl"])
+
+
+def test_gauge_is_a_thin_plate_with_a_short_lip_and_no_shelf(gauge):
+    GT, GL = P["gauge_t"], P["gauge_lip"]
+    assert gauge.is_watertight and gauge.body_count == 1
+    assert np.allclose(gauge.bounds, [[-L / 2 - LIP_T, -W / 2 - LIP_T, 0], [L / 2 + LIP_T, W / 2 + LIP_T, GT + GL]], atol=0.05)
+    assert first_z(gauge, 0, 0) == pytest.approx(GT, abs=0.02)  # plate top
+    assert first_z(gauge, 0, W / 2 + LIP_T / 2) == pytest.approx(GT + GL, abs=0.02)  # lip top
+    assert first_z(gauge, TIE_XS[0] + 4, TIE_Y) is None  # no shelf, no tie slots
+    for h in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7), (25, -39)]:
+        assert first_z(gauge, *h) is None
