@@ -4,7 +4,8 @@ Two copper layers, no vias, no jumpers. Plated pads put every pin on both layers
   G  top    trunk behind the pin row, stub back from each G pad
   V  top    trunk in front of the pin row (under the terminal body), stub forward from each V pad
   D  bottom trunk between the pin row and the G trunk, stub back from each D pad
-Terminals: OST OSTVN 2.54 3-position blocks (vendor drawing), wire entry facing the front edge.
+Terminals: any 3-position 2.54 mm screw block, wire entry facing the front edge. All 21 pins sit on one
+2.54 mm grid, blocks butted (body 3 x 2.54); order terminals to match.
 D runs on the other layer from the G stubs it passes under.
 Writes out/one-wire-bus.kicad_pcb (KiCad 7 text format) and out/one-wire-bus.png.
 """
@@ -22,11 +23,11 @@ class Params:
     terminals: int = 7          # six field terminals + the master (the last one)
     pins: int = 3               # G, D, V
     pad_d: float = 1.9
-    drill: float = 1.3          # vendor drawing: 1.30
-    block_pitch: float = 8.02   # 3-pos body: 2 x 2.54 + 2 x 1.47; blocks butt together
-    end_gap: float = 1.47       # body edge to first pin
-    front_to_pin: float = 3.3   # wire-entry face to the pin row (vendor drawing)
-    back_to_pin: float = 3.2    # body depth 6.5
+    drill: float = 1.3          # typical for 0.9 mm pins; set to the ordered part
+    block_pitch: float = 3 * PITCH   # blocks butt: pin-to-pin stays 2.54 across blocks
+    end_gap: float = PITCH / 2  # body edge to first pin
+    front_to_pin: float = 3.3   # wire-entry face to the pin row (typical; set to the ordered part)
+    back_to_pin: float = 3.2    # body depth 6.5 (typical)
     lip: float = 0.5            # board edge past the body's wire-entry face
     track_w: float = 0.5
     g_off: float = 5.08         # G trunk behind the pin row (y negative = back)
@@ -85,9 +86,9 @@ def to_kicad(b: dict) -> str:
     for t in range(p.terminals):
         ref = f"J{t + 1}"
         x = ox + t * p.block_pitch
-        o.append(f' (footprint "workshop:OSTVN2.54-3P" (layer "F.Cu") (at {x:.3f} {oy:.3f})')
+        o.append(f' (footprint "workshop:ScrewBlock_1x3_P2.54mm" (layer "F.Cu") (at {x:.3f} {oy:.3f})')
         o.append(f'  (fp_text reference "{ref}" (at 2.54 -3.9) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))')
-        o.append('  (fp_text value "OSTVN 2.54 3P, wire entry toward +y" (at 2.54 4.6) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))')
+        o.append('  (fp_text value "3P 2.54 screw block, wire entry toward +y" (at 2.54 4.6) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))')
         o.append(f'  (fp_rect (start {-p.end_gap} {-p.back_to_pin}) (end {2 * PITCH + p.end_gap:.2f} {p.front_to_pin}) (layer "F.SilkS") (width 0.12) (fill none))')
         for i, name in enumerate("GDV"):
             shape = "rect" if i == 0 else "circle"

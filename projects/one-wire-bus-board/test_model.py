@@ -27,14 +27,12 @@ def test_counts():
     for net in (1, 2, 3):
         assert sum(q["net"] == net for q in B["pads"]) == P.terminals
     x0, y0, x1, y1 = B["outline"]
-    assert 65 < x1 - x0 < 70 and 10 < y1 - y0 < 12
+    assert 62 < x1 - x0 < 67 and 10 < y1 - y0 < 12
 
 
-def test_terminal_geometry_matches_the_vendor_drawing():
-    # pins 2.54 apart inside a block; blocks butt at 8.02 (2 x 2.54 + 2 x 1.47)
+def test_every_pin_is_on_one_2_54_grid():
     xs = sorted(q["x"] for q in B["pads"])
-    assert abs(xs[1] - xs[0] - 2.54) < 1e-9 and abs(xs[3] - xs[0] - P.block_pitch) < 1e-9
-    assert P.drill == 1.3
+    assert all(abs(b - a - 2.54) < 1e-9 for a, b in zip(xs, xs[1:]))
     x0, y0, x1, y1 = B["outline"]
     for bx0, by0, bx1, by1 in B["bodies"]:
         assert 0 <= y1 - by1 <= 1.0, "body front must sit at the board's front edge"
