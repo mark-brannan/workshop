@@ -63,7 +63,7 @@ def test_volume_window(mount):
 
 
 def test_back_is_flat_and_solid(mount):
-    assert np.isclose(first_z(mount, 0, 0), T)  # solid plate, no lip in the pocket, no clips
+    assert np.isclose(first_z(mount, 0, 0), T)  # solid plate, no lip in the pocket, clips are separate parts
     assert np.isclose(mount.bounds[1][2], TOP)
 
 
@@ -165,3 +165,41 @@ def test_gauge_is_the_mount_sliced_thin_with_the_same_holes(gauge):
     assert first_z(gauge, TIE_XS[0] + P["tie_gap"] / 2, TIE_Y) is None  # a tie slot
     for h in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7), (25, -39)]:
         assert first_z(gauge, *h) is None
+
+
+CLIP_YS = [-22.05, 28.95]  # the clip's insert holes, across the rail (its model: x = 5 and 56, rail centre 27.05)
+
+
+def test_clip_screw_holes_are_countersunk_from_the_psu_side(mount):
+    cx, d, cd, ch = P["clip_x"], P["hole_d"], P["csk_d"], P["csk_h"]
+    for x in (-cx, cx):
+        for y in CLIP_YS:
+            assert first_z(mount, x, y) is None  # through for an M3
+            assert first_z(mount, x + d / 2 + 0.2, y) == pytest.approx(T - ch, abs=0.1) or first_z(mount, x + d / 2 + 0.2, y) < T
+            assert first_z(mount, x + cd / 2 - 0.3, y) < T  # countersink cuts the pocket floor
+            assert np.isclose(first_z(mount, x + cd / 2 + 0.3, y), T)  # floor flat beyond it
+            assert first_z(mount, x, y) is None and ray_hits(mount, (x + d / 2 + 0.2, y, -5), (0, 0, 1))[0][2] == pytest.approx(0, abs=0.01)  # back flat
+
+
+def test_clip_bosses_clear_the_psu_screw_heads():
+    # clip boss: 17 mm wide (its model, y -8.5..8.5) round each insert; an M3 pan head 5.5 across, 0.5 mm air
+    for hx, hy in [(-23.2, -36.7), (-23.2, 29.8)]:
+        for y in CLIP_YS:
+            if abs(hy - y) < 8.5 + 2.75:
+                assert abs(hx) - 2.75 - (P["clip_x"] + 8.5) >= 0.5
+
+
+@pytest.fixture(scope="module")
+def clip(tmp_path_factory):
+    d = tmp_path_factory.mktemp("clip")
+    for f in ("part-din-clip.scad", "ref_din_clip_heat_insert.stl"):
+        (d / f).write_bytes((HERE / f).read_bytes())
+    return trimesh.load(build_scad(d / "part-din-clip.scad", d, "clip", render=False)["stl"])
+
+
+def test_clip_is_the_printables_420009_model(clip):
+    assert np.allclose(clip.extents, [60, 18, 7.5], atol=0.05)
+    assert clip.volume == pytest.approx(4488, rel=0.01)
+    for x in (5, 56):  # its two heat-insert holes, 51 mm apart, as clip_ys
+        assert len(ray_hits(clip, (x, 0, 20), (0, 0, -1))) == 0 or ray_hits(clip, (x, 0, 20), (0, 0, -1))[0][2] < 0.01
+    assert CLIP_YS[1] - CLIP_YS[0] == pytest.approx(51)

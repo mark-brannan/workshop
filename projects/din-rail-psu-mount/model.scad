@@ -1,10 +1,12 @@
-// DIN-rail (TS35) mount for a 58 x 85 mm enclosed AC-DC supply: PROTOTYPE, flat back, no clips yet.
+// DIN-rail (TS35) mount for a 58 x 85 mm enclosed AC-DC supply: a flat back, the DIN clips printed apart and screwed on.
 // A 2.5 mm solid plate the PSU's own size, screwed (M3) to its two diagonal holes, with cut-outs for the PSU's
 // pill and a loose hole where its U slot mates. A lip 8 mm tall runs round all four sides of the PSU, square-cornered inside, rounded outside; it is a thin wall
 // except on the lower (-Y) side, where a 33.5 mm stretch (8.5 mm from the left edge) is a 15 mm wide, 8 mm tall shelf with two chamfered zip-tie slot pairs through it:
 // a cord (one AC, one DC) leaves the PSU straight down and lies on the shelf, held by a zip tie through a slot pair either side of it.
 // Print flat back down (z = 0): the PSU sits on the plate's top face inside the lip, a pocket 8 mm deep.
-// The DIN clips (Printables 420009, ref_din_clip_heat_insert.stl) are removed for now; see git history.
+// The DIN clips are separate parts: two of Maxstupo's "DIN Rail Clip (Heat Insert Version)" (Printables 420009, CC BY 4.0,
+// ref_din_clip_heat_insert.stl, printed as part-din-clip.scad), each with two M3 heat inserts. Four countersunk M3 screws
+// go down through the plate from the PSU side into the inserts; the heads sit below the pocket floor, under the PSU.
 
 /* [Plate] */
 plate_l = 58;        // X, along the rail: the PSU's footprint (box, caliper), no overhang
@@ -27,6 +29,12 @@ holes = [[-23.2, -36.7], [-23.2, 29.8]];   // blind holes in the PSU underside: 
 top_hole = [-22.75, 38.7];  // loose M3 hole where the PSU's U slot mates (not a slot in the mount); fit test 1 moved it 0.75 mm toward the centre
 pill = [25, -39];    // closed pill, 5.5 long tip to tip, long axis along Y (guess); fit test 1 moved it 1.5 mm to the outer edge (+X) and 1.5 mm down (-Y)
 pill_len = 5.5;
+
+/* [DIN clips] screwed to the back; the rail runs along X, its centre line on y = 0 */
+clip_x = 11;         // each clip's centre this far either side of the plate centre, along the rail: clears the PSU screw head at x = -23.2
+clip_ys = [-22.05, 28.95];   // the clip's two insert holes, across the rail (its own model: x = 5 and 56, rail centre 27.05)
+csk_d = 6.5;         // countersink top diameter: an ISO 10642 M3 head (6.0 nominal) sits a little below the pocket floor
+csk_h = 1.6;         // countersink depth; the plate keeps 0.9 mm under it
 
 /* [Zip-tie strain relief: slot pairs through the shelf and plate; the cable lies on top of the shelf, the tie loops under the back] */
 tie_w = 5.5;         // slot length across the tie: takes ties up to 5 mm wide (standard), small ones too
@@ -88,6 +96,10 @@ module mount() {
                 slots2d();
             }
             translate([0, 0, plate_t - 0.01]) linear_extrude(lip_h + 0.01) difference() { outline(); pocket(); }   // the lip, rising from the PSU side
+        }
+        for (x = [-clip_x, clip_x], y = clip_ys) translate([x, y, 0]) {   // M3 through, 90 degree countersink opening up into the pocket
+            translate([0, 0, -1]) cylinder(d = hole_d, h = plate_t + 2);
+            translate([0, 0, plate_t - csk_h]) cylinder(d1 = csk_d - 2*csk_h, d2 = csk_d + 2, h = csk_h + 1);
         }
         tie_slots();
         tie_chamfers();
