@@ -37,11 +37,6 @@ tie_ri = 2.5;        // roundover radius on each slot's inner (web-side) bottom 
 tie_off = 8;         // the two pairs sit this far either side of the shelf centre
 tie_xs = [shelf_x + shelf_len/2 - tie_off, shelf_x + shelf_len/2 + tie_off];  // pair positions along X
 
-/* [Gauge] part = "gauge": a thin fit-check print: same outline minus the shelf, same holes, short lip, no tie slots */
-part = "mount";      // [mount, gauge]
-gauge_t = 1;         // gauge plate thickness
-gauge_lip = 2;       // gauge lip height above the plate's top face
-
 /* [Hidden] */
 $fn = 48;
 
@@ -84,18 +79,6 @@ module tie_roundovers() {
 // whole-height cuts (they pass through the shelf and the plate); z = 0 is the flat back
 module tie_slots() { for (x = tie_xs, s = [-1, 1]) translate([x + s*tie_gap/2, tie_y, -1]) linear_extrude(lip_h + plate_t + 2) square([tie_t, tie_w], center = true); }
 
-module gauge() {
-    linear_extrude(gauge_t) difference() {
-        offset(r = corner_r) square([plate_l + 2*lip_t - 2*corner_r, plate_w + 2*lip_t - 2*corner_r], center = true);
-        for (h = holes) translate(h) circle(d = hole_d);
-        slots2d();
-    }
-    translate([0, 0, gauge_t - 0.01]) linear_extrude(gauge_lip + 0.01) difference() {
-        offset(r = corner_r) square([plate_l + 2*lip_t - 2*corner_r, plate_w + 2*lip_t - 2*corner_r], center = true);
-        pocket();
-    }
-}
-
 module mount() {
     difference() {
         union() {
@@ -112,4 +95,4 @@ module mount() {
     }
 }
 
-if (part == "gauge") gauge(); else mount();
+mount();

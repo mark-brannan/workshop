@@ -1,6 +1,7 @@
 """``shop``: the workshop on PATH.
 
     shop build [projects/<slug> ...]   build every project, or the ones named
+    shop gauge projects/<slug> "mount()" <z_plate> [<z_wall>]   a thin fit-check part sliced from the model
     shop doctor                        which shop tools this box has
     shop printer                       K2 Plus status (read-only)
     shop fusion                      the folder to add in Fusion's Scripts panel
@@ -36,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     cmd, rest = (args[0], args[1:]) if args else ("help", [])
     if cmd == "build":
         return build.main(["shop build", *rest])
+    if cmd == "gauge":
+        from . import gauge
+
+        return gauge.main(rest)
     if cmd == "doctor":
         return doctor()
     if cmd == "printer":

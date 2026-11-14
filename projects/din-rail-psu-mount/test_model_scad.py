@@ -153,12 +153,15 @@ def gauge(tmp_path_factory):
     return trimesh.load(build_scad(d / "part-gauge.scad", d, "gauge", render=False)["stl"])
 
 
-def test_gauge_is_a_thin_plate_with_a_short_lip_and_no_shelf(gauge):
-    GT, GL = P["gauge_t"], P["gauge_lip"]
+def test_gauge_is_the_mount_sliced_thin_with_the_same_holes(gauge):
+    G = params(HERE / "part-gauge.scad")
+    GT, GR = G["gauge_t"], G["gauge_rise"]
+    assert 0 < G["z_plate"] < T < G["z_wall"] < TOP  # one slice through the plate, one through the lip
     assert gauge.is_watertight and gauge.body_count == 1
-    assert np.allclose(gauge.bounds, [[-L / 2 - LIP_T, -W / 2 - LIP_T, 0], [L / 2 + LIP_T, W / 2 + LIP_T, GT + GL]], atol=0.05)
+    assert np.allclose(gauge.bounds, [[-L / 2 - LIP_T, -W / 2 - EXT, 0], [L / 2 + LIP_T, W / 2 + LIP_T, GT + GR]], atol=0.05)
     assert first_z(gauge, 0, 0) == pytest.approx(GT, abs=0.02)  # plate top
-    assert first_z(gauge, 0, W / 2 + LIP_T / 2) == pytest.approx(GT + GL, abs=0.02)  # lip top
-    assert first_z(gauge, TIE_XS[0] + 4, TIE_Y) is None  # no shelf, no tie slots
+    assert first_z(gauge, 0, W / 2 + LIP_T / 2) == pytest.approx(GT + GR, abs=0.02)  # lip top
+    assert first_z(gauge, TIE_XS[0], TIE_Y) == pytest.approx(GT + GR, abs=0.02)  # the shelf, between a slot pair
+    assert first_z(gauge, TIE_XS[0] + P["tie_gap"] / 2, TIE_Y) is None  # a tie slot
     for h in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7), (25, -39)]:
         assert first_z(gauge, *h) is None
