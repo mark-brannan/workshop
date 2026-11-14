@@ -81,7 +81,10 @@ module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
 module screws_tier() { for (c = tier_cols) translate([c[0], c[1], tier_z1]) head(); }
-module screws_ldr() { translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2); }
+module screws_ldr() {   // M3 up from under the tier, nut on the board top
+    translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 2.5]) head(5.7, 2.5);
+    translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2.4);
+}
 module screws_m25() {
     for (p = concat(oled_posts, seg_posts)) {
         translate([p[0], p[1], tier_z1 - tier_t - 2]) head(4.5, 2);

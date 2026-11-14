@@ -86,9 +86,7 @@ ldr_lip = 1.2;       // how far a ledge reaches in under the board's edge: solde
 ldr_cell_clear = 4;  // nothing under the photocell end this far in: solder from the cell's leads
 ldr_wall = 1.2;      // cradle side walls, flush with the PCB top: stop it turning on its one screw
 ldr_fit = 0.3;       // per side
-ldr_pilot = 2.6;     // M3 self-tap from above into a boss under the cradle floor
-ldr_boss_d = 7;
-ldr_boss_h = 5;      // below the tier
+ldr_boss_d = 7;      // pad round the screw, at ledge height
 ldr_pin_l = 6;       // header pins past the header end (owner); bend or swap them once the module is placed
 
 /* [Plate: hex-lightened] */
@@ -338,9 +336,8 @@ module tier() {
                 translate([oled_x - 6.5, oled_y - oled_h/2 + oled_pin_in - 2.3]) square([13, 4.4]);   // window for the Dupont plug on the OLED header pins
             }
             translate([0, 0, tier_z1 - 0.01]) intersection() { ldr_cradle(); linear_extrude(10) offset(delta = -0.3) ldr_floor2d(); }
-            translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - ldr_boss_h]) cylinder(d = ldr_boss_d, h = ldr_boss_h + 0.01);
         }
-        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - ldr_boss_h - 1]) cylinder(d = ldr_pilot, h = 30);
+        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 1]) cylinder(d = screw_d, h = 30);   // M3 up from underneath, nut on the board top; flat bottom
     }
 }
 

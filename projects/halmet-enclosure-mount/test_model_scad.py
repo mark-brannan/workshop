@@ -178,7 +178,7 @@ def test_modules_clear_the_lid():
 def test_tier_is_a_flat_plate_on_its_standoffs(tier):
     assert tier.is_watertight and tier.body_count == 1
     lo, hi = tier.bounds
-    assert np.isclose(lo[2], TIER_TOP - P["tier_t"] - P["ldr_boss_h"], atol=0.02)  # the sensor's screw boss hangs below
+    assert np.isclose(lo[2], TIER_TOP - P["tier_t"], atol=0.02)  # flat bottom: nothing hangs below
     assert np.isclose(hi[2], TIER_TOP + P["ldr_ledge"] + P["pcb_t"], atol=0.02)  # cradle walls on top
     assert hi[0] < 151 / 2 - 2 and hi[1] <= P["plate_y_hi"] + 0.01  # inside the floor
 
@@ -244,10 +244,9 @@ def test_cradle_ledges_walls_and_screw_boss(tier):
         assert top(tier, LDR_X0 + P["ldr_cell_clear"] - 0.5, LDR_Y + s * edge) == pytest.approx(TIER_TOP, abs=0.02)  # photocell end bare
         assert top(tier, mid, LDR_Y + s * (LDR_W / 2 - P["ldr_lip"] - 0.2)) == pytest.approx(TIER_TOP, abs=0.02)  # lip stops short
     assert P["ldr_lip"] < 1.4 and P["ldr_cell_clear"] >= 3.5  # owner: solder 1.4 in from the edges, 3.5-4 from the cell end
-    assert top(tier, *LDR_HOLE) is None  # pilot through
-    off = LDR_HOLE[0] + P["ldr_pilot"] / 2 + 1, LDR_HOLE[1]
-    assert top(tier, *off) == pytest.approx(LDR_Z, abs=0.02)
-    assert bottom(tier, *off) == pytest.approx(TIER_TOP - P["tier_t"] - P["ldr_boss_h"], abs=0.02)
+    assert top(tier, *LDR_HOLE) is None  # M3 clearance hole through, screw up from underneath
+    off = LDR_HOLE[0] + P["screw_d"] / 2 + 0.6, LDR_HOLE[1]
+    assert top(tier, *off) == pytest.approx(LDR_Z, abs=0.02)  # pad at ledge height round the hole
 
 
 def test_sensor_fits_under_the_oled_and_clear_of_its_standoffs():

@@ -82,8 +82,8 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
   between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
-  It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 self-taps from above
-  through its hole into a boss under the cradle. Bend the header pins down.
+  It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 goes up from under the tier
+  through its hole, a nut on the board top; the tier's underside is flat. Bend the header pins down.
 
 ## Assembly
 
@@ -96,7 +96,7 @@ are guesses.
 
 Order, on the bench then in the box:
 
-1. Tier: light sensor into its cradle, one screw from above; then modules onto M2.5 standoffs, screwed up from under the tier.
+1. Tier: light sensor into its cradle, one M3 from under the tier and a nut on top; then modules onto M2.5 standoffs, screwed up from under the tier.
 2. Plate, out of the box: tier standoffs into the pad inserts, any time.
 3. Plate into the box, six screws through the fork slots.
 4. HALMET onto its standoffs, two screws from above.
