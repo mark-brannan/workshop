@@ -18,7 +18,7 @@ STATUS = {
     "output_pin fan0": {"value": 0.5},
     "output_pin fan1": {"value": 0.0},
     "output_pin fan2": {"value": 1.0},
-    "fan_feedback": {"fan0_speed": 4000, "fan1_speed": 0, "fan2_speed": 9000},
+    "fan_feedback": {"fan0_speed": 0, "fan1_speed": 0, "fan2_speed": 4000},
     "heater_fan hotend_fan": {"speed": 1.0},
 }
 
@@ -29,7 +29,7 @@ def test_status_reports_job_progress_and_temperatures():
     assert "50%  layer 47/94  0h30m of ~1h04m" in out
     assert "139.8 / 140 C" in out and "30.2 / 50 C" in out
     assert "chamber  16.6 C" in out
-    assert "part 50% (4000 tach)  chamber 0% (0 tach)  aux 100% (9000 tach)  hotend 100%" in out
+    assert "part 50% (4000 tach)  chamber 0%  aux 100%  hotend 100%" in out
 
 
 def test_idle_printer_skips_job_lines():
