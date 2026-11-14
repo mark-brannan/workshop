@@ -57,7 +57,7 @@ tier_band = 6;       // tier: width of the band through the screws
 tier_fillet = 3;     // tier: inside-corner radius
 tier_round = 1.5;    // tier: outside-corner radius
 tier_join = 12;      // tier: a standoff screw this close to a module screw shares one wider pad
-oled_pin_in = 1.6;   // OLED header pin row from its top edge (generic; caliper it)
+oled_pin_in = 1.6;   // OLED header pin row from its edge (generic; caliper it); the header is on the front edge, toward the glands
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
 head_h = 2.5;
 m25_d = 2.8;         // module screws: M2.5 through the tier into an F/F standoff under the module
@@ -277,7 +277,7 @@ module tier_rect2d() {   // the space the tier may use: clear of the lid-screw c
 }
 
 // A smooth band through the outer screws, a bar between the two modules, wider pads where a standoff
-// screw and a module screw sit close; solid from the bar back but for a notch under the OLED header.
+// screw and a module screw sit close; solid from the bar back but for a window under the OLED header.
 module tier_plate2d() {   // every corner rounded: inside corners tier_fillet, outside corners tier_round
     offset(r = tier_round) offset(delta = -tier_round) intersection() {
         tier_rect2d();
@@ -307,7 +307,6 @@ module tier_band2d() {
                     hull() { translate(c) circle(d = tier_boss_d + 2); translate(p) circle(d = tier_band + 1); }
             }
         }
-        translate([oled_x - 6.5, oled_y + oled_hole_dy/2 - tier_band]) square([13, 15]);   // OLED header pins
     }
 }
 
@@ -336,6 +335,7 @@ module tier() {
                 union() { tier_plate2d(); ldr_floor2d(); }
                 for (c = tier_cols) translate(c) circle(d = screw_d);
                 for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
+                translate([oled_x - 6.5, oled_y - oled_h/2 + oled_pin_in - 2.3]) square([13, 4.4]);   // window for the Dupont plug on the OLED header pins
             }
             translate([0, 0, tier_z1 - 0.01]) intersection() { ldr_cradle(); linear_extrude(10) offset(delta = -0.3) ldr_floor2d(); }
             translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - ldr_boss_h]) cylinder(d = ldr_boss_d, h = ldr_boss_h + 0.01);

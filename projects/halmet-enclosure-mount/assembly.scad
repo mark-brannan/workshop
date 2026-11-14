@@ -51,14 +51,14 @@ module halmet() {
 module oled() {
     translate([oled_x - oled_w/2, oled_y - oled_h/2, mod_z]) cube([oled_w, oled_h, pcb_t]);
 }
-module oled_header() {   // pins out the back at the top edge, a Dupont plug on them through the tier
-    translate([oled_x, oled_y + oled_h/2 - oled_pin_in, mod_z]) {
+module oled_header() {   // pins out the front edge, toward the glands, a Dupont plug on them through the tier
+    translate([oled_x, oled_y - oled_h/2 + oled_pin_in, mod_z]) {
         translate([-5.08, -1.27, -2.5]) cube([10.16, 2.54, 2.5]);
         translate([-5.08, -1.27, -2.5 - 14]) cube([10.16, 2.54, 14 - 6]);
         for (i = [0:3]) translate([-3.81 + i*2.54 - 0.32, -0.32, -8.5]) cube([0.64, 0.64, 8.5]);
     }
 }
-module oled_glass() { translate([oled_x - 13, oled_y - 9.5 - 2, mod_z + pcb_t]) cube([26, 19, 1.5]); }
+module oled_glass() { translate([oled_x - 13, oled_y - 9.5 + 2, mod_z + pcb_t]) cube([26, 19, 1.5]); }
 module seg() { translate([seg_x - seg_w/2, seg_y - seg_h/2, mod_z]) cube([seg_w, seg_h, pcb_t]); }
 module seg_body() { translate([seg_x - 15, seg_y - 7, mod_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
 
