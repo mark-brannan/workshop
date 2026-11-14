@@ -1,20 +1,18 @@
 # DIN-rail mount for an 58 x 85 mm AC-DC supply
 
-Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a
-35 mm TS35 rail, as one printed piece. A 2.5 mm frame, cut to the supply's own 85 x 58
-footprint and open in the centre, screws to the supply's two base holes with M3 screws. Two
-low-profile DIN clips are part of the frame: Maxstupo's "DIN Rail Clip (Heat Insert Version)"
-(Printables 420009, CC BY 4.0; `ref_din_clip_heat_insert.stl`), a fixed hook on one end and a
-spring latch on the other, 18 mm along the rail. Its two heat-insert holes are filled, since no
-screw joins it to anything. The rail flange sits 4.1 mm off the PSU face; the whole mount is 7.5 mm
-deep. The rail runs along the 58 mm axis, the 85 mm side stands up and down. The plate runs 15 mm past the
-supply's lower end with three chamfered zip-tie slot pairs (5.5 x 2.2 slots, 5 mm apart, chamfered on the
-underside outer edges) for strain relief; the tie loops under the plate where no supply sits.
-This is the preferred clip style for DIN mounts here, over a clip lifted higher off the rail.
+Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a 35 mm TS35
+rail. **Prototype stage: flat back, no DIN clips yet** (the Printables 420009 clips were removed
+from the model; `ref_din_clip_heat_insert.stl` and git history keep them). A 2.5 mm solid plate the supply's
+85 x 58 footprint, M3 screws to its two base holes, cut-outs for its U slot and pill. An 8 mm lip runs round
+all four sides of the supply: 2 mm walls, square-cornered inside (the supply's own corners) and rounded outside. On
+the lower side a 33.5 mm stretch, starting 8.5 mm from the left edge (top-down view), is a 15 mm wide, 8 mm tall
+shelf with two chamfered zip-tie slot pairs (5.5 x 2.2, long along Y, 8 mm apart) through it, one for the AC cord and one
+for the DC, each running straight down the shelf between its pair; the tie loops under the flat back. Outside corners
+are rounded and the shelf's inside corners filleted. The rail runs along the 58 mm axis, the 85 mm side stands up and down.
 
 ## Files (out/)
 
-`din-rail-psu-mount_scad.3mf` / `.stl`: the one piece, PSU face down. No separate clips.
+`din-rail-psu-mount_scad.3mf` / `.stl`: the one piece, flat back down (z = 0), lip rising from the PSU face.
 
 ## Measured, and from what
 
