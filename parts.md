@@ -30,6 +30,6 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | Part | Dimensions, mm | Source | Used in |
 |---|---|---|---|
 | M3 F/F hex standoff, the owner's stock | 19.7 long, 5.5 across flats (assumed) | owner, caliper (length) | halmet-enclosure-mount |
-| 2.54 mm screw terminal block, 3-pos (style only; order to match) | pins on 2.54 mm, body 3 x 2.54 wide; typical depth 6.5, pins ~3.3 from the wire-entry face, drill ~1.3 | example drawings, not a chosen part | [one-wire-bus-board](projects/one-wire-bus-board/) |
+| 2.54 mm screw terminal block, 3-pos (commodity, KF2.54-3P class) | pins on 2.54 mm, body 3 x 2.54 wide; typical depth 6.5, pins ~3.3 from the wire-entry face, drill ~1.3 | commodity; any in-stock 3P part | [one-wire-bus-board](projects/one-wire-bus-board/) |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
 | DIN clip (preferred, low profile) | Printables 420009, `din_clip_heat_insert.stl`, printed apart, two M3 heat-insert holes 51 mm apart across the rail (model x = 5 and 56, rail centre 27.05), on the clip's centre line; the mount screws on with M3 countersunk | owner's choice of design |
