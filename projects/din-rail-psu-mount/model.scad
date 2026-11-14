@@ -1,6 +1,6 @@
 // DIN-rail (TS35) mount for a 58 x 85 mm enclosed AC-DC supply: PROTOTYPE, flat back, no clips yet.
 // A 2.5 mm solid plate the PSU's own size, screwed (M3) to its two diagonal holes, with cut-outs for the PSU's
-// U slot and pill. A lip 8 mm tall runs round all four sides of the PSU, square-cornered inside, rounded outside; it is a thin wall
+// pill and a loose hole where its U slot mates. A lip 8 mm tall runs round all four sides of the PSU, square-cornered inside, rounded outside; it is a thin wall
 // except on the lower (-Y) side, where a 33.5 mm stretch (8.5 mm from the left edge) is a 15 mm wide, 8 mm tall shelf with two chamfered zip-tie slot pairs through it:
 // a cord (one AC, one DC) leaves the PSU straight down and lies on the shelf, held by a zip tie through a slot pair either side of it.
 // Print flat back down (z = 0): the PSU sits on the plate's top face inside the lip, a pocket 8 mm deep.
@@ -23,10 +23,9 @@ lip_t = 2;           // lip wall thickness on the three thin sides, outside the 
 /* [PSU mounting features] (caliper ~; x right, y toward the back, centred on the footprint, left = left in normal view) */
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
 slot_w = 3.4;        // the PSU's U slot and pill width (~)
-holes = [[-24.2, -37.7], [-24.2, 30.8]];   // blind holes in the PSU underside, 68.5 apart
-uslot_x = -23.5;     // U slot open to the back edge, inner tip 5.5 mm from it
-uslot_depth = 5.5;
-pill = [23.5, -37.5];  // closed pill, 5.5 long tip to tip, long axis along Y (guess)
+holes = [[-23.2, -36.7], [-23.2, 29.8]];   // blind holes in the PSU underside: fit test 1 moved each 1 mm in X (to centre) and 1 mm in Y (toward each other)
+top_hole = [-22.75, 38.7];  // loose M3 hole where the PSU's U slot mates (not a slot in the mount); fit test 1 moved it 0.75 mm toward the centre
+pill = [25, -39];    // closed pill, 5.5 long tip to tip, long axis along Y (guess); fit test 1 moved it 1.5 mm to the outer edge (+X) and 1.5 mm down (-Y)
 pill_len = 5.5;
 
 /* [Zip-tie strain relief: slot pairs through the shelf and plate; the cable lies on top of the shelf, the tie loops under the back] */
@@ -51,9 +50,9 @@ module outline_raw() union() {
 // every outside corner rounded (convex), every inside corner where the shelf meets the thin lip filleted (concave)
 module outline() offset(r = -fillet_r) offset(delta = fillet_r) offset(r = corner_r) offset(delta = -corner_r) outline_raw();
 
-// the PSU's own slots as plate cut-outs: the U opens to the back edge of the pocket, the pill is closed
+// the PSU's pill as a plate cut-out (closed slot); the top hole is a plain loose M3 hole
 module slots2d() {
-    hull() { translate([uslot_x, plate_w/2 - uslot_depth + slot_w/2]) circle(d = slot_w); translate([uslot_x - slot_w/2, plate_w/2 - 0.01]) square([slot_w, 0.01]); }
+    translate(top_hole) circle(d = hole_d);
     hull() for (s = [-1, 1]) translate([pill[0], pill[1] + s*(pill_len - slot_w)/2]) circle(d = slot_w);
 }
 

@@ -97,8 +97,15 @@ def test_pocket_corners_are_square(mount):
             assert np.isclose(first_z(mount, sx * (L / 2 + 0.2), sy * (W / 2 + 0.2)), TOP) or sy < 0
 
 
+def test_pill_cutout_is_closed_slot_long_along_Y(mount):
+    px, py = 25, -39
+    assert first_z(mount, px, py) is None
+    assert first_z(mount, px, py + 2.5) is None and first_z(mount, px, py + 3.2) is not None
+    assert first_z(mount, px + 1.5, py) is None and first_z(mount, px + 2.0, py) is not None
+
+
 def test_two_diagonal_screw_holes(mount):
-    for hx, hy in [(-24.2, -37.7), (-24.2, 30.8)]:
+    for hx, hy in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7)]:
         assert first_z(mount, hx, hy) is None
     assert 3.3 <= P["hole_d"] <= 3.6  # M3, easy slip fit
 

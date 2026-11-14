@@ -3,7 +3,7 @@
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a 35 mm TS35
 rail. **Prototype stage: flat back, no DIN clips yet** (the Printables 420009 clips were removed
 from the model; `ref_din_clip_heat_insert.stl` and git history keep them). A 2.5 mm solid plate the supply's
-85 x 58 footprint, M3 screws to its two base holes, cut-outs for its U slot and pill. An 8 mm lip runs round
+85 x 58 footprint, M3 screws to its two base holes, a cut-out for its pill, a loose M3 hole where its U slot mates. An 8 mm lip runs round
 all four sides of the supply: 2 mm walls, square-cornered inside (the supply's own corners) and rounded outside. On
 the lower side a 33.5 mm stretch, starting 8.5 mm from the left edge (top-down view), is a 15 mm wide, 8 mm tall
 shelf with two chamfered zip-tie slot pairs (5.5 x 2.2, long along Y, 8 mm apart) through it, one for the AC cord and one
