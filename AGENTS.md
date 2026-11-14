@@ -58,6 +58,7 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 - Tools differ from box to box. `shop doctor` lists this one's; a build skips what the box lacks, never fails on it.
 
 - Push to `main`. No PRs, no drafts, no "shall I commit" turns.
+- A checkpoint whose next step is a print or a physical test is pushed the same turn: to `main`, or to the PR when the work is on one. No turn spent asking.
 - Outputs under `out/` are committed. Git LFS only once a file passes 5 MB, not before.
 - A project is `projects/<slug>/` with `README.md` (purpose, constraints, what was measured and from what), `model.scad` or `model.py`, a test file, `out/`.
 
