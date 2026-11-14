@@ -167,26 +167,37 @@ def test_gauge_is_the_mount_sliced_thin_with_the_same_holes(gauge):
         assert first_z(gauge, *h) is None
 
 
-CLIP_YS = [-22.05, 28.95]  # the clip's insert holes, across the rail (its model: x = 5 and 56, rail centre 27.05)
+CLIP_YS = [22.05, -28.95]  # the clip's insert holes, hook up (its model: x = 5 and 56, rail centre 27.05)
+CLIP_XS = [-20, 0, 20]  # one clip in the centre, or two spread wide
+PSU_HOLES = [(-23.2, -36.7), (-23.2, 29.8)]
 
 
-def test_clip_screw_holes_are_countersunk_from_the_psu_side(mount):
-    cx, d, cd, ch = P["clip_x"], P["hole_d"], P["csk_d"], P["csk_h"]
-    for x in (-cx, cx):
+def test_three_clip_positions_countersunk_from_the_psu_side(mount):
+    d, cd, ch = P["hole_d"], P["csk_d"], P["csk_h"]
+    for x in CLIP_XS:
         for y in CLIP_YS:
             assert first_z(mount, x, y) is None  # through for an M3
-            assert first_z(mount, x + d / 2 + 0.2, y) == pytest.approx(T - ch, abs=0.1) or first_z(mount, x + d / 2 + 0.2, y) < T
             assert first_z(mount, x + cd / 2 - 0.3, y) < T  # countersink cuts the pocket floor
             assert np.isclose(first_z(mount, x + cd / 2 + 0.3, y), T)  # floor flat beyond it
-            assert first_z(mount, x, y) is None and ray_hits(mount, (x + d / 2 + 0.2, y, -5), (0, 0, 1))[0][2] == pytest.approx(0, abs=0.01)  # back flat
+            assert ray_hits(mount, (x + d / 2 + 0.2, y, -5), (0, 0, 1))[0][2] == pytest.approx(0, abs=0.01)  # back flat
 
 
-def test_clip_bosses_clear_the_psu_screw_heads():
-    # clip boss: 17 mm wide (its model, y -8.5..8.5) round each insert; an M3 pan head 5.5 across, 0.5 mm air
-    for hx, hy in [(-23.2, -36.7), (-23.2, 29.8)]:
+def test_psu_screws_are_countersunk_flush_with_the_back(mount):
+    cd = P["csk_d"]
+    for hx, hy in PSU_HOLES:
+        assert first_z(mount, hx, hy) is None
+        assert ray_hits(mount, (hx + cd / 2 - 0.3, hy, -5), (0, 0, 1))[0][2] > 0.05  # back cut away round the hole
+        assert np.isclose(first_z(mount, hx + cd / 2 - 0.3, hy), T)  # pocket floor untouched above it
+
+
+def test_clip_holes_keep_clear_of_the_psu_holes_and_pill():
+    # countersink to countersink, at least 1.5 mm of plate; the clip fits inside the lip's outer edge
+    for x in CLIP_XS:
+        assert abs(x) + 8.5 <= P["plate_l"] / 2 + P["lip_t"]
         for y in CLIP_YS:
-            if abs(hy - y) < 8.5 + 2.75:
-                assert abs(hx) - 2.75 - (P["clip_x"] + 8.5) >= 0.5
+            for hx, hy in PSU_HOLES + [(-22.75, 38.7), (25, -39)]:
+                assert np.hypot(x - hx, y - hy) >= P["csk_d"] + 1.5
+    assert CLIP_YS[0] - CLIP_YS[1] == pytest.approx(51)
 
 
 @pytest.fixture(scope="module")
@@ -202,4 +213,3 @@ def test_clip_is_the_printables_420009_model(clip):
     assert clip.volume == pytest.approx(4488, rel=0.01)
     for x in (5, 56):  # its two heat-insert holes, 51 mm apart, as clip_ys
         assert len(ray_hits(clip, (x, 0, 20), (0, 0, -1))) == 0 or ray_hits(clip, (x, 0, 20), (0, 0, -1))[0][2] < 0.01
-    assert CLIP_YS[1] - CLIP_YS[0] == pytest.approx(51)

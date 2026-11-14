@@ -3,8 +3,10 @@
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a 35 mm TS35
 rail. Two parts: a flat-backed mount, and two stock DIN clips (Maxstupo's heat-insert clip, Printables
 420009, CC BY 4.0, `ref_din_clip_heat_insert.stl`) printed apart and screwed on. Each clip takes two M3 heat
-inserts; four M3 countersunk screws go down through the plate from the PSU side into them, heads below the
-pocket floor. The mount prints with one flat face; the clips stay the widely used, refined design. A 2.5 mm solid plate the supply's
+inserts; M3 countersunk screws go down through the plate from the PSU side into them, heads below the
+pocket floor. Three clip positions along the rail: one clip in the centre, or two at +-20 mm. Each clip's fixed
+hook is up (+Y), its spring latch down. The PSU's own two screws are countersunk from the back, heads flush, so
+a clip can lie over them: screw the PSU in first, then the clips. The mount prints with one flat face; the clips stay the widely used, refined design. A 2.5 mm solid plate the supply's
 85 x 58 footprint, M3 screws to its two base holes, a cut-out for its pill, a loose M3 hole where its U slot mates. An 8 mm lip runs round
 all four sides of the supply: 2 mm walls, square-cornered inside (the supply's own corners) and rounded outside. On
 the lower side a 33.5 mm stretch, starting 8.5 mm from the left edge (top-down view), is a 15 mm wide, 8 mm tall
@@ -15,9 +17,9 @@ are rounded and the shelf's inside corners filleted. The rail runs along the 58 
 ## Files (out/)
 
 `din-rail-psu-mount_scad.3mf` / `.stl`: the mount, flat back down (z = 0), lip rising from the PSU face.
-`din-rail-psu-mount_din-clip.3mf` / `.stl`: the clip, print two. `din-rail-psu-mount_gauge.*`: the fit gauge (fit test 2 passed).
+`din-rail-psu-mount_din-clip.3mf` / `.stl`: the clip, print one or two. `din-rail-psu-mount_gauge.*`: the fit gauge (fit test 2 passed).
 
-Hardware: 4 M3 heat inserts, 4 M3 x 6 countersunk (ISO 10642) for the clips; 2 M3 for the PSU.
+Hardware: per clip, 2 M3 heat inserts and 2 M3 x 6 countersunk (ISO 10642); for the PSU, 2 M3 countersunk.
 
 ## Measured, and from what
 
@@ -35,7 +37,7 @@ Hardware: 4 M3 heat inserts, 4 M3 x 6 countersunk (ISO 10642) for the clips; 2 M
 | Value | Now | Why |
 |---|---|---|
 | `hole_d` | 3.5 | M3 easy slip fit |
-| `clip_x` | 11 | clip spacing along the rail; set so the clip bosses clear the PSU screw head at x = -23.2 |
+| `clip_xs` | -20, 0, 20 | the widest spread inside the plate that keeps every clip countersink 8 mm or more from the PSU holes and pill |
 | Clip screw length | M3 x 6 | 2.5 mm plate + ~3.5 mm into the insert; the clip's insert holes are 7.5 (hook end) and 4.6 deep. Depends on the inserts in hand |
 | Rail gap | 34.5 between the hook lips | from the clip's own model; owner's rail reads 34.5 |
 
