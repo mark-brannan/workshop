@@ -27,7 +27,26 @@ def test_counts():
     for net in (1, 2, 3):
         assert sum(q["net"] == net for q in B["pads"]) == P.terminals
     x0, y0, x1, y1 = B["outline"]
-    assert 55 < x1 - x0 < 62 and 18 < y1 - y0 < 25
+    assert 65 < x1 - x0 < 70 and 10 < y1 - y0 < 12
+
+
+def test_terminal_geometry_matches_the_vendor_drawing():
+    # pins 2.54 apart inside a block; blocks butt at 8.02 (2 x 2.54 + 2 x 1.47)
+    xs = sorted(q["x"] for q in B["pads"])
+    assert abs(xs[1] - xs[0] - 2.54) < 1e-9 and abs(xs[3] - xs[0] - P.block_pitch) < 1e-9
+    assert P.drill == 1.3
+    x0, y0, x1, y1 = B["outline"]
+    for bx0, by0, bx1, by1 in B["bodies"]:
+        assert 0 <= y1 - by1 <= 1.0, "body front must sit at the board's front edge"
+        assert by0 - y0 >= 3.0 and (by1 - by0) == 6.5
+
+
+def test_copper_stays_off_the_edge():
+    x0, y0, x1, y1 = B["outline"]
+    for layer in ("F.Cu", "B.Cu"):
+        for _, g in shapes(layer):
+            bx0, by0, bx1, by1 = g.bounds
+            assert bx0 - x0 >= 0.5 and x1 - bx1 >= 0.5 and by0 - y0 >= 0.5 and y1 - by1 >= 0.5
 
 
 def test_no_vias_no_jumpers_one_layer_each():
@@ -57,7 +76,7 @@ def test_clearance_between_nets_on_each_layer():
 def test_kicad_file_balanced_and_complete():
     text = m.to_kicad(B)
     assert text.count("(") == text.count(")")
-    assert text.count("(footprint") == P.terminals + 4
+    assert text.count("(footprint") == P.terminals + len(B["holes"])
     assert text.count("(segment") == len(B["tracks"])
     assert text.count("(gr_line") == 4
     assert text.count('"DATA"') >= P.terminals + 1
