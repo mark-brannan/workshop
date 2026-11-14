@@ -31,7 +31,8 @@ OBJECTS = [
 FANS = ["part", "chamber", "aux"]  # fan0..fan2: toolhead, rear chamber vents, side model cooling
 # Tach channel per fan, measured by running each fan alone (2026-11-14). Only the part fan
 # reports one (on fan2_speed); chamber and aux gave 0 on every channel at full speed.
-TACH = {"part": "fan2_speed"}
+# The hotend fan reads on fan1_speed (nozzle at 75 C). fan0, fan3, fan4 never read nonzero.
+TACH = {"part": "fan2_speed", "hotend": "fan1_speed"}
 
 
 def _key() -> str:
@@ -92,7 +93,7 @@ def format_status(s: dict) -> str:
         lines.append(
             "fans     "
             + "  ".join(f"{FANS[i]} {p['value'] * 100:.0f}%" + (f" ({tach.get(TACH[FANS[i]], '?')} tach)" if FANS[i] in TACH else "") for i, p in enumerate(pins))
-            + f"  hotend {s.get('heater_fan hotend_fan', {}).get('speed', 0) * 100:.0f}%"
+            + f"  hotend {s.get('heater_fan hotend_fan', {}).get('speed', 0) * 100:.0f}% ({tach.get(TACH['hotend'], '?')} tach)"
         )
     fs = s.get("filament_switch_sensor filament_sensor")
     if fs:
