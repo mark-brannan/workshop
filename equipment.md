@@ -7,7 +7,7 @@ project depends on get filled when that project needs them.
 
 | Machine | Model | Controller or software | Notes |
 |---|---|---|---|
-| 3D printer | Creality K2 Plus | OrcaSlicer | Hardened nozzle, swapped by job: usually 0.4 mm, sometimes larger; confirm per print. Preferred materials ABS and ASA, both currently giving trouble. Filament: plenty, not catalogued |
+| 3D printer | Creality K2 Plus | OrcaSlicer | Hardened nozzle, swapped by job: usually 0.4 mm, sometimes larger; confirm per print. Preferred materials ABS and ASA, both currently giving trouble. Filament: plenty, not catalogued. Machine facts: `projects/k2-plus-mods/printer-notes.md` |
 | Laser | Omtech K40+ | LightBurn | Modified: tube about 6 to 8 in longer than stock, power supply now probably 50 or 60 W (owner's estimate, unmeasured). Bed size unmeasured |
 | CNC router | Onefinity Foreman Pro | Masso (confirm) | CAM is hand-written g-code |
 

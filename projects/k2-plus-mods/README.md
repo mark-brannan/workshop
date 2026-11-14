@@ -8,6 +8,8 @@ Already done: root over SSH with key login (`ssh root@192.168.0.190`), fork of
 Every step: snapshot first, show the diff with a plain-English line per change,
 apply on the user's yes, check, record the result here.
 
+Machine facts (fan map, tach channels, addresses): [printer-notes.md](printer-notes.md).
+
 ## Steps
 
 | # | Step | Check it worked | Undo | Door |
