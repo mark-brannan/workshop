@@ -132,3 +132,14 @@ def test_outline_is_rounded_and_filleted(mount):
     assert first_z(mount, SH_X0 + 0.3, -W / 2 - EXT + 0.3) is None
     # the step between shelf and thin lip is filleted: material in the inside corner that a square step would leave empty
     assert first_z(mount, SH_X0 - 1, -W / 2 - LIP_T - 0.5) is not None
+
+
+def test_slot_inner_top_edges_are_chamfered(mount):
+    ci, tt, gap = P["tie_ci"], P["tie_t"], P["tie_gap"]
+    for x in TIE_XS:
+        for s in (-1, 1):
+            inner = x + s * gap / 2 - s * tt / 2  # the slot's web-side edge
+            # at the top face, a point ci/2 in from the slot edge is cut away (below TOP); full height beyond the chamfer
+            z = first_z(mount, inner - s * ci * 0.5, TIE_Y)
+            assert z is not None and z < TOP - 0.5
+            assert np.isclose(first_z(mount, x, TIE_Y), TOP)  # web centre still flat-topped
