@@ -134,12 +134,12 @@ def test_outline_is_rounded_and_filleted(mount):
     assert first_z(mount, SH_X0 - 1, -W / 2 - LIP_T - 0.5) is not None
 
 
-def test_slot_inner_top_edges_are_chamfered(mount):
-    ci, tt, gap = P["tie_ci"], P["tie_t"], P["tie_gap"]
+def test_slot_inner_bottom_edges_are_rounded(mount):
+    r, tt, gap = P["tie_ri"], P["tie_t"], P["tie_gap"]
     for x in TIE_XS:
         for s in (-1, 1):
             inner = x + s * gap / 2 - s * tt / 2  # the slot's web-side edge
-            # at the top face, a point ci/2 in from the slot edge is cut away (below TOP); full height beyond the chamfer
-            z = first_z(mount, inner - s * ci * 0.5, TIE_Y)
-            assert z is not None and z < TOP - 0.5
-            assert np.isclose(first_z(mount, x, TIE_Y), TOP)  # web centre still flat-topped
+            h = ray_hits(mount, (inner - s * 0.2, TIE_Y, -5), (0, 0, 1))
+            assert h[0][2] > 1.0  # back cut away right by the edge
+            h = ray_hits(mount, (x, TIE_Y, -5), (0, 0, 1))
+            assert np.isclose(h[0][2], 0)  # web centre still flat on the back

@@ -33,7 +33,7 @@ tie_w = 5.5;         // slot length across the tie: takes ties up to 5 mm wide (
 tie_t = 2.2;         // slot width
 tie_gap = 8;         // slot centre to slot centre, along X: the cord (~5-7 mm, guess) lies between them, running along Y
 tie_c = 1.2;         // underside chamfer on each slot's outer edge, where the tie turns under the back
-tie_ci = 2.5;        // generous 45 deg chamfer on each slot's inner (web-side) top edge, where the tie turns over the web and the cord lies
+tie_ri = 2.5;        // roundover radius on each slot's inner (web-side) bottom edge: the tie pulls in and around it under the back
 tie_off = 8;         // the two pairs sit this far either side of the shelf centre
 tie_xs = [shelf_x + shelf_len/2 - tie_off, shelf_x + shelf_len/2 + tie_off];  // pair positions along X
 
@@ -67,13 +67,13 @@ module tie_chamfers() {
     }
 }
 
-// top chamfer on the web-side edge of each slot, 45 degrees, tie_ci wide and deep; runs 0.5 above the top to cut cleanly
-module tie_top_chamfers() {
-    top = plate_t + lip_h;
-    for (x = tie_xs, s = [-1, 1]) translate([x + s*tie_gap/2, tie_y]) hull() {
-        translate([0, 0, top - tie_ci]) linear_extrude(0.01) square([tie_t, tie_w], center = true);
-        translate([-s*(tie_ci + 0.5)/2, 0, top + 0.5]) linear_extrude(0.01) square([tie_t + tie_ci + 0.5, tie_w], center = true);
-    }
+// roundover on the web-side bottom edge of each slot, so the tie bends round a curve, not a sharp corner
+module tie_roundovers() {
+    for (x = tie_xs, s = [-1, 1]) translate([x + s*tie_gap/2 - s*tie_t/2, tie_y, 0]) rotate([90, 0, 0])
+        linear_extrude(tie_w, center = true) scale([-s, 1]) difference() {
+            translate([-0.01, -0.5]) square([tie_ri + 0.01, tie_ri + 0.5]);
+            translate([tie_ri, tie_ri]) circle(r = tie_ri);
+        }
 }
 
 // whole-height cuts (they pass through the shelf and the plate); z = 0 is the flat back
@@ -91,7 +91,7 @@ module mount() {
         }
         tie_slots();
         tie_chamfers();
-        tie_top_chamfers();
+        tie_roundovers();
     }
 }
 

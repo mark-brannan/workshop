@@ -7,7 +7,7 @@ from the model; `ref_din_clip_heat_insert.stl` and git history keep them). A 2.5
 all four sides of the supply: 2 mm walls, square-cornered inside (the supply's own corners) and rounded outside. On
 the lower side a 33.5 mm stretch, starting 8.5 mm from the left edge (top-down view), is a 15 mm wide, 8 mm tall
 shelf with two chamfered zip-tie slot pairs (5.5 x 2.2, long along Y, 8 mm apart) through it, one for the AC cord and one
-for the DC, each running straight down the shelf between its pair; the tie loops under the flat back. Each slot has a 2.5 mm 45-degree chamfer on its inner (cord-side) top edge, plus the 1.2 mm chamfer on the outer underside edge. Outside corners
+for the DC, each running straight down the shelf between its pair; the tie loops under the flat back. Each slot has a 2.5 mm roundover on its inner (web-side) bottom edge, so the tie bends round a curve, plus the 1.2 mm chamfer on the outer underside edge. Outside corners
 are rounded and the shelf's inside corners filleted. The rail runs along the 58 mm axis, the 85 mm side stands up and down.
 
 ## Files (out/)
