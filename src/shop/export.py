@@ -6,6 +6,7 @@ from pathlib import Path
 
 from build123d import Mesher, Part, export_step, export_stl
 
+from . import slicer3mf
 from .render import render_png
 
 
@@ -24,11 +25,14 @@ def export_all(part: Part, name: str, outdir: Path | str, *, render: bool = True
     paths["stl"] = stl
 
     threemf = outdir / f"{name}.3mf"
+    prior = slicer3mf.read_prior(threemf)
     m = Mesher()
     m.add_shape(part, linear_deflection=0.01, angular_deflection=0.1)
     m.add_meta_data("shop", "name", name, "str", must_preserve=False)
     m.write(threemf)
     paths["3mf"] = threemf
+    if prior is not None:
+        slicer3mf.carry(prior, threemf)
 
     step = outdir / f"{name}.step"
     export_step(part, step)

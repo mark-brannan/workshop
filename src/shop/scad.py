@@ -18,6 +18,7 @@ from pathlib import Path
 
 import ezdxf
 
+from . import slicer3mf
 from .render import render_png
 
 # Searched after $OPENSCAD and a native ``openscad`` on PATH, in this order.
@@ -180,8 +181,11 @@ def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool
         paths["stl"] = stl
     if threemf:
         tmf = outdir / f"{name}.3mf"
+        prior = slicer3mf.read_prior(tmf)
         osc.run(scad_path, tmf, *three_d)
         paths["3mf"] = tmf
+        if prior is not None:
+            paths["3mf_note"] = slicer3mf.carry(prior, tmf)
     paths["times"]["export"] = time.perf_counter() - t0
 
     if render:
