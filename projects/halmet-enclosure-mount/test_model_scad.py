@@ -269,3 +269,12 @@ def test_board_and_straight_pins_clear_the_tier_screw_heads():
 
 def test_photocell_end_clear_of_the_halmet_in_plan():
     assert LDR_X0 - 3.5 > 44.5 + DX - 6  # board edge steps in 6 above the USB tab
+
+
+def test_centre_prop_through_hole_in_a_solid_island(frame):
+    cx, cy = LISTS["support_xy"]
+    assert top(frame, cx, cy) is None and bottom(frame, cx, cy) is None  # open top to bottom
+    for a in range(0, 360, 45):  # solid ring: insert wall 2 mm out to the standoff diameter, no lattice cell
+        r = (P["insert_d"] / 2 + 0.7) if a % 90 == 0 else P["standoff_d"] / 2 - 0.3
+        x, y = cx + r * np.cos(np.radians(a)), cy + r * np.sin(np.radians(a))
+        assert np.isclose(top(frame, x, y), T, atol=0.02)

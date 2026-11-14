@@ -69,7 +69,7 @@ oled_x = 49.65;      // back posts inside the plate's back edge, right edge 0.5 
 oled_y = 25.2;
 seg_w = 41;          // TM1637 4-digit module (owner)
 seg_h = 23;
-seg_hole_dx = 36;    // owner, rough calipers
+seg_hole_dx = 37.5;  // owner, caliper (parts.md); 36 from rough calipers was 1.5 narrow
 seg_hole_dy = 19;    // owner
 seg_gap = 1.5;       // below the OLED, toward the glands
 
@@ -110,6 +110,7 @@ insert_d = 4.0;      // M3 heat-set insert
 insert_depth = 6.5;  // blind, from the standoff top
 rest_d = 4;          // plain rests on the other diagonal
 spacer_hole_d = 3.2; // laser and gauge: M3 through a loose spacer
+support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set insert, an adjustable standoff screws in from below as a centre prop
 
 /* [Hidden] */
 $fn = 48;
@@ -158,7 +159,8 @@ keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1], sy = [-1, 1]) [sx*post_dx/2, sy*post_dy/2, pad_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]]);
+    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]],
+    [[support_xy[0], support_xy[1], standoff_d/2 + 2]]);
 
 
 module keep2d() {
@@ -233,6 +235,7 @@ module frame() {
             raised();
         }
         insert_holes();
+        translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
         tie_chamfers();
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
             cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
