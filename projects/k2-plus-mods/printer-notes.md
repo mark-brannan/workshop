@@ -28,3 +28,4 @@ where the sound came from.
 ## Heating
 
 - Nozzle commanded to 60 C reached 75 C in about 12 s (overshoot, idle, no filament).
+- Rear recirculation vents are a manual mod with no sensor: open is normal, closed keeps heat in. Log their state by asking (user, 2026-11-14).
