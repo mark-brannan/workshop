@@ -1,4 +1,5 @@
 """1-wire bus board: seven 3-pin terminals in a row, [G D V] each, tied into three nets.
+Optional pull-up spot (R1, DATA to VCC) past the MASTER terminal; leave it empty when the master has its own.
 
 Two copper layers, no vias, no jumpers. Plated pads put every pin on both layers:
   G  top    trunk behind the pin row, stub back from each G pad
@@ -7,11 +8,13 @@ Two copper layers, no vias, no jumpers. Plated pads put every pin on both layers
 Terminals: any 3-position 2.54 mm screw block, wire entry facing the front edge. All 21 pins sit on one
 2.54 mm grid, blocks butted (body 3 x 2.54); order terminals to match.
 D runs on the other layer from the G stubs it passes under.
-Writes out/one-wire-bus.kicad_pcb (KiCad 7 text format) and out/one-wire-bus.png.
+Writes out/one-wire-bus.kicad_pcb (KiCad 7 text format), out/one-wire-bus.png and, where the box
+has KiCad (shop.pcbfab), the rule check, Gerbers and upload zip under out/fab/.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -29,14 +32,23 @@ class Params:
     front_to_pin: float = 3.3   # wire-entry face to the pin row (typical; set to the ordered part)
     back_to_pin: float = 3.2    # body depth 6.5 (typical)
     lip: float = 0.5            # board edge past the body's wire-entry face
-    track_w: float = 0.5
+    track_w: float = 0.5        # DATA
+    power_w: float = 1.0        # GND and VCC
     g_off: float = 5.08         # G trunk behind the pin row (y negative = back)
     d_off: float = 2.54         # D trunk (bottom layer) behind the pin row
     v_off: float = 2.54         # V trunk in front of the pin row
-    margin_x: float = 5.5
     back_margin: float = 3.8    # board edge behind the body
     mount_d: float = 3.2        # M3 clearance
-    mount_inset: float = 3.0
+    mount_keepout: float = 3.8  # hole centre to the nearest part: M3 washer radius 3.5 + 0.3
+    mount_inset: float = 3.0    # hole centre to the board end
+    mount_span_step: float = 5.0  # hole spacing rounds up to a multiple of this
+    pullup: bool = True         # R1 footprint, DATA to VCC, past the MASTER terminal
+    r_pitch: float = 7.62       # axial resistor, body up to 6.3 x 2.5
+    r_pad_d: float = 1.6
+    r_drill: float = 0.8
+    r_gap: float = 3.5          # last pin to the resistor's centre line
+    mask_expansion: float = 0.05  # OSH Park: 2 mil
+    rev: str = "A"
 
 
 NETS = {"G": 1, "D": 2, "V": 3}
@@ -49,12 +61,13 @@ def build(p: Params = Params()) -> dict:
     for t in range(p.terminals):
         for i, name in enumerate("GDV"):
             x = t * p.block_pitch + i * PITCH
-            pads.append({"ref": f"J{t + 1}", "num": i + 1, "net": NETS[name], "x": x, "y": 0.0})
+            pads.append({"ref": f"J{t + 1}", "num": i + 1, "net": NETS[name], "x": x, "y": 0.0,
+                         "d": p.pad_d, "drill": p.drill})
     by = {n: [q for q in pads if q["net"] == NETS[n]] for n in "GDV"}
-    w = p.track_w
 
     def seg(a, b, layer, net):
-        tracks.append({"x1": a[0], "y1": a[1], "x2": b[0], "y2": b[1], "layer": layer, "net": net, "w": w})
+        tracks.append({"x1": a[0], "y1": a[1], "x2": b[0], "y2": b[1], "layer": layer, "net": net,
+                       "w": p.track_w if net == NETS["D"] else p.power_w})
 
     yg, yd, yv = -p.g_off, -p.d_off, p.v_off
     for n, y, layer in (("G", yg, "F.Cu"), ("D", yd, "B.Cu"), ("V", yv, "F.Cu")):
@@ -65,13 +78,47 @@ def build(p: Params = Params()) -> dict:
             seg((a["x"], y), (b["x"], y), layer, NETS[n])
     bx0 = -p.end_gap
     bx1 = (p.terminals - 1) * p.block_pitch + (p.pins - 1) * PITCH + p.end_gap
-    x0, x1 = bx0 - p.margin_x, bx1 + p.margin_x
     y0, y1 = -(p.back_to_pin + p.back_margin), p.front_to_pin + p.lip
     ym = (y0 + y1) / 2
-    holes = [(x0 + p.mount_inset, ym), (x1 - p.mount_inset, ym)]
+    right = bx1
+    resistor = None
+    if p.pullup:
+        xr = by["V"][-1]["x"] + p.r_gap
+        rv, rd = (xr, ym + p.r_pitch / 2), (xr, ym - p.r_pitch / 2)   # VCC end in front, DATA end behind
+        pads.append({"ref": "R1", "num": 1, "net": NETS["V"], "x": rv[0], "y": rv[1], "d": p.r_pad_d, "drill": p.r_drill})
+        pads.append({"ref": "R1", "num": 2, "net": NETS["D"], "x": rd[0], "y": rd[1], "d": p.r_pad_d, "drill": p.r_drill})
+        seg((by["V"][-1]["x"], yv), (xr, yv), "F.Cu", NETS["V"])
+        seg((xr, yv), rv, "F.Cu", NETS["V"])
+        seg((by["D"][-1]["x"], yd), (xr, yd), "B.Cu", NETS["D"])
+        seg((xr, yd), rd, "B.Cu", NETS["D"])
+        resistor = (xr, rv[1], rd[1])
+        right = xr + 1.25
+    hl, hr = bx0 - p.mount_keepout, right + p.mount_keepout
+    grow = math.ceil((hr - hl) / p.mount_span_step - 1e-9) * p.mount_span_step - (hr - hl)
+    hl, hr = hl - grow / 2, hr + grow / 2
+    x0, x1 = hl - p.mount_inset, hr + p.mount_inset
+    holes = [(hl, ym), (hr, ym)]
     bodies = [(t * p.block_pitch - p.end_gap, -p.back_to_pin,
                t * p.block_pitch + (p.pins - 1) * PITCH + p.end_gap, p.front_to_pin) for t in range(p.terminals)]
-    return {"pads": pads, "tracks": tracks, "outline": (x0, y0, x1, y1), "holes": holes, "bodies": bodies, "p": p}
+    return {"pads": pads, "tracks": tracks, "outline": (x0, y0, x1, y1), "holes": holes, "bodies": bodies,
+            "resistor": resistor, "p": p}
+
+
+def silk(b: dict) -> list[tuple]:
+    """Silkscreen text: (x, y, text, layer, height, rotation)."""
+    p = b["p"]
+    x0, y0, x1, y1 = b["outline"]
+    out = []
+    for t in range(p.terminals):
+        for i, name in enumerate("GDV"):
+            out.append((t * p.block_pitch + i * PITCH, -p.back_to_pin - 0.9, name, "F.SilkS", 1.0, 0))
+        out.append((t * p.block_pitch + PITCH, y0 + 1.1, "MASTER" if t == p.terminals - 1 else str(t + 1), "F.SilkS", 1.0, 0))
+    if b["resistor"]:
+        xr, yv_, yd_ = b["resistor"]
+        out.append((xr, (yv_ + yd_) / 2, "4k7", "F.SilkS", 0.9, 90))
+    mid = (p.terminals - 1) * p.block_pitch / 2 + PITCH
+    out.append((mid, y0 + 1.5, f"1-WIRE BUS  G=GND  D=DATA  V=+V   rev {p.rev}", "B.SilkS", 1.0, 0))
+    return out
 
 
 def to_kicad(b: dict) -> str:
@@ -79,21 +126,30 @@ def to_kicad(b: dict) -> str:
     o = ['(kicad_pcb (version 20221018) (generator "workshop")',
          ' (general (thickness 1.6))', ' (paper "A4")',
          ' (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (36 "B.SilkS" user "B.Silkscreen") '
-         '(37 "F.SilkS" user "F.Silkscreen") (38 "B.Mask" user) (39 "F.Mask" user) (44 "Edge.Cuts" user))',
-         ' (setup (pad_to_mask_clearance 0))', ' (net 0 "")']
+         '(37 "F.SilkS" user "F.Silkscreen") (38 "B.Mask" user) (39 "F.Mask" user) (44 "Edge.Cuts" user) (49 "F.Fab" user))',
+         f' (setup (pad_to_mask_clearance {p.mask_expansion}))', ' (net 0 "")']
     o += [f' (net {n} "{NET_NAMES[n]}")' for n in (1, 2, 3)]
     ox, oy = 100.0, 100.0   # place on the sheet
     for t in range(p.terminals):
         ref = f"J{t + 1}"
         x = ox + t * p.block_pitch
         o.append(f' (footprint "workshop:ScrewBlock_1x3_P2.54mm" (layer "F.Cu") (at {x:.3f} {oy:.3f})')
-        o.append(f'  (fp_text reference "{ref}" (at 2.54 -3.9) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))')
+        o.append(f'  (fp_text reference "{ref}" (at 2.54 -1.9) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))')
         o.append('  (fp_text value "3P 2.54 screw block, wire entry toward +y" (at 2.54 4.6) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))')
-        o.append(f'  (fp_rect (start {-p.end_gap} {-p.back_to_pin}) (end {2 * PITCH + p.end_gap:.2f} {p.front_to_pin}) (layer "F.SilkS") (width 0.12) (fill none))')
         for i, name in enumerate("GDV"):
             shape = "rect" if i == 0 else "circle"
             o.append(f'  (pad "{i + 1}" thru_hole {shape} (at {i * PITCH:.3f} 0) (size {p.pad_d} {p.pad_d}) '
                      f'(drill {p.drill}) (layers "*.Cu" "*.Mask") (net {NETS[name]} "{NET_NAMES[NETS[name]]}"))')
+        o.append(' )')
+    if b["resistor"]:
+        xr, yv_, yd_ = b["resistor"]
+        o.append(f' (footprint "workshop:R_Axial_P7.62mm" (layer "F.Cu") (at {ox + xr:.3f} {oy + yv_:.3f})')
+        o.append('  (fp_text reference "R1" (at 0 0) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))')
+        o.append('  (fp_text value "4k7 pull-up, optional" (at 0 0) (layer "F.Fab") hide (effects (font (size 1 1) (thickness 0.15))))')
+        o.append(f'  (fp_rect (start -1.25 {(yd_ - yv_) / 2 + 2.7:.3f}) (end 1.25 {(yd_ - yv_) / 2 - 2.7:.3f}) (layer "F.SilkS") (width 0.12) (fill none))')
+        for num, yy, net in ((1, 0.0, 3), (2, yd_ - yv_, 2)):
+            o.append(f'  (pad "{num}" thru_hole circle (at 0 {yy:.3f}) (size {p.r_pad_d} {p.r_pad_d}) '
+                     f'(drill {p.r_drill}) (layers "*.Cu" "*.Mask") (net {net} "{NET_NAMES[net]}"))')
         o.append(' )')
     for k, (hx, hy) in enumerate(b["holes"]):
         o.append(f' (footprint "workshop:MountingHole_M3" (layer "F.Cu") (at {ox + hx:.3f} {oy + hy:.3f})')
@@ -102,6 +158,15 @@ def to_kicad(b: dict) -> str:
     for s in b["tracks"]:
         o.append(f' (segment (start {ox + s["x1"]:.3f} {oy + s["y1"]:.3f}) (end {ox + s["x2"]:.3f} {oy + s["y2"]:.3f}) '
                  f'(width {s["w"]}) (layer "{s["layer"]}") (net {s["net"]}))')
+    bodies = b["bodies"]   # butted bodies: one outline for the row, dividers stopping short of it
+    o.append(f' (gr_rect (start {ox + bodies[0][0]:.3f} {oy + bodies[0][1]:.3f}) (end {ox + bodies[-1][2]:.3f} {oy + bodies[-1][3]:.3f}) '
+             '(layer "F.SilkS") (width 0.12) (fill none))')
+    for bx0, by0, _, by1 in bodies[1:]:
+        o.append(f' (gr_line (start {ox + bx0:.3f} {oy + by0 + 0.4:.3f}) (end {ox + bx0:.3f} {oy + by1 - 0.4:.3f}) (layer "F.SilkS") (width 0.12))')
+    for x, y, text, layer, size, rot in silk(b):
+        mirror = " (justify mirror)" if layer == "B.SilkS" else ""
+        o.append(f' (gr_text "{text}" (at {ox + x:.3f} {oy + y:.3f} {rot}) (layer "{layer}") '
+                 f'(effects (font (size {size} {size}) (thickness 0.15)){mirror}))')
     x0, y0, x1, y1 = b["outline"]
     for (a, c, d, e) in ((x0, y0, x1, y0), (x1, y0, x1, y1), (x1, y1, x0, y1), (x0, y1, x0, y0)):
         o.append(f' (gr_line (start {ox + a:.3f} {oy + c:.3f}) (end {ox + d:.3f} {oy + e:.3f}) (layer "Edge.Cuts") (width 0.1))')
@@ -122,17 +187,16 @@ def render(b: dict, path: Path) -> None:
         ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fc="#2f6b3a", alpha=0.18, ec="k"))
         for s in b["tracks"]:
             if s["layer"] == layer:
-                ax.plot([s["x1"], s["x2"]], [s["y1"], s["y2"]], color=col[s["net"]], lw=2.6, solid_capstyle="round")
+                ax.plot([s["x1"], s["x2"]], [s["y1"], s["y2"]], color=col[s["net"]], lw=5.2 * s["w"], solid_capstyle="round")
         for q in b["pads"]:
-            ax.add_patch(Circle((q["x"], q["y"]), b["p"].pad_d / 2, fc="#d9b44a", ec=col[q["net"]], lw=1.5))
-            ax.text(q["x"], q["y"], "GDV"[q["num"] - 1], ha="center", va="center", fontsize=6, color=col[q["net"]])
+            ax.add_patch(Circle((q["x"], q["y"]), q["d"] / 2, fc="#d9b44a", ec=col[q["net"]], lw=1.5))
         for hx, hy in b["holes"]:
             ax.add_patch(Circle((hx, hy), b["p"].mount_d / 2, fc="white", ec="k"))
         for (bx0, by0, bx1, by1) in b["bodies"]:
             ax.add_patch(Rectangle((bx0, by0), bx1 - bx0, by1 - by0, fc="none", ec="#1c3a4d", ls="--", lw=1))
-        for t in range(b["p"].terminals):
-            ax.text(t * b["p"].block_pitch + PITCH, y0 + 1.3, "MASTER" if t == b["p"].terminals - 1 else f"T{t + 1}",
-                    ha="center", fontsize=8)
+        for x, y, text, lay, size, rot in silk(b):
+            if lay[0] == layer[0]:
+                ax.text(x, y, text, ha="center", va="center", fontsize=7 * size, rotation=rot)
         ax.set_aspect("equal"); ax.invert_yaxis(); ax.set_title(title, fontsize=10); ax.axis("off")
         ax.set_xlim(x0 - 1, x1 + 1); ax.set_ylim(y1 + 1, y0 - 1)
     fig.tight_layout()
@@ -145,6 +209,8 @@ def main() -> None:
     b = build()
     (out / "one-wire-bus.kicad_pcb").write_text(to_kicad(b))
     render(b, out / "one-wire-bus.png")
+    from shop import pcbfab
+    print(pcbfab.fab(out / "one-wire-bus.kicad_pcb", out / "fab"))
     x0, y0, x1, y1 = b["outline"]
     print(f"board {x1 - x0:.1f} x {y1 - y0:.1f} mm, {len(b['pads'])} pads, {len(b['tracks'])} track segments")
 

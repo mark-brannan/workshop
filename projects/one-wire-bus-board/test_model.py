@@ -10,6 +10,7 @@ m = load_model(__file__)
 B = m.build()
 P = B["p"]
 MIN_CLEAR = 0.3
+TERM = [q for q in B["pads"] if q["ref"].startswith("J")]
 
 
 def shapes(layer):
@@ -18,20 +19,33 @@ def shapes(layer):
         if s["layer"] == layer:
             out.append((s["net"], LineString([(s["x1"], s["y1"]), (s["x2"], s["y2"])]).buffer(s["w"] / 2)))
     for q in B["pads"]:  # plated: a pad is on both layers
-        out.append((q["net"], Point(q["x"], q["y"]).buffer(P.pad_d / 2)))
+        out.append((q["net"], Point(q["x"], q["y"]).buffer(q["d"] / 2)))
     return out
 
 
 def test_counts():
-    assert len(B["pads"]) == P.terminals * 3 == 21
+    assert len(TERM) == P.terminals * 3 == 21
     for net in (1, 2, 3):
-        assert sum(q["net"] == net for q in B["pads"]) == P.terminals
+        assert sum(q["net"] == net for q in TERM) == P.terminals
+    assert {(q["ref"], q["net"]) for q in B["pads"] if q not in TERM} == {("R1", 2), ("R1", 3)}
     x0, y0, x1, y1 = B["outline"]
-    assert 62 < x1 - x0 < 67 and 10 < y1 - y0 < 12
+    assert 68 < x1 - x0 < 73 and 10 < y1 - y0 < 12
+    assert (x1 - x0) * (y1 - y0) / 645.16 < 1.25, "board area drives the price: keep it near 1.2 sq in"
+
+
+def test_mount_holes_clear_a_washer_and_sit_on_a_round_span():
+    (hl, hy), (hr, _) = B["holes"]
+    assert abs((hr - hl) % P.mount_span_step) < 1e-6 or abs((hr - hl) % P.mount_span_step - P.mount_span_step) < 1e-6
+    washer = 3.5
+    for hx in (hl, hr):
+        for q in B["pads"]:
+            assert ((q["x"] - hx) ** 2 + (q["y"] - hy) ** 2) ** 0.5 - q["d"] / 2 >= washer
+        for bx0, by0, bx1, by1 in B["bodies"]:
+            assert hx <= bx0 - washer or hx >= bx1 + washer
 
 
 def test_every_pin_is_on_one_2_54_grid():
-    xs = sorted(q["x"] for q in B["pads"])
+    xs = sorted(q["x"] for q in TERM)
     assert all(abs(b - a - 2.54) < 1e-9 for a, b in zip(xs, xs[1:]))
     x0, y0, x1, y1 = B["outline"]
     for bx0, by0, bx1, by1 in B["bodies"]:
@@ -61,7 +75,7 @@ def test_each_net_is_one_connected_piece_touching_all_its_pads():
             merged = merged.union(g)
         assert merged.geom_type == "Polygon", f"net {net} track is in pieces"
         for q in (q for q in B["pads"] if q["net"] == net):
-            assert merged.intersects(Point(q["x"], q["y"]).buffer(P.pad_d / 2)), f"net {net} misses a pad"
+            assert merged.intersects(Point(q["x"], q["y"]).buffer(q["d"] / 2)), f"net {net} misses a pad"
 
 
 def test_clearance_between_nets_on_each_layer():
@@ -74,9 +88,9 @@ def test_clearance_between_nets_on_each_layer():
 def test_kicad_file_balanced_and_complete():
     text = m.to_kicad(B)
     assert text.count("(") == text.count(")")
-    assert text.count("(footprint") == P.terminals + len(B["holes"])
+    assert text.count("(footprint") == P.terminals + len(B["holes"]) + 1
     assert text.count("(segment") == len(B["tracks"])
-    assert text.count("(gr_line") == 4
+    assert text.count('(layer "Edge.Cuts")') == 4
     assert text.count('"DATA"') >= P.terminals + 1
 
 
