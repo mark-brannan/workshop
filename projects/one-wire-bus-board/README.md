@@ -28,4 +28,4 @@ Ordering, prices and OSH Park's rules: [oshpark.md](oshpark.md).
 | Terminal pin order | G, D, V, left to right with the wire entry facing you | owner's brief |
 | Board lip past the body front | 0.5 mm | keeps copper off the edge |
 
-Blocks sit 8.2 mm apart (`block_pitch`): clear of the 8.1 mm diagram width. A 9-position block per three terminals would keep a 2.54 mm grid and has not been measured. `model_2row.py` builds the back-to-back two-row form into `out/two-row/` (51.0 x 19.2 mm).
+Blocks sit 8.2 mm apart (`block_pitch`): clear of the 8.1 mm diagram width. A 9-position block per three terminals would keep a 2.54 mm grid and has not been measured. `model_2row.py` builds the back-to-back two-row form into `out/two-row/` (47.3 x 20.2 mm, MASTER turned 90° at the right end, four corner M3 holes).
