@@ -121,8 +121,13 @@ def silk(b: dict) -> list[tuple]:
     return out
 
 
-def to_kicad(b: dict) -> str:
+def to_kicad(b: dict, models: dict | None = None) -> str:
+    """`models` (footprint kind -> STEP path) is for pictures only; the fab file carries none."""
     p = b["p"]
+    models = models or {}
+
+    def model(kind):
+        return [f'  (model "{models[kind]}" (offset (xyz 0 0 0)) (scale (xyz 1 1 1)) (rotate (xyz 0 0 0)))'] if kind in models else []
     o = ['(kicad_pcb (version 20221018) (generator "workshop")',
          ' (general (thickness 1.6))', ' (paper "A4")',
          ' (layers (0 "F.Cu" signal) (31 "B.Cu" signal) (36 "B.SilkS" user "B.Silkscreen") '
@@ -140,6 +145,7 @@ def to_kicad(b: dict) -> str:
             shape = "rect" if i == 0 else "circle"
             o.append(f'  (pad "{i + 1}" thru_hole {shape} (at {i * PITCH:.3f} 0) (size {p.pad_d} {p.pad_d}) '
                      f'(drill {p.drill}) (layers "*.Cu" "*.Mask") (net {NETS[name]} "{NET_NAMES[NETS[name]]}"))')
+        o += model("terminal")
         o.append(' )')
     if b["resistor"]:
         xr, yv_, yd_ = b["resistor"]
@@ -154,7 +160,9 @@ def to_kicad(b: dict) -> str:
     for k, (hx, hy) in enumerate(b["holes"]):
         o.append(f' (footprint "workshop:MountingHole_M3" (layer "F.Cu") (at {ox + hx:.3f} {oy + hy:.3f})')
         o.append(f'  (fp_text reference "H{k + 1}" (at 0 0) (layer "F.SilkS") hide (effects (font (size 1 1) (thickness 0.15))))')
-        o.append(f'  (pad "" np_thru_hole circle (at 0 0) (size {p.mount_d} {p.mount_d}) (drill {p.mount_d}) (layers "*.Cu" "*.Mask")))')
+        o.append(f'  (pad "" np_thru_hole circle (at 0 0) (size {p.mount_d} {p.mount_d}) (drill {p.mount_d}) (layers "*.Cu" "*.Mask"))')
+        o += model("screw")
+        o.append(' )')
     for s in b["tracks"]:
         o.append(f' (segment (start {ox + s["x1"]:.3f} {oy + s["y1"]:.3f}) (end {ox + s["x2"]:.3f} {oy + s["y2"]:.3f}) '
                  f'(width {s["w"]}) (layer "{s["layer"]}") (net {s["net"]}))')
@@ -203,6 +211,47 @@ def render(b: dict, path: Path) -> None:
     fig.savefig(path, dpi=110)
 
 
+def assembled(b: dict, out: Path) -> None:
+    """out/assembled-front.png and -back.png: the board with stand-in terminals (the guessed body) and M3 screws on washers."""
+    from build123d import Align, Box, Color, Compound, Cylinder, Pos, Rot, export_step
+    from shop import pcbfab
+    p = b["p"]
+    tmp = out / "_assembled"
+    tmp.mkdir(exist_ok=True)
+    low = (Align.CENTER, Align.CENTER, Align.MIN)
+    w, depth, h = p.pins * PITCH, p.front_to_pin + p.back_to_pin, 8.5
+    yc = (p.back_to_pin - p.front_to_pin) / 2          # model y is up: the wire-entry face is at -front_to_pin
+    body = Pos(PITCH, yc, 0) * Box(w - 0.1, depth, h, align=low)
+    metal = []
+    for i in range(p.pins):
+        body -= Pos(i * PITCH, -p.front_to_pin, 1.2) * Box(1.9, 5.0, 2.4, align=low)      # wire entry
+        body -= Pos(i * PITCH, 0.6, h - 2.0) * Cylinder(1.0, 2.0, align=low)              # screw well
+        metal.append(Pos(i * PITCH, 0.6, h - 2.6) * Cylinder(0.95, 1.6, align=low)
+                     - Pos(i * PITCH, 0.6, h - 1.3) * Box(1.9, 0.35, 0.4, align=low))
+        metal.append(Pos(i * PITCH, 0, -3.0) * Box(0.7, 0.5, 3.0, align=low))             # pin
+        metal.append(Pos(i * PITCH, -p.front_to_pin + 3.0, 1.3) * Box(1.7, 3.0, 2.0, align=low))  # clamp
+    body.color = Color(0.10, 0.45, 0.22)
+    steel = Color(0.75, 0.75, 0.78)
+    for part in metal:
+        part.color = steel
+    export_step(Compound(children=[body, *metal]), str(tmp / "terminal.step"))
+    screw = (Cylinder(3.5, 0.5, align=low) - Cylinder(1.6, 0.5, align=low),
+             Pos(0, 0, 0.5) * Cylinder(2.8, 2.2, align=low) - Pos(0, 0, 1.7) * Box(3.2, 0.6, 1.0, align=low)
+             - Pos(0, 0, 1.7) * Rot(0, 0, 90) * Box(3.2, 0.6, 1.0, align=low),
+             Pos(0, 0, -6.0) * Cylinder(1.5, 6.5, align=low))
+    for part in screw:
+        part.color = steel
+    export_step(Compound(children=list(screw)), str(tmp / "screw.step"))
+    pcb = tmp / "assembled.kicad_pcb"
+    pcb.write_text(to_kicad(b, {"terminal": tmp / "terminal.step", "screw": tmp / "screw.step"}))
+    for name, rotate in (("front", "-50,0,-25"), ("back", "-50,0,155")):
+        if pcbfab.render3d(pcb, tmp / f"{name}.png", rotate):
+            (tmp / f"{name}.png").replace(out / f"assembled-{name}.png")
+    for f in tmp.iterdir():
+        f.unlink()
+    tmp.rmdir()
+
+
 def main() -> None:
     out = Path(__file__).parent / "out"
     out.mkdir(exist_ok=True)
@@ -211,6 +260,7 @@ def main() -> None:
     render(b, out / "one-wire-bus.png")
     from shop import pcbfab
     print(pcbfab.fab(out / "one-wire-bus.kicad_pcb", out / "fab"))
+    assembled(b, out)
     x0, y0, x1, y1 = b["outline"]
     print(f"board {x1 - x0:.1f} x {y1 - y0:.1f} mm, {len(b['pads'])} pads, {len(b['tracks'])} track segments")
 

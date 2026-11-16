@@ -80,3 +80,19 @@ def fab(pcb: Path, out: Path) -> str:
         run("pcb", "render", "--side", side, "--quality", "basic", "--background", "opaque",
             "-w", "2000", "-h", "420", "--zoom", "3.2", "-o", str(out / f"{side}.png"), str(pcb))
     return f"pcbfab: rule check clean, {len(files)} files in {bundle.relative_to(root)}"
+
+
+def render3d(pcb: Path, png: Path, rotate: str = "-50,0,-25", zoom: float = 1.5) -> bool:
+    """Perspective picture of `pcb` with whatever 3D models its footprints name. False when the box lacks KiCad."""
+    pcb, png = pcb.resolve(), png.resolve()
+    root = pcb.parent
+    assert png.is_relative_to(root), "the picture must sit under the board's folder"
+    cli = _runner(root)
+    if cli is None:
+        return False
+    r = subprocess.run([*cli, "pcb", "render", "--quality", "high", "--background", "opaque", "--perspective", "--floor",
+                        "--rotate", rotate, "--zoom", str(zoom), "-w", "2000", "-h", "1000", "-o", str(png), str(pcb)],
+                       capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError(r.stdout + r.stderr)
+    return True
