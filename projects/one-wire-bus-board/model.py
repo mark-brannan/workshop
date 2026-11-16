@@ -27,7 +27,7 @@ class Params:
     pins: int = 3               # G, D, V
     pad_d: float = 1.9
     drill: float = 1.3          # typical for 0.9 mm pins; set to the ordered part
-    block_pitch: float = 3 * PITCH   # blocks butt: pin-to-pin stays 2.54 across blocks
+    block_pitch: float = 8.2    # AM128-2.54 body is 8.1 wide (maker diagram), 7.8 by calipers: 8.2 clears both; pins 2.54 inside a block, 2.94 across a joint
     end_gap: float = PITCH / 2  # body edge to first pin
     front_to_pin: float = 3.3   # wire-entry face to the pin row (typical; set to the ordered part)
     back_to_pin: float = 3.2    # body depth 6.5 (typical)

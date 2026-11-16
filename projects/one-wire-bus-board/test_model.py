@@ -29,7 +29,7 @@ def test_counts():
         assert sum(q["net"] == net for q in TERM) == P.terminals
     assert {(q["ref"], q["net"]) for q in B["pads"] if q not in TERM} == {("R1", 2), ("R1", 3)}
     x0, y0, x1, y1 = B["outline"]
-    assert 68 < x1 - x0 < 73 and 10 < y1 - y0 < 12
+    assert 84 < x1 - x0 < 88 and 10 < y1 - y0 < 12
     assert (x1 - x0) * (y1 - y0) / 645.16 < 1.25, "board area drives the price: keep it near 1.2 sq in"
 
 
@@ -44,9 +44,12 @@ def test_mount_holes_clear_a_washer_and_sit_on_a_round_span():
             assert hx <= bx0 - washer or hx >= bx1 + washer
 
 
-def test_every_pin_is_on_one_2_54_grid():
+def test_every_pin_is_on_one_2_54_grid_with_one_empty_hole_between_blocks():
     xs = sorted(q["x"] for q in TERM)
-    assert all(abs(b - a - 2.54) < 1e-9 for a, b in zip(xs, xs[1:]))
+    gaps = [round(b - a, 6) for a, b in zip(xs, xs[1:])]
+    assert [g for i, g in enumerate(gaps, 1) if i % 3] == [2.54] * 14
+    assert [g for i, g in enumerate(gaps, 1) if i % 3 == 0] == [5.08] * 6
+    assert all(abs(x / 2.54 - round(x / 2.54)) < 1e-6 for x in xs)
     x0, y0, x1, y1 = B["outline"]
     for bx0, by0, bx1, by1 in B["bodies"]:
         assert 0 <= y1 - by1 <= 1.0, "body front must sit at the board's front edge"
