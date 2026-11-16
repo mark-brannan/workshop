@@ -27,7 +27,7 @@ class Params:
     pins: int = 3               # G, D, V
     pad_d: float = 1.9
     drill: float = 1.3          # typical for 0.9 mm pins; set to the ordered part
-    block_pitch: float = 3 * PITCH   # blocks butt: pin-to-pin stays 2.54 across blocks
+    block_pitch: float = 8.2    # AM128-2.54 body is 8.1 wide (maker diagram), 7.8 by calipers: 8.2 clears both; pins 2.54 inside a block, 2.94 across a joint
     end_gap: float = PITCH / 2  # body edge to first pin
     front_to_pin: float = 3.3   # wire-entry face to the pin row (typical; set to the ordered part)
     back_to_pin: float = 3.2    # body depth 6.5 (typical)
@@ -188,10 +188,11 @@ def render(b: dict, path: Path) -> None:
     import matplotlib.pyplot as plt
     from matplotlib.patches import Circle, Rectangle
     col = {1: "#333333", 2: "#1a73e8", 3: "#d93025"}
-    fig, axs = plt.subplots(2, 1, figsize=(12, 5))
+    fig, axs = plt.subplots(2, 1, figsize=b.get("fig", (12, 5)))
     x0, y0, x1, y1 = b["outline"]
-    for ax, layer, title in ((axs[0], "F.Cu", "Top copper (front edge, wire entry, at the bottom): G behind the pins, V in front, under the body"),
-                             (axs[1], "B.Cu", "Bottom copper: D, one trace under the G stubs")):
+    t_top, t_bot = b.get("titles", ("Top copper (front edge, wire entry, at the bottom): G behind the pins, V in front, under the body",
+                                   "Bottom copper: D, one trace under the G stubs"))
+    for ax, layer, title in ((axs[0], "F.Cu", t_top), (axs[1], "B.Cu", t_bot)):
         ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fc="#2f6b3a", alpha=0.18, ec="k"))
         for s in b["tracks"]:
             if s["layer"] == layer:
@@ -202,7 +203,7 @@ def render(b: dict, path: Path) -> None:
             ax.add_patch(Circle((hx, hy), b["p"].mount_d / 2, fc="white", ec="k"))
         for (bx0, by0, bx1, by1) in b["bodies"]:
             ax.add_patch(Rectangle((bx0, by0), bx1 - bx0, by1 - by0, fc="none", ec="#1c3a4d", ls="--", lw=1))
-        for x, y, text, lay, size, rot in silk(b):
+        for x, y, text, lay, size, rot in b.get("silk") or silk(b):
             if lay[0] == layer[0]:
                 ax.text(x, y, text, ha="center", va="center", fontsize=7 * size, rotation=rot)
         ax.set_aspect("equal"); ax.invert_yaxis(); ax.set_title(title, fontsize=10); ax.axis("off")

@@ -22,7 +22,7 @@ https://oshpark.com/
 
 | Their page | Enter or check |
 |---|---|
-| Upload | the zip; reported size 2.80 x 0.43 in (71.0 x 10.8 mm) |
+| Upload | the zip; reported size 2.80 x 0.43 in (76.0 x 10.8 mm) |
 | Previews | top: 7 x G D V, 1-6, MASTER, 4k7; bottom: one DATA trace, the name line; drills: 25 holes on the pads |
 | Service | 2 Layer Prototype (purple, 1.6 mm, 1 oz copper, ENIG) |
 | Quantity | 3 |
@@ -39,7 +39,7 @@ rectangle, so anything stray on the outline layer raises the price. Arithmetic f
 |---|---|---|---|
 | 4 | 56 x 10.8 | $4.69 | $1.56 |
 | 5 | 66 x 10.8 | $5.52 | $1.84 |
-| 6 (as built) | 71 x 10.8 | $5.94 | $1.98 |
+| 6 (as built, 8.2 mm block pitch) | 76 x 10.8 | $6.36 | $2.12 |
 | 8 | 86 x 10.8 | $7.20 | $2.40 |
 | 10 | 101 x 10.8 | $8.45 | $2.82 |
 | 12 | 121 x 10.8 | $10.13 | $3.38 |
