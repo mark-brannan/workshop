@@ -41,16 +41,17 @@ class Box:
 
 # name: (hole dia, nut across corners, nut thickness, inside body dia, inside body depth past the wall)
 # PG7: nut 15 AF / 17 AC, ~5 thick, thread ~8 long. SP13: rear body ~13 dia x ~15 deep, nut unmeasured.
-PARTS = {"PG7": (12.5, 17.0, 5.0, 12.5, 5.5), "SP13": (13.0, 17.0, 3.0, 13.0, 15.0)}
+# M8: nut 11.5-13 across corners (13 used), clamps 2-5 cable; probe cable 3.5 (owner, caliper)
+PARTS = {"M8": (8.3, 13.0, 5.0, 8.3, 5.5), "PG7": (12.5, 17.0, 5.0, 12.5, 5.5), "SP13": (13.0, 17.0, 3.0, 13.0, 15.0)}
 
 
 def layout(b: Box):
     """wall -> (length, has_boss, [(part, x from the outer corner, z from the outer base)])"""
     L, W = b.L, b.W
     return {
-        "long A": (L, False, [("PG7", L/2 - 10, 12.5), ("PG7", L/2 + 10, 12.5)]),
-        "long B": (L, False, [("PG7", L/2 - 10, 12.5), ("PG7", L/2 + 10, 12.5)]),
-        "short A": (W, True, [("PG7", W/2 - 9.5, 13.0), ("PG7", W/2 + 9.5, 13.0)]),
+        "long A": (L, False, [("M8", L/2 - 10, 12.5), ("M8", L/2 + 10, 12.5)]),
+        "long B": (L, False, [("M8", L/2 - 10, 12.5), ("M8", L/2 + 10, 12.5)]),
+        "short A": (W, True, [("M8", W/2 - 10, 12.5), ("M8", W/2 + 10, 12.5)]),
         "short B (master)": (W, True, [("SP13", W/2 + 10, 12.5)]),
     }
 
@@ -122,17 +123,17 @@ def main(path):
     for k, (name, (L, boss, items)) in enumerate(lay.items()):
         if name == "long B":
             continue
-        t = {"long A": "Long walls A and B: 2 x PG7 at +/-10",
-             "short A": "Short wall A: 2 x PG7 at +/-9.5",
+        t = {"long A": "Long walls A and B: 2 x M8 at +/-10",
+             "short A": "Short wall A: 2 x M8 at +/-10",
              "short B (master)": "Short wall B: SP13 10 off centre"}[name]
         report[name] = elevation(fig.add_subplot(gs[0, len(report)]), b, L, boss, items, t)
     report["long B"] = margins(b, *lay["long B"])
     # the earlier layout, re-checked against this box
     W = b.W
     old = [
-        (b.L, False, [("PG7", b.L/2 - 17.5, 12.5), ("PG7", b.L/2, 12.5), ("PG7", b.L/2 + 17.5, 12.5)], "Was never OK: 3 x PG7 on a long wall"),
-        (W, True, [("PG7", W/2 - 8.75, 12.5), ("PG7", W/2 + 8.75, 12.5)], "Earlier short A (+/-8.75): nut over the boss, misses it by 0.5 of depth"),
-        (W, True, [("SP13", W/2, 12.5)], "Earlier short B: centred SP13 body hits the boss"),
+        (b.L, False, [("PG7", b.L/2 - 10, 12.5), ("PG7", b.L/2 + 10, 12.5)], "PG7 instead, long wall: 1 mm to the columns"),
+        (W, True, [("PG7", W/2 - 9.5, 13.0), ("PG7", W/2 + 9.5, 13.0)], "PG7 instead, short A: 0.5 mm to the gasket band"),
+        (W, True, [("SP13", W/2, 12.5)], "Fails: a centred SP13 body hits the boss"),
     ]
     for i, (L, boss, items, t) in enumerate(old):
         elevation(fig.add_subplot(gs[1, i]), b, L, boss, items, t)
@@ -142,7 +143,7 @@ def main(path):
     tb = ax.table(cellText=rows, colLabels=["wall", "column", "floor", "gasket", "next nut", "boss"], loc="center", cellLoc="center")
     tb.auto_set_font_size(False); tb.set_fontsize(8); tb.scale(1, 1.6)
     ax.set_title("Clearance, mm (nut corners; photo guesses)", fontsize=9)
-    fig.suptitle("One-wire enclosure 63 x 58 x 35 (39 mm clear wall, floor bosses on the short walls). "
+    fig.suptitle("One-wire enclosure 63 x 58 x 35, 6 x M8 + SP13 (39 mm clear wall, floor bosses on the short walls). "
                  "Green fits, red fails. Dashed = nut corners, solid = hole. z from the outer base.", fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=110)
