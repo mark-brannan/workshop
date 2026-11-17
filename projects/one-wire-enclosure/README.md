@@ -11,7 +11,7 @@ The vendor photos the estimates come from: the inside (corner columns, gasket ba
 Vendor: outer 63 x 58 x 35 (an older listing said 64 x 57), 53 inside across the 58 side, 39 mm of straight wall between the corner columns on both walls.
 Read off photos, not calipered: lid ~8.5 tall, wall ~2.5, floor ~3, gasket band ~4.5 under the seam, two floor screw bosses (~6 dia, ~4 tall) on the centre line about 5.5 in from each short wall.
 Box numbers are shared with `projects/small-box-sensors/box.scad`.
-Probe cable: 3.5 OD (owner, caliper, DS18B20 probe on hand). That sits mid-range in an M8 gland, so the probes take M8 rather than PG7.
+Probe cable: 3.5 OD; probe and heat shrink 6.3 at the widest (owner, caliper, DS18B20 probe on hand). The bare end goes in through the gland; the probe stays outside. That sits mid-range in an M8 gland, so the probes take M8 rather than PG7.
 Gland sizes: M8 hole 8.3, nut 11.5-13 across corners (13 used), clamps 2-5 (typical, unchecked); PG7 hole 12.5, nut 17 across corners, ~5 thick; SP13 hole 13, rear body ~13 x ~15 deep, nut unmeasured.
 
 Layout (z from the outer base):
