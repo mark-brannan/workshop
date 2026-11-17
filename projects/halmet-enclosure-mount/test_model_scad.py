@@ -278,3 +278,24 @@ def test_centre_prop_through_hole_in_a_solid_island(frame):
         r = (P["insert_d"] / 2 + 0.7) if a % 90 == 0 else P["standoff_d"] / 2 - 0.3
         x, y = cx + r * np.cos(np.radians(a)), cy + r * np.sin(np.radians(a))
         assert np.isclose(top(frame, x, y), T, atol=0.02)
+
+
+# Tier fit gauge: two square plates, hollowed, one per display module
+def test_tier_gauge_plates_are_square_hollow_and_holed(tmp_path):
+    src = (HERE / "part-tier-gauge.scad").read_text()
+    g = params(HERE / "part-tier-gauge.scad")
+    (tmp_path / "part-tier-gauge.scad").write_text(src)
+    m = trimesh.load(build_scad(tmp_path / "part-tier-gauge.scad", tmp_path, "tg", render=False)["stl"])
+    assert m.is_watertight and m.body_count == 2
+    parts = sorted(m.split(), key=lambda p: p.extents[0])
+    for part, dx, dy in zip(parts, (g["oled_hole_dx"], g["seg_hole_dx"]), (g["oled_hole_dy"], g["seg_hole_dy"])):
+        e = part.extents
+        pad = g["hole_d"] + 2 * g["margin"]
+        assert e == pytest.approx([dx + pad, dy + pad, g["thickness"]], abs=0.02)
+        cx, cy = part.bounds.mean(axis=0)[:2]
+        assert top(part, cx, cy) is None  # centre cut out
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                assert top(part, cx + sx * dx / 2, cy + sy * dy / 2) is None  # hole through
+        assert top(part, cx + dx / 2 + g["hole_d"] / 2 + g["margin"] / 2, cy) == pytest.approx(g["thickness"], abs=0.02)  # band is solid
+    assert g["seg_hole_dx"] == P["seg_hole_dx"] and g["oled_hole_dy"] == P["oled_hole_dy"]  # same numbers as the tier

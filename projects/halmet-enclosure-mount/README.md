@@ -113,6 +113,11 @@ The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its 
 each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
 them.
 
+`out/halmet-enclosure-mount_tier-gauge.3mf` is two hollow, square-sided plates, one for the segment
+display's holes and one for the OLED's (not the photocell). Every size is a parameter at the top of
+`part-tier-gauge.scad` (Customizer): hole spacing, hole diameter, margin, thickness, rim. Plate size is
+hole spacing + hole diameter + 2 x margin, so calipering it checks the print against the numbers.
+
 ## Laser
 
 `out/halmet-enclosure-mount_scad.dxf` is the same outline with M3 through
