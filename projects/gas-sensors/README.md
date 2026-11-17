@@ -17,6 +17,7 @@ Nothing is built yet. This folder is the reference the build starts from.
 | [sensors.md](sensors.md) | Choosing, wiring, powering or pricing a sensor part |
 | [products.md](products.md) | Asking what finished detectors and monitors exist, and what each one detects |
 | [logging-and-validation.md](logging-and-validation.md) | Deciding what to log, or judging whether a detection method works |
+| [enclosure-materials.md](enclosure-materials.md) | Choosing a seal, a vent or a case plastic, or asking what silicone does to these sensors |
 | This file | Deciding what the system on the boat does and how it is laid out |
 
 ## How far to trust a line
