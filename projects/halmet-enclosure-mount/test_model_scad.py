@@ -300,3 +300,12 @@ def test_tier_gauge_plates_are_square_hollow_and_holed(tmp_path):
                 assert top(part, cx + sx * dx / 2, cy + sy * dy / 2) is None  # hole through
         assert top(part, cx + dx / 2 + g["hole_d"] / 2 + g["margin"] / 2, cy) == pytest.approx(g["thickness"], abs=0.02)  # band is solid
     assert g["seg_hole_dx"] == P["seg_hole_dx"] and g["oled_hole_dy"] == P["oled_hole_dy"]  # same numbers as the tier
+
+
+def test_sensor_screw_head_recess_in_the_tier_underside(tier):
+    bottom = TIER_TOP - P["tier_t"]
+    x, y = LDR_HOLE
+    up = lambda dx: ray_hits(tier, (x + dx, y, -50), (0, 0, 1))[0][2]
+    assert up(2.4) == pytest.approx(bottom + P["ldr_head_h"], abs=0.02)  # inside the recess, outside the screw hole
+    assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
+    assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert

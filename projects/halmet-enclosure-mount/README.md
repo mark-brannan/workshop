@@ -83,7 +83,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
   between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
   It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 goes up from under the tier
-  through its hole, a nut on the board top; the tier's underside is flat. Bend the header pins down.
+  through its hole, a nut on the board top; a round recess in the tier's underside takes the screw head (a nut, not a heat-set insert: the hole is 3.4, the insert 4.0). Bend the header pins down.
 
 ## Assembly
 

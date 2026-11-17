@@ -44,7 +44,7 @@ board_dy = 12.5;     // back edge about at the box's back wall (owner checked th
 /* [Display tier: a flat plate on four M3 F/F hex standoffs] */
 rim_z = 39;          // box floor to rim (owner)
 tier_t = 2.5;        // its top sits at the rim, give or take 5 (owner)
-tier_x0 = 26;        // left edge; the left side stays open for the USB plug and wiring
+tier_x0 = 26;         // left edge; the left side stays open for the USB plug and wiring
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
 tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
@@ -86,6 +86,8 @@ ldr_cell_clear = 4;  // nothing under the photocell end this far in: solder from
 ldr_wall = 1.2;      // cradle side walls, flush with the PCB top: stop it turning on its one screw
 ldr_fit = 0.3;       // per side
 ldr_boss_d = 7;      // pad round the screw, at ledge height
+ldr_head_d = 6.2;    // round recess in the tier's underside for the M3 screw head (pan head 5.5 across, plus clearance)
+ldr_head_h = 2.2;    // its depth from the underside: a 2 mm head, leaving 1.8 of tier and ledge pad above
 ldr_pin_l = 6;       // header pins past the header end (owner); bend or swap them once the module is placed
 
 /* [Plate: hex-lightened] */
@@ -314,7 +316,7 @@ module tier() {
     difference() {
         union() {
             translate([0, 0, tier_z1 - tier_t]) linear_extrude(tier_t) difference() {
-                union() { tier_plate2d(); ldr_floor2d(); }
+                tier_plate2d();
                 tier_windows2d();
                 for (c = tier_cols) translate(c) circle(d = screw_d);
                 for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
@@ -322,7 +324,8 @@ module tier() {
             }
             translate([0, 0, tier_z1 - 0.01]) intersection() { ldr_cradle(); linear_extrude(10) offset(delta = -0.3) ldr_floor2d(); }
         }
-        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 1]) cylinder(d = screw_d, h = 30);   // M3 up from underneath, nut on the board top; flat bottom
+        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 1]) cylinder(d = screw_d, h = 30);   // M3 up from underneath, nut on the board top
+        translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 1]) cylinder(d = ldr_head_d, h = 1 + ldr_head_h);   // screw-head recess in the underside
     }
 }
 
