@@ -38,7 +38,8 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | M3 F/F hex standoff, the owner's stock | 19.7 long, 5.5 across flats (assumed) | owner, caliper (length) | halmet-enclosure-mount |
 | 2.54 mm screw terminal block, 3-pos (commodity, KF2.54-3P class) | pins on 2.54 mm, body 3 x 2.54 wide; typical depth 6.5, pins ~3.3 from the wire-entry face, drill ~1.3 | commodity; any in-stock 3P part | [one-wire-bus-board](projects/one-wire-bus-board/) |
 | SP13 panel socket, rear nut (Weipu SP1312) | cut-out 13 with a flat at 12.1; thread M13 x 1; flange 19.5; overall 19.2; panel up to 3.5; nut size not found | Weipu drawing | small-box-sensors |
-| Membrane vent M6 x 0.75 (Gore PolyVent XS) | hole 6.2; head 11.2; thread 7; overall 11.5; wrench 10 | Gore drawing | small-box-sensors |
+| Membrane vent M6 x 0.75 (Gore PolyVent XS) | hole 6.2; head 11.2; thread 7; overall 11.5; wrench 10; IP65/66/67/68; 300 ml/min at 70 mbar; ePTFE membrane; O-ring silicone 60 Shore A | Gore drawing; Gore screw-in vent datasheet | small-box-sensors |
+| Membrane vent M12 (Stego DA 284) | IP66/IP68/IPX9K; 120 l/h; seal NBR, not silicone; dimensions not read | Stego product page | |
 | PG7 nylon gland | thread 12.5 x 8 long; body hex 15; locknut 19 across flats x 5 (Essentra), which differs from the 15 in one-wire-enclosure | Altech table; Essentra listing | |
 | DS18B20 waterproof probe, the owner's | cable 3.5 OD; probe with its heat shrink 6.3 at the widest; the cable takes an M8 gland (2-5 clamp), fed bare-end first since the probe won't pass the gland | owner, caliper (approx) | [one-wire-enclosure](projects/one-wire-enclosure/) |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
