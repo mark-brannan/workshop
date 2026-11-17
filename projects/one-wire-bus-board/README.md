@@ -28,4 +28,37 @@ Ordering, prices and OSH Park's rules: [oshpark.md](oshpark.md).
 | Terminal pin order | G, D, V, left to right with the wire entry facing you | owner's brief |
 | Board lip past the body front | 0.5 mm | keeps copper off the edge |
 
-Blocks sit 8.2 mm apart (`block_pitch`): clear of the 8.1 mm diagram width. A 9-position block per three terminals would keep a 2.54 mm grid and has not been measured. `model_2row.py` builds the back-to-back two-row form into `out/two-row/` (47.3 x 20.2 mm, MASTER turned 90° at the right end, four corner M3 holes).
+Blocks sit 8.2 mm apart (`block_pitch`): clear of the 8.1 mm diagram width.
+
+## Four forms: which one to order
+
+The same circuit in four shapes. Each is complete: board file, Gerber zip, KiCad rule check clean against OSH Park's limits.
+`model.py` builds the one-row board, `layouts.py` the other three.
+
+![the four forms at one scale](out/layouts.png)
+
+| | One-row | Two-row | Ring | Pinwheel |
+|---|---|---|---|---|
+| Board, mm | 76.0 x 10.8 | 42.0 x 18.6 | 30.7 x 30.7 | 24.0 x 24.0 |
+| Three boards at OSH Park | $6.36 | $6.07 | $7.30 | $4.46 |
+| Terminal blocks | 7 x 3-position | 2 x 9-position, 1 x 3-position | 7 x 3-position | 7 x 3-position |
+| Screws | 2 x M3, 7 mm washers | 4 x M2.5, corners | 4 x M3, corners | 2 x M3, 10 mm apart |
+| Wires leave | one long edge | both long edges and one end | all four edges | all four edges |
+| MASTER | last in the row | centred on the right end | centred on the left side | lower end of the left side |
+| G D V printed where it shows once built | yes | yes | yes, inside the ring | bottom face only |
+| Upload | [zip](out/fab/one-wire-bus-gerbers.zip) | [zip](out/two-row/fab/one-wire-bus-two-row-gerbers.zip) | [zip](out/ring/fab/one-wire-bus-ring-gerbers.zip) | [zip](out/pinwheel/fab/one-wire-bus-pinwheel-gerbers.zip) |
+| Built, with stand-in parts | [front](out/assembled-front.png) | [front](out/two-row/assembled-front.png) | [front](out/ring/assembled-front.png) | [front](out/pinwheel/assembled-front.png) |
+
+Prices are area times OSH Park's $5 per square inch for three boards, not a site quote.
+
+- **One-row**: every cable comes in from one side, as on a DIN rail or along a wall. The longest board.
+- **Two-row**: the narrowest board with four screws. It needs 9-position blocks, and their body depth is taken from the
+  3-position part, not measured. The M2.5 pan heads beside MASTER clear its body by 0.16 mm: check with the part in hand.
+- **Ring**: four M3 screws and a centred MASTER, with room in the middle for the labels and the pull-up. The largest area.
+  VCC passes each corner 0.1 mm outside a 5.6 mm pan head, under solder mask: no washer wider than the head.
+- **Pinwheel**: the smallest and cheapest. Two screws close together hold it, so the cables want their own strain relief.
+  Once the blocks are on, the G D V letters are under them: every terminal reads G D V left to right with its wire entry facing you.
+
+In all three compact forms R1 is the same optional 4.7 k pull-up, and every terminal, MASTER included, reads G D V left
+to right from outside. On the ring and the pinwheel the pins inside a block are 2.54 mm apart and the two blocks of a side 8.2 mm apart.
+Screw heads: M3 pan 5.6 mm, M2.5 pan 5.0 mm (ISO 7045).

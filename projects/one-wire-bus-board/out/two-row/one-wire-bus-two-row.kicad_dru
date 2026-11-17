@@ -1,0 +1,8 @@
+(version 1)
+(rule "oshpark clearance" (constraint clearance (min 0.1524mm)))
+(rule "oshpark track width" (constraint track_width (min 0.1524mm)))
+(rule "oshpark annular ring" (constraint annular_width (min 0.127mm)))
+(rule "oshpark drill" (constraint hole_size (min 0.254mm)))
+(rule "oshpark copper to hole" (constraint hole_clearance (min 0.127mm)))
+(rule "oshpark hole to hole" (constraint hole_to_hole (min 0.127mm)))
+(rule "oshpark edge keepout" (constraint edge_clearance (min 0.381mm)))

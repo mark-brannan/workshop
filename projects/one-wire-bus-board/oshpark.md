@@ -30,6 +30,19 @@ https://oshpark.com/
 
 The pages after upload were not seen; field names there may differ.
 
+## The compact forms
+
+Same order, a different zip; the [README](README.md#four-forms-which-one-to-order) compares them.
+
+| Form | Upload | Reported size | Drills | Three boards |
+|---|---|---|---|---|
+| Two-row | [out/two-row/fab/one-wire-bus-two-row-gerbers.zip](out/two-row/fab/one-wire-bus-two-row-gerbers.zip) | 1.65 x 0.73 in | 27 | $6.07 |
+| Ring | [out/ring/fab/one-wire-bus-ring-gerbers.zip](out/ring/fab/one-wire-bus-ring-gerbers.zip) | 1.21 x 1.21 in | 27 | $7.30 |
+| Pinwheel | [out/pinwheel/fab/one-wire-bus-pinwheel-gerbers.zip](out/pinwheel/fab/one-wire-bus-pinwheel-gerbers.zip) | 0.94 x 0.94 in | 25 | $4.46 |
+
+Each folder also holds the board file, KiCad's top and bottom pictures and the assembled pictures.
+`uv run python projects/one-wire-bus-board/layouts.py` rebuilds all three and stops on a rule violation.
+
 ## Price
 
 $5 per square inch of one board buys three boards; lots of three only. Area is the outline's bounding

@@ -37,8 +37,9 @@ def _runner(workdir: Path) -> list[str] | None:
     return None
 
 
-def fab(pcb: Path, out: Path) -> str:
-    """Check `pcb` and write its fab set under `out`. Returns a one-line summary; raises on a rule violation."""
+def fab(pcb: Path, out: Path, picture: tuple = (2000, 420, 3.2)) -> str:
+    """Check `pcb` and write its fab set under `out`. Returns a one-line summary; raises on a rule violation.
+    `picture` is the top and bottom pictures' width, height and zoom: the default frames a long narrow board."""
     pcb, out = pcb.resolve(), out.resolve()
     root = pcb.parent
     assert out.is_relative_to(root), "fab output must sit under the board's folder"
@@ -78,7 +79,7 @@ def fab(pcb: Path, out: Path) -> str:
             z.writestr(zipfile.ZipInfo(f.name, (2020, 1, 1, 0, 0, 0)), f.read_bytes())  # fixed date: stable zip
     for side in ("top", "bottom"):
         run("pcb", "render", "--side", side, "--quality", "basic", "--background", "opaque",
-            "-w", "2000", "-h", "420", "--zoom", "3.2", "-o", str(out / f"{side}.png"), str(pcb))
+            "-w", str(picture[0]), "-h", str(picture[1]), "--zoom", str(picture[2]), "-o", str(out / f"{side}.png"), str(pcb))
     return f"pcbfab: rule check clean, {len(files)} files in {bundle.relative_to(root)}"
 
 

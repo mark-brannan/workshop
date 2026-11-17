@@ -212,19 +212,15 @@ def render(b: dict, path: Path) -> None:
     fig.savefig(path, dpi=110)
 
 
-def assembled(b: dict, out: Path) -> None:
-    """out/assembled-front.png and -back.png: the board with stand-in terminals (the guessed body) and M3 screws on washers."""
-    from build123d import Align, Box, Color, Compound, Cylinder, Pos, Rot, export_step
-    from shop import pcbfab
-    p = b["p"]
-    tmp = out / "_assembled"
-    tmp.mkdir(exist_ok=True)
+def terminal_parts(p: Params, pins: int) -> list:
+    """Stand-in screw block: pin 1 at the origin, pins along +x, wire entry toward -y (model y is up)."""
+    from build123d import Align, Box, Color, Cylinder, Pos
     low = (Align.CENTER, Align.CENTER, Align.MIN)
-    w, depth, h = p.pins * PITCH, p.front_to_pin + p.back_to_pin, 8.5
-    yc = (p.back_to_pin - p.front_to_pin) / 2          # model y is up: the wire-entry face is at -front_to_pin
-    body = Pos(PITCH, yc, 0) * Box(w - 0.1, depth, h, align=low)
+    w, depth, h = pins * PITCH, p.front_to_pin + p.back_to_pin, 8.5
+    yc = (p.back_to_pin - p.front_to_pin) / 2          # the wire-entry face is at -front_to_pin
+    body = Pos((pins - 1) * PITCH / 2, yc, 0) * Box(w - 0.1, depth, h, align=low)
     metal = []
-    for i in range(p.pins):
+    for i in range(pins):
         body -= Pos(i * PITCH, -p.front_to_pin, 1.2) * Box(1.9, 5.0, 2.4, align=low)      # wire entry
         body -= Pos(i * PITCH, 0.6, h - 2.0) * Cylinder(1.0, 2.0, align=low)              # screw well
         metal.append(Pos(i * PITCH, 0.6, h - 2.6) * Cylinder(0.95, 1.6, align=low)
@@ -232,17 +228,33 @@ def assembled(b: dict, out: Path) -> None:
         metal.append(Pos(i * PITCH, 0, -3.0) * Box(0.7, 0.5, 3.0, align=low))             # pin
         metal.append(Pos(i * PITCH, -p.front_to_pin + 3.0, 1.3) * Box(1.7, 3.0, 2.0, align=low))  # clamp
     body.color = Color(0.10, 0.45, 0.22)
-    steel = Color(0.75, 0.75, 0.78)
     for part in metal:
-        part.color = steel
-    export_step(Compound(children=[body, *metal]), str(tmp / "terminal.step"))
-    screw = (Cylinder(3.5, 0.5, align=low) - Cylinder(1.6, 0.5, align=low),
+        part.color = Color(0.75, 0.75, 0.78)
+    return [body, *metal]
+
+
+def screw_parts() -> list:
+    """Stand-in M3 screw on a 7 mm washer."""
+    from build123d import Align, Box, Color, Cylinder, Pos, Rot
+    low = (Align.CENTER, Align.CENTER, Align.MIN)
+    screw = [Cylinder(3.5, 0.5, align=low) - Cylinder(1.6, 0.5, align=low),
              Pos(0, 0, 0.5) * Cylinder(2.8, 2.2, align=low) - Pos(0, 0, 1.7) * Box(3.2, 0.6, 1.0, align=low)
              - Pos(0, 0, 1.7) * Rot(0, 0, 90) * Box(3.2, 0.6, 1.0, align=low),
-             Pos(0, 0, -6.0) * Cylinder(1.5, 6.5, align=low))
+             Pos(0, 0, -6.0) * Cylinder(1.5, 6.5, align=low)]
     for part in screw:
-        part.color = steel
-    export_step(Compound(children=list(screw)), str(tmp / "screw.step"))
+        part.color = Color(0.75, 0.75, 0.78)
+    return screw
+
+
+def assembled(b: dict, out: Path) -> None:
+    """out/assembled-front.png and -back.png: the board with stand-in terminals (the guessed body) and M3 screws on washers."""
+    from build123d import Compound, export_step
+    from shop import pcbfab
+    p = b["p"]
+    tmp = out / "_assembled"
+    tmp.mkdir(exist_ok=True)
+    export_step(Compound(children=terminal_parts(p, p.pins)), str(tmp / "terminal.step"))
+    export_step(Compound(children=screw_parts()), str(tmp / "screw.step"))
     pcb = tmp / "assembled.kicad_pcb"
     pcb.write_text(to_kicad(b, {"terminal": tmp / "terminal.step", "screw": tmp / "screw.step"}))
     for name, rotate in (("front", "-50,0,-25"), ("back", "-50,0,155")):
