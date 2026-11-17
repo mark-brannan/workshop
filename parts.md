@@ -24,6 +24,7 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | Part | Where from | Dimensions, mm | Source | Used in |
 |---|---|---|---|---|
 | Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall at 140 x 22.5 pitch; four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
+| Waterproof box 64 x 57 x 35 | Amazon black ABS, brass inserts | outer 64 x 57 x 35; lid ~8.5, wall ~3, floor ~3, corner columns ~9.5 (photo estimates) | vendor listing; photos | [one-wire-enclosure](projects/one-wire-enclosure/) |
 
 ## Hardware
 
