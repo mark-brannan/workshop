@@ -23,12 +23,12 @@ Machine facts (fan map, tach channels, addresses): [printer-notes.md](printer-no
 | 6 | Moonraker into Home Assistant | printer entities show in HA | remove the integration | two-way |
 | 7 | Full Rcpilot33 install, then the Cartographer probe | — | factory reset | **one-way: needs a factory reset, 1.1.7.0 untested upstream. Stop and confer.** |
 
-## Step 3 settings (proposed, unmeasured)
+## Step 3 settings
 
 | Material | Chamber target | Soak cap | Source |
 |---|---|---|---|
-| ASA | 55 °C | 40 min | cap from the 15 Nov run (27 min of heater time); cold start unmeasured |
-| ABS | 55 °C | 40 min | same |
+| ASA | 50 °C | 45 min | Creality's K2 Plus default profile (generic ABS and ASA: chamber 50); 16 Nov cold start reached 50 °C after 39 min of chamber heating in a 12 °C room |
+| ABS | 50 °C | 45 min | same |
 | PETG, PLA | no soak | — | stock behaviour |
 
 Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full install before step 7.
@@ -48,4 +48,5 @@ Reference only: `macros/start_print` in Rcpilot33/k2-improvements. No full insta
 - 2026-11-16 16:24: soak cap 15→40 min applied (snapshot `~/k2-backups/2026-11-16-1624-config.tar.gz`, 20 files; Klipper ready; PLA no-op ok). Probe on the idle printer at 13 °C: `M141 S55` sets the rear fan target to 0 and its speed stays 0, so the stock path holds that fan off; the 14 and 15 Nov tests set the heater with `SET_HEATER_TEMPERATURE` and bypassed it, which is why the fan ran at 100% then. No fan override added. Vents: closed for heat-up and printing, open to purge afterwards (user). With the vents closed the rear fan recirculates rather than exhausts. Bed fault margin: `verify_heater heater_bed` wants 1 °C per 120 s while more than 10 °C below target; measured 2.0–2.5 at 80–90 °C, curve fit 0.8–1.1 at 100 °C and 0.35–0.6 at 105 °C, plateau 108.5–110.5 °C in a 15–16 °C room. A 100 °C bed target clears it; 105–110 °C would fault with nothing broken. No bed cap in the macro: START_PRINT sets the bed in four places, so the slicer profile holds the limit. Next: cold-start ABS dry run through START_PRINT, vents closed, no filament.
 - 2026-11-16 16:44: cold-start ABS dry run through the soak macros (`out/2026-11-16-cold-abs.csv`): `CHAMBER_PREHEAT`, `M140 S100`, `CHAMBER_SOAK`, no motion, nozzle cold, both rear vents closed (user), room ~12 °C and likely humid (user). Bed 13→90 °C in 36 min, 99.5 °C at 53 min; slowest gain below 90 °C was 1.5 °C per 120 s against the 1 °C fault line; no fault. Chamber heater held at 0% for 49 min, until the bed reached 98 °C; chamber air had drifted 13→27 °C by then. Then 40 °C at 64 min, 45 at 74, 50 at 88. The 40 min cap hit at 50.2 °C, still rising 0.33 °C/min. Rear fan stayed at 0 throughout under `M141`, to 50 °C. So in a 12 °C room: 50 °C chamber takes ~90 min from cold; 55 °C was not reached.
 - 2026-11-16 18:07: the logging script's retry re-sent the soak commands when Moonraker returned 504 on the long call, so a second soak queued behind the first and blocked the heaters-off commands. Heaters stayed on ~10 min past the end. Two restart requests timed out; an emergency stop over Moonraker cleared it, Klipper came back ready, heaters off, printer cooling. Lesson: never retry a non-idempotent gcode call, and a queued gcode cannot turn heaters off while a macro is waiting; only a restart or emergency stop can.
+- 2026-11-16 19:00: soak default 55→50 °C, cap 40→45 min. Sources (read by a research sub-agent, not re-read): OrcaSlicer's Creality K2 Plus filament profiles set chamber 50 for generic ABS and ASA, 60 for CR-ABS, 50 for PC, PAHT-CF, PPA-CF and PPS-CF, bed 110 for PC and 105 for PPS-CF; printer limits nozzle 350, bed 120, chamber 60; Creality's chamber guide says the chamber may miss its target below 15 °C on 110 V mains (https://wiki.creality.com/en/k2-flagship-series/k2-pro-k2-plus-chamber-temp). Polymaker and Bambu ask only for an enclosure for ABS and ASA; active heat is optional.
 - 2026-11-12 19:35: camera not readable by the agent: no snapshot URL, Fluidd camera tile black.
