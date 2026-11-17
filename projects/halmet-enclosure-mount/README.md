@@ -107,6 +107,31 @@ Two fixed steps: the tier covers two right-hand floor screws, (70, 0) and (70, 2
 so the tier comes off before the plate. The standoffs come off only with the plate out of the box.
 The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its left edge is 1.5 mm from the left floor-screw heads.
 
+## Wiring
+
+Pin numbers are from `HALMET.kicad_pcb` (hatlabs/HALMET-hardware) pad nets, read 2026-11-17.
+GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halmet drives as a test pulse.
+
+| From | HALMET connector, pin | Net |
+|---|---|---|
+| Supply 0 V (N2K NET-C) | power/N2K 4-pin, 1 | GND |
+| Supply +5 to 32 V (N2K NET-S) | power/N2K 4-pin, 2 | V+ |
+| N2K CAN_H, CAN_L | power/N2K 4-pin, 3, 4 | empty off N2K |
+| DS18B20 GND | 1-Wire 3-pin (not fitted from the factory), 1 | GND |
+| DS18B20 VDD | 1-Wire, 2 | 3V3 |
+| DS18B20 DQ | 1-Wire, 3 | GPIO 4, 2.2 k pull-up on the board |
+| SSD1306 GND, VCC, SCL, SDA | I2C 4-pin socket, 1, 2, 3, 4 | GND, 3V3, GPIO 22, GPIO 21 |
+| TM1637 VCC | GPIO 2x10, 1 | 3V3 |
+| TM1637 GND | GPIO 2x10, 3 | GND |
+| TM1637 DIO | GPIO 2x10, 5 | GPIO 17 |
+| TM1637 CLK | GPIO 2x10, 7 | GPIO 16 |
+| LM393 VCC | GPIO 2x10, 20 | 3V3 |
+| LM393 GND | GPIO 2x10, 18 | GND |
+| LM393 DO | GPIO 2x10, 10 | GPIO 34, input only, no internal pull-up |
+
+The 1-Wire header order is G, V, D; the one-wire bus board's terminals are G, D, V, so the cable between them crosses V and D.
+The A and D input terminals sit on the isolated side (their own ground); none of these parts uses them.
+
 ## Fit check
 
 `out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm plate with big windows;
