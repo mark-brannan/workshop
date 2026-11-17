@@ -1,6 +1,6 @@
 # One-wire enclosure: gland layout
 
-**Drilling template:** [`out/drill-template.pdf`](out/drill-template.pdf), 1:1 on A4, one strip per wall plus a base-face page (red dotted = where the corner columns start; `uv run python projects/one-wire-enclosure/template.py` regenerates it from `model.py`). Print at 100 %, check the 50 mm bar. Hole positions are still photo-based until the caliper list at the bottom is done.
+**Drilling template:** [`out/drill-template.pdf`](out/drill-template.pdf), 1:1 on A4, one strip per wall (red dotted = where the corner columns start; `uv run python projects/one-wire-enclosure/template.py` regenerates it from `model.py`). Print at 100 %, check the 50 mm bar. Hole positions are still photo-based until the caliper list at the bottom is done.
 
 Purpose: seven cable entries (6 probe glands, 1 master) in the 63 x 58 x 35 ABS box (black or clear lid, same body) with brass-insert corner screws.
 
