@@ -30,4 +30,5 @@ where the sound came from.
 - Nozzle commanded to 60 C reached 75 C in about 12 s (overshoot, idle, no filament).
 - Rear recirculation vents are a manual mod with no sensor: open is normal, closed keeps heat in. Log their state by asking (user, 2026-11-14).
 - Chamber heater waits for the bed: with both on, the chamber heater stays at 0% until bed power drops below ~97%, i.e. the bed is near target (2026-11-15 log).
-- `temperature_fan chamber_fan` (rear exhaust, target 35 C) runs at 100% once the chamber passes 35 C, during a chamber heat-up too (2026-11-15 log).
+- `temperature_fan chamber_fan` (rear exhaust, target 35 C) runs at 100% once the chamber passes 35 C, during a chamber heat-up too (2026-11-15 log), when the heater is set with `SET_HEATER_TEMPERATURE`. `M141 S<n>` above 40 sets that fan's target to 0, which this firmware treats as off (probe at 13 C, 2026-11-16); above 35 C unconfirmed.
+- Bed fault line: `verify_heater heater_bed` needs 1 C gain per 120 s while more than 10 C below target. In a 15-16 C room the bed manages that up to about 100 C (curve fit) and plateaus near 109-110 C. Keep ABS/ASA bed targets at 100 C or below until the room is warmer or the bed's wall power is measured (2026-11-16).
