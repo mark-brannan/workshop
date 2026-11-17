@@ -83,7 +83,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
   between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
   It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 goes up from under the tier
-  through its hole, a nut on the board top; the tier's underside is flat. Bend the header pins down.
+  through its hole, a nut on the board top; a round recess in the tier's underside takes the screw head (a nut, not a heat-set insert: the hole is 3.4, the insert 4.0). Bend the header pins down.
 
 ## Assembly
 
@@ -112,6 +112,11 @@ The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its 
 2 mm stubs, holed through, mark the standoffs, rests and tier bosses. Lay it on the bosses, read where
 each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
 them.
+
+`out/halmet-enclosure-mount_tier-gauge.3mf` is two hollow, square-sided plates, one for the segment
+display's holes and one for the OLED's (not the photocell). Every size is a parameter at the top of
+`part-tier-gauge.scad` (Customizer): hole spacing, hole diameter, margin, thickness, rim. Plate size is
+hole spacing + hole diameter + 2 x margin, so calipering it checks the print against the numbers.
 
 ## Laser
 

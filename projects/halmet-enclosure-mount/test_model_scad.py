@@ -238,7 +238,8 @@ def test_cradle_ledges_walls_and_screw_boss(tier):
     for s in (-1, 1):
         assert top(tier, mid, LDR_Y + s * (w / 2 - 1)) == pytest.approx(LDR_Z, abs=0.02)  # edge ledge
         assert top(tier, mid, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
-    assert top(tier, mid, LDR_Y) == pytest.approx(TIER_TOP, abs=0.02)  # floor between the ledges, for solder stubs
+    assert top(tier, mid, LDR_Y) is None  # window between the ledges: nothing under the board
+    assert top(tier, mid, LDR_Y + LDR_W / 2 - P["ldr_lip"] / 2) == pytest.approx(TIER_TOP + P["ldr_ledge"], abs=0.02)  # ledge
     edge = LDR_W / 2 - P["ldr_lip"] / 2  # under the board's edge, inside the lip
     for s in (-1, 1):
         assert top(tier, LDR_X0 + P["ldr_cell_clear"] - 0.5, LDR_Y + s * edge) == pytest.approx(TIER_TOP, abs=0.02)  # photocell end bare
@@ -278,3 +279,33 @@ def test_centre_prop_through_hole_in_a_solid_island(frame):
         r = (P["insert_d"] / 2 + 0.7) if a % 90 == 0 else P["standoff_d"] / 2 - 0.3
         x, y = cx + r * np.cos(np.radians(a)), cy + r * np.sin(np.radians(a))
         assert np.isclose(top(frame, x, y), T, atol=0.02)
+
+
+# Tier fit gauge: two square plates, hollowed, one per display module
+def test_tier_gauge_plates_are_square_hollow_and_holed(tmp_path):
+    src = (HERE / "part-tier-gauge.scad").read_text()
+    g = params(HERE / "part-tier-gauge.scad")
+    (tmp_path / "part-tier-gauge.scad").write_text(src)
+    m = trimesh.load(build_scad(tmp_path / "part-tier-gauge.scad", tmp_path, "tg", render=False)["stl"])
+    assert m.is_watertight and m.body_count == 2
+    parts = sorted(m.split(), key=lambda p: p.extents[0])
+    for part, dx, dy in zip(parts, (g["oled_hole_dx"], g["seg_hole_dx"]), (g["oled_hole_dy"], g["seg_hole_dy"])):
+        e = part.extents
+        pad = g["hole_d"] + 2 * g["margin"]
+        assert e == pytest.approx([dx + pad, dy + pad, g["thickness"]], abs=0.02)
+        cx, cy = part.bounds.mean(axis=0)[:2]
+        assert top(part, cx, cy) is None  # centre cut out
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                assert top(part, cx + sx * dx / 2, cy + sy * dy / 2) is None  # hole through
+        assert top(part, cx + dx / 2 + g["hole_d"] / 2 + g["margin"] / 2, cy) == pytest.approx(g["thickness"], abs=0.02)  # band is solid
+    assert g["seg_hole_dx"] == P["seg_hole_dx"] and g["oled_hole_dy"] == P["oled_hole_dy"]  # same numbers as the tier
+
+
+def test_sensor_screw_head_recess_in_the_tier_underside(tier):
+    bottom = TIER_TOP - P["tier_t"]
+    x, y = LDR_HOLE
+    up = lambda dx: ray_hits(tier, (x + dx, y, -50), (0, 0, 1))[0][2]
+    assert up(2.4) == pytest.approx(bottom + P["ldr_head_h"], abs=0.02)  # inside the recess, outside the screw hole
+    assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
+    assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert
