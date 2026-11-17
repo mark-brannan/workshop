@@ -128,6 +128,11 @@ GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halm
 | LM393 VCC | GPIO 2x10, 20 | 3V3 |
 | LM393 GND | GPIO 2x10, 18 | GND |
 | LM393 DO | GPIO 2x10, 10 | GPIO 34, input only, no internal pull-up |
+| 10 k pull-up | GPIO 2x10, 10 to 20 | GPIO 34 to 3V3, so an unplugged module reads no flame |
+| Piezo + | power/N2K 4-pin, 2 | V+ |
+| Piezo − | N-FET drain | switched low side |
+| N-FET gate | GPIO 2x10, 8, through 100 Ω; 100 k gate to source | GPIO 32 |
+| N-FET source | GPIO 2x10, 16 | GND |
 
 The 1-Wire header order is G, V, D; the one-wire bus board's terminals are G, D, V, so the cable between them crosses V and D.
 The A and D input terminals sit on the isolated side (their own ground); none of these parts uses them.
