@@ -94,10 +94,17 @@ class OpenSCAD:
             if r.returncode == 0 and out.exists():
                 return r
         if WIN_TEMP.is_dir():
-            stage = WIN_TEMP / f"shop_{os.getpid()}"
-            stage.mkdir(exist_ok=True)
+            root = WIN_TEMP / f"shop_{os.getpid()}"
+            outside = _outside_includes(scad.parent)
+            depth = max((len([s for s in rel.parts if s == ".."]) for rel in outside), default=0)
+            stage = root.joinpath(*["_"] * depth)  # deep enough that every ../ lands inside root
+            stage.mkdir(parents=True, exist_ok=True)
             for f in (*scad.parent.glob("*.scad"), *scad.parent.glob("*.stl")):  # .stl: import() inputs
                 shutil.copy(f, stage / f.name)
+            for rel in outside:
+                dst = Path(os.path.normpath(stage / rel))
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(scad.parent / rel, dst)
             s_out = stage / out.name
             cmd = [base[0], "-o", _winpath(s_out), *base[1:], _winpath(stage / scad.name)]
             r = subprocess.run(cmd, capture_output=True, text=True, cwd=stage)
@@ -109,6 +116,19 @@ class OpenSCAD:
 
     def cleanup(self) -> None:
         shutil.rmtree(WIN_TEMP / f"shop_{os.getpid()}", ignore_errors=True)
+
+
+def _outside_includes(proj: Path) -> set[Path]:
+    """``include``/``use`` targets that climb out of ``proj`` (``<../other/box.scad>``), as paths relative to it.
+
+    One level only: a file reached this way must not itself climb further.
+    """
+    refs = set()
+    for f in proj.glob("*.scad"):
+        for m in re.findall(r"^\s*(?:include|use)\s*<(\.\./[^>]+)>", f.read_text(), re.M):
+            if (proj / m).is_file():
+                refs.add(Path(m))
+    return refs
 
 
 # Layer name -> RGB. LightBurn assigns imported DXF geometry to its layers by

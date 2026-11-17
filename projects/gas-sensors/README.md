@@ -153,4 +153,4 @@ environment.inside.mainCabin.gasSense.voc.state                       normal
 | BME688 or BME690 | See [sensors.md](sensors.md) |
 | Log raw BME688 scans, or only what Bosch's library computes | See [logging-and-validation.md](logging-and-validation.md) |
 | Signal K standard path keys | Not yet checked against the specification |
-| Enclosure, mounts and vents | Not started. Parts measured for them go in [`parts.md`](../../parts.md). |
+| Enclosure, mounts and vents | One box so far: [bme688-halpi2](bme688-halpi2/), a BME688 alone, wired to the HALPI2. Not printed. Parts measured for boxes go in [`parts.md`](../../parts.md). |
