@@ -238,7 +238,8 @@ def test_cradle_ledges_walls_and_screw_boss(tier):
     for s in (-1, 1):
         assert top(tier, mid, LDR_Y + s * (w / 2 - 1)) == pytest.approx(LDR_Z, abs=0.02)  # edge ledge
         assert top(tier, mid, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
-    assert top(tier, mid, LDR_Y) == pytest.approx(TIER_TOP, abs=0.02)  # floor between the ledges, for solder stubs
+    assert top(tier, mid, LDR_Y) is None  # window between the ledges: nothing under the board
+    assert top(tier, mid, LDR_Y + LDR_W / 2 - P["ldr_lip"] / 2) == pytest.approx(TIER_TOP + P["ldr_ledge"], abs=0.02)  # ledge
     edge = LDR_W / 2 - P["ldr_lip"] / 2  # under the board's edge, inside the lip
     for s in (-1, 1):
         assert top(tier, LDR_X0 + P["ldr_cell_clear"] - 0.5, LDR_Y + s * edge) == pytest.approx(TIER_TOP, abs=0.02)  # photocell end bare
