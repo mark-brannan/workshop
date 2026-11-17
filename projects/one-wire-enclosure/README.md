@@ -4,6 +4,10 @@ Purpose: seven cable entries (6 probe glands, 1 master) in the 64 x 57 x 35 blac
 
 ![layout](out/holes.png)
 
+The vendor photos the estimates come from: the inside (corner columns, gasket step, lid) and the dimensioned outside.
+
+![inside](out/ref-inside.jpg) ![dimensions](out/ref-dimensions.jpg)
+
 Measured: outer 64 x 57 x 35 (vendor listing). Everything else is read off the vendor photos, not calipered:
 lid ~8.5 tall, wall ~3, floor ~3, corner columns ~9.5 from the outer corner, gasket step ~4.5 under the seam.
 Gland sizes: PG7 hole 12.5, nut 15 across flats / 17 across corners (varies by maker); SP13 hole 13, nut size not found; M8 hole 8.3, nut guessed 11.5.
