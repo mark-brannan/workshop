@@ -20,8 +20,9 @@ I2C extender and one SP13 4-pin socket. One printed carrier and one spacer serve
 
 The three Adafruit boards share one outline (25.4 x 17.78) and one hole pattern (20.32 x 12.7, M2.5),
 which is why one carrier does both. No custom PCB: the LTC4311 needs four wires and nothing else.
-The SparkFun QwiicBus EndPoint (differential, PCA9615) is 44.45 long with an RJ45 jack and does not fit.
-If a run proves too long for the LTC4311, a PCA9615 board drawn to the same 25.4 x 17.78 outline drops into the upper bay.
+The SparkFun QwiicBus EndPoint (differential, PCA9615) is 44.45 x 25.4 with an RJ45 jack: it does not fit this carrier's bays,
+and a plugged-in RJ45 does not fit the box. It does lie flat along the 58 floor with the cable soldered to the jack's pads;
+that build is not modelled here.
 
 ## Wiring
 
