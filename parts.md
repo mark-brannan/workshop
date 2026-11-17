@@ -26,8 +26,7 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | Part | Where from | Dimensions, mm | Source | Used in |
 |---|---|---|---|---|
 | Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall at 140 x 22.5 pitch; four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
-| Waterproof box 64 x 57 x 35 | Amazon black ABS, brass inserts | outer 64 x 57 x 35; lid ~8.5, wall ~3, floor ~3, corner columns ~9.5 (photo estimates) | vendor listing; photos | [one-wire-enclosure](projects/one-wire-enclosure/) |
-| Waterproof box 63 x 58 x 35, clear or black lid | Amazon ABS, brass inserts | outer 63 x 58 x 35; 53 inside across; 39 clear between corner columns on both walls; two winged floor bosses on the long axis, ~41 apart (39 to 42.5 by pixel scale); wall ~2.5, floor ~3 (photo estimates) | vendor listing; photo | [small-box-sensors](projects/small-box-sensors/) |
+| Waterproof box 63 x 58 x 35 | Amazon ABS, black or clear lid, brass inserts | outer 63 x 58 x 35 (older listing 64 x 57); 53 inside across the 58 side; 39 straight wall between corner columns, both walls; lid ~8.5, wall ~2.5, floor ~3; two floor bosses ~6 dia x ~4, ~5.5 in from each short wall (photo estimates) | vendor listings; photos | [one-wire-enclosure](projects/one-wire-enclosure/), [small-box-sensors](projects/small-box-sensors/) |
 
 ## Hardware
 
@@ -38,5 +37,6 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | SP13 panel socket, rear nut (Weipu SP1312) | cut-out 13 with a flat at 12.1; thread M13 x 1; flange 19.5; overall 19.2; panel up to 3.5; nut size not found | Weipu drawing | small-box-sensors |
 | Membrane vent M6 x 0.75 (Gore PolyVent XS) | hole 6.2; head 11.2; thread 7; overall 11.5; wrench 10 | Gore drawing | small-box-sensors |
 | PG7 nylon gland | thread 12.5 x 8 long; body hex 15; locknut 19 across flats x 5 (Essentra), which differs from the 15 in one-wire-enclosure | Altech table; Essentra listing | |
+| DS18B20 waterproof probe, the owner's | cable 3.5 OD; probe with its heat shrink 6.3 at the widest; the cable takes an M8 gland (2-5 clamp), fed bare-end first since the probe won't pass the gland | owner, caliper (approx) | [one-wire-enclosure](projects/one-wire-enclosure/) |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
 | DIN clip (preferred, low profile) | Printables 420009, `din_clip_heat_insert.stl`, printed apart, two M3 heat-insert holes 51 mm apart across the rail (model x = 5 and 56, rail centre 27.05), on the clip's centre line; the mount screws on with M3 countersunk | owner's choice of design |

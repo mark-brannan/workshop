@@ -5,7 +5,7 @@ include <box.scad>
 part = "carrier";    // carrier | spacer
 
 /* [Plate] */
-plate_l = 51;        // x; inside the 58 floor, clear of the short walls
+plate_l = 55;        // x; inside the 58 floor, clear of the short walls
 plate_w = 21;        // y
 plate_t = 2;
 plate_y = -4;        // plate and stack centre, off the box centre, away from the connector wall
@@ -13,7 +13,7 @@ corner_r = 2;
 
 /* [Floor bosses] */
 slot_w = 3.4;        // M3 self-tapper clearance
-slot_play = 2.5;     // each way along x; covers the 39 to 42.5 guess for the boss pitch
+slot_play = 4;       // each way along x; covers the 39 to 47 guess for the boss pitch
 
 /* [Board bays] */
 hole_dx = 20.32;     // Adafruit board file

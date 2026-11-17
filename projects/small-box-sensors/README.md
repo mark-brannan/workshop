@@ -56,7 +56,7 @@ toward the floor. A PG7 gland (hole 12.5) can take the SP13's place at the same 
 | SP13 nut and vent nut | 3.4 |
 | Vent nut and the corner column | 1.7 |
 | Qwiic bend and the short wall | 6.3 |
-| Carrier ends and the short walls | 3.5 |
+| Carrier ends and the short walls | 1.5 |
 
 `assembly.py` intersects every pair of components and the test fails on any overlap: 0 mm3 in both builds.
 
@@ -68,7 +68,7 @@ The box: outer 63 x 58 x 35, 53 inside across, 39 clear between corner columns o
 
 | Guess | Now | Check with |
 |---|---|---|
-| Floor boss pitch | 41 (39 to 42.5 by pixel scale); slots cover 36 to 46 | the gauge |
+| Floor boss pitch | 43; two readings of the photo give 39 to 47; slots cover 35 to 51 | the gauge |
 | Boss height, hole | 4, 2.5 (M3 self-tapper) | calipers; the gauge's slots show the screw size |
 | Wall, floor, lid plate | 2.5, 3, 2.5 | calipers |
 | Gasket band | 4.5 tall, 1.5 proud | calipers |

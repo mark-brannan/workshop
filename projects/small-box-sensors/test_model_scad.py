@@ -54,7 +54,7 @@ def test_carrier_volume_window(carrier):
 
 def test_carrier_holes(carrier):
     for sx in (-1, 1):       # a boss slot is open across the whole guessed pitch range
-        for dx in (-2, 0, 2):
+        for dx in (-3.5, 0, 3.5):
             assert not ray_hits(carrier, [sx * P["boss_pitch"] / 2 + dx, 0, -5], [0, 0, 1])
     for sx in (-1, 1):       # four screw holes on the Adafruit pattern
         for sy in (-1, 1):

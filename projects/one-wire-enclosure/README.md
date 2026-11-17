@@ -1,17 +1,27 @@
 # One-wire enclosure: gland layout
 
-Purpose: seven cable entries (6 probe glands, 1 master) in the 64 x 57 x 35 black ABS box with brass-insert corner screws.
+Purpose: seven cable entries (6 probe glands, 1 master) in the 63 x 58 x 35 ABS box (black or clear lid, same body) with brass-insert corner screws.
 
 ![layout](out/holes.png)
 
-The vendor photos the estimates come from: the inside (corner columns, gasket step, lid) and the dimensioned outside.
+The vendor photos the estimates come from: the inside (corner columns, gasket band, lid), the dimensioned outside, and the clear-lid listing with inside dimensions.
 
-![inside](out/ref-inside.jpg) ![dimensions](out/ref-dimensions.jpg)
+![inside](out/ref-inside.jpg) ![dimensions](out/ref-dimensions.jpg) ![clear lid](out/ref-clear-lid.webp)
 
-Measured: outer 64 x 57 x 35 (vendor listing). Everything else is read off the vendor photos, not calipered:
-lid ~8.5 tall, wall ~3, floor ~3, corner columns ~9.5 from the outer corner, gasket step ~4.5 under the seam.
-Gland sizes: PG7 hole 12.5, nut 15 across flats / 17 across corners (varies by maker); SP13 hole 13, nut size not found; M8 hole 8.3, nut guessed 11.5.
+Vendor: outer 63 x 58 x 35 (an older listing said 64 x 57), 53 inside across the 58 side, 39 mm of straight wall between the corner columns on both walls.
+Read off photos, not calipered: lid ~8.5 tall, wall ~2.5, floor ~3, gasket band ~4.5 under the seam, two floor screw bosses (~6 dia, ~4 tall) on the centre line about 5.5 in from each short wall.
+Box numbers are shared with `projects/small-box-sensors/box.scad`.
+Probe cable: 3.5 OD; probe and heat shrink 6.3 at the widest (owner, caliper, DS18B20 probe on hand). The bare end goes in through the gland; the probe stays outside. That sits mid-range in an M8 gland, so the probes take M8 rather than PG7.
+Gland sizes: M8 hole 8.3, nut 11.5-13 across corners (13 used), clamps 2-5 (typical, unchecked); PG7 hole 12.5, nut 17 across corners, ~5 thick; SP13 hole 13, rear body ~13 x ~15 deep, nut unmeasured.
 
-Result: all seven fit at z = 12.5 above the base (long walls 2 + 2 PG7, short wall A 2 PG7, short wall B the SP13). Short wall A has 1.75 mm to each corner column.
-Three PG7 on one long wall cannot (needs 51 of 45 mm). Height window for a PG7 nut is 3 to 22: only ~1 mm of slack each way.
-Calipers wanted before drilling: wall straight length between columns, floor-to-gasket-step height, nut across corners.
+Layout (z from the outer base):
+
+| Wall | Holes | Tightest clearance |
+|---|---|---|
+| Long A, long B | 2 x M8 at centre +/-10, z 12.5 | 3.0 to columns, floor and gasket band |
+| Short A | 2 x M8 at centre +/-10, z 12.5 | 3.0; clears the floor boss |
+| Short B | SP13 10 off centre, z 12.5 | 1.0 to the column; body 2.4 clear of the boss |
+
+With M8, a hole may land ~2 mm off and still fit, so a centre punch through a paper template and a step drill will do. PG7 in the same places leaves 0.5-1 mm (bottom row of the picture).
+Fails: a centred SP13 (its rear body lands on the floor boss).
+Calipers wanted before drilling: boss edge to inside wall face, boss height, M8 nut across corners, SP13 rear depth and its 1 mm to the column.
