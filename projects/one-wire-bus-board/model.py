@@ -8,8 +8,8 @@ Two copper layers, no vias, no jumpers. Plated pads put every pin on both layers
 Terminals: any 3-position 2.54 mm screw block, wire entry facing the front edge. All 21 pins sit on one
 2.54 mm grid, blocks butted (body 3 x 2.54); order terminals to match.
 D runs on the other layer from the G stubs it passes under.
-Writes out/one-wire-bus.kicad_pcb (KiCad 7 text format), out/one-wire-bus.png and, where the box
-has KiCad (shop.pcbfab), the rule check, Gerbers and upload zip under out/fab/.
+Writes out/one-row/one-wire-bus-one-row.kicad_pcb (KiCad 7 text format), the .png beside it and, where the box
+has KiCad (shop.pcbfab), the rule check, Gerbers and upload zip under out/one-row/fab/.
 """
 
 from __future__ import annotations
@@ -247,7 +247,7 @@ def screw_parts() -> list:
 
 
 def assembled(b: dict, out: Path) -> None:
-    """out/assembled-front.png and -back.png: the board with stand-in terminals (the guessed body) and M3 screws on washers."""
+    """out/one-row/assembled-front.png and -back.png: the board with stand-in terminals (the guessed body) and M3 screws on washers."""
     from build123d import Compound, export_step
     from shop import pcbfab
     p = b["p"]
@@ -266,13 +266,13 @@ def assembled(b: dict, out: Path) -> None:
 
 
 def main() -> None:
-    out = Path(__file__).parent / "out"
-    out.mkdir(exist_ok=True)
+    out = Path(__file__).parent / "out" / "one-row"
+    out.mkdir(parents=True, exist_ok=True)
     b = build()
-    (out / "one-wire-bus.kicad_pcb").write_text(to_kicad(b))
-    render(b, out / "one-wire-bus.png")
+    (out / "one-wire-bus-one-row.kicad_pcb").write_text(to_kicad(b))
+    render(b, out / "one-wire-bus-one-row.png")
     from shop import pcbfab
-    print(pcbfab.fab(out / "one-wire-bus.kicad_pcb", out / "fab"))
+    print(pcbfab.fab(out / "one-wire-bus-one-row.kicad_pcb", out / "fab"))
     assembled(b, out)
     x0, y0, x1, y1 = b["outline"]
     print(f"board {x1 - x0:.1f} x {y1 - y0:.1f} mm, {len(b['pads'])} pads, {len(b['tracks'])} track segments")

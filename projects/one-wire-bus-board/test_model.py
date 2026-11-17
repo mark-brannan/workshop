@@ -97,5 +97,5 @@ def test_kicad_file_balanced_and_complete():
 
 
 def test_committed_output_matches_model():
-    f = Path(__file__).parent / "out" / "one-wire-bus.kicad_pcb"
+    f = Path(__file__).parent / "out" / "one-row" / "one-wire-bus-one-row.kicad_pcb"
     assert f.read_text() == m.to_kicad(B)

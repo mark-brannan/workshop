@@ -7,12 +7,12 @@ What this is for: a handful of small boards that tie six 1-wire sensor cables an
 
 | File | What it is |
 |---|---|
-| [out/fab/one-wire-bus-gerbers.zip](out/fab/one-wire-bus-gerbers.zip) | the upload: 7 Gerbers and 1 drill file |
-| [out/fab/gerbers/](out/fab/gerbers/) | the same files, unzipped, for a Gerber viewer |
-| [out/fab/top.png](out/fab/top.png), [bottom.png](out/fab/bottom.png) | KiCad's pictures, to compare with OSH Park's previews |
-| [out/assembled-front.png](out/assembled-front.png), [-back.png](out/assembled-back.png) | the board with stand-in terminals and M3 screws |
-| [out/one-wire-bus.kicad_pcb](out/one-wire-bus.kicad_pcb) | the board; OSH Park also takes this file directly |
-| [out/one-wire-bus.kicad_dru](out/one-wire-bus.kicad_dru) | OSH Park's limits as KiCad rules; the check runs against these |
+| [out/one-row/fab/one-wire-bus-one-row-gerbers.zip](out/one-row/fab/one-wire-bus-one-row-gerbers.zip) | the upload: 7 Gerbers and 1 drill file |
+| [out/one-row/fab/gerbers/](out/one-row/fab/gerbers/) | the same files, unzipped, for a Gerber viewer |
+| [out/one-row/fab/top.png](out/one-row/fab/top.png), [bottom.png](out/one-row/fab/bottom.png) | KiCad's pictures, to compare with OSH Park's previews |
+| [out/one-row/assembled-front.png](out/one-row/assembled-front.png), [-back.png](out/one-row/assembled-back.png) | the board with stand-in terminals and M3 screws |
+| [out/one-row/one-wire-bus-one-row.kicad_pcb](out/one-row/one-wire-bus-one-row.kicad_pcb) | the board; OSH Park also takes this file directly |
+| [out/one-row/one-wire-bus-one-row.kicad_dru](out/one-row/one-wire-bus-one-row.kicad_dru) | OSH Park's limits as KiCad rules; the check runs against these |
 
 `uv run python projects/one-wire-bus-board/model.py` rebuilds all of it and stops on a rule violation.
 
