@@ -96,3 +96,71 @@ def test_cable_notch_opens_the_floor(assembly):
     y = P["floor_y"] + P["wall"] + 1                                           # just above the floor, in the chamber
     assert not ray_hits(assembly, [P["notch_x"], y, P["baffle_z"] - 2], [0, -1, 0])
     assert ray_hits(assembly, [-P["notch_x"], y, P["baffle_z"] - 2], [0, -1, 0])[0][1] == pytest.approx(P["floor_y"] + P["wall"], abs=0.05)
+
+
+# --- overhead variant: plate up under a horizontal panel, floor with one hole, baffle above it ---
+
+OH_CHIP = [0, 0, P["plate_t"] + P["pad_h"] + 2.5]
+IN_W = P["plate_w"] - 2 * P["wall"]
+
+
+@pytest.fixture(scope="module")
+def oh_body():
+    return run("overhead_body")
+
+
+@pytest.fixture(scope="module")
+def oh_cover():
+    return run("overhead_cover")
+
+
+@pytest.fixture(scope="module")
+def oh_assembly():
+    return run("overhead_assembly")
+
+
+def test_overhead_bounding_boxes(oh_body, oh_cover):
+    assert oh_body.extents == pytest.approx([P["plate_w"], P["plate_h"], FACE_Z], abs=0.05)
+    assert oh_cover.extents == pytest.approx([P["plate_w"], P["house_h"], P["depth"] - P["baffle_z"]], abs=0.05)
+    assert oh_cover.bounds[0][2] == pytest.approx(0, abs=0.01), "the floor is not on the bed"
+
+
+def test_overhead_volume_windows(oh_body, oh_cover):
+    assert oh_body.is_watertight and oh_cover.is_watertight
+    assert 7500 < oh_body.volume < 10500
+    assert 3000 < oh_cover.volume < 5000
+
+
+def test_overhead_holes(oh_body, oh_assembly):
+    for sy in (-1, 1):
+        assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
+    for sx in (-1, 1):       # four blind pilot holes on the Adafruit pattern
+        for sy in (-1, 1):
+            hits = ray_hits(oh_body, [sx * P["hole_dy"] / 2, sy * P["hole_dx"] / 2, 30], [0, 0, -1])
+            assert hits[0][2] == pytest.approx(1, abs=0.05)
+    by = P["house_h"] / 2 - P["wall"] - P["boss_d"] / 2 + 0.3
+    bx = IN_W / 2 - P["boss_d"] / 2 + 0.5
+    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' pilots through the floor
+        assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - 8, abs=0.05)
+
+
+def test_overhead_air_path_is_open(oh_assembly):
+    hole = ray_hits(oh_assembly, [0, 0, 30], [0, 0, -1])                       # in at the floor's hole
+    assert hole[0][2] == pytest.approx(P["baffle_z"] + P["baffle_t"], abs=0.05)
+    for sy in (-1, 1):
+        along = ray_hits(oh_assembly, [0, 0, CHANNEL_Z], [0, sy, 0])           # out under the baffle to the end wall
+        assert abs(along[0][1]) == pytest.approx(P["house_h"] / 2 - P["wall"], abs=0.05)
+        turn = ray_hits(oh_assembly, [0, sy * (P["oh_baffle_l"] / 2 + 2), CHANNEL_Z], [0, 0, -1])   # up past the baffle's end
+        assert turn[0][2] == pytest.approx(P["plate_t"], abs=0.05)
+
+
+def test_overhead_nothing_outside_sees_the_chip(oh_assembly):
+    for d in ([0, 0, 1], [0, 1, 2], [0, -1, 2], [1, 0, 2], [-1, 0, 2], [0, 1, 1], [0, -1, 1], [1, 0, 1], [-1, 0, 1],
+              [0, 3, 1], [0, -3, 1], [1, 3, 1], [-1, -3, 1], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, -1]):
+        assert ray_hits(oh_assembly, OH_CHIP, d), f"open line to the chip along {d}"
+
+
+def test_overhead_cable_window(oh_assembly):
+    z = P["plate_t"] + P["notch_d"] / 2
+    assert not ray_hits(oh_assembly, [10, P["win_y"], z], [1, 0, 0])
+    assert ray_hits(oh_assembly, [-10, P["win_y"], z], [-1, 0, 0])

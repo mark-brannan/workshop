@@ -11,7 +11,17 @@ the chip quickly. No membrane, no gasket, no IP rating. The sealed box is [bme68
 Air enters a slot that faces down, rises between the cover and a baffle, turns over the baffle's
 top and falls onto the chip. The test fires rays from the chip in fourteen directions; all are blocked.
 
-## Constraints
+## Overhead variant
+
+For the underside of the panel above the berth by the nav station: plate up, two screws into the panel,
+chip facing down. The panel is the roof. The cover is a floor with one 10 mm hole and a baffle above it:
+air comes in the hole, runs out to the baffle's ends, up and in. The cable leaves a window in one long wall.
+32 x 62 x 16. Prints: `out/bme688-cabin-screen_overhead-body.3mf` and `_overhead-cover.3mf`; the cover takes
+two M2.5 screws on a diagonal.
+
+![overhead cut-away](out/overhead_section_views.png)
+
+## Constraints (wall variant)
 
 | | |
 |---|---|

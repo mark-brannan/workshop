@@ -4,7 +4,7 @@
 // and falls onto the chip. Nothing outside has a straight line to the board.
 // On the wall +Y is up and Z is out from the panel. Print the body as shown, back on the bed.
 // The cover prints face down (part-cover.scad); the baffle bridges its three ribs.
-part = "body";       // body, cover, assembly, section
+part = "body";       // body, cover, assembly, section; overhead_body, overhead_cover, overhead_assembly, overhead_section
 
 /* [Back plate] */
 plate_w = 32;        // x
@@ -47,6 +47,14 @@ boss_d = 4.6;         // two cover screws, in the skirt
 boss_y = -17.5;
 cover_screw_d = 2.9; // M2.5 clearance
 
+/* [Overhead variant] */
+// Hangs under a horizontal panel, plate up. The panel is the roof; the cover is a floor with one
+// centre hole and a baffle above it. Air comes in the hole, runs out to the baffle's two ends, up and in.
+oh_hole_d = 10;      // the floor's one opening, under the baffle's middle
+oh_baffle_l = 27;    // y; leaves 4.9 at each end for the air to turn
+oh_rib_x = 7;        // inner ribs, clear of the hole
+win_y = 15;          // cable window in one long wall, beside the Qwiic plug
+
 /* [Hidden] */
 $fn = 48;
 eps = 0.01;
@@ -57,6 +65,13 @@ boss_x = in_w/2 - boss_d/2 + 0.5;
 posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, board_y + sy*hole_dx/2]];
 
 module rrect(l, w, r) { hull() for (sx = [-1, 1], sy = [-1, 1]) translate([sx*(l/2 - r), sy*(w/2 - r)]) circle(r = r); }
+
+module mount_holes() {
+    for (sy = [-1, 1]) translate([0, sy*mount_pitch/2, -1]) {
+        cylinder(d = mount_d, h = plate_t + 2);
+        translate([0, 0, plate_t + 1 - (csk_d - mount_d)/2]) cylinder(d1 = mount_d, d2 = csk_d + eps, h = (csk_d - mount_d)/2 + eps);
+    }
+}
 
 module body() {
     difference() {
@@ -69,10 +84,7 @@ module body() {
             for (sx = [-1, 1]) translate([sx*boss_x, boss_y, plate_t - eps]) cylinder(d = boss_d, h = face_z - plate_t + eps);                           // cover bosses
             for (p = posts) translate([p[0], p[1], plate_t - eps]) cylinder(d = pad_d, h = pad_h + eps);                                                 // board pads
         }
-        for (sy = [-1, 1]) translate([0, sy*mount_pitch/2, -1]) {
-            cylinder(d = mount_d, h = plate_t + 2);
-            translate([0, 0, plate_t + 1 - (csk_d - mount_d)/2]) cylinder(d1 = mount_d, d2 = csk_d + eps, h = (csk_d - mount_d)/2 + eps);
-        }
+        mount_holes();
         translate([notch_x - notch_w/2, floor_y - 1, baffle_z - 0.2 - notch_d]) cube([notch_w, wall + 2, notch_d + 1]);       // cable notch, open to the front
         for (sx = [-1, 1]) translate([sx*boss_x, boss_y, face_z - 8]) cylinder(d = pilot_d, h = 9);
         for (p = posts) translate([p[0], p[1], 1]) cylinder(d = pilot_d, h = plate_t + pad_h);
@@ -93,7 +105,48 @@ module cover_print() { translate([0, 0, depth]) rotate([180, 0, 0]) cover(); }
 
 module assembly() { body(); cover(); }
 
+oh_boss_y = house_h/2 - wall - boss_d/2 + 0.3;
+oh_bosses = [[-boss_x, oh_boss_y], [boss_x, -oh_boss_y]];      // one diagonal; the other corner has the cable window
+oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];
+
+module overhead_body() {
+    difference() {
+        union() {
+            linear_extrude(plate_t) rrect(plate_w, plate_h, corner_r);
+            translate([0, 0, plate_t - eps]) linear_extrude(face_z - plate_t + eps) difference() {      // four walls
+                square([plate_w, house_h], center = true);
+                square([in_w, house_h - 2*wall], center = true);
+            }
+            for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = boss_d, h = face_z - plate_t + eps);
+            for (p = oh_posts) translate([p[0], p[1], plate_t - eps]) cylinder(d = pad_d, h = pad_h + eps);
+        }
+        mount_holes();
+        translate([in_w/2 - 1, win_y - notch_w/2, plate_t]) cube([wall + 2, notch_w, notch_d]);         // cable window
+        for (b = oh_bosses) translate([b[0], b[1], face_z - 8]) cylinder(d = pilot_d, h = 9);
+        for (p = oh_posts) translate([p[0], p[1], 1]) cylinder(d = pilot_d, h = plate_t + pad_h);
+    }
+}
+
+module overhead_cover() {
+    difference() {
+        translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, cover_t]);                  // floor
+        translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = cover_t + 2);
+        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = cover_screw_d, h = cover_t + 2);
+    }
+    translate([-in_w/2 + fit, -oh_baffle_l/2, baffle_z]) cube([in_w - 2*fit, oh_baffle_l, baffle_t]);  // baffle
+    for (x = [-in_w/2 + fit, -oh_rib_x - rib_w/2, oh_rib_x - rib_w/2, in_w/2 - fit - rib_w])
+        translate([x, -oh_baffle_l/2, baffle_z + baffle_t - eps]) cube([rib_w, oh_baffle_l, face_z - baffle_z - baffle_t + 2*eps]);
+}
+
+module overhead_cover_print() { translate([0, 0, depth]) rotate([180, 0, 0]) overhead_cover(); }
+
+module overhead_assembly() { overhead_body(); overhead_cover(); }
+
 if (part == "body") body();
+if (part == "overhead_body") overhead_body();
+if (part == "overhead_cover") overhead_cover_print();
+if (part == "overhead_assembly") overhead_assembly();
+if (part == "overhead_section") difference() { overhead_assembly(); translate([1, -50, -1]) cube([50, 100, 50]); }
 if (part == "cover") cover_print();
 if (part == "assembly") assembly();
 if (part == "section") difference() { assembly(); translate([1, -50, -1]) cube([50, 100, 50]); }
