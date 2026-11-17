@@ -15,6 +15,8 @@ drawing beats a photo. The project link shows the part fitted.
 | LM393 photoresistor module, on hand | | 31 x 14; one M3 hole, ~4 across, centred, its rim 5 from one end and both long edges; header pins 6 past the edge | owner, caliper | [halmet-enclosure-mount](projects/halmet-enclosure-mount/) |
 | ESP32 breakout board | | holes 80 x ~75.5, M2 | owner, caliper | [esp32-breakout-mount](projects/esp32-breakout-mount/) |
 | AC-DC supply, 58 x 85 | Amazon B0DK3SPYNZ | 85 x 58; two base holes on a diagonal, ~75 x ~47, M3 screws | owner, caliper (approx) | [din-rail-psu-mount](projects/din-rail-psu-mount/) |
+| Adafruit STEMMA QT boards: BME688 (5046), ICM-20948 (4554), LTC4311 (4756) | Adafruit | 25.4 x 17.78; four 2.5 holes at 20.32 x 12.7; JST-SH socket at each short edge; ~4.6 overall height | Adafruit board files (BME688 inferred from the BME680 file); product pages | [small-box-sensors](projects/small-box-sensors/) |
+| SparkFun QwiicBus EndPoint, PCA9615 (16988) | SparkFun | 44.45 x 25.4; RJ45 jack; differential pairs on the jack's pads only | SparkFun board file | too long for small-box-sensors |
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 36 x 19 for the TM1637, from the owner's
 rough calipers. The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
@@ -25,6 +27,7 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 |---|---|---|---|---|
 | Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall at 140 x 22.5 pitch; four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
 | Waterproof box 64 x 57 x 35 | Amazon black ABS, brass inserts | outer 64 x 57 x 35; lid ~8.5, wall ~3, floor ~3, corner columns ~9.5 (photo estimates) | vendor listing; photos | [one-wire-enclosure](projects/one-wire-enclosure/) |
+| Waterproof box 63 x 58 x 35, clear or black lid | Amazon ABS, brass inserts | outer 63 x 58 x 35; 53 inside across; 39 clear between corner columns on both walls; two winged floor bosses on the long axis, ~41 apart (39 to 42.5 by pixel scale); wall ~2.5, floor ~3 (photo estimates) | vendor listing; photo | [small-box-sensors](projects/small-box-sensors/) |
 
 ## Hardware
 
@@ -32,5 +35,8 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 |---|---|---|---|
 | M3 F/F hex standoff, the owner's stock | 19.7 long, 5.5 across flats (assumed) | owner, caliper (length) | halmet-enclosure-mount |
 | 2.54 mm screw terminal block, 3-pos (commodity, KF2.54-3P class) | pins on 2.54 mm, body 3 x 2.54 wide; typical depth 6.5, pins ~3.3 from the wire-entry face, drill ~1.3 | commodity; any in-stock 3P part | [one-wire-bus-board](projects/one-wire-bus-board/) |
+| SP13 panel socket, rear nut (Weipu SP1312) | cut-out 13 with a flat at 12.1; thread M13 x 1; flange 19.5; overall 19.2; panel up to 3.5; nut size not found | Weipu drawing | small-box-sensors |
+| Membrane vent M6 x 0.75 (Gore PolyVent XS) | hole 6.2; head 11.2; thread 7; overall 11.5; wrench 10 | Gore drawing | small-box-sensors |
+| PG7 nylon gland | thread 12.5 x 8 long; body hex 15; locknut 19 across flats x 5 (Essentra), which differs from the 15 in one-wire-enclosure | Altech table; Essentra listing | |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
 | DIN clip (preferred, low profile) | Printables 420009, `din_clip_heat_insert.stl`, printed apart, two M3 heat-insert holes 51 mm apart across the rail (model x = 5 and 56, rail centre 27.05), on the clip's centre line; the mount screws on with M3 countersunk | owner's choice of design |
