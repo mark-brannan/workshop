@@ -1,17 +1,14 @@
-// Fit-check gauge, generated: shop gauge projects/bme688-halpi2 "pod()" 1.6 20
-// Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
-// a hand-written gauge replaces this file and drops this first line.
-use <model.scad>
+// Fit-check gauge, hand-written: the screen's body without its slats and roof.
+// It proves the pegs in the board's holes, the cable in its notch and an M3 self-tapper in a pilot hole,
+// and its back plate is the drill template for the two bulkhead screws.
+include <model.scad>
+part = "gauge";
 
-/* [Gauge] */
-z_plate = 1.6;   // slice height through the plate: its outline and through-holes
-z_wall = 20;    // slice height through the walls the object sits against; below 0 for none
-gauge_t = 1;       // gauge plate thickness
-gauge_rise = 2;    // gauge wall height above the plate
-
-module gauge_slice() {
-    linear_extrude(gauge_t) projection(cut = true) translate([0, 0, -z_plate]) children();
-    if (z_wall >= 0) translate([0, 0, gauge_t - 0.01]) linear_extrude(gauge_rise + 0.01) projection(cut = true) translate([0, 0, -z_wall]) children();
+intersection() {
+    body();
+    union() {
+        translate([-out_w, y_lo - 1, -1]) cube([2*out_w, y_hi - y_lo + 2, plate_t + 1]);                    // back plate, mount holes
+        translate([-out_w, y_lo - 1, -1]) cube([2*out_w, louv_run - bite + 0.99, body_h + 2]);              // floor, notch, two posts with pilots
+        for (s = seats) translate([s[0], s[1], -1]) cylinder(d = pad_d + 1, h = body_h + 2);                // pads and pegs
+    }
 }
-
-gauge_slice() pod();

@@ -1,4 +1,4 @@
-"""Colour renders of the BME688 box, and the clash check.
+"""Colour renders of the BME688 screen, and the clash check.
 
 Usage: uv run python assembly.py   (writes out/assembly*.png; one openscad run per component)
 """
@@ -16,15 +16,13 @@ OUT = HERE / "out"
 
 # component: (colour, opacity, exploded dz). Order is assembly order.
 PARTS = {
-    "box": ("#6b7680", 0.22, -30),
-    "screws_stack": ("#222222", 1, -8),
-    "pod": ("#e0a030", 0.55, 0),
-    "screws_boss": ("#222222", 1, 30),
-    "board": ("#7a1fa2", 1, 14),
-    "pigtail": ("#d03030", 1, 14),
-    "sp13": ("#c0c0c8", 1, 0),
-    "lid": ("#9aa4ad", 0.12, 45),
-    "vent": ("#f0f0f0", 1, 45),
+    "screws_mount": ("#222222", 1, -14),
+    "body": ("#e0a030", 0.6, 0),
+    "cable": ("#30343a", 1, 0),
+    "board": ("#7a1fa2", 1, 12),
+    "pigtail": ("#d03030", 1, 12),
+    "cover": ("#9aa4ad", 0.3, 32),
+    "screws_cover": ("#222222", 1, 46),
 }
 
 
@@ -64,8 +62,7 @@ def shot(path, meshes, panels, size=700):
         scene(p, meshes, names, explode)
         p.add_text(label, font_size=11)
         if cam == "iso":
-            p.view_isometric()
-            p.camera.azimuth = 200
+            p.view_vector((1, 0.45, 1.3), viewup=(0, 1, 0))      # as mounted: back plate on a vertical panel, notch down
         else:
             p.camera_position = cam
             p.enable_parallel_projection()
@@ -93,11 +90,11 @@ def main() -> int:
         meshes = build(Path(d))
     vol, where = clash_volume(meshes)
     print(f"overlap between components {vol:.2f} mm3 {where}")
-    inside = [n for n in PARTS if n not in ("lid", "vent")]
+    inside = [n for n in PARTS if n not in ("cover", "screws_cover")]
     shot(OUT / "assembly.png", meshes, [
-        ("lid off, from the connector side", inside, False, "iso"),
-        ("top, lid off", inside, False, "xy"),
-        ("through the connector wall, lid on", list(PARTS), False, "xz"),
+        ("as mounted on a vertical panel, cover off", inside, False, "iso"),
+        ("from the room, cover off", inside, False, "xy"),
+        ("from the side, cover on", list(PARTS), False, "yz"),
         ("exploded", list(PARTS), True, "iso"),
     ])
     sheet(OUT / "assembly_views.png", meshes, list(PARTS))

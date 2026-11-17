@@ -1,66 +1,108 @@
-// Pod for one Adafruit BME688 board (25.4 x 17.78, holes 20.32 x 12.7) in the 63 x 58 x 35 box.
-// It lifts the board to just under a membrane vent in the lid and walls it in, so the sensor
-// shares a few cm3 of air with the vent instead of the whole box.
-// Screws to the box's two floor bosses; four M2.5 x 20 come up through the block and the board, nuts on top.
-// Print as shown: tab on the bed, rim up, no supports. The block is solid in the model; sparse infill does the lightening.
-include <../../small-box-sensors/box.scad>
-part = "pod";
+// Louvred screen for one Adafruit BME688 board (25.4 x 17.78, holes 20.32 x 12.7): a small Stevenson screen for a cabin bulkhead.
+// Back plate on the bulkhead, -y down, +z into the room. Slatted side walls let air cross the chip and block a straight line in.
+// The board hangs on four pegs and the cover's posts keep it there. The cable lies in a notch in the floor that the cover closes; a cable tie inside stops it pulling out.
+// Print as shown: back plate on the bed, no supports; every wall and slat is a straight extrusion. The cover is part-cover.scad.
+part = "body";
 
-/* [Tab on the floor bosses] */
-plate_l = 55;        // x; inside the 58 floor, clear of the short walls
-tab_w = 10;          // y, on the box centre line
+/* [Chamber, inside] */
+in_w = 21;           // x; the board is 17.78
+in_h = 49;           // y, floor to roof
+in_d = 20;           // z, back plate to cover
 plate_t = 2;
-corner_r = 2;
-slot_w = 3.4;        // M3 self-tapper clearance
-slot_play = 4;       // each way along x; covers the 39 to 47 guess for the boss pitch
+floor_t = 2.4;
+roof_t = 2.4;
 
-/* [Board] */
+/* [Louvres] */
+louv_run = 7;        // a slat runs this far outward and drops as far: 45 degrees
+louv_t = 1.2;
+louv_pitch = 5;      // at most; the slats are spread evenly up the wall
+
+/* [Board seat] */
 board_l = 25.4;      // Adafruit board file
 board_w = 17.78;
 hole_dx = 20.32;
 hole_dy = 12.7;
-plate_y = -5;        // board centre, off the box centre, away from the connector wall
-
-/* [Block and rim] */
-seat_h = 17;         // board's underside above the pod's underside; puts the chip about 1.5 under the vent's thread
-pad_h = 1;           // seat pads stand this far above the block top, clear of the board's underside
+pcb_t = 1.6;         // guess
+board_y = 25.7;      // board centre above the floor; its long side is upright, the plug end down
+pad_h = 8;           // board's underside off the back plate, so the chip sits mid-chamber
 pad_d = 5;
-rim_fit = 0.6;       // board edge to rim, each side
-rim_t = 1.2;
-lid_gap = 1.5;       // rim top to the lid's underside; the lid numbers are photo estimates
-notch_w = 7;         // gap in the rim at one short end, for the Qwiic plug
-screw_d = 2.9;       // M2.5 clearance, printed
-head_d = 5;          // M2.5 pan head, in a pocket under the block
-head_h = 1.2;
+peg_d = 2.1;         // in the board's 2.5 holes
+peg_h = 2.6;         // 1 proud of the board
+
+/* [Cable notch] */
+notch_w = 6;         // cable is a guess at 4.5
+notch_depth = 8;     // down from the cover
+
+/* [Screws] */
+mount_d = 4.5;       // 4 mm wood screw to the bulkhead
+mount_lo_y = 6;      // both on the centre line; the cable is laid in after the body is on the wall
+mount_hi_y = 44;
+pilot_d = 2.5;       // M3 self-tapper (guess; the gauge proves it)
+pilot_depth = 12;
+
+/* [Cover] */
+cover_t = 2;
+cover_hole = 3.4;
+post_base_d = 6;
+post_tip_d = 4.5;
+press_gap = 0.3;     // post tip to the board
 
 /* [Hidden] */
 $fn = 48;
-blk_l = board_l + 2*(rim_fit + rim_t);
-blk_w = board_w + 2*(rim_fit + rim_t);
-pod_h = ceil_z - lid_gap - boss_h;       // 24: the pod's underside sits on the bosses
-posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2, plate_y + sy*hole_dy/2]];
+bite = 0.5;                              // the end slats run this far into the corner posts
+out_w = in_w + 2*louv_run;
+y_lo = -floor_t;
+y_hi = in_h + roof_t;
+body_h = plate_t + in_d;
+slat_v = louv_t / cos(45);               // a slat's thickness measured up the wall
+slat_span = y_hi - y_lo - 2*louv_run + 2*bite - louv_run - slat_v;
+n_slat = ceil(slat_span / louv_pitch) + 1;
+pitch = slat_span / (n_slat - 1);
+notch_z = body_h - notch_depth + notch_w/2;
+post_l = in_d - pad_h - pcb_t - press_gap;
+seats = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, board_y + sy*hole_dx/2]];
+pilots = [for (sx = [-1, 1], y = [y_lo + louv_run/2, y_hi - louv_run/2]) [sx*(in_w/2 + louv_run/2), y]];
 
-module rrect(l, w, r) { hull() for (sx = [-1, 1], sy = [-1, 1]) translate([sx*(l/2 - r), sy*(w/2 - r)]) circle(r = r); }
+module outline() { translate([-out_w/2, y_lo]) square([out_w, y_hi - y_lo]); }
 
-module pod() {
-    difference() {
-        union() {
-            linear_extrude(plate_t) rrect(plate_l, tab_w, corner_r);
-            translate([0, plate_y]) linear_extrude(pod_h) rrect(blk_l, blk_w, corner_r);
-        }
-        translate([0, plate_y, seat_h - pad_h]) linear_extrude(pod_h) rrect(blk_l - 2*rim_t, blk_w - 2*rim_t, corner_r - rim_t/2);   // the chamber
-        translate([blk_l/2 - rim_t - 1, plate_y - notch_w/2, seat_h]) cube([rim_t + 2, notch_w, pod_h]);                          // plug notch
-        for (sx = [-1, 1]) translate([sx*boss_pitch/2, 0, -1]) linear_extrude(plate_t + 2)
-            hull() for (d = [-slot_play, slot_play]) translate([d, 0]) circle(d = slot_w);
-        for (p = posts) translate([p[0], p[1], -1]) {
-            cylinder(d = screw_d, h = pod_h);
-            cylinder(d = head_d, h = head_h + 1);
-        }
-    }
-    for (p = posts) translate([p[0], p[1], seat_h - pad_h - 0.01]) difference() {      // seat pads
-        cylinder(d = pad_d, h = pad_h + 0.01);
-        translate([0, 0, -1]) cylinder(d = screw_d, h = pad_h + 2);
+module walls() {
+    translate([-out_w/2, y_lo]) square([out_w, floor_t]);
+    translate([-out_w/2, y_hi - roof_t]) square([out_w, roof_t]);
+    for (m = [0, 1]) mirror([m, 0]) {
+        for (y = [y_lo, y_hi - louv_run]) translate([in_w/2, y]) square(louv_run);                 // corner posts
+        for (k = [0 : n_slat - 1]) translate([in_w/2, y_lo + louv_run - bite + k*pitch])
+            polygon([[0, louv_run], [0, louv_run + slat_v], [louv_run, slat_v], [louv_run, 0]]);  // slats, down and out
     }
 }
 
-if (part == "pod") pod();
+module body() {
+    difference() {
+        union() {
+            linear_extrude(plate_t) offset(delta = -0.01) outline();   // inset, so no face lies on a wall's face
+            linear_extrude(body_h) walls();
+            for (s = seats) translate([s[0], s[1], plate_t - 0.01]) {
+                cylinder(d = pad_d, h = pad_h + 0.01);
+                cylinder(d = peg_d, h = pad_h + peg_h + 0.01);
+            }
+        }
+        translate([0, y_lo - 1, notch_z]) rotate([-90, 0, 0]) cylinder(d = notch_w, h = floor_t + 2);   // cable notch, open to the cover
+        translate([-notch_w/2, y_lo - 1, notch_z]) cube([notch_w, floor_t + 2, in_d]);
+        for (y = [mount_lo_y, mount_hi_y]) translate([0, y, -1]) cylinder(d = mount_d, h = plate_t + 2);
+        for (p = pilots) translate([p[0], p[1], body_h - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
+    }
+}
+
+// Printed inner face up. It goes on turned over, posts toward the board.
+module cover() {
+    linear_extrude(cover_t) difference() {
+        outline();
+        for (p = pilots) translate(p) circle(d = cover_hole);
+    }
+    for (s = seats) translate([s[0], s[1], cover_t - 0.01]) difference() {
+        cylinder(d1 = post_base_d, d2 = post_tip_d, h = post_l + 0.01);
+        translate([0, 0, post_l - (peg_h - pcb_t) - 0.5]) cylinder(d = peg_d + 0.8, h = peg_h);   // socket over the peg's tip
+    }
+}
+
+if (part == "body") body();
+if (part == "cover") cover();

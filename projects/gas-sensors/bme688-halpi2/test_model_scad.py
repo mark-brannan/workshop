@@ -1,5 +1,6 @@
-"""Tests for the BME688 pod: bounding box, volume window, feature counts, no part overlapping another, the chip under the vent."""
+"""Tests for the BME688 louvred screen: bounding boxes, volume windows, feature counts, what the slats block and pass, no part overlapping another."""
 
+import math
 import re
 import tempfile
 from pathlib import Path
@@ -20,11 +21,17 @@ def params(*files) -> dict[str, float]:
     return out
 
 
-P = params("../../small-box-sensors/box.scad", "model.scad", "assembly.scad")
-CEIL = P["box_h"] - P["lid_top"] - P["box_floor"]            # lid underside above the inside floor
-POD_H = CEIL - P["lid_gap"] - P["boss_h"]
-BLK_L = P["board_l"] + 2 * (P["rim_fit"] + P["rim_t"])
-BLK_W = P["board_w"] + 2 * (P["rim_fit"] + P["rim_t"])
+P = params("model.scad", "assembly.scad")
+OUT_W = P["in_w"] + 2 * P["louv_run"]
+Y_LO, Y_HI = -P["floor_t"], P["in_h"] + P["roof_t"]
+BODY_H = P["plate_t"] + P["in_d"]
+SLAT_V = P["louv_t"] / math.cos(math.radians(45))
+SPAN = Y_HI - Y_LO - 2 * P["louv_run"] + 2 * P["bite"] - P["louv_run"] - SLAT_V
+N_SLAT = math.ceil(SPAN / P["louv_pitch"]) + 1
+PITCH = SPAN / (N_SLAT - 1)
+Z_AIR = BODY_H - 3                                            # above the pads and pegs
+SEATS = [(sx * P["hole_dy"] / 2, P["board_y"] + sy * P["hole_dx"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
+PILOTS = [(sx * (P["in_w"] + P["louv_run"]) / 2, y) for sx in (-1, 1) for y in (Y_LO + P["louv_run"] / 2, Y_HI - P["louv_run"] / 2)]
 
 
 def run(scad: str, *defs: str) -> trimesh.Trimesh:
@@ -39,37 +46,81 @@ def run(scad: str, *defs: str) -> trimesh.Trimesh:
 
 
 @pytest.fixture(scope="module")
-def pod():
+def body():
     return run("model.scad")
 
 
-def test_pod_bounding_box(pod):
-    x, y, z = pod.extents
-    assert x == pytest.approx(P["plate_l"], abs=0.05)
-    assert y == pytest.approx(BLK_W, abs=0.05)
-    assert z == pytest.approx(POD_H, abs=0.05)
-    assert x <= 58 - 2, "longer than the inside floor"
+@pytest.fixture(scope="module")
+def cover():
+    return run("part-cover.scad")
 
 
-def test_pod_volume_window(pod):
-    assert pod.is_watertight
-    assert 9000 < pod.volume < 12500
+def test_body_bounding_box_and_volume(body):
+    assert body.extents == pytest.approx([OUT_W, Y_HI - Y_LO, BODY_H], abs=0.05)
+    assert body.is_watertight
+    assert 11500 < body.volume < 16000
 
 
-def test_pod_holes(pod):
-    for sx in (-1, 1):       # a boss slot is open across the whole guessed pitch range
-        for dx in (-3.5, 0, 3.5):
-            assert not ray_hits(pod, [sx * P["boss_pitch"] / 2 + dx, 0, -5], [0, 0, 1])
-    for sx in (-1, 1):       # four screw holes on the Adafruit pattern, through the whole block
-        for sy in (-1, 1):
-            assert not ray_hits(pod, [sx * P["hole_dx"] / 2, P["plate_y"] + sy * P["hole_dy"] / 2, -5], [0, 0, 1])
+def test_cover_bounding_box_and_volume(cover):
+    post_l = P["in_d"] - P["pad_h"] - P["pcb_t"] - P["press_gap"]
+    assert cover.extents == pytest.approx([OUT_W, Y_HI - Y_LO, P["cover_t"] + post_l], abs=0.05)
+    assert cover.is_watertight
+    assert 3800 < cover.volume < 5200
 
 
-def test_rim_walls_the_board_in_except_at_the_plug(pod):
-    z = P["seat_h"] + 2      # level with the board's parts
-    c = [0, P["plate_y"], z]
-    assert ray_hits(pod, c, [-1, 0, 0]) and ray_hits(pod, c, [0, 1, 0]) and ray_hits(pod, c, [0, -1, 0])
-    assert not ray_hits(pod, c, [1, 0, 0]), "the plug notch is closed"
+def test_slat_count_each_side(body):
+    for sx in (-1, 1):       # up the middle of a louvred wall: a post, every slat, a post
+        hits = ray_hits(body, [sx * (P["in_w"] + P["louv_run"]) / 2, Y_LO - 5, P["plate_t"] + 5], [0, 1, 0])   # under the pilot holes
+        assert len(hits) == 2 * (N_SLAT + 2)
+
+
+def test_no_straight_line_in_from_the_side(body):
+    y = Y_LO + 0.3
+    while y < Y_HI:
+        for sx in (-1, 1):
+            assert ray_hits(body, [0, y, Z_AIR], [sx, 0, 0]), f"open at y={y:.1f}"
+        y += 0.5
+
+
+def test_air_passes_between_the_slats(body):
+    run_ = P["louv_run"]
+    for k in range(N_SLAT - 1):          # down and out through the middle of each gap
+        y_out = Y_LO + run_ - P["bite"] + k * PITCH + (SLAT_V + PITCH) / 2
+        for sx in (-1, 1):
+            start = [sx * (P["in_w"] / 2 - 1), y_out + run_ + 1, Z_AIR]
+            assert not ray_hits(body, start, [sx, -1, 0]), f"gap {k} is closed"
+
+
+def test_holes_and_notch(body):
+    for y in (P["mount_lo_y"], P["mount_hi_y"]):                               # bulkhead screws, through the back plate
+        assert not ray_hits(body, [0, y, -5], [0, 0, 1])
+    for x, y in PILOTS:                                                        # cover screw pilots, blind from the top
+        hits = ray_hits(body, [x, y, BODY_H + 5], [0, 0, -1])
+        assert hits[0][2] == pytest.approx(BODY_H - P["pilot_depth"], abs=0.05)
+    notch_z = BODY_H - P["notch_depth"] + P["notch_w"] / 2
+    assert not ray_hits(body, [0, 5, notch_z], [0, -1, 0]), "no way through the floor"
+    assert not ray_hits(body, [0, -P["floor_t"] / 2, notch_z], [0, 0, 1]), "the notch is closed toward the cover"
+    assert ray_hits(body, [P["notch_w"] / 2 + 1, 5, notch_z], [0, -1, 0])
+    assert P["notch_w"] - P["cable_d"] >= 1
+
+
+def test_pegs_on_the_adafruit_pattern(body):
+    seat_z = P["plate_t"] + P["pad_h"]
+    for x, y in SEATS:
+        top = ray_hits(body, [x, y, BODY_H + 5], [0, 0, -1])[0][2]
+        assert top == pytest.approx(seat_z + P["peg_h"], abs=0.05)
+        shoulder = ray_hits(body, [x + P["pad_d"] / 2 - 0.5, y, BODY_H + 5], [0, 0, -1])[0][2]
+        assert shoulder == pytest.approx(seat_z, abs=0.05)
+    assert P["peg_d"] < 2.5 and P["peg_h"] > P["pcb_t"]
+
+
+def test_cover_posts_reach_the_board(cover):
+    for x, y in SEATS:       # just outside the peg socket, on the post's rim
+        tip = ray_hits(cover, [x + (P["peg_d"] + 0.8) / 2 + 0.3, y, 50], [0, 0, -1])[0][2]
+        board_top = P["plate_t"] + P["pad_h"] + P["pcb_t"]
+        assert 0 < (BODY_H + P["cover_t"] - tip) - board_top <= 0.5
+    for x, y in PILOTS:
+        assert not ray_hits(cover, [x, y, -5], [0, 0, 1])
 
 
 def test_no_component_overlaps_another():
@@ -77,29 +128,9 @@ def test_no_component_overlaps_another():
     assert clash.volume - 1.0 == pytest.approx(0, abs=1e-3)     # only the 1 mm3 marker is left
 
 
-def test_chip_sits_under_the_vent():
-    chip_top = P["boss_h"] + P["seat_h"] + P["pcb_t"] + P["chip_h"]
-    vent_tip = P["box_h"] - P["box_floor"] - P["vent_thread"]
-    assert 1 <= vent_tip - chip_top <= 3
-
-
-def test_screws_and_rim_fit_under_the_lid():
-    tip = P["boss_h"] + P["head_h"] + P["stack_screw_l"]
-    nut_top = P["boss_h"] + P["seat_h"] + P["pcb_t"] + P["m25_nut_t"]
-    assert tip >= nut_top - 0.5, "the screw does not fill the nut"
-    assert CEIL - tip >= 2
-    assert P["lid_gap"] >= 1
-
-
-def test_sensor_air_is_a_small_part_of_the_box():
-    chamber = (BLK_L - 2 * P["rim_t"]) * (BLK_W - 2 * P["rim_t"]) * (CEIL - P["boss_h"] - P["seat_h"] + P["pad_h"])
-    box = 58 * 53 * (P["box_h"] - P["lid_h"] - P["box_floor"])
-    assert chamber < box / 10
-
-
-def test_sp13_nut_seats_on_plain_wall_and_clears_the_pod():
-    plain_top = P["box_h"] - P["lid_h"] - P["box_floor"] - P["gasket_step"]
-    assert P["sp_z"] + P["sp_nut_af"] / 2 <= plain_top - 0.5 and P["sp_z"] - P["sp_nut_af"] / 2 >= 0.5
-    assert abs(P["sp_x"]) + P["sp_nut_af"] / 0.866 / 2 <= P["col_clear"] / 2 - 0.5
-    rear = 53 / 2 - P["sp_rear"]                                # how far the socket reaches into the box
-    assert rear - (P["plate_y"] + BLK_W / 2) >= 6, "no room to solder the cups"
+def test_bulkhead_screws_clear_the_board_and_the_walls():
+    board_lo, board_hi = P["board_y"] - P["board_l"] / 2, P["board_y"] + P["board_l"] / 2
+    r = P["mount_head_d"] / 2
+    assert P["mount_hi_y"] - r >= board_hi + 1 and P["mount_hi_y"] + r <= P["in_h"] - 1
+    assert P["mount_lo_y"] + r <= board_lo - 1 and P["mount_lo_y"] - r >= 1
+    assert board_lo - P["plug_out"] - P["lead_out"] >= 2, "no room under the plug for the wires to turn"
