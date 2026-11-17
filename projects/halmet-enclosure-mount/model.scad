@@ -55,6 +55,7 @@ mod_standoff = 15;   // M2.5 F/F standoffs, tier to module: the tallest that cle
 lid_depth = 17;      // rim to lid ceiling (owner, caliper; the gasket may add 0.5)
 tier_round = 1.5;    // tier: outside-corner radius
 tier_win_inset = 5;  // tier: segment display window, this far inside the module's screw centres
+tier_win_round = 1.5; // tier: corner radius of the joined segment / OLED-plug opening
 ldr_win_edge = 0.3;  // tier: window under the sensor stops this far inside the ledges
 oled_pin_in = 1.6;   // OLED header pin row from its edge (generic; caliper it); the header is on the front edge, toward the glands
 head_d = 6.5;        // M3 pan head, screwed up from under the plate
@@ -278,15 +279,27 @@ module tier_rect2d() {   // the space the tier may use: clear of the lid-screw c
     translate([tier_x0, tier_y0]) square([lid_col_x - 1 - tier_x0, plate_y_hi - tier_y0]);
 }
 
-// A plain plate over the allowed space, square-sided, with a window under the segment display and a
-// window under the light sensor. Solid elsewhere.
+// A plain plate over the allowed space, square-sided, with one opening from under the segment display up to
+// the OLED's header plug, and a window under the light sensor. Solid elsewhere.
 module tier_plate2d() {
     offset(r = tier_round) offset(delta = -tier_round) tier_rect2d();
 }
 
-module tier_windows2d() {
+module seg_win2d() {   // under the segment display, tier_win_inset inside its screw centres
     translate([seg_x - seg_hole_dx/2 + tier_win_inset, seg_y - seg_hole_dy/2 + tier_win_inset])
         square([seg_hole_dx - 2*tier_win_inset, seg_hole_dy - 2*tier_win_inset]);
+}
+module oled_plug2d() {   // the Dupont plug on the OLED header pins passes through here
+    translate([oled_x - 6.5, oled_y - oled_h/2 + oled_pin_in - 2.3]) square([13, 4.4]);
+}
+
+module tier_windows2d() {
+    // the two joined: straight sides from the segment window to the plug window's bottom edge, so the OLED's
+    // front posts keep their land; symmetric about the displays' centre line, corners rounded
+    offset(r = tier_win_round) offset(delta = -tier_win_round) union() {
+        hull() { seg_win2d(); intersection() { oled_plug2d(); translate([0, oled_y - oled_h/2 + oled_pin_in - 2.3]) square([200, 0.01]); } }
+        oled_plug2d();
+    }
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;
     x0 = ldr_x0 + ldr_cell_clear;
@@ -307,7 +320,12 @@ module ldr_cradle() {
         translate(ldr_post) circle(d = ldr_boss_d);
     }
     linear_extrude(ldr_ledge + pcb_t) difference() {
-        for (s = [-1, 1]) translate([ldr_x0 + 1.5, ldr_y + (s < 0 ? -w/2 - ldr_wall : w/2)]) square([ldr_l - 3, ldr_wall]);
+        for (s = [-1, 1]) let(
+            y0 = ldr_y + (s < 0 ? -w/2 - ldr_wall : w/2),
+            // a tier screw head over the wall's photocell half moves the wall's start past the head, no sliver left
+            x0 = max(concat([ldr_x0 + 1.5], [for (c = tier_cols)
+                if (c[0] < ldr_x0 + ldr_l/2 && abs(c[1] - y0 - ldr_wall/2) < head_d/2 + 0.5 + ldr_wall/2) c[0] + head_d/2 + 0.5])))
+            translate([x0, y0]) square([ldr_x0 + ldr_l - 1.5 - x0, ldr_wall]);
         for (p = oled_posts) translate(p) circle(d = 6.5);   // M2.5 standoffs pass beside the walls
     }
 }
@@ -320,7 +338,6 @@ module tier() {
                 tier_windows2d();
                 for (c = tier_cols) translate(c) circle(d = screw_d);
                 for (p = concat(oled_posts, seg_posts)) translate(p) circle(d = m25_d);
-                translate([oled_x - 6.5, oled_y - oled_h/2 + oled_pin_in - 2.3]) square([13, 4.4]);   // window for the Dupont plug on the OLED header pins
             }
             translate([0, 0, tier_z1 - 0.01]) intersection() { ldr_cradle(); linear_extrude(10) offset(delta = -0.3) ldr_floor2d(); }
         }
