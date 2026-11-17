@@ -198,6 +198,27 @@ def test_tier_clears_lid_column_board_and_usb_plug(tier):
         assert not ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0)) or ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0))[0][0] > BOARD_RIGHT + 30
 
 
+PLUG_Y = P["oled_y"] - P["oled_h"] / 2 + P["oled_pin_in"]  # OLED header pin row: the Dupont plug window's centre
+SEG_WIN_TOP = SEG_Y + P["seg_hole_dy"] / 2 - P["tier_win_inset"]
+
+
+def test_tier_opening_joins_segment_window_to_oled_plug(tier):
+    for y in (SEG_Y, (SEG_WIN_TOP + PLUG_Y) / 2, PLUG_Y):
+        assert top(tier, P["oled_x"], y) is None  # open from under the segment display to the OLED plug
+    for cx, cy in MOD_POSTS:  # each module post keeps a solid land toward the opening
+        v = np.array([P["oled_x"] - cx, (SEG_WIN_TOP + PLUG_Y) / 2 - cy])
+        x, y = np.array([cx, cy]) + 4.8 * v / np.linalg.norm(v)
+        assert top(tier, x, y) is not None
+
+
+def test_cradle_walls_clear_the_tier_screw_heads(tier):
+    for cx, cy in COLS:  # nothing stands on the tier top under an M3 head
+        for r in (P["screw_d"] / 2 + 0.3, P["head_d"] / 2 - 0.5, P["head_d"] / 2):
+            for a in np.radians(range(0, 360, 15)):
+                h = top(tier, cx + r * np.cos(a), cy + r * np.sin(a))
+                assert h is None or h <= TIER_TOP + 0.02
+
+
 @pytest.fixture(scope="module")
 def gauge(tmp_path_factory):
     d = tmp_path_factory.mktemp("halmet_gauge")
@@ -237,7 +258,7 @@ def test_cradle_ledges_walls_and_screw_boss(tier):
     mid = LDR_X0 + 7  # clear of the OLED standoff cut-outs and the screw pad
     for s in (-1, 1):
         assert top(tier, mid, LDR_Y + s * (w / 2 - 1)) == pytest.approx(LDR_Z, abs=0.02)  # edge ledge
-        assert top(tier, mid, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
+        assert top(tier, LDR_X0 + LDR_L / 2, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
     assert top(tier, mid, LDR_Y) is None  # window between the ledges: nothing under the board
     assert top(tier, mid, LDR_Y + LDR_W / 2 - P["ldr_lip"] / 2) == pytest.approx(TIER_TOP + P["ldr_ledge"], abs=0.02)  # ledge
     edge = LDR_W / 2 - P["ldr_lip"] / 2  # under the board's edge, inside the lip

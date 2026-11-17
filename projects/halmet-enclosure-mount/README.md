@@ -80,9 +80,10 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
   It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
   hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
+  One opening runs from under the TM1637 up to the OLED's header plug, at least 5 mm from every module post.
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
   between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
-  It sits on edge ledges clear of its solder, side walls stop it turning, and one M3 goes up from under the tier
+  It sits on edge ledges clear of its solder, side walls stop it turning (the back one starts past the back-left tier screw head), and one M3 goes up from under the tier
   through its hole, a nut on the board top; a round recess in the tier's underside takes the screw head (a nut, not a heat-set insert: the hole is 3.4, the insert 4.0). Bend the header pins down.
 
 ## Assembly
