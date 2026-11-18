@@ -121,14 +121,14 @@ def oh_assembly():
 
 def test_overhead_bounding_boxes(oh_body, oh_cover):
     assert oh_body.extents == pytest.approx([P["plate_w"], P["plate_h"], FACE_Z], abs=0.05)
-    assert oh_cover.extents == pytest.approx([P["plate_w"], P["house_h"], P["depth"] - P["baffle_z"]], abs=0.05)
+    assert oh_cover.extents == pytest.approx([P["plate_w"], P["house_h"], FACE_Z + P["oh_floor_t"] - P["baffle_z"]], abs=0.05)
     assert oh_cover.bounds[0][2] == pytest.approx(0, abs=0.01), "the floor is not on the bed"
 
 
 def test_overhead_volume_windows(oh_body, oh_cover):
     assert oh_body.is_watertight and oh_cover.is_watertight
     assert 7500 < oh_body.volume < 10500
-    assert 2500 < oh_cover.volume < 3500
+    assert 1800 < oh_cover.volume < 2500
 
 
 def test_overhead_holes(oh_body, oh_assembly):

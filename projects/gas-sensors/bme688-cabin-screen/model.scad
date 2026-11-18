@@ -54,7 +54,8 @@ cover_screw_d = 2.9; // M2.5 clearance
 // Air comes in the hole, runs out under the arch to its two open ends, up and in.
 oh_hole_d = 10;      // the floor's one opening, under the arch's crown
 oh_baffle_l = 27;    // y; leaves 4.9 at each end for the air to turn
-oh_arch_t = 0.8;    // two 0.4 lines, square to the arch
+oh_floor_t = 1.2;   // six 0.2 layers; the wall variant's cover keeps cover_t
+oh_arch_t = 0.6;    // three 0.2 layers at the crown
 oh_fin_t = 0.8;     // two 0.4 lines
 oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as vanes
 oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
@@ -157,19 +158,19 @@ module oh_extrude(y0, y1) { translate([0, y1, face_z]) rotate([90, 0, 0]) mirror
 
 module overhead_cover() {
     difference() {
-        translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, cover_t]);                  // floor
-        translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = cover_t + 2);
-        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = cover_screw_d, h = cover_t + 2);
+        translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, oh_floor_t]);               // floor
+        translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = oh_floor_t + 2);
+        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = cover_screw_d, h = oh_floor_t + 2);
     }
     oh_extrude(-oh_baffle_l/2, oh_baffle_l/2) oh_arch_profile();
     for (s = oh_fin_segs) oh_extrude(s[0], s[1]) oh_fin_profile();
     intersection() {                                                                                  // the fins carry on down through the hole to the bed as vanes
-        oh_extrude(-oh_hole_d/2, oh_hole_d/2) oh_fin_profile(-cover_t);
-        translate([0, 0, face_z - eps]) cylinder(d = oh_hole_d + 0.1, h = cover_t + eps);
+        oh_extrude(-oh_hole_d/2, oh_hole_d/2) oh_fin_profile(-oh_floor_t);
+        translate([0, 0, face_z - eps]) cylinder(d = oh_hole_d + 0.1, h = oh_floor_t + eps);
     }
 }
 
-module overhead_cover_print() { translate([0, 0, depth]) rotate([180, 0, 0]) overhead_cover(); }
+module overhead_cover_print() { translate([0, 0, face_z + oh_floor_t]) rotate([180, 0, 0]) overhead_cover(); }
 
 module overhead_assembly() { overhead_body(); overhead_cover(); }
 
