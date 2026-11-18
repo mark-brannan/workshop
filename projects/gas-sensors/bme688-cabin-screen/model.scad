@@ -34,6 +34,7 @@ hole_dy = 12.7;
 board_y = 4;         // board centre; leaves 4 mm under it for the Qwiic plug
 pad_h = 2;
 pad_d = 5;
+board_t = 1.6;
 pilot_d = 2.1;       // M2.5 self-tapping into the print
 
 /* [Cover] */
@@ -61,6 +62,15 @@ oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as van
 oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
 oh_fin_gap_y = 7;    // gap centres
 win_y = 15;          // cable window in one long wall, beside the Qwiic plug
+oh_insert_d = 3.2;   // M2 heat-set insert hole; insert size a guess (3.2 x 4) until the bag or calipers say
+oh_insert_l = 4;
+oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
+oh_screw_d = 2.4;    // M2 clearance in the cover's floor
+oh_cboss_d = 6.2;      // cover bosses round the inserts
+oh_pad_d = 6;        // board seat: insert pads under two holes on one diagonal
+oh_lip = 1.2;        // seat ledge reaches this far in under the board's edge
+oh_seat_wall = 1.2;  // seat walls round the board, flush with its face; stop it turning on two screws
+oh_qwiic_w = 8;      // gap in each short seat wall for the Qwiic plug, on the centre line
 
 /* [Hidden] */
 $fn = 48;
@@ -112,9 +122,29 @@ module cover_print() { translate([0, 0, depth]) rotate([180, 0, 0]) cover(); }
 
 module assembly() { body(); cover(); }
 
-oh_boss_y = house_h/2 - wall - boss_d/2 + 0.3;
-oh_bosses = [[-boss_x, oh_boss_y], [boss_x, -oh_boss_y]];      // one diagonal; the other corner has the cable window
-oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];
+oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
+oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
+oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner has the cable window
+oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board screws, on the same diagonal
+oh_seat_z = plate_t + pad_h;                                   // board's back
+oh_pocket = [board_w + 2*fit, board_l + 2*fit];
+
+// The board's seat: a ledge under its edges, insert pads under two holes, walls to its face
+// with a gap in each short wall for the Qwiic plug.
+module oh_seat() {
+    linear_extrude(oh_seat_z) difference() {
+        square(oh_pocket, center = true);
+        square([board_w - 2*oh_lip, board_l - 2*oh_lip], center = true);
+    }
+    for (p = oh_posts) translate([p[0], p[1], 0]) cylinder(d = oh_pad_d, h = oh_seat_z);
+    linear_extrude(oh_seat_z + board_t) difference() {
+        square(oh_pocket + 2*[oh_seat_wall, oh_seat_wall], center = true);
+        square(oh_pocket, center = true);
+        square([oh_qwiic_w, oh_pocket[1] + 2*oh_seat_wall + 1], center = true);
+    }
+}
+
+module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
 
 module overhead_body() {
     difference() {
@@ -124,13 +154,13 @@ module overhead_body() {
                 square([plate_w, house_h], center = true);
                 square([in_w, house_h - 2*wall], center = true);
             }
-            for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = boss_d, h = face_z - plate_t + eps);
-            for (p = oh_posts) translate([p[0], p[1], plate_t - eps]) cylinder(d = pad_d, h = pad_h + eps);
+            for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = oh_cboss_d, h = face_z - plate_t + eps);
+            oh_seat();
         }
         mount_holes();
         translate([in_w/2 - 1, win_y - notch_w/2, plate_t]) cube([wall + 2, notch_w, notch_d]);         // cable window
-        for (b = oh_bosses) translate([b[0], b[1], face_z - 8]) cylinder(d = pilot_d, h = 9);
-        for (p = oh_posts) translate([p[0], p[1], 1]) cylinder(d = pilot_d, h = plate_t + pad_h);
+        for (b = oh_bosses) translate(b) oh_insert_hole(face_z);
+        for (p = oh_posts) translate(p) oh_insert_hole(oh_seat_z);
     }
 }
 
@@ -160,7 +190,7 @@ module overhead_cover() {
     difference() {
         translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, oh_floor_t]);               // floor
         translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = oh_floor_t + 2);
-        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = cover_screw_d, h = oh_floor_t + 2);
+        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
     }
     oh_extrude(-oh_baffle_l/2, oh_baffle_l/2) oh_arch_profile();
     for (s = oh_fin_segs) oh_extrude(s[0], s[1]) oh_fin_profile();

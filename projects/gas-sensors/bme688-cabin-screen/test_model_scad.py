@@ -134,14 +134,27 @@ def test_overhead_volume_windows(oh_body, oh_cover):
 def test_overhead_holes(oh_body, oh_assembly):
     for sy in (-1, 1):
         assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
-    for sx in (-1, 1):       # four blind pilot holes on the Adafruit pattern
-        for sy in (-1, 1):
-            hits = ray_hits(oh_body, [sx * P["hole_dy"] / 2, sy * P["hole_dx"] / 2, 30], [0, 0, -1])
-            assert hits[0][2] == pytest.approx(1, abs=0.05)
-    by = P["house_h"] / 2 - P["wall"] - P["boss_d"] / 2 + 0.3
-    bx = IN_W / 2 - P["boss_d"] / 2 + 0.5
-    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' pilots through the floor
-        assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - 8, abs=0.05)
+    seat = P["plate_t"] + P["pad_h"]
+    bottom = P["oh_insert_l"] + P["oh_insert_extra"]
+    for x, y in ((-P["hole_dy"] / 2, P["hole_dx"] / 2), (P["hole_dy"] / 2, -P["hole_dx"] / 2)):   # board inserts, one diagonal
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(seat - bottom, abs=0.05)
+    for x, y in ((P["hole_dy"] / 2, P["hole_dx"] / 2), (-P["hole_dy"] / 2, -P["hole_dx"] / 2)):   # the other two holes are free
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)
+    by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
+    bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
+    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' inserts through the floor
+        assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
+
+
+def test_overhead_seat(oh_body):
+    seat = P["plate_t"] + P["pad_h"]
+    top = seat + P["board_t"]
+    hw, hl = P["board_w"] / 2 + P["fit"], P["board_l"] / 2 + P["fit"]
+    assert ray_hits(oh_body, [hw - 0.5, 0, 30], [0, 0, -1])[0][2] == pytest.approx(seat, abs=0.05)        # ledge under the long edge
+    assert ray_hits(oh_body, [hw + 0.5, 0, 30], [0, 0, -1])[0][2] == pytest.approx(top, abs=0.05)         # wall flush with the face
+    assert ray_hits(oh_body, [hw - 0.5, hl + 0.5, 30], [0, 0, -1])[0][2] == pytest.approx(top, abs=0.05)  # short wall at the corner
+    assert ray_hits(oh_body, [0, hl + 0.5, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)  # Qwiic gap
+    assert ray_hits(oh_body, [0, 0, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)       # open under the middle
 
 
 OH_FIN_X = [i * P["oh_fin_pitch"] for i in (-1.5, -0.5, 0.5, 1.5)]
