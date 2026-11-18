@@ -61,7 +61,15 @@ oh_fin_t = 0.8;     // two 0.4 lines
 oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as vanes
 oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
 oh_fin_gap_y = 7;    // gap centres
-win_y = 15;          // cable window in one long wall, beside the Qwiic plug
+oh_exit_x = 8;       // cable exit: arched hole in the +y end wall, off centre to clear the panel screw
+oh_exit_w = 5;
+oh_exit_h = 7;       // from the plate's face to the arch's crown
+oh_tie_y = 24;       // tie anchor on the end flange: an arched tunnel under a block, the tie goes through and round the cable
+oh_tie_w = 3.6;      // tunnel across y: ties up to 3.6 wide
+oh_tie_h = 2;        // tunnel height, arch crown included
+oh_tie_len = 5;      // block along x, the tie's run under the cable
+oh_tie_roof = 1.2;   // block above the tunnel's crown
+oh_tie_side = 0.8;   // block either side of the tunnel
 oh_insert_d = 3.2;   // M2 heat-set insert hole; insert size a guess (3.2 x 4) until the bag or calipers say
 oh_insert_l = 4;
 oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
@@ -124,7 +132,7 @@ module assembly() { body(); cover(); }
 
 oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
-oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner has the cable window
+oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
 oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board screws, on the same diagonal
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_pocket = [board_w + 2*fit, board_l + 2*fit];
@@ -144,6 +152,11 @@ module oh_seat() {
     }
 }
 
+// A hole with a round top: straight sides, then a half circle, so it prints without support.
+module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate([0, h - w/2]) circle(d = w); translate([-w/2, 0]) square([w, h - w/2]); } }
+// The tie tunnel's section in (y, z) about its centre line: sides, then a half ellipse to the crown.
+module tie_tunnel2d() { hull() { translate([-oh_tie_w/2, 0]) square([oh_tie_w, oh_tie_h/2]); translate([0, oh_tie_h/2]) scale([oh_tie_w/2, oh_tie_h/2]) circle(r = 1); } }
+
 module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
 
 module overhead_body() {
@@ -156,9 +169,12 @@ module overhead_body() {
             }
             for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = oh_cboss_d, h = face_z - plate_t + eps);
             oh_seat();
+            translate([oh_exit_x - oh_tie_len/2, oh_tie_y - oh_tie_w/2 - oh_tie_side, plate_t - eps])
+                cube([oh_tie_len, oh_tie_w + 2*oh_tie_side, oh_tie_h + oh_tie_roof + eps]);                 // tie anchor block
         }
         mount_holes();
-        translate([in_w/2 - 1, win_y - notch_w/2, plate_t]) cube([wall + 2, notch_w, notch_d]);         // cable window
+        translate([oh_exit_x, house_h/2 + 1, plate_t]) rotate([90, 0, 0]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit
+        translate([oh_exit_x - oh_tie_len/2 - 1, oh_tie_y, plate_t - eps]) rotate([90, 0, 90]) linear_extrude(oh_tie_len + 2) translate([0, 0]) tie_tunnel2d();
         for (b = oh_bosses) translate(b) oh_insert_hole(face_z);
         for (p = oh_posts) translate(p) oh_insert_hole(oh_seat_z);
     }

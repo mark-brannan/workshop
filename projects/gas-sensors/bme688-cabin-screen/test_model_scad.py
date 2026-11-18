@@ -200,7 +200,14 @@ def test_overhead_nothing_outside_sees_the_chip(oh_assembly):
         assert ray_hits(oh_assembly, OH_CHIP, d), f"open line to the chip along {d}"
 
 
-def test_overhead_cable_window(oh_assembly):
-    z = P["plate_t"] + P["notch_d"] / 2
-    assert not ray_hits(oh_assembly, [10, P["win_y"], z], [1, 0, 0])
-    assert ray_hits(oh_assembly, [-10, P["win_y"], z], [-1, 0, 0])
+def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
+    z = P["plate_t"] + 1
+    x = P["oh_exit_x"]
+    assert ray_hits(oh_assembly, [x, 15, z], [0, 1, 0])[0][1] > P["house_h"] / 2           # out through the end wall, to the tie block
+    assert ray_hits(oh_assembly, [x, 15, z + P["oh_exit_h"] + 0.5], [0, 1, 0])       # closed above the arch
+    assert ray_hits(oh_assembly, [-x, 15, z], [0, 1, 0])                               # the rest of the wall is closed
+    tz = P["plate_t"] + P["oh_tie_h"] / 2
+    for d in (1, -1):                                                                 # tunnel open both ways under the block
+        assert not ray_hits(oh_body, [x, P["oh_tie_y"], tz], [d, 0, 0])
+    top = P["plate_t"] + P["oh_tie_h"] + P["oh_tie_roof"]
+    assert ray_hits(oh_body, [x, P["oh_tie_y"], 30], [0, 0, -1])[0][2] == pytest.approx(top, abs=0.05)
