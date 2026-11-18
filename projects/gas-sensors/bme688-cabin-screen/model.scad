@@ -168,6 +168,20 @@ module foot_fillet(len, r = oh_fillet_r, n = 32, d = 0.05) {
         polygon(concat([for (i = [0:n]) let(a = 270 - 90*i/n) [r - d + r*cos(a), r - d + r*sin(a)]], [[-d, -d]]));
 }
 
+// The interior's fillet in one piece: the interior box less a box with its bottom and vertical
+// edges rounded r, so foot fillets meet at each corner in a sphere octant and the wall corners
+// above are rounded too. Centres 0.05 in from the faces, as foot_fillet's, keeps it manifold.
+module inner_fillet(r = oh_fillet_r, d = 0.05) {
+    cx = in_w/2 - (r - d); cy = roof_y - (r - d); h = face_z - plate_t;
+    difference() {
+        translate([-in_w/2, -roof_y, plate_t - eps]) cube([in_w, 2*roof_y, h]);   // eps short of the walls' tops: flush tops make a non-manifold edge
+        translate([0, 0, plate_t]) hull() for (sx = [-1, 1], sy = [-1, 1]) translate([sx*cx, sy*cy, r - d]) {
+            sphere(r = r, $fn = 64);
+            cylinder(r = r, h = h, $fn = 64);
+        }
+    }
+}
+
 module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
 
 module overhead_body() {
@@ -182,10 +196,7 @@ module overhead_body() {
             oh_seat();
             translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
                 cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
-            translate([-in_w/2, -roof_y, plate_t]) foot_fillet(in_w);                                         // fillets round every wall's foot, inside
-            translate([in_w/2, roof_y, plate_t]) rotate([0, 0, 180]) foot_fillet(in_w);                       // this one turns the tie back up
-            translate([in_w/2, -roof_y, plate_t]) rotate([0, 0, 90]) foot_fillet(2*roof_y);
-            translate([-in_w/2, roof_y, plate_t]) rotate([0, 0, -90]) foot_fillet(2*roof_y);
+            inner_fillet();                                                                                   // every inside foot and corner rounded; the +y end's turns the tie back up
             translate([plate_w/2, house_h/2, plate_t]) rotate([0, 0, 180]) mirror([0, 1, 0]) foot_fillet(plate_w);   // and outside, onto the end flanges
             translate([-plate_w/2, -house_h/2, plate_t]) mirror([0, 1, 0]) foot_fillet(plate_w);
         }
