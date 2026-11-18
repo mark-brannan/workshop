@@ -17,7 +17,7 @@ For the underside of the panel above the berth by the nav station: plate up, two
 chip facing down. The panel is the roof. The cover is a floor with one 10 mm hole under a shallow arch that meets the floor at both
 sides; four fins hold the arch up (arch 0.6 mm, three layers at its crown; fins 0.8 mm, two lines; floor 1.2 mm), each with a 3 mm gap either side of the hole so air can cross between them.
 Air comes in the hole, runs out under the arch to its open ends, up and in. It prints floor-down with no
-supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves through an arched hole in one end wall, 8 mm off centre to clear the panel screw, and a cable tie holds it to an arched tunnel on that end's flange (ties up to 3.6 wide) for strain relief.
+supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves through an arched hole in the +x long wall near the Qwiic end, so it can run rearward along the panel. Just inside the hole a cable tie (up to 3.6 wide) holds it flat to the plate for strain relief: the tie runs down through one slot in the plate, along a groove in the back and up through the other, so nothing stands inside the box and nothing shows outside.
 32 x 62 x 15.6. Prints: `out/bme688-cabin-screen_overhead-body.3mf` and `_overhead-cover.3mf`; the cover takes
 two M2 screws on a diagonal, into heat-set inserts in the body.
 
