@@ -59,8 +59,8 @@ module oled_header() {   // pins out the front edge, toward the glands, a Dupont
     }
 }
 module oled_glass() { translate([oled_x - 13, oled_y - 9.5 + 2, mod_z + pcb_t]) cube([26, 19, 1.5]); }
-module seg() { translate([seg_x - seg_w/2, seg_y - seg_h/2, mod_z]) cube([seg_w, seg_h, pcb_t]); }
-module seg_body() { translate([seg_x - 15, seg_y - 7, mod_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
+module seg() { for (y = [seg_y, seg2_y]) translate([seg_x - seg_w/2, y - seg_h/2, mod_z]) cube([seg_w, seg_h, pcb_t]); }
+module seg_body() { for (y = [seg_y, seg2_y]) translate([seg_x - 15, y - 7, mod_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
 
 module ldr() {
     translate([ldr_x0, ldr_y - ldr_w/2, ldr_z]) {
@@ -76,7 +76,7 @@ module ldr() {
 }
 
 module tier_standoffs() { for (c = tier_cols) translate([c[0], c[1], tier_z0]) hexpost(tier_standoff); }
-module module_standoffs() { for (p = concat(oled_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = mod_standoff, $fn = 6); }
+module module_standoffs() { for (p = concat(seg2_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = mod_standoff, $fn = 6); }
 
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
@@ -86,7 +86,7 @@ module screws_ldr() {   // M3 up from under the tier, nut on the board top
     translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2.4);
 }
 module screws_m25() {
-    for (p = concat(oled_posts, seg_posts)) {
+    for (p = concat(seg2_posts, seg_posts)) {
         translate([p[0], p[1], tier_z1 - tier_t - 2]) head(4.5, 2);
         translate([p[0], p[1], mod_z + pcb_t]) head(4.5, 2);
     }

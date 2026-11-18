@@ -34,10 +34,10 @@ RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
 TIER_Z0 = P["tier_pad_h"]                # standoff feet on the plate's pads
 TIER_TOP = TIER_Z0 + P["tier_standoff"] + P["tier_t"]
-SEG_Y = P["oled_y"] - P["oled_h"] / 2 - P["seg_gap"] - P["seg_h"] / 2
-MOD_POSTS = [(P["oled_x"] + sx * P["oled_hole_dx"] / 2, P["oled_y"] + sy * P["oled_hole_dy"] / 2)
-             for sx in (-1, 1) for sy in (-1, 1)]
-MOD_POSTS += [(P["oled_x"] + sx * P["seg_hole_dx"] / 2, SEG_Y + sy * P["seg_hole_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
+SEG_Y = P["seg_y"]
+SEG2_Y = SEG_Y + P["seg_h"] + P["seg_gap"]  # the upper module, where the OLED was
+MOD_POSTS = [(P["seg_x"] + sx * P["seg_hole_dx"] / 2, y + sy * P["seg_hole_dy"] / 2)
+             for y in (SEG2_Y, SEG_Y) for sx in (-1, 1) for sy in (-1, 1)]
 USB_Y = 16.5 - 29 + DY                    # USB-C centre on the board's right edge
 BOARD_RIGHT = 44.5 + DX
 VOL_LO, VOL_HI = 23000, 32000  # first hex-plate build: 25789; with the tier pads and sensor seats 29833
@@ -199,15 +199,16 @@ def test_tier_clears_lid_column_board_and_usb_plug(tier):
         assert not ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0)) or ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0))[0][0] > BOARD_RIGHT + 30
 
 
-PLUG_Y = P["oled_y"] - P["oled_h"] / 2 + P["oled_pin_in"]  # OLED header pin row: the Dupont plug window's centre
-SEG_WIN_TOP = SEG_Y + P["seg_hole_dy"] / 2 - P["tier_win_inset"]
+SEG_WIN_LO = SEG_Y - P["seg_hole_dy"] / 2 + P["tier_win_inset"]
+SEG2_WIN_TOP = SEG2_Y + P["seg_hole_dy"] / 2 - P["tier_win_inset"]
 
 
-def test_tier_opening_joins_segment_window_to_oled_plug(tier):
-    for y in (SEG_Y, (SEG_WIN_TOP + PLUG_Y) / 2, PLUG_Y):
-        assert top(tier, P["oled_x"], y) is None  # open from under the segment display to the OLED plug
+def test_tier_opening_joins_the_two_module_windows(tier):
+    mid = (SEG_Y + SEG2_Y) / 2
+    for y in (SEG_WIN_LO + 0.3, SEG_Y, mid, SEG2_Y, SEG2_WIN_TOP - 0.3):
+        assert top(tier, P["seg_x"], y) is None
     for cx, cy in MOD_POSTS:  # each module post keeps a solid land toward the opening
-        v = np.array([P["oled_x"] - cx, (SEG_WIN_TOP + PLUG_Y) / 2 - cy])
+        v = np.array([P["seg_x"] - cx, mid - cy])
         x, y = np.array([cx, cy]) + 4.8 * v / np.linalg.norm(v)
         assert top(tier, x, y) is not None
 
@@ -272,10 +273,10 @@ def test_cradle_ledges_walls_and_screw_boss(tier):
     assert top(tier, *off) == pytest.approx(LDR_Z, abs=0.02)  # pad at ledge height round the hole
 
 
-def test_sensor_fits_under_the_oled_and_clear_of_its_standoffs():
+def test_sensor_fits_under_the_modules_and_clear_of_their_standoffs():
     assert LDR_Z + P["pcb_t"] + P["ldr_part_h"] + 1 <= TIER_TOP + P["mod_standoff"]  # trimpot clears the OLED
-    for cx, cy in MOD_POSTS[:4]:
-        assert abs(cy - LDR_Y) > LDR_W / 2 + M25_HEX_R + 0.3
+    for cx, cy in MOD_POSTS:
+        assert abs(cy - LDR_Y) > LDR_W / 2 + M25_HEX_R + 0.3 or cx - M25_HEX_R > LDR_X0 + LDR_L
 
 
 def test_board_and_straight_pins_clear_the_tier_screw_heads():
