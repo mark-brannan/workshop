@@ -14,8 +14,10 @@ top and falls onto the chip. The test fires rays from the chip in fourteen direc
 ## Overhead variant
 
 For the underside of the panel above the berth by the nav station: plate up, two screws into the panel,
-chip facing down. The panel is the roof. The cover is a floor with four 5 mm holes under a corrugated baffle, a 1 mm sheet folded at 45°:
-air comes in the holes, runs along the four channels under the folds to their open ends, up and in. It prints floor-down with no supports, no bridges and no fill. The cable leaves a window in one long wall.
+chip facing down. The panel is the roof. The cover is a floor with one 10 mm hole under a shallow arch that meets the floor at both
+sides; four fins hold the arch up, each with a 3 mm gap either side of the hole so air can cross between them.
+Air comes in the hole, runs out under the arch to its open ends, up and in. It prints floor-down with no
+supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves a window in one long wall.
 32 x 62 x 16. Prints: `out/bme688-cabin-screen_overhead-body.3mf` and `_overhead-cover.3mf`; the cover takes
 two M2.5 screws on a diagonal.
 
