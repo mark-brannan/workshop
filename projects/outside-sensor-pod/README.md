@@ -8,6 +8,19 @@ ESP32 in the dry, which talks WiFi to Signal K. A drowned pod costs a sensor boa
 
 Nothing is printed or wired yet. The firmware will live in symphony, beside `firmware/halmet/`.
 
+## Owner's review, 2026-11-18
+
+The shield as drawn does not suit the boat. Do not print it.
+
+- It assumes a flat surface to mount on. The boat has none there.
+- It is bulky. The owner wants something small and discreet.
+- Places the boat does offer: a vertical hull wall at the stern, or the windvane's bars. On the bars, the lead
+  (plain I2C or a cat5e extender) has to run through the metal tube to the lazarette.
+- The lux sensor and the pressure sensor may be separated if that helps.
+- A photo of the stern is coming from the owner.
+
+Unchanged by the review: the ESP32 sits in the dry, and the wiring and coat tables below still apply.
+
 ## What goes in
 
 | Where | Part | State |
