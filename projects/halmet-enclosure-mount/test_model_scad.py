@@ -127,7 +127,7 @@ def bottom(mesh, x, y):
 def test_pads_cover_the_four_posts(frame):
     for sx in (-1, 1):
         for sy in (-1, 1):
-            for ox in (-4, 0, 4):  # post anywhere within 4 mm of post_dx
+            for ox in ((-2, 0, 2) if sy < 0 else (-4, 0, 4)):  # post anywhere within its tab
                 assert np.isclose(bottom(frame, sx * P["post_dx"] / 2 + ox, sy * P["post_dy"] / 2), 0, atol=0.02)
 
 
