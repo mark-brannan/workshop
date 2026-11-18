@@ -161,12 +161,11 @@ module tie_tunnel2d() { hull() { translate([-oh_tie_w/2, 0]) square([oh_tie_w, o
 module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate([0, h - w/2]) circle(d = w); translate([-w/2, 0]) square([w, h - w/2]); } }
 
 // Fillet along x for len, against a wall face at y = 0 (wall in -y), on a floor at z = 0.
-// Stops 0.2 short of both tangents so no sliver faces are left.
-module foot_fillet(len, r = oh_fillet_r) {
-    difference() {
-        translate([0, -eps, -eps]) cube([len, r - 0.2 + eps, r - 0.2 + eps]);
-        translate([-1, r, r]) rotate([0, 90, 0]) cylinder(r = r, h = len + 2);
-    }
+// A true quarter-round profile, 32 facets. Its centre sits 0.05 in from both tangents, so the arc
+// crosses into floor and wall at a shallow angle instead of touching them: smooth, and manifold.
+module foot_fillet(len, r = oh_fillet_r, n = 32, d = 0.05) {
+    rotate([90, 0, 90]) linear_extrude(len)
+        polygon(concat([for (i = [0:n]) let(a = 270 - 90*i/n) [r - d + r*cos(a), r - d + r*sin(a)]], [[-d, -d]]));
 }
 
 module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
