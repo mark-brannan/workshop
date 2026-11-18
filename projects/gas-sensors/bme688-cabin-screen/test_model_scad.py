@@ -216,5 +216,8 @@ def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
         hits = ray_hits(oh_body, [tx, y, tz], [0, d, 0])
         assert not hits or abs(hits[0][1] - y) > P["oh_tie_len"] / 2 + 1
     assert ray_hits(oh_body, [tx, y, 30], [0, 0, -1])[0][2] == pytest.approx(top, abs=0.05)
+    cove = ROOF_Y - y - P["oh_tie_len"] / 2                                          # the end wall's foot curves up from the far mouth
+    assert ray_hits(oh_body, [tx, ROOF_Y - 0.3, 30], [0, 0, -1])[0][2] > P["plate_t"] + 0.5
+    assert ray_hits(oh_body, [tx, ROOF_Y - cove + 0.3, 30], [0, 0, -1])[0][2] < P["plate_t"] + 0.2
     for x, yy in ((tx, y), (12, 15), (8, 16)):                                        # plate solid under the tie and the cable's run
         assert ray_hits(oh_body, [x, yy, -5], [0, 0, 1])[0][2] == pytest.approx(0, abs=0.05)

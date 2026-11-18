@@ -64,11 +64,12 @@ oh_fin_gap_y = 7;    // gap centres
 oh_exit_y = 15.5;    // cable exit: arched hole in the +x long wall, toward the Qwiic end, routed rearward
 oh_exit_w = 5;
 oh_exit_h = 6;       // from the tie block's top, where the cable rides, to the arch's crown
-oh_tie_w = 3.8;      // tie anchor inside, against the exit: a block on the plate, its tunnel along y under the cable; ties to 3.6 wide
+oh_tie_w = 4;        // tunnel width, 0.2 of it sunk into the long wall so no face is shared; tie anchor inside, against the exit: a block on the plate, its tunnel along y under the cable; ties to 3.6 wide
 oh_tie_h = 1.6;      // tunnel height, arch crown included
 oh_tie_roof = 1.2;   // block above the tunnel's crown; the cable lies on it
 oh_tie_len = 2.4;    // block along y, the tie's run under the cable
 oh_tie_side = 0.8;   // block inboard of the tunnel; the long wall is its other side
+oh_tie_flare = 0.6;  // chamfer round each tunnel mouth, so the tie finds its way in
 oh_insert_d = 3.2;   // M2 heat-set insert hole; insert size a guess (3.2 x 4) until the bag or calipers say
 oh_insert_l = 4;
 oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
@@ -133,8 +134,10 @@ oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
 oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board screws, on the same diagonal
-oh_seat_z = plate_t + pad_h;
-oh_tie_top = plate_t + oh_tie_h + oh_tie_roof;                 // 5.8: the cable's bed at the exit                                   // board's back
+oh_seat_z = plate_t + pad_h;                                   // board's back
+oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
+oh_tie_top = plate_t + oh_tie_h + oh_tie_roof;                // 5.8: the cable's bed at the exit
+oh_tie_cove_r = roof_y - (oh_exit_y + oh_tie_len/2);           // 1.7: cove in the end wall's foot, from the tunnel's far mouth up the wall; turns the tie back up
 oh_pocket = [board_w + 2*fit, board_l + 2*fit];
 
 // The board's seat: a ledge under its edges, insert pads under two holes, walls to its face
@@ -171,10 +174,21 @@ module overhead_body() {
             oh_seat();
             translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
                 cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
+            difference() {                                                                                    // cove at the end wall's foot
+                translate([in_w/2 - oh_tie_w, roof_y - oh_tie_cove_r + 0.2, plate_t - eps]) cube([oh_tie_w + eps, oh_tie_cove_r - 0.2 + eps, oh_tie_cove_r - 0.2]);   // short of the tangents: no slivers
+                translate([in_w/2 - oh_tie_w - 1, roof_y - oh_tie_cove_r, plate_t + oh_tie_cove_r]) rotate([0, 90, 0]) cylinder(r = oh_tie_cove_r, h = oh_tie_w + 2);
+            }
         }
         mount_holes();
         translate([plate_w/2 + 1, oh_exit_y, oh_tie_top]) rotate([90, 0, -90]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit, sill level with the block
-        translate([in_w/2 - oh_tie_w/2, oh_exit_y + oh_tie_len/2 + 1, plate_t - eps]) rotate([90, 0, 0]) linear_extrude(oh_tie_len + 2) tie_tunnel2d();   // tie tunnel along y
+        translate([oh_tie_cx, oh_exit_y + oh_tie_len/2 + 0.05, plate_t - eps]) rotate([90, 0, 0]) linear_extrude(oh_tie_len + 0.1) tie_tunnel2d();   // tie tunnel along y
+        intersection() {                                                                                  // its mouths chamfered, inward only: the cove beyond stays whole
+            for (sy = [-1, 1]) translate([oh_tie_cx, oh_exit_y + sy*oh_tie_len/2, plate_t - eps]) rotate([90, 0, 0]) mirror([0, 0, sy < 0 ? 1 : 0]) hull() {
+                translate([0, 0, -0.05]) linear_extrude(0.06) offset(delta = oh_tie_flare) tie_tunnel2d();
+                translate([0, 0, -0.05]) linear_extrude(oh_tie_flare + 0.05) tie_tunnel2d();
+            }
+            translate([in_w/2 - oh_tie_w - oh_tie_flare - 1, 0, plate_t]) cube([oh_tie_w + oh_tie_flare + 1.2, house_h, oh_tie_top]);
+        }
         for (b = oh_bosses) translate(b) oh_insert_hole(face_z);
         for (p = oh_posts) translate(p) oh_insert_hole(oh_seat_z);
     }
