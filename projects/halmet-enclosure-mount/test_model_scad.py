@@ -90,12 +90,11 @@ def test_board_is_89_by_58_slot_pattern():
     assert np.isclose(x1 - x0, 44.5) and np.isclose(y0 - y1, 45.0)
 
 
-def test_two_standoffs_with_blind_insert_holes(frame):
+def test_two_standoffs_with_through_insert_holes(frame):
     for x, y in SLOTS:
-        assert np.isclose(top(frame, x, y), T + H - P["insert_depth"], atol=0.02)
-        assert T + H - P["insert_depth"] > 0.5
+        assert top(frame, x, y) is None
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), T + H, atol=0.02)
-        assert P["standoff_d"] - P["insert_d"] >= 3.2  # 1.6 mm wall around the insert
+        assert P["standoff_d"] - P["insert_d"] >= 3.0  # 1.5 mm wall around the insert
 
 
 def test_two_rests_level_with_standoffs(frame):
@@ -127,7 +126,7 @@ def bottom(mesh, x, y):
 def test_pads_cover_the_four_posts(frame):
     for sx in (-1, 1):
         for sy in (-1, 1):
-            for ox in ((-2, 0, 2) if sy < 0 else (-4, 0, 4)):  # post anywhere within its tab
+            for ox in ((-2, 0, 2) if sy < 0 else (0,)):  # front: post anywhere within its tab; back-left sits beside a through hole
                 assert np.isclose(bottom(frame, sx * P["post_dx"] / 2 + ox, sy * P["post_dy"] / 2), 0, atol=0.02)
 
 
@@ -167,8 +166,7 @@ def test_board_clear_of_the_left_fork_slots():
 def test_plate_has_insert_pads_under_the_tier_standoffs(frame):
     for x, y in COLS:
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
-        assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)  # blind insert hole
-        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # closed underneath
+        assert top(frame, x, y) is None  # insert hole runs through, open both ends
 
 
 def test_modules_clear_the_lid():

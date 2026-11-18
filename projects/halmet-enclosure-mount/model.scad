@@ -29,7 +29,7 @@ pad_r = 4.5;         // semicircle tab over each back rest post (post ~5 diamete
 tab_r = 3.5;         // front (gland side) tabs: narrower, a rounded lobe 7 across, centred tab_dy inside the post so it still covers it
 tab_dy = 1;
 tab_blend = 3;       // concave fillet where the lobe meets the front edge
-gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
+tab_bevel = 2.5;     // the front tabs slope down this much from the plate's front edge to the tip, clear of the gland nuts
 
 /* [Zip-tie strain relief: slot pairs, the tie loops under the frame] */
 tie_w = 4;           // slot length; takes ties up to 3.6 mm wide
@@ -52,7 +52,7 @@ tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -16;       // front edge
 tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
 tier_standoff = 19.7;  // M3 hex standoff, into the pad's insert (owner's calipers)
-tier_boss_d = 8;     // printed pad under each standoff
+tier_boss_d = 7;     // printed pad under each standoff
 tier_pad_h = 8;      // pad top above the plate's underside: a blind M3 heat-set insert and a 1.5 floor
 mod_standoff = 15;   // M2.5 F/F standoffs, tier to module: the tallest that clears the lid
 lid_depth = 17;      // rim to lid ceiling (owner, caliper; the gasket may add 0.5)
@@ -109,10 +109,9 @@ gauge_cell = 24.5;      // fit-check windows: hex cells this wide across flats; 
 gauge_web = 4;
 
 /* [Standoffs] */
-standoff_h = 6;      // board underside above the frame; clears pin stubs
-standoff_d = 8;
-insert_d = 4.0;      // M3 heat-set insert
-insert_depth = 6.5;  // blind, from the standoff top
+standoff_h = 5;      // board underside above the frame
+standoff_d = 7;
+insert_d = 4.0;      // M3 heat-set insert, pressed in from the top; the hole runs through the plate
 rest_d = 4;          // plain rests on the other diagonal
 spacer_hole_d = 3.2; // laser and gauge: M3 through a loose spacer
 support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set insert, an adjustable standoff screws in from below as a centre prop
@@ -141,7 +140,7 @@ module at_board(pts) { for (p = pts) translate([p[0] + board_dx, p[1] + board_dy
 // Front tab over a gland-side rest post: a lobe that blends into the front edge with a concave fillet.
 module front_tab2d(sx) {
     offset(r = -tab_blend) offset(r = tab_blend) union() {
-        translate([sx*post_dx/2 - tab_r - tab_blend, plate_y_lo - 1]) square([2*(tab_r + tab_blend), 3]);   // strip along the plate's front edge
+        translate([sx*post_dx/2 - tab_r - 2*tab_blend, plate_y_lo]) square([2*(tab_r + 2*tab_blend), 3]);   // strip flush with the plate's front edge, wide enough for the fillet to run out tangent
         translate([sx*post_dx/2, -post_dy/2 + tab_dy]) circle(r = tab_r);
     }
 }
@@ -237,9 +236,15 @@ module raised() {
 }
 
 module insert_holes() {
-    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = tier_cols) translate(c) circle(d = insert_d);
-    translate([0, 0, body_t + standoff_h - insert_depth])
-        linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+    translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = tier_cols) translate(c) circle(d = insert_d, $fn = 64);
+    translate([0, 0, -1]) linear_extrude(body_t + standoff_h + 2) at_board(slots) circle(d = insert_d, $fn = 64);
+}
+
+module tab_bevel_cut() {
+    run = frame_w/2 + plate_y_lo;   // tab length past the plate's front edge
+    rotate([90, 0, 90]) linear_extrude(200, center = true) polygon([
+        [plate_y_lo + 0.5, body_t + tab_bevel*0.5/run], [-frame_w/2 - 1, body_t - tab_bevel*(run + 1)/run],
+        [-frame_w/2 - 1, body_t + 1], [plate_y_lo + 0.5, body_t + 1]]);
 }
 
 // Z = 0 is the top of the rest posts; the holed bosses reach up into the pockets.
@@ -252,8 +257,7 @@ module frame() {
         insert_holes();
         translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
         tie_chamfers();
-        translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
-            cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
+        tab_bevel_cut();
         if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1)
             for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
                 translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
