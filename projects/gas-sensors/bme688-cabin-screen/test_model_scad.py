@@ -144,14 +144,27 @@ def test_overhead_holes(oh_body, oh_assembly):
         assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - 8, abs=0.05)
 
 
+OH_CHAN_X = [(i - (P["oh_chan_n"] - 1) / 2) * P["oh_chan_pitch"] for i in range(int(P["oh_chan_n"]))]
+
+
 def test_overhead_air_path_is_open(oh_assembly):
-    hole = ray_hits(oh_assembly, [0, 0, 30], [0, 0, -1])                       # in at the floor's hole
-    assert hole[0][2] == pytest.approx(P["baffle_z"] + P["baffle_t"], abs=0.05)
+    for x in OH_CHAN_X:
+        hole = ray_hits(oh_assembly, [x, 0, 30], [0, 0, -1])                   # in at each hole, up to the channel's peak
+        assert hole[0][2] == pytest.approx(P["baffle_z"] + P["baffle_t"], abs=0.05)
+        for sy in (-1, 1):
+            along = ray_hits(oh_assembly, [x, 0, CHANNEL_Z], [0, sy, 0])       # out along the channel, past the baffle's end
+            assert abs(along[0][1]) > P["oh_baffle_l"] / 2 + 2
     for sy in (-1, 1):
-        along = ray_hits(oh_assembly, [0, 0, CHANNEL_Z], [0, sy, 0])           # out under the baffle to the end wall
-        assert abs(along[0][1]) == pytest.approx(P["house_h"] / 2 - P["wall"], abs=0.05)
         turn = ray_hits(oh_assembly, [0, sy * (P["oh_baffle_l"] / 2 + 2), CHANNEL_Z], [0, 0, -1])   # up past the baffle's end
         assert turn[0][2] == pytest.approx(P["plate_t"], abs=0.05)
+
+
+def test_overhead_cover_needs_no_support(oh_cover):
+    """Floor on the bed: no face points down steeper than 45 degrees except the bed face itself."""
+    import numpy as np
+    n, z = oh_cover.face_normals, oh_cover.triangles_center[:, 2]
+    down = (n[:, 2] < -np.cos(np.radians(45)) - 1e-3) & (z > 0.01)
+    assert not down.any(), f"{down.sum()} faces overhang, at z {sorted(set(np.round(z[down], 2)))[:5]}"
 
 
 def test_overhead_nothing_outside_sees_the_chip(oh_assembly):
