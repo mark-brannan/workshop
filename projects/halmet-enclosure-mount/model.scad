@@ -1,9 +1,9 @@
 // Frame that holds a Hat Labs HALMET board in the 158x90x60 pre-drilled box.
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
 // two standoffs take the board's M3 slots. Zip-tie slots give the wiring strain relief.
-// A separate tier (part-tier.scad) screws onto it and carries the displays at rim height.
-// An LM393 light sensor rides in a cradle on the tier, under the OLED; its photocell peeks out past the tier's left edge.
-// Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
+// A separate tier (part-tier-row.scad) screws onto it and carries the displays at rim height.
+// An LM393 light sensor rides in a cradle on the tier, under the OLED; its photocell peeks out past the OLED's left edge.
+// Origin: centre of the box floor. X along the box length. Print flat, standoffs up. The tier() below is the older tier (part-tier.scad).
 
 mode = "2d";         // [2d:laser profile, 3d:print]
 part = "frame";      // [frame, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
@@ -50,10 +50,11 @@ tier_t = 2.5;        // its top sits at the rim, give or take 5 (owner)
 tier_x0 = 26;         // left edge; the left side stays open for the USB plug and wiring
 tier_x1 = 72;        // right edge, a cantilever past the right wall
 tier_y0 = -35;       // front edge: a strip out front, left of the lid-screw columns, carries the light sensor
-tier_cols = [[31, 34.5], [60.5, 30], [37, -11.25], [58, -11.25]];  // standoff centres; back right clear of the OLED header
-tier_standoff = 19.7;  // M3 hex standoff, into the pad's insert (owner's calipers)
+tier_cols = [[19, -22.5], [24, 36], [70, 10.85]];  // standoff centres, the flat tier's three screws (part-tier-row.scad)
+tier_standoff = 25;  // stock M3 F/F hex standoff, into the pad's insert
 tier_boss_d = 8;     // printed pad under each standoff
-tier_pad_h = 8;      // pad top above the plate's underside: a blind M3 heat-set insert and a 1.5 floor
+tier_pad_h = 10;     // pad top above the plate's underside: a blind M3 heat-set insert and a 3.5 floor
+mid_cols = [[30, -20], [60, -20], [30, 20], [60, 22]];  // pads with inserts for a future middle tier, built like the tier pads
 mod_standoff = 15;   // M2.5 F/F standoffs, tier to module: the tallest that clears the lid
 lid_depth = 17;      // rim to lid ceiling (owner, caliper; the gasket may add 0.5)
 tier_round = 1.5;    // tier: outside-corner radius
@@ -155,6 +156,7 @@ module outline2d() {
             for (sx = [-1, 1]) translate([sx*post_dx/2, post_dy/2]) circle(r = pad_r);
             for (sx = [-1, 1]) front_tab2d(sx);
             at_board(slots) circle(r = standoff_d/2 + 0.5);   // the back one stays inside the straight back edge
+            for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = tier_boss_d);   // a pad near the back edge bulges it
         }
         translate([-100, -frame_w/2]) square([200, 100 + frame_w/2]);
     }
@@ -175,7 +177,7 @@ keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1]) [sx*post_dx/2, -post_dy/2 + tab_dy, tab_r]],
     [for (s = slots) [s[0] + board_dx, s[1] + board_dy, standoff_d/2 + 2]],
     [for (s = rests) [s[0] + board_dx, s[1] + board_dy, rest_d/2 + 2]],
-    [for (c = tier_cols) [c[0], c[1], tier_boss_d/2]],
+    [for (c = concat(tier_cols, mid_cols)) [c[0], c[1], tier_boss_d/2]],
     [[support_xy[0], support_xy[1], standoff_d/2 + 2]]);
 
 
@@ -234,11 +236,11 @@ module profile(spacer_holes) {
 module raised() {
     linear_extrude(body_t + standoff_h) at_board(slots) circle(d = standoff_d);
     linear_extrude(body_t + standoff_h) at_board(rests) circle(d = rest_d);
-    linear_extrude(tier_z0) for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+    linear_extrude(tier_z0) for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = tier_boss_d);
 }
 
 module insert_holes() {
-    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = tier_cols) translate(c) circle(d = insert_d);
+    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d);
     translate([0, 0, body_t + standoff_h - insert_depth])
         linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
 }
@@ -275,13 +277,13 @@ module gauge() {
             linear_extrude(gauge_t + gauge_rise) {
                 at_board(slots) circle(d = standoff_d);
                 at_board(rests) circle(d = rest_d);
-                for (c = tier_cols) translate(c) circle(d = tier_boss_d);
+                for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = tier_boss_d);
             }
         }
         translate([0, 0, -1]) linear_extrude(gauge_t + gauge_rise + 2) {
             at_board(slots) circle(d = insert_d);
             at_board(rests) circle(d = 1.5);
-            for (c = tier_cols) translate(c) circle(d = insert_d);
+            for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d);
         }
     }
 }

@@ -24,7 +24,6 @@ PARTS = {
     "screws_board": ("#333333", 1, 44),
     "tier": ("#e0c07a", 1, 72),
     "screws_m25": ("#333333", 1, 72),
-    "module_standoffs": ("#d4af37", 1, 72),
     "oled": ("#2456a6", 1, 72),
     "oled_glass": ("#111111", 1, 72),
     "oled_header": ("#222222", 1, 72),
@@ -35,7 +34,7 @@ PARTS = {
     "screws_tier": ("#333333", 1, 92),
     "lid": ("#9aa4ad", 0.12, 110),
 }
-TIER = ["tier", "screws_m25", "module_standoffs", "seg", "seg_body", "ldr", "screws_ldr"]
+TIER = ["tier", "screws_m25", "seg", "seg_body", "oled", "oled_glass", "oled_header", "ldr", "screws_ldr", "screws_tier"]
 
 
 def build(tmp: Path) -> dict[str, pv.PolyData]:
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     shot(OUT / "assembly_tier.png", [("tier from the back-right", TIER, False, "iso"),
                                      ("tier from the front-left", TIER, False, "iso_front"),
                                      ("below, from the back-right", TIER, False, "under"),
-                                     ("below, from the front-left", TIER, False, "under_front")])
+                                     ("plan: three tier screws", TIER, False, "xy")])
     shot(OUT / "assembly.png", [
         ("assembled (box ghosted), from the front-left", inside, False, "iso_front"),
         ("top", inside, False, "xy"),

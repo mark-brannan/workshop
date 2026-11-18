@@ -32,6 +32,8 @@ DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
 COLS = LISTS["tier_cols"]
+MID = LISTS["mid_cols"]
+PADS = COLS + MID
 TIER_Z0 = P["tier_pad_h"]                # standoff feet on the plate's pads
 TIER_TOP = TIER_Z0 + P["tier_standoff"] + P["tier_t"]
 SEG_Y = P["seg_y"]
@@ -74,8 +76,9 @@ def test_bounds_volume_watertight(frame):
     lo, hi = frame.bounds
     assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH - P["end_ext"], SPAN / 2 + REACH + P["end_ext"]], atol=0.05)
     assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0), atol=0.02)
-    assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, P["plate_y_hi"]], atol=0.05)  # straight back edge
-    assert hi[1] < 83 / 2  # inside the box floor
+    back = max(P["plate_y_hi"], *(y + P["tier_boss_d"] / 2 for _, y in PADS))  # straight back edge, bulged by a pad
+    assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, back], atol=0.05)
+    assert hi[1] <= 83 / 2 - 1  # inside the box floor
     assert VOL_LO < frame.volume < VOL_HI  # mm^3; a solid 144 x 75 x 4 plate is 43200
 
 
@@ -164,16 +167,12 @@ def test_board_clear_of_the_left_fork_slots():
     assert left_edge > -(SPAN / 2 - REACH) + P["slot_d"] / 2  # a driver reaches every left screw
 
 
-def test_plate_has_insert_pads_under_the_tier_standoffs(frame):
-    for x, y in COLS:
+def test_plate_has_insert_pads_under_the_tier_and_mid_tier_standoffs(frame):
+    assert len(COLS) == 3 and len(MID) == 4
+    for x, y in PADS:
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
         assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)  # blind insert hole
         assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # closed underneath
-
-
-def test_modules_clear_the_lid():
-    lid_ceiling = P["rim_z"] - P["boss_h"] + P["lid_depth"]
-    assert TIER_TOP + P["mod_standoff"] + 7 < lid_ceiling  # TM1637 face, 7 above its board's underside
 
 
 def test_tier_is_a_flat_plate_on_its_standoffs(tier):
@@ -184,6 +183,7 @@ def test_tier_is_a_flat_plate_on_its_standoffs(tier):
     assert hi[0] < 151 / 2 - 2 and hi[1] <= P["plate_y_hi"] + 0.01  # inside the floor
 
 
+@pytest.mark.skip(reason="older tier (part-tier.scad) predates the three-point tier_cols; part-tier-row.scad replaces it")
 def test_tier_holes_for_standoff_screws_and_module_screws(tier):
     for x, y in [*COLS, *MOD_POSTS]:
         assert top(tier, x, y) is None
@@ -241,9 +241,9 @@ def test_gauge_keeps_fork_slots_and_marks_raised_features_with_holes(gauge):
         for k in (-1, 0, 1):
             assert top(gauge, sx * SPAN / 2, k * PITCH) is None
             assert top(gauge, sx * SPAN / 2, k * PITCH + (PITCH / 2 if k < 0 else -4)) == pytest.approx(P["gauge_t"], abs=0.02)
-    for x, y in [*SLOTS, *RESTS, *COLS]:
+    for x, y in [*SLOTS, *RESTS, *PADS]:
         assert top(gauge, x, y) is None  # centre holed through
-    for x, y in [*SLOTS, *COLS]:
+    for x, y in [*SLOTS, *PADS]:
         assert top(gauge, x + P["insert_d"] / 2 + 0.7, y) == pytest.approx(P["gauge_t"] + P["gauge_rise"], abs=0.02)
 
 
@@ -332,3 +332,146 @@ def test_sensor_screw_head_recess_in_the_tier_underside(tier):
     assert up(2.4) == pytest.approx(bottom + P["ldr_head_h"], abs=0.02)  # inside the recess, outside the screw hole
     assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
     assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert
+
+
+# Standoff pads in plan against what sits on or near the plate
+HALMET = [(8.5, 0), (80.5, 0), *[(89 + 8.5 * np.cos(a), 8.5 * np.sin(a)) for a in np.radians(np.linspace(180, 90, 17))],
+          (89, 24.7), (83, 24.7), (83, 51.98), (81.15, 54.74), (80.5, 58), (8.5, 58),
+          *[(8.5 * np.cos(a), 58 + 8.5 * np.sin(a)) for a in np.radians(np.linspace(0, -90, 17))], (0, 8.5),
+          *[(8.5 * np.cos(a), 8.5 * np.sin(a)) for a in np.radians(np.linspace(90, 0, 17))]]  # HALMET.kicad_pcb, as overlay.py
+STANDOFF_R = 6.4 / 2  # M3 hex standoff body, across corners
+
+
+def keep_out():
+    from shapely.geometry import LineString, Point, Polygon, box
+    from shapely.ops import unary_union
+    ox, oy = -44.5 + DX, -29 + DY
+    board = Polygon([(x + ox, y + oy) for x, y in HALMET])
+    esp32 = box(60.5 + ox, 30 + oy, 86 + ox, 48 + oy)  # ESP32 module, overhanging the board's right edge
+    usb = box(BOARD_RIGHT, -6, 75.5, 6)  # USB plug path to the right wall
+    heads = unary_union([LineString([(sx * (SPAN / 2 - REACH), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
+                         for sx in (-1, 1) for k in (-1, 0, 1)])  # floor-screw heads anywhere along their fork slots
+    ties = unary_union([box(x + s * P["tie_gap"] / 2 - P["tie_t"] / 2, P["tie_bar_y"] - P["tie_w"] / 2,
+                            x + s * P["tie_gap"] / 2 + P["tie_t"] / 2, P["tie_bar_y"] + P["tie_w"] / 2)
+                        for x in LISTS["tie_bar_xs"] for s in (-1, 1)])
+    halmet_posts = unary_union([Point(p).buffer(P["standoff_d"] / 2) for p in SLOTS] + [Point(p).buffer(P["rest_d"] / 2) for p in RESTS])
+    return {"board": unary_union([board, esp32]), "usb": usb, "floor heads": heads, "ties": ties, "halmet posts": halmet_posts}
+
+
+def test_standoff_pads_clear_board_usb_floor_screws_ties_and_each_other():
+    from shapely.geometry import Point
+    ko = keep_out()
+    for c in PADS:
+        assert ko["board"].distance(Point(c)) - STANDOFF_R >= 2  # the HALMET lifts out past the standoffs
+        pad = Point(c).buffer(P["tier_boss_d"] / 2)
+        for name in ("usb", "floor heads", "ties", "halmet posts"):
+            assert pad.distance(ko[name]) > 0.5, (c, name)
+    for i, a in enumerate(PADS):
+        for b in PADS[i + 1:]:
+            assert np.hypot(a[0] - b[0], a[1] - b[1]) > P["tier_boss_d"] + 2
+
+
+# Flat tier (part-tier-row.scad): an OLED and two TM1637s on top, the light sensor in a cradle under the OLED.
+# Its own coordinates: plate top at z = 0, the box's X and Y.
+ROW_SRC = (HERE / "part-tier-row.scad").read_text()
+R = {k: float(v) for k, v in re.findall(r"(?<![\w$])(\w+)\s*=\s*([-\d.]+)\s*;", ROW_SRC)}
+RL = lists(HERE / "part-tier-row.scad")
+RT, CX = R["plate_t"], R["cx"]
+ROW_SCREWS = RL["tier_pts"]
+TM_POSTS = [(CX + sx * R["tm_dx"] / 2, y + sy * R["tm_dy"] / 2) for y in RL["tm_y"] for sx in (-1, 1) for sy in (-1, 1)]
+OLED_POSTS = [(CX + sx * R["oled_dx"] / 2, R["oled_y"] + sy * R["oled_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
+RLDR_HOLE = (R["ldr_x0"] + R["ldr_l"] - R["ldr_hole_in"], R["ldr_y"])
+GLAND_TOP = 33  # gland nut tops above the inside floor (owner)
+
+
+@pytest.fixture(scope="module")
+def row(tmp_path_factory):
+    d = tmp_path_factory.mktemp("halmet_row")
+    (d / "part-tier-row.scad").write_text(ROW_SRC)
+    return trimesh.load(build_scad(d / "part-tier-row.scad", d, "row", render=False)["stl"])
+
+
+def test_row_screws_are_the_frame_standoffs():
+    assert ROW_SCREWS == COLS and RT == P["tier_t"]
+
+
+def test_row_bounds_volume_and_plan_inside_the_box(row):
+    assert row.is_watertight and row.body_count == 1
+    lo, hi = row.bounds
+    assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["oled_boss_h"], abs=0.02)
+    assert hi[0] <= 75.5 - 1 and max(-lo[1], hi[1]) <= 41.5 - 1  # inner walls, 1 mm margin
+    tm_edge = CX + R["tm_w"] / 2
+    for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut flush with its board instead
+        assert x <= max(P["lid_col_x"] - 1, tm_edge) + 0.01 or abs(y) <= P["lid_col_y"] - 1 + 0.01
+    assert tm_edge < P["lid_col_x"]
+    assert 7000 < row.volume < 10000  # mm^3
+
+
+def test_row_prints_flat_nothing_below_or_overhanging(row):
+    n, c = row.face_normals, row.triangles_center
+    down = n[:, 2] < -0.5
+    on_bed = np.isclose(c[:, 2], -RT, atol=0.02)
+    recess = np.isclose(c[:, 2], -RT + R["ldr_head_h"], atol=0.02) & (
+        np.hypot(c[:, 0] - RLDR_HOLE[0], c[:, 1] - RLDR_HOLE[1]) < R["ldr_head_d"] / 2 + 0.01)  # one short bridge
+    assert not np.any(down & ~on_bed & ~recess)
+    assert row.vertices[:, 2].min() == pytest.approx(-RT, abs=0.01)
+
+
+def test_row_three_screw_holes_in_solid_islands_clear_of_modules(row):
+    from shapely.geometry import Point, box
+    boards = [box(CX - R["tm_w"] / 2, y - R["tm_h"] / 2, CX + R["tm_w"] / 2, y + R["tm_h"] / 2) for y in RL["tm_y"]]
+    boards.append(box(CX - R["oled_w"] / 2, R["oled_y"] - R["oled_h"] / 2, CX + R["oled_w"] / 2, R["oled_y"] + R["oled_h"] / 2))
+    posts = [Point(p).buffer(R["tm_boss_d"] / 2) for p in TM_POSTS] + [Point(p).buffer(R["oled_boss_d"] / 2) for p in OLED_POSTS]
+    assert len(ROW_SCREWS) == 3
+    for x, y in ROW_SCREWS:
+        assert top(row, x, y) is None
+        island = Point(x, y).buffer(R["island_d"] / 2)
+        assert all(not island.intersects(g) for g in boards + posts)
+        for r in (R["tier_hole"] / 2 + 0.3, R["island_d"] / 2 - 0.3, R["head_d"] / 2):
+            for a in np.radians(range(0, 360, 20)):
+                assert top(row, x + r * np.cos(a), y + r * np.sin(a)) == pytest.approx(0, abs=0.02)  # solid, flat under the head
+        assert R["island_d"] >= 8
+
+
+def test_row_module_bosses_holed_at_their_heights(row):
+    assert len(TM_POSTS) == 8 and len(OLED_POSTS) == 4
+    for posts, h, d, hole in ((TM_POSTS, R["tm_boss_h"], R["tm_boss_d"], R["tm_hole"]),
+                              (OLED_POSTS, R["oled_boss_h"], R["oled_boss_d"], R["oled_hole"])):
+        for x, y in posts:
+            assert top(row, x, y) is None  # holed through
+            assert top(row, x - (d + hole) / 4, y) == pytest.approx(h, abs=0.02)  # boss wall, on the side away from the lid column
+
+
+def test_row_oled_clears_the_sensor_stack_and_cell_sees_past_it():
+    stack = R["ldr_ledge"] + R["pcb_t"] + R["ldr_part_h"]
+    assert R["oled_boss_h"] >= stack + 2.5  # trimpot, pin stubs and clearance under the OLED
+    assert R["ldr_y"] == R["oled_y"]  # centred under it
+    assert R["ldr_x0"] < CX - R["oled_w"] / 2 - 4  # photocell end out past the OLED's left edge
+    outer = R["ldr_w"] / 2 + R["ldr_fit"] + R["ldr_wall"]  # cradle wall faces, between the OLED's post rows
+    assert R["oled_dy"] / 2 - R["oled_boss_d"] / 2 - outer > 0.5
+
+
+def test_row_sensor_cradle_on_top(row):
+    w = R["ldr_w"] + 2 * R["ldr_fit"]
+    x0, y = R["ldr_x0"], R["ldr_y"]
+    mid = x0 + 7
+    z_board = R["ldr_ledge"]
+    for s in (-1, 1):
+        assert top(row, mid, y + s * (w / 2 - 1)) == pytest.approx(z_board, abs=0.02)  # edge ledge
+        assert top(row, x0 + R["ldr_l"] / 2, y + s * (w / 2 + R["ldr_wall"] / 2)) == pytest.approx(z_board + R["pcb_t"], abs=0.02)  # wall
+        assert top(row, x0 + R["ldr_cell_clear"] - 0.5, y + s * (R["ldr_w"] / 2 - R["ldr_lip"] / 2)) == pytest.approx(0, abs=0.02)  # cell end bare
+    assert top(row, mid, y) is None  # window between the ledges
+    assert top(row, *RLDR_HOLE) is None  # M3 up from underneath
+    assert top(row, RLDR_HOLE[0] + R["tier_hole"] / 2 + 0.6, y) == pytest.approx(z_board, abs=0.02)  # pad round it
+    up = lambda dx: ray_hits(row, (RLDR_HOLE[0] + dx, y, -50), (0, 0, 1))[0][2]
+    assert up(2.4) == pytest.approx(-RT + R["ldr_head_h"], abs=0.02)  # head recess in the underside
+    assert up(R["ldr_head_d"] / 2 + 0.8) == pytest.approx(-RT, abs=0.02)
+
+
+def test_row_clears_the_lid_and_the_gland_nuts():
+    floor = -P["post_h"]  # z = 0 on the rest posts
+    tier_top = TIER_TOP
+    lid = P["rim_z"] + P["lid_depth"] + floor
+    assert tier_top + R["oled_boss_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
+    assert tier_top + R["tm_boss_h"] + 7 < lid - 1  # TM1637 face, 7 above its board's underside
+    assert tier_top - RT - floor > GLAND_TOP + 3  # tier underside over the gland nuts

@@ -76,13 +76,12 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   along the gland-side edge, chamfered underneath where the tie turns, two on the left end beside the terminal blocks. Positions are lists at the top of the model.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
-- Display tier, a separate flat print (`part-tier.scad`): a band at the rim, wider at the screws, carrying the 0.96" SSD1306 (header toward the back wall)
-  and, below it, a TM1637 4-digit module, each on M2.5 F/F standoffs screwed up from under the tier.
-  It sits on four 19.7 mm M3 standoffs in heat-set inserts in short pads on the plate; four M3 from above
-  hold the tier down. The modules stand 15 mm above it; the TM1637 face is then 0.3 mm under the lid (17, calipered).
-  One opening runs from under the TM1637 up to the OLED's header plug, at least 5 mm from every module post.
+- Display tier, a separate flat print (`part-tier-row.scad`), no supports: two TM1637s on 3 mm printed bosses and
+  the SSD1306 on 10.5 mm bosses, in one column. It sits on three 25 mm M3 F/F standoffs in heat-set inserts in
+  10 mm pads on the plate; three M3 from above hold it down.
+- Four more insert pads (`mid_cols`) wait for a future middle tier.
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle
-  between the OLED's standoff columns, photocell end at the tier's left edge so the cell sees the lid.
+  between the OLED's post rows, photocell end out past the OLED's left edge so the cell sees the lid.
   It sits on edge ledges clear of its solder, side walls stop it turning (the back one starts past the back-left tier screw head), and one M3 goes up from under the tier
   through its hole, a nut on the board top; a round recess in the tier's underside takes the screw head (a nut, not a heat-set insert: the hole is 3.4, the insert 4.0). Bend the header pins down.
 
@@ -97,15 +96,15 @@ are guesses.
 
 Order, on the bench then in the box:
 
-1. Tier: light sensor into its cradle, one M3 from under the tier and a nut on top; then modules onto M2.5 standoffs, screwed up from under the tier.
+1. Tier: light sensor into its cradle, one M3 from under the tier and a nut on top; then the TM1637s onto their bosses, M2.5 up from under the tier, and the OLED.
 2. Plate, out of the box: tier standoffs into the pad inserts, any time.
 3. Plate into the box, six screws through the fork slots.
 4. HALMET onto its standoffs, two screws from above.
-5. Tier onto its standoffs, four screws from above. Then wire everything and fit the lid.
+5. Tier onto its standoffs, three screws from above. Then wire everything and fit the lid.
 
-Two fixed steps: the tier covers two right-hand floor screws, (70, 0) and (70, 22.5),
+Two fixed steps: the tier covers the right-hand floor screws,
 so the tier comes off before the plate. The standoffs come off only with the plate out of the box.
-The HALMET comes off on its own: it clears the tier in plan by 2.25 mm, and its left edge is 1.5 mm from the left floor-screw heads.
+The tier overhangs the HALMET's right edge by 2 mm, so the HALMET comes off with the tier off; its left edge is 1.5 mm from the left floor-screw heads.
 
 ## Wiring
 
@@ -135,7 +134,7 @@ The A and D input terminals sit on the isolated side (their own ground); none of
 ## Fit check
 
 `out/halmet-enclosure-mount_gauge.3mf` is the same outline as a 1 mm plate with big windows;
-2 mm stubs, holed through, mark the standoffs, rests and tier bosses. Lay it on the bosses, read where
+2 mm stubs, holed through, mark the standoffs, rests and tier and mid-tier pads. Lay it on the bosses, read where
 each boss sits in its fork, and change `boss_span` and `boss_pitch` to centre
 them.
 

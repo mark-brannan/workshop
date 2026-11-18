@@ -1,6 +1,7 @@
 // Assembly view, not a print: the frame, tier, boards, modules, standoffs and screws in the box.
 // Stand-in boards are boxes; heights marked "guess" are not measured. assembly.py renders it in colour.
 include <model.scad>
+use <part-tier-row.scad>
 part = "assembly";
 show = "frame";      // one component per run; assembly.py loops over them
 
@@ -9,8 +10,12 @@ floor_t = 2.5;       // guess
 wall_t = 2.5;        // guess
 hex_af = 5.5;        // M3 F/F standoff across flats (assumed)
 board_z = body_t + standoff_h;      // HALMET underside
+// The flat tier (part-tier-row.scad): its own numbers, read through row()
+r_cx = row("cx");  r_tm_y = row("tm_y");  r_oled_y = row("oled_y");
+r_ldr_x0 = row("ldr_x0");  r_ldr_y = row("ldr_y");  r_ldr_post = row("ldr_post");
 ldr_z = tier_z1 + ldr_ledge;        // LM393 underside, on its cradle
-mod_z = tier_z1 + mod_standoff;     // OLED and TM1637 underside
+oled_z = tier_z1 + row("oled_boss_h");   // OLED underside, on its printed bosses
+seg_z = tier_z1 + row("tm_boss_h");      // TM1637 underside
 floor_z = -boss_h;
 
 // HALMET parts from the KiCad footprints (overlay.py): [x, y, w, d, h], board lower-left origin; heights guessed.
@@ -49,53 +54,52 @@ module halmet() {
 }
 
 module oled() {
-    translate([oled_x - oled_w/2, oled_y - oled_h/2, mod_z]) cube([oled_w, oled_h, pcb_t]);
+    translate([r_cx - oled_w/2, r_oled_y - oled_h/2, oled_z]) cube([oled_w, oled_h, pcb_t]);
 }
 module oled_header() {   // pins out the front edge, toward the glands, a Dupont plug on them through the tier
-    translate([oled_x, oled_y - oled_h/2 + oled_pin_in, mod_z]) {
+    translate([r_cx, r_oled_y - oled_h/2 + row("oled_pin_in"), oled_z]) {
         translate([-5.08, -1.27, -2.5]) cube([10.16, 2.54, 2.5]);
         translate([-5.08, -1.27, -2.5 - 14]) cube([10.16, 2.54, 14 - 6]);
         for (i = [0:3]) translate([-3.81 + i*2.54 - 0.32, -0.32, -8.5]) cube([0.64, 0.64, 8.5]);
     }
 }
-module oled_glass() { translate([oled_x - 13, oled_y - 9.5 + 2, mod_z + pcb_t]) cube([26, 19, 1.5]); }
-module seg() { for (y = [seg_y, seg2_y]) translate([seg_x - seg_w/2, y - seg_h/2, mod_z]) cube([seg_w, seg_h, pcb_t]); }
-module seg_body() { for (y = [seg_y, seg2_y]) translate([seg_x - 15, y - 7, mod_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
+module oled_glass() { translate([r_cx - 13, r_oled_y - 9.5 + 2, oled_z + pcb_t]) cube([26, 19, 1.5]); }
+module seg() { for (y = r_tm_y) translate([r_cx - seg_w/2, y - seg_h/2, seg_z]) cube([seg_w, seg_h, pcb_t]); }
+module seg_body() { for (y = r_tm_y) translate([r_cx - 15, y - 7, seg_z + pcb_t]) cube([30, 14, 7 - pcb_t]); }
 
 module ldr() {
-    translate([ldr_x0, ldr_y - ldr_w/2, ldr_z]) {
+    translate([r_ldr_x0, r_ldr_y - ldr_w/2, ldr_z]) {
         cube([ldr_l, ldr_w, pcb_t]);
         translate([12, 2, pcb_t]) cube([7, 7, ldr_part_h]);                       // trimpot (guess)
         translate([ldr_l - 2.5, ldr_w/2 - 3.8, pcb_t]) cube([2.5, 7.6, 2.5]);      // header
         for (dy = [-2.54, 0, 2.54]) translate([ldr_l, ldr_w/2 + dy - 0.32, pcb_t + 0.94]) cube([ldr_pin_l, 0.64, 0.64]);   // pins, straight out
     }
-    translate([ldr_x0 - 1, ldr_y, ldr_z + pcb_t]) {                               // photocell on leads bent up
+    translate([r_ldr_x0 - 1, r_ldr_y, ldr_z + pcb_t]) {                               // photocell on leads bent up
         cylinder(d = 0.6, h = 3, $fn = 8);
         translate([0, 0, 3]) cylinder(d = 5, h = 2);
     }
 }
 
 module tier_standoffs() { for (c = tier_cols) translate([c[0], c[1], tier_z0]) hexpost(tier_standoff); }
-module module_standoffs() { for (p = concat(seg2_posts, seg_posts)) translate([p[0], p[1], tier_z1]) cylinder(d = 5 / cos(30), h = mod_standoff, $fn = 6); }
 
 module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
 module screws_tier() { for (c = tier_cols) translate([c[0], c[1], tier_z1]) head(); }
 module screws_ldr() {   // M3 up from under the tier, nut on the board top
-    translate([ldr_post[0], ldr_post[1], tier_z1 - tier_t - 2.5]) head(5.7, 2.5);
-    translate([ldr_post[0], ldr_post[1], ldr_z + pcb_t]) head(5.5, 2.4);
+    translate([r_ldr_post[0], r_ldr_post[1], tier_z1 - tier_t - 2.5]) head(5.7, 2.5);
+    translate([r_ldr_post[0], r_ldr_post[1], ldr_z + pcb_t]) head(5.5, 2.4);
 }
-module screws_m25() {
-    for (p = concat(seg2_posts, seg_posts)) {
+module screws_m25() {   // TM1637: M2.5 up from under the tier, nut on top
+    for (p = row("tm_posts")) {
         translate([p[0], p[1], tier_z1 - tier_t - 2]) head(4.5, 2);
-        translate([p[0], p[1], mod_z + pcb_t]) head(4.5, 2);
+        translate([p[0], p[1], seg_z + pcb_t]) head(4.5, 2);
     }
 }
 
 if (show == "box") box();
 else if (show == "lid") lid();
 else if (show == "frame") frame();
-else if (show == "tier") tier();
+else if (show == "tier") translate([0, 0, tier_z1]) tier_row();
 else if (show == "halmet") halmet();
 else if (show == "oled") oled();
 else if (show == "oled_header") oled_header();
@@ -104,7 +108,6 @@ else if (show == "seg") seg();
 else if (show == "seg_body") seg_body();
 else if (show == "ldr") ldr();
 else if (show == "tier_standoffs") tier_standoffs();
-else if (show == "module_standoffs") module_standoffs();
 else if (show == "screws_floor") screws_floor();
 else if (show == "screws_board") screws_board();
 else if (show == "screws_tier") screws_tier();
