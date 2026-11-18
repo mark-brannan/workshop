@@ -6,7 +6,7 @@
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
-part = "frame";      // [frame, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
+part = "frame";      // [frame, frame-supports:frame with detachable supports in the six underside recesses, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
 
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
@@ -120,6 +120,9 @@ support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set
 $fn = 48;
 // From HALMET.kicad_pcb, relative to the centre of the 89 x 58 board.
 slots = [[-21.75, 22.5], [22.75, -22.5]];
+sup_gap_z = 0.2;    // print-only supports: air between a support top and the ceiling it holds up
+sup_gap_xy = 0.3;   // air between a support and the recess wall
+sup_slot_clear = 0.6; // support stays this far from the screw slot
 recess = max(0, boss_h - post_h);   // underside pockets this deep over the six holed bosses, so the plate sits on the rest posts, not propped on the bosses
 body_t = plate_t;
 rests = [[36, 18], [-38.5, -19.5]];
@@ -258,11 +261,22 @@ module frame() {
         translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
         tie_chamfers();
         tab_bevel_cut();
-        if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1)
-            for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-                translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
-                translate([bar_x1 + 2, 0]) circle(d = boss_d + 2);
-            }
+        if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1) recess2d();
+    }
+}
+
+module recess2d(shrink = 0) {
+    for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
+        translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2 - 2*shrink);
+        translate([bar_x1 + 2, 0]) circle(d = boss_d + 2 - 2*shrink);
+    }
+}
+
+// Detachable supports: a plug in each recess, off the walls and a gap under the ceiling, the screw slot kept clear.
+module recess_supports() {
+    linear_extrude(recess - sup_gap_z) difference() {
+        intersection() { recess2d(sup_gap_xy); outline2d(); }
+        offset(delta = sup_slot_clear) fork_slots();
     }
 }
 
@@ -365,6 +379,7 @@ module tier() {
 
 if (part == "tier") tier();
 else if (part == "gauge") gauge();
+else if (part == "frame-supports") { frame(); recess_supports(); }
 else if (part != "frame") ;   // assembly.scad draws its own
 else if (mode == "2d") profile(true);
 else frame();

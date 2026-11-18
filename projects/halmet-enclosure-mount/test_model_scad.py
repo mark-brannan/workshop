@@ -329,3 +329,22 @@ def test_sensor_screw_head_recess_in_the_tier_underside(tier):
     assert up(2.4) == pytest.approx(bottom + P["ldr_head_h"], abs=0.02)  # inside the recess, outside the screw hole
     assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
     assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert
+
+
+@pytest.fixture(scope="module")
+def supported(tmp_path_factory):
+    d = tmp_path_factory.mktemp("halmet_supports")
+    for f in ("model.scad", "part-frame-supports.scad"):
+        (d / f).write_text((HERE / f).read_text())
+    return trimesh.load(build_scad(d / "part-frame-supports.scad", d, "frame-supports", render=False)["stl"])
+
+
+def test_six_detachable_supports_in_the_recesses(supported):
+    parts = supported.split(only_watertight=False)
+    parts = [p for p in parts if len(p.faces) > 20]
+    plate = max(parts, key=lambda p: p.volume)
+    plugs = [p for p in parts if p is not plate]
+    assert len(plugs) == 6
+    for p in plugs:
+        assert np.isclose(p.bounds[0][2], 0, atol=0.02)
+        assert np.isclose(p.bounds[1][2], (P["boss_h"] - P["post_h"]) - 0.2, atol=0.02)  # a gap under the ceiling
