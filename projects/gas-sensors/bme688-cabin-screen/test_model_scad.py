@@ -128,7 +128,7 @@ def test_overhead_bounding_boxes(oh_body, oh_cover):
 def test_overhead_volume_windows(oh_body, oh_cover):
     assert oh_body.is_watertight and oh_cover.is_watertight
     assert 7500 < oh_body.volume < 10500
-    assert 3000 < oh_cover.volume < 5000
+    assert 2500 < oh_cover.volume < 3500
 
 
 def test_overhead_holes(oh_body, oh_assembly):
@@ -150,7 +150,7 @@ OH_CHAN_X = [(i - (P["oh_chan_n"] - 1) / 2) * P["oh_chan_pitch"] for i in range(
 def test_overhead_air_path_is_open(oh_assembly):
     for x in OH_CHAN_X:
         hole = ray_hits(oh_assembly, [x, 0, 30], [0, 0, -1])                   # in at each hole, up to the channel's peak
-        assert hole[0][2] == pytest.approx(P["baffle_z"] + P["baffle_t"], abs=0.05)
+        assert hole[0][2] == pytest.approx(P["baffle_z"] + P["oh_sheet_t"] * 2 ** 0.5, abs=0.05)
         for sy in (-1, 1):
             along = ray_hits(oh_assembly, [x, 0, CHANNEL_Z], [0, sy, 0])       # out along the channel, past the baffle's end
             assert abs(along[0][1]) > P["oh_baffle_l"] / 2 + 2
