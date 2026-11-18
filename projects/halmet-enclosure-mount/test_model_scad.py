@@ -106,7 +106,7 @@ def test_slots_are_closed_pills(frame):
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             x = sx * (SPAN / 2 + REACH + P["slot_d"] / 2 + 0.5)  # just past the outer end
-            assert np.isclose(top(frame, x, k * PITCH), T, atol=0.02)
+            assert top(frame, x, k * PITCH) is not None  # floor under the relief, not open
 
 
 def test_six_fork_slots_open_over_the_bosses(frame):
@@ -337,3 +337,12 @@ def test_sensor_screw_head_recess_in_the_tier_underside(tier):
     assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
     assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert
 
+
+
+def test_screw_relief_counterbores_on_top(frame):
+    for sx in (-1, 1):
+        for k in (-1, 0, 1):
+            x, y = sx * SPAN / 2, k * PITCH + (P["slot_d"] / 2 + 0.6)  # beside the slot, inside the relief
+            assert np.isclose(top(frame, x, y), T - P["relief_h"], atol=0.02)
+            xo = sx * (SPAN / 2 + REACH + P["relief_d"] / 2 + 0.3)  # past the relief's outer end: a wall remains
+            assert np.isclose(top(frame, xo, k * PITCH), T, atol=0.02)

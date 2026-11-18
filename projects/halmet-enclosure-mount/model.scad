@@ -13,8 +13,10 @@ boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws 
 boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 printed; 21.7 next
 screw_d = 3.4;       // M3 clearance: the tier's standoff screws
 slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (pill slots)
-end_ext = 2.9;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the closed slot end; the floor is 151 inside
+end_ext = 3.2;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the slot end, 0.6 past the screw relief; floor is 151 inside, box 153
 slot_reach = 1;      // each pill slot accepts the boss this far in or out of boss_span; closed ends
+relief_d = 5.2;     // top counterbore round each slot for the screw head (M2.5 pan head ~4.7)
+relief_h = 1.5;     // its depth from the top
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
 lid_col_x = 64.8;    // lid-screw column in each corner, full height: inner edge along X (photo)
@@ -259,12 +261,16 @@ module frame() {
         tie_chamfers();
         tab_bevel_cut();
         if (recess > 0) recess_cut();
+        translate([0, 0, body_t - relief_h]) linear_extrude(relief_h + 1) for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
+            translate([boss_span/2 - slot_reach, 0]) circle(d = relief_d);
+            translate([boss_span/2 + slot_reach, 0]) circle(d = relief_d);
+        }
     }
 }
 
 // 45-degree walls: the pocket over each boss prints without supports.
 module recess_cut() {
-    r1 = boss_d/2 + 0.2;
+    r1 = boss_d/2 + 0.1;
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1, 1]) translate([0, k*boss_pitch, -1]) hull()
         for (x = [boss_span/2 - slot_reach, boss_span/2 + slot_reach]) translate([x, 0, 0]) cylinder(h = recess + 1, r1 = r1 + recess + 1, r2 = r1);
 }
