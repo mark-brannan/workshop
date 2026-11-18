@@ -3,8 +3,14 @@
 Purpose: an upward-facing lux sensor (VEML7700) on the windvane pulpit, carried by the Digital Yacht GV30
 AIS/GPS antenna's existing mount, with no cable in sight.
 
-Nothing is modelled yet. The barometer stays inside: cabin and outside pressure are the same
+First example modelled (`model.scad`: `ring`, `arm`, `assembly`), on the guesses marked in its
+parameters. The barometer stays inside: cabin and outside pressure are the same
 ([outside-sensor-pod](../outside-sensor-pod/README.md)).
+
+![assembly](out/assembly.png)
+
+Guesses in the model: skirt inside radius 34 and wall 2.5, lead Ø4.5, ring 3 thick (costs that much
+thread). Slot 7 x 25 is the owner's figure.
 
 ## Owner's constraints, 2026-11-18
 
