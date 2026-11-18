@@ -54,8 +54,8 @@ cover_screw_d = 2.9; // M2.5 clearance
 // Air comes in the hole, runs out under the arch to its two open ends, up and in.
 oh_hole_d = 10;      // the floor's one opening, under the arch's crown
 oh_baffle_l = 27;    // y; leaves 4.9 at each end for the air to turn
-oh_arch_t = 1.2;
-oh_fin_t = 1;
+oh_arch_t = 0.8;    // two 0.4 lines, square to the arch
+oh_fin_t = 0.8;     // two 0.4 lines
 oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as vanes
 oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
 oh_fin_gap_y = 7;    // gap centres
@@ -138,7 +138,7 @@ oh_arch_h = face_z - baffle_z;                                   // 4.4: the cro
 oh_arch_r = (pow(oh_arch_w/2, 2) + pow(oh_arch_h, 2)) / (2*oh_arch_h);
 oh_arch_c = oh_arch_r - oh_arch_h;                               // circle centre, below the floor
 oh_fin_x = [for (i = [-1.5 : 1 : 1.5]) i*oh_fin_pitch];
-oh_fin_segs = [[-oh_baffle_l/2, -oh_fin_gap_y - oh_fin_gap/2], [-oh_fin_gap_y + oh_fin_gap/2, oh_fin_gap_y - oh_fin_gap/2], [oh_fin_gap_y + oh_fin_gap/2, oh_baffle_l/2]];
+oh_fin_segs = [[-oh_baffle_l/2 + eps, -oh_fin_gap_y - oh_fin_gap/2], [-oh_fin_gap_y + oh_fin_gap/2, oh_fin_gap_y - oh_fin_gap/2], [oh_fin_gap_y + oh_fin_gap/2, oh_baffle_l/2 - eps]];   // ends short of the arch's by eps: coplanar ends make a non-manifold edge
 
 // Profiles in (x, height above the floor's inner face); oh_extrude stands them on the floor along y.
 module oh_arch_profile() {
