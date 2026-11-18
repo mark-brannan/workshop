@@ -48,15 +48,17 @@ boss_y = -17.5;
 cover_screw_d = 2.9; // M2.5 clearance
 
 /* [Overhead variant] */
-// Hangs under a horizontal panel, plate up. The panel is the roof; the cover is a floor with a row of
-// holes under a corrugated baffle: a thin sheet folded at 45 degrees into peaked channels along y.
-// Air comes in the holes, runs along the channels to their open ends, up and in. Every face of the
-// sheet is at 45 degrees, so it prints floor-down with no support, no bridge and no fill.
-oh_hole_d = 5;       // one hole under each channel; four of them open as much as one 10 mm hole
+// Hangs under a horizontal panel, plate up. The panel is the roof; the cover is a floor with one
+// centre hole under a shallow arch that meets the floor at both sides. Fins under the arch keep every
+// span short enough to print without support; gaps in the fins let air cross between them.
+// Air comes in the hole, runs out under the arch to its two open ends, up and in.
+oh_hole_d = 10;      // the floor's one opening, under the arch's crown
 oh_baffle_l = 27;    // y; leaves 4.9 at each end for the air to turn
-oh_chan_n = 4;       // channels, running along y
-oh_chan_pitch = 6.9; // x
-oh_sheet_t = 1;      // the sheet's thickness, square to its faces
+oh_arch_t = 1.2;
+oh_fin_t = 1;
+oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as vanes
+oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
+oh_fin_gap_y = 7;    // gap centres
 win_y = 15;          // cable window in one long wall, beside the Qwiic plug
 
 /* [Hidden] */
@@ -131,32 +133,36 @@ module overhead_body() {
     }
 }
 
-oh_sheet_v = oh_sheet_t*sqrt(2);                                // the sheet's thickness, measured in z
-oh_chan_h = face_z - baffle_z - oh_sheet_v;                      // inside height of a channel; the outer peak sits at baffle_z
-oh_chan_x = [for (i = [0 : oh_chan_n - 1]) (i - (oh_chan_n - 1)/2) * oh_chan_pitch];
-oh_sheet_w = in_w - 2*fit;
+oh_arch_w = in_w - 2*fit;
+oh_arch_h = face_z - baffle_z;                                   // 4.4: the crown's outside sits where the old baffle's back did
+oh_arch_r = (pow(oh_arch_w/2, 2) + pow(oh_arch_h, 2)) / (2*oh_arch_h);
+oh_arch_c = oh_arch_r - oh_arch_h;                               // circle centre, below the floor
+oh_fin_x = [for (i = [-1.5 : 1 : 1.5]) i*oh_fin_pitch];
+oh_fin_segs = [[-oh_baffle_l/2, -oh_fin_gap_y - oh_fin_gap/2], [-oh_fin_gap_y + oh_fin_gap/2, oh_fin_gap_y - oh_fin_gap/2], [oh_fin_gap_y + oh_fin_gap/2, oh_baffle_l/2]];
 
-// Profile in (x, height above the floor's inner face), extruded along y below.
-module oh_sheet_profile() {
+// Profiles in (x, height above the floor's inner face); oh_extrude stands them on the floor along y.
+module oh_arch_profile() {
     intersection() {
-        difference() {
-            for (x = oh_chan_x) translate([x, 0]) polygon([[-oh_chan_h - oh_sheet_v, 0], [oh_chan_h + oh_sheet_v, 0], [0, oh_chan_h + oh_sheet_v]]);
-            for (x = oh_chan_x) translate([x, -eps]) polygon([[-oh_chan_h, 0], [oh_chan_h, 0], [0, oh_chan_h]]);
-        }
-        translate([-oh_sheet_w/2, 0]) square([oh_sheet_w, face_z]);
+        translate([0, -oh_arch_c]) difference() { circle(r = oh_arch_r, $fn = 360); circle(r = oh_arch_r - oh_arch_t, $fn = 360); }
+        translate([-oh_arch_w/2, 0]) square([oh_arch_w, face_z]);
     }
 }
+module oh_fin_profile() {
+    intersection() {
+        translate([0, -oh_arch_c]) circle(r = oh_arch_r - oh_arch_t + 0.05, $fn = 360);
+        for (x = oh_fin_x) translate([x - oh_fin_t/2, -cover_t]) square([oh_fin_t, face_z]);   // from the bed up: vanes in the hole
+    }
+}
+module oh_extrude(y0, y1) { translate([0, y1, face_z + eps]) rotate([90, 0, 0]) mirror([0, 1, 0]) linear_extrude(y1 - y0) children(); }
 
 module overhead_cover() {
     difference() {
-        union() {
-            translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, cover_t]);              // floor
-            translate([0, oh_baffle_l/2, face_z + eps]) rotate([90, 0, 0]) mirror([0, 1, 0])         // corrugated baffle
-                linear_extrude(oh_baffle_l) oh_sheet_profile();
-        }
-        for (x = oh_chan_x) translate([x, 0, face_z - eps]) cylinder(d = oh_hole_d, h = cover_t + 1);   // starts at the floor: no pocket in the sheet
+        translate([-plate_w/2, -house_h/2, face_z]) cube([plate_w, house_h, cover_t]);                  // floor
+        translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = cover_t + 2);
         for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = cover_screw_d, h = cover_t + 2);
     }
+    oh_extrude(-oh_baffle_l/2, oh_baffle_l/2) oh_arch_profile();
+    for (s = oh_fin_segs) oh_extrude(s[0], s[1]) oh_fin_profile();
 }
 
 module overhead_cover_print() { translate([0, 0, depth]) rotate([180, 0, 0]) overhead_cover(); }
