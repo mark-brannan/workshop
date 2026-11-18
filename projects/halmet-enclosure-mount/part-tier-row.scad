@@ -27,6 +27,11 @@ win_inset = 5;           // opening under the two TM1637s, this far inside their
 win_round = 1.5;
 oled_pin_in = 1.6;       // OLED header row from its front edge (toward the glands): a slot under it for the plug
 plug_w = 12;  plug_d = 4;
+/* [Lightening: plate nothing stands on is cut away] */
+post_margin = 1.5;       // plate kept round a boss, past its radius
+cut_x = 59.5;            // upper right: plate right of the OLED's right posts...
+cut_y = 16.5;            // ...and above the right ear, under the photocell's header pins and by the enclosure corner
+mid_y1 = 15.4;           // centre: window under the OLED's I2C header, up to short of the sensor cradle's front wall
 /* [Light sensor on top: LM393 module, component side up, one M3 up from under the tier, nut on top] */
 ldr_x0 = 25.5;  ldr_y = 25.4;  ldr_l = 31;  ldr_w = 14;   // photocell end at ldr_x0, out past the OLED's left edge
 ldr_hole_in = 7;         // screw hole from the header end
@@ -63,14 +68,27 @@ module bosses2d(posts, d) {   // round, cut flush with the boards' right edge wh
     }
 }
 module plate2d() {
-    rr(x0, y_front, x_back, y_back);
-    rr(x0, -y_col, x1, y_col);
-    for (p = tier_pts) ear2d(p);
-    bosses2d(tm_posts, tm_boss_d + 1);   // every boss stands on plate, none overhangs the edge
+    difference() {
+        union() {
+            rr(x0, y_front, x_back, y_back);
+            rr(x0, -y_col, x1, y_col);
+            for (p = tier_pts) ear2d(p);
+            bosses2d(tm_posts, tm_boss_d + 1);   // every boss stands on plate, none overhangs the edge
+        }
+        offset(r = round_r) translate([cut_x + round_r, cut_y + round_r]) square(100);   // inside corner rounded
+    }
 }
 module windows2d() {
     module win(y) translate([cx - tm_dx/2 + win_inset, y - tm_dy/2 + win_inset]) square([tm_dx - 2*win_inset, tm_dy - 2*win_inset]);
-    offset(r = win_round) offset(delta = -win_round) hull() for (y = tm_y) win(y);
+    // one window under both TM1637s, run on up under the OLED's I2C header: full width to short of the OLED's front
+    // bosses, then between them to short of the sensor cradle (it takes in the header plug's slot)
+    ob = oled_y - oled_dy/2 - oled_boss_d/2 - post_margin;      // below the OLED's front bosses
+    ox = oled_dx/2 - oled_boss_d/2 - post_margin;               // between them
+    offset(r = win_round) offset(delta = -win_round) offset(r = -win_round) offset(delta = win_round) union() {
+        hull() for (y = tm_y) win(y);
+        translate([cx - tm_dx/2 + win_inset, 0]) square([tm_dx - 2*win_inset, ob]);
+        translate([cx - ox, 0]) square([2*ox, mid_y1]);
+    }
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;

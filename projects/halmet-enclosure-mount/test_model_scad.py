@@ -404,7 +404,7 @@ def test_row_bounds_volume_and_plan_inside_the_box(row):
     for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut flush with its board instead
         assert x <= max(P["lid_col_x"] - 1, tm_edge) + 0.01 or abs(y) <= P["lid_col_y"] - 1 + 0.01
     assert tm_edge < P["lid_col_x"]
-    assert 7000 < row.volume < 10000  # mm^3
+    assert 6000 < row.volume < 8000  # mm^3; lightened build 6951
 
 
 def test_row_prints_flat_nothing_below_or_overhanging(row):
