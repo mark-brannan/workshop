@@ -75,8 +75,7 @@ oh_insert_l = 4;
 oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
 oh_screw_d = 2.4;    // M2 clearance in the cover's floor
 oh_cboss_d = 6.2;      // cover bosses round the inserts
-oh_corner_r = 2;     // house's outside vertical corners; 2.5 or more would reach the cable exit
-oh_edge_r = 0.8;     // plate's top outside edge
+oh_round_r = 1.5;    // every outside convex edge but the bed's; 2.5 or more would reach the cable exit
 oh_pad_d = 6;        // board seat: insert pads under two holes on one diagonal
 oh_lip = 1.2;        // seat ledge reaches this far in under the board's edge
 oh_seat_wall = 1.2;  // seat walls round the board, flush with its face; stop it turning on two screws
@@ -168,26 +167,27 @@ module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate(
 module fillet2d(r = oh_fillet_r, n = 32, d = 0.05) { polygon(concat([for (i = [0:n]) let(a = 270 - 90*i/n) [r - d + r*cos(a), r - d + r*sin(a)]], [[-d, -d]])); }
 module foot_fillet(len, r = oh_fillet_r) { rotate([90, 0, 90]) linear_extrude(len) fillet2d(r); }
 
-// The house's outside foot fillet, following its rounded footprint onto the end flanges;
-// cut back where the plate's side edge rounds over, since there is no flange beside the long walls.
-module outer_fillet() {
-    hx = plate_w/2 - oh_corner_r; hy = house_h/2 - oh_corner_r;
-    intersection() {
-        translate([0, 0, plate_t]) union() {
-            for (m = [0, 1]) mirror([0, m, 0]) translate([-hx - eps, house_h/2, 0]) foot_fillet(2*hx + 2*eps);
-            for (sx = [-1, 1], sy = [-1, 1]) translate([sx*hx, sy*hy, 0]) rotate([0, 0, sy > 0 ? (sx > 0 ? 0 : 90) : (sx > 0 ? 270 : 180)])
-                rotate_extrude(angle = 90, $fn = 92) translate([oh_corner_r, 0]) fillet2d();   // 92: no facet edge at the wall corner's vertices (7.5 deg), or the mesh pinches
-        }
-        translate([-(plate_w/2 - oh_edge_r), -plate_h/2, 0]) cube([plate_w - 2*oh_edge_r, plate_h, face_z]);
-    }
+// The outside without its cavity: plate, house, and the foot fillets onto the end flanges, all sharp,
+// run past the bed and the cover's seat so those edges stay square.
+module oh_envelope() {
+    translate([0, 0, -2]) linear_extrude(plate_t + 2) rrect(plate_w, plate_h, corner_r);
+    translate([-plate_w/2, -house_h/2, -2]) cube([plate_w, house_h, face_z + 4]);
+    for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2, house_h/2, plate_t]) foot_fillet(plate_w);
 }
 
-// The plate with its top outside edge rounded oh_edge_r; the bottom stays sharp for the bed.
-module oh_plate() {
-    hull() {
-        linear_extrude(plate_t - oh_edge_r) rrect(plate_w, plate_h, corner_r);
-        for (sx = [-1, 1], sy = [-1, 1]) translate([sx*(plate_w/2 - corner_r), sy*(plate_h/2 - corner_r), plate_t - oh_edge_r])
-            rotate_extrude($fn = 48) translate([corner_r - oh_edge_r, 0]) intersection() { circle(r = oh_edge_r, $fn = 32); square(oh_edge_r); }
+// The envelope with every convex edge rounded by one rolling ball (a morphological opening:
+// erode by the ball, then grow by it), so plate edge, house corners and foot fillets blend tangent.
+module oh_rounded_envelope(r = oh_round_r) {
+    box = [plate_w + 10, plate_h + 10, face_z + 14];
+    minkowski() {
+        difference() {
+            translate([0, 0, face_z/2]) cube(box, center = true);
+            minkowski() {
+                difference() { translate([0, 0, face_z/2]) cube(box + [4, 4, 4], center = true); oh_envelope(); }
+                sphere(r = r, $fn = 48);
+            }
+        }
+        sphere(r = r, $fn = 48);
     }
 }
 
@@ -209,10 +209,11 @@ module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extr
 
 module overhead_body() {
     difference() {
+        intersection() {
         union() {
-            oh_plate();
-            linear_extrude(face_z) difference() {                                                     // four walls, down through the plate to fill its rounded edge
-                rrect(plate_w, house_h, oh_corner_r);
+            linear_extrude(plate_t) rrect(plate_w, plate_h, corner_r);
+            linear_extrude(face_z) difference() {                                                     // four walls
+                square([plate_w, house_h], center = true);
                 square([in_w, house_h - 2*wall], center = true);
             }
             for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = oh_cboss_d, h = face_z - plate_t + eps);
@@ -220,7 +221,9 @@ module overhead_body() {
             translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
                 cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
             inner_fillet();                                                                                   // every inside foot and corner rounded; the +y end's turns the tie back up
-            outer_fillet();                                                                                   // and outside, onto the end flanges
+            for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2, house_h/2, plate_t]) foot_fillet(plate_w, oh_fillet_r + 0.5);   // oversize: the envelope trims it to size; matching surfaces pinch the mesh
+        }
+        oh_rounded_envelope();                                                                            // the outside's convex edges rounded
         }
         mount_holes();
         translate([plate_w/2 + 1, oh_exit_y, oh_tie_top]) rotate([90, 0, -90]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit, sill level with the block
@@ -261,7 +264,7 @@ module oh_extrude(y0, y1) { translate([0, y1, face_z]) rotate([90, 0, 0]) mirror
 
 module overhead_cover() {
     difference() {
-        translate([0, 0, face_z]) linear_extrude(oh_floor_t) rrect(plate_w, house_h, oh_corner_r);    // floor, its corners the house's
+        translate([0, 0, face_z]) linear_extrude(oh_floor_t) rrect(plate_w, house_h, oh_round_r);    // floor, its corners the house's
         translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = oh_floor_t + 2);
         for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
     }
