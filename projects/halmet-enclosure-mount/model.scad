@@ -6,15 +6,15 @@
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up; the tier prints upside down.
 
 mode = "2d";         // [2d:laser profile, 3d:print]
-part = "frame";      // [frame, frame-supports:frame with detachable supports in the six underside recesses, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
+part = "frame";      // [frame, gauge:thin solid fit check with the raised features, tier:display tier, 3D only]
 
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
 boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 printed; 21.7 next
 screw_d = 3.4;       // M3 clearance: the tier's standoff screws
-slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (fork slots)
-end_ext = 1;         // each end bar reaches this much past the slots' reach: 3 made 154 overall, 153 fits inside the box; 1 gives 150
-slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
+slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (pill slots)
+end_ext = 2.9;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the closed slot end; the floor is 151 inside
+slot_reach = 1;      // each pill slot accepts the boss this far in or out of boss_span; closed ends
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
 lid_col_x = 64.8;    // lid-screw column in each corner, full height: inner edge along X (photo)
@@ -120,9 +120,6 @@ support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set
 $fn = 48;
 // From HALMET.kicad_pcb, relative to the centre of the 89 x 58 board.
 slots = [[-21.75, 22.5], [22.75, -22.5]];
-sup_gap_z = 0.2;    // print-only supports: air between a support top and the ceiling it holds up
-sup_gap_xy = 0.3;   // air between a support and the recess wall
-sup_slot_clear = 0.6; // support stays this far from the screw slot
 recess = max(0, boss_h - post_h);   // underside pockets this deep over the six holed bosses, so the plate sits on the rest posts, not propped on the bosses
 body_t = plate_t;
 rests = [[36, 18], [-38.5, -19.5]];
@@ -217,7 +214,7 @@ module tie_chamfers() {
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
         translate([boss_span/2 - slot_reach, 0]) circle(d = slot_d);
-        translate([bar_x1 + 2, 0]) circle(d = slot_d);
+        translate([boss_span/2 + slot_reach, 0]) circle(d = slot_d);
     }
 }
 
@@ -261,23 +258,15 @@ module frame() {
         translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
         tie_chamfers();
         tab_bevel_cut();
-        if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1) recess2d();
+        if (recess > 0) recess_cut();
     }
 }
 
-module recess2d(shrink = 0) {
-    for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-        translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2 - 2*shrink);
-        translate([bar_x1 + 2, 0]) circle(d = boss_d + 2 - 2*shrink);
-    }
-}
-
-// Detachable supports: a plug in each recess, off the walls and a gap under the ceiling, the screw slot kept clear.
-module recess_supports() {
-    linear_extrude(recess - sup_gap_z) difference() {
-        intersection() { recess2d(sup_gap_xy); outline2d(); }
-        offset(delta = sup_slot_clear) fork_slots();
-    }
+// 45-degree walls: the pocket over each boss prints without supports.
+module recess_cut() {
+    r1 = boss_d/2 + 0.2;
+    for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1, 1]) translate([0, k*boss_pitch, -1]) hull()
+        for (x = [boss_span/2 - slot_reach, boss_span/2 + slot_reach]) translate([x, 0, 0]) cylinder(h = recess + 1, r1 = r1 + recess + 1, r2 = r1);
 }
 
 // Fast fit check: the frame's outline and slots on a thin plate with big windows; short stubs mark
@@ -379,7 +368,6 @@ module tier() {
 
 if (part == "tier") tier();
 else if (part == "gauge") gauge();
-else if (part == "frame-supports") { frame(); recess_supports(); }
 else if (part != "frame") ;   // assembly.scad draws its own
 else if (mode == "2d") profile(true);
 else frame();
