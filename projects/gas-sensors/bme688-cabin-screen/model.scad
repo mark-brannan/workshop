@@ -61,14 +61,14 @@ oh_fin_t = 0.8;     // two 0.4 lines
 oh_fin_pitch = 5.5;  // x; four fins, the middle two run through the hole as vanes
 oh_fin_gap = 3;      // y; one gap in each fin either side of the hole
 oh_fin_gap_y = 7;    // gap centres
-oh_exit_y = 15;       // cable exit: arched hole in the +x long wall, toward the Qwiic end, routed rearward
+oh_exit_y = 15.5;    // cable exit: arched hole in the +x long wall, toward the Qwiic end, routed rearward
 oh_exit_w = 5;
-oh_exit_h = 7;       // from the plate's face to the arch's crown
-oh_tie_x = 12.4;     // tie anchor inside, just short of the exit: two slots through the plate, one each side of the cable
-oh_tie_w = 3.8;      // slot along x: ties up to 3.6 wide
-oh_tie_slot = 1.2;   // slot across y
-oh_tie_pitch = 5.2;  // slot centres, across the cable
-oh_tie_groove = 1.4; // groove in the plate's back joining the slots; the strap runs between plate and panel
+oh_exit_h = 6;       // from the tie block's top, where the cable rides, to the arch's crown
+oh_tie_w = 3.8;      // tie anchor inside, against the exit: a block on the plate, its tunnel along y under the cable; ties to 3.6 wide
+oh_tie_h = 1.6;      // tunnel height, arch crown included
+oh_tie_roof = 1.2;   // block above the tunnel's crown; the cable lies on it
+oh_tie_len = 2.4;    // block along y, the tie's run under the cable
+oh_tie_side = 0.8;   // block inboard of the tunnel; the long wall is its other side
 oh_insert_d = 3.2;   // M2 heat-set insert hole; insert size a guess (3.2 x 4) until the bag or calipers say
 oh_insert_l = 4;
 oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
@@ -133,7 +133,8 @@ oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
 oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board screws, on the same diagonal
-oh_seat_z = plate_t + pad_h;                                   // board's back
+oh_seat_z = plate_t + pad_h;
+oh_tie_top = plate_t + oh_tie_h + oh_tie_roof;                 // 5.8: the cable's bed at the exit                                   // board's back
 oh_pocket = [board_w + 2*fit, board_l + 2*fit];
 
 // The board's seat: a ledge under its edges, insert pads under two holes, walls to its face
@@ -151,6 +152,8 @@ module oh_seat() {
     }
 }
 
+// The tie tunnel's section about its centre line: sides, then a half ellipse to the crown.
+module tie_tunnel2d() { hull() { translate([-oh_tie_w/2, 0]) square([oh_tie_w, oh_tie_h/2]); translate([0, oh_tie_h/2]) scale([oh_tie_w/2, oh_tie_h/2]) circle(r = 1); } }
 // A hole with a round top: straight sides, then a half circle, so it prints without support.
 module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate([0, h - w/2]) circle(d = w); translate([-w/2, 0]) square([w, h - w/2]); } }
 
@@ -166,11 +169,12 @@ module overhead_body() {
             }
             for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = oh_cboss_d, h = face_z - plate_t + eps);
             oh_seat();
+            translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
+                cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
         }
         mount_holes();
-        translate([plate_w/2 + 1, oh_exit_y, plate_t]) rotate([90, 0, -90]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit
-        for (sy = [-1, 1]) translate([oh_tie_x - oh_tie_w/2, oh_exit_y + sy*oh_tie_pitch/2 - oh_tie_slot/2, -1]) cube([oh_tie_w, oh_tie_slot, plate_t + 2]);   // tie slots
-        translate([oh_tie_x - oh_tie_w/2, oh_exit_y - oh_tie_pitch/2 - oh_tie_slot/2, -1]) cube([oh_tie_w, oh_tie_pitch + oh_tie_slot, oh_tie_groove + 1]);        // groove under
+        translate([plate_w/2 + 1, oh_exit_y, oh_tie_top]) rotate([90, 0, -90]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit, sill level with the block
+        translate([in_w/2 - oh_tie_w/2, oh_exit_y + oh_tie_len/2 + 1, plate_t - eps]) rotate([90, 0, 0]) linear_extrude(oh_tie_len + 2) tie_tunnel2d();   // tie tunnel along y
         for (b = oh_bosses) translate(b) oh_insert_hole(face_z);
         for (p = oh_posts) translate(p) oh_insert_hole(oh_seat_z);
     }

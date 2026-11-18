@@ -201,15 +201,20 @@ def test_overhead_nothing_outside_sees_the_chip(oh_assembly):
 
 
 def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
-    z = P["plate_t"] + 1
     y = P["oh_exit_y"]
-    assert not ray_hits(oh_assembly, [12, y, z], [1, 0, 0])                           # out through the long wall
-    assert ray_hits(oh_assembly, [12, y, z + P["oh_exit_h"] + 0.5], [1, 0, 0])       # closed above the arch
-    assert ray_hits(oh_assembly, [12, -y + 6, z], [1, 0, 0])                          # the rest of that wall is closed
+    top = P["plate_t"] + P["oh_tie_h"] + P["oh_tie_roof"]
+    z = top + 1
+    assert not ray_hits(oh_assembly, [11, y, z], [1, 0, 0])                           # out through the long wall, over the block
+    assert ray_hits(oh_assembly, [11, y, top + P["oh_exit_h"] + 0.5], [1, 0, 0])     # closed above the arch
+    assert ray_hits(oh_assembly, [11, y, top - 0.5], [1, 0, 0])                       # closed below the sill
+    assert ray_hits(oh_assembly, [11, -y + 6, z], [1, 0, 0])                          # the rest of that wall is closed
     assert ray_hits(oh_assembly, [-12, y, z], [-1, 0, 0])                             # and the other long wall
-    assert ray_hits(oh_assembly, [8, 15, z], [0, 1, 0])   # end wall closed
-    x = P["oh_tie_x"]
-    for sy in (1, -1):                                                                # a slot each side of the cable, through the plate
-        assert not ray_hits(oh_body, [x, y + sy * P["oh_tie_pitch"] / 2, 30], [0, 0, -1])
-    assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)   # the bar between them
-    assert ray_hits(oh_body, [x, y, -5], [0, 0, 1])[0][2] == pytest.approx(P["oh_tie_groove"], abs=0.05)  # groove under the bar
+    assert ray_hits(oh_assembly, [8, 15, P["plate_t"] + 1], [0, 1, 0])                # and the end wall
+    tx = IN_W / 2 - P["oh_tie_w"] / 2
+    tz = P["plate_t"] + P["oh_tie_h"] / 2
+    for d in (1, -1):                                                                 # tunnel open both ways under the block
+        hits = ray_hits(oh_body, [tx, y, tz], [0, d, 0])
+        assert not hits or abs(hits[0][1] - y) > P["oh_tie_len"] / 2 + 1
+    assert ray_hits(oh_body, [tx, y, 30], [0, 0, -1])[0][2] == pytest.approx(top, abs=0.05)
+    for x, yy in ((tx, y), (12, 15), (8, 16)):                                        # plate solid under the tie and the cable's run
+        assert ray_hits(oh_body, [x, yy, -5], [0, 0, 1])[0][2] == pytest.approx(0, abs=0.05)
