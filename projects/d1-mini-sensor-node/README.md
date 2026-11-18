@@ -38,5 +38,5 @@ about 30 ohm expected, 5 V / R is the real current.
 
 ## Open
 
-- Firmware (ESPHome or other): not chosen.
+- Firmware: [`esphome/node.yaml`](esphome/node.yaml) passes `esphome config`; not compiled, not flashed. Copy `secrets.example.yaml` to `secrets.yaml` first. The MQ / ADS1115 add-on is not in it yet.
 - Enclosure and layout: not started; waits on the measurements above.
