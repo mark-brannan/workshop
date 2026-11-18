@@ -1,4 +1,4 @@
-"""Tests for the GV30 split ring: bounding box, volume window, the split and the cord hole."""
+"""Tests for the GV30 split ring: bounding box, volume window, the split and the arm."""
 
 import re
 import tempfile
@@ -27,13 +27,16 @@ def ring():
 
 def test_ring(ring):
     x, y, z = ring.extents
-    assert y == pytest.approx(P["od"], abs=0.1) and z == pytest.approx(P["h"], abs=0.05)
-    assert ring.is_watertight and 1500 < ring.volume < 3000
+    assert x == pytest.approx(P["od"] + P["arm_l"], abs=0.1) and y == pytest.approx(P["od"], abs=0.1)
+    assert z == pytest.approx(P["h"], abs=0.05)
+    assert ring.is_watertight and 4000 < ring.volume < 7000
     assert not ray_hits(ring, [0, 0, -5], [0, 0, 1]), "bore clear over the stub"
 
 
-def test_split_and_cord_hole(ring):
-    r = (P["od"] + P["id"]) / 4
-    assert not ray_hits(ring, [r, 0, -5], [0, 0, 1]), "split runs through"
-    # opposite the split, so a ray along X goes in through the hole and out through the split
-    assert not ray_hits(ring, [-P["od"], 0, P["h"] / 2], [1, 0, 0]), "cord hole runs through the wall"
+def test_split_runs_down_the_arm(ring):
+    for x in (P["id"] / 2 + 1, P["od"] / 2 + P["arm_l"] - 1):
+        assert not ray_hits(ring, [x, 0, -5], [0, 0, 1]), f"split open at x = {x}"
+    # arm is uniform: full width at both ends
+    for x in (P["od"] / 2 + 1, P["od"] / 2 + P["arm_l"] - 1):
+        assert ray_hits(ring, [x, P["arm_w"] / 2 - 0.5, -5], [0, 0, 1])
+        assert not ray_hits(ring, [x, P["arm_w"] / 2 + 0.5, -5], [0, 0, 1])
