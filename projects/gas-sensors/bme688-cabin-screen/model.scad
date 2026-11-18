@@ -137,7 +137,7 @@ oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board scr
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
 oh_tie_top = plate_t + oh_tie_h + oh_tie_roof;                // 5.8: the cable's bed at the exit
-oh_tie_cove_r = roof_y - (oh_exit_y + oh_tie_len/2);           // 1.7: cove in the end wall's foot, from the tunnel's far mouth up the wall; turns the tie back up
+oh_fillet_r = roof_y - (oh_exit_y + oh_tie_len/2);             // 1.7: wall-foot fillets; inside the end wall it starts at the tunnel's far mouth
 oh_pocket = [board_w + 2*fit, board_l + 2*fit];
 
 // The board's seat: a ledge under its edges, insert pads under two holes, walls to its face
@@ -160,6 +160,15 @@ module tie_tunnel2d() { hull() { translate([-oh_tie_w/2, 0]) square([oh_tie_w, o
 // A hole with a round top: straight sides, then a half circle, so it prints without support.
 module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate([0, h - w/2]) circle(d = w); translate([-w/2, 0]) square([w, h - w/2]); } }
 
+// Fillet along x for len, against a wall face at y = 0 (wall in -y), on a floor at z = 0.
+// Stops 0.2 short of both tangents so no sliver faces are left.
+module foot_fillet(len, r = oh_fillet_r) {
+    difference() {
+        translate([0, -eps, -eps]) cube([len, r - 0.2 + eps, r - 0.2 + eps]);
+        translate([-1, r, r]) rotate([0, 90, 0]) cylinder(r = r, h = len + 2);
+    }
+}
+
 module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
 
 module overhead_body() {
@@ -174,10 +183,12 @@ module overhead_body() {
             oh_seat();
             translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
                 cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
-            difference() {                                                                                    // cove at the end wall's foot
-                translate([in_w/2 - oh_tie_w, roof_y - oh_tie_cove_r + 0.2, plate_t - eps]) cube([oh_tie_w + eps, oh_tie_cove_r - 0.2 + eps, oh_tie_cove_r - 0.2]);   // short of the tangents: no slivers
-                translate([in_w/2 - oh_tie_w - 1, roof_y - oh_tie_cove_r, plate_t + oh_tie_cove_r]) rotate([0, 90, 0]) cylinder(r = oh_tie_cove_r, h = oh_tie_w + 2);
-            }
+            translate([-in_w/2, -roof_y, plate_t]) foot_fillet(in_w);                                         // fillets round every wall's foot, inside
+            translate([in_w/2, roof_y, plate_t]) rotate([0, 0, 180]) foot_fillet(in_w);                       // this one turns the tie back up
+            translate([in_w/2, -roof_y, plate_t]) rotate([0, 0, 90]) foot_fillet(2*roof_y);
+            translate([-in_w/2, roof_y, plate_t]) rotate([0, 0, -90]) foot_fillet(2*roof_y);
+            translate([plate_w/2, house_h/2, plate_t]) rotate([0, 0, 180]) mirror([0, 1, 0]) foot_fillet(plate_w);   // and outside, onto the end flanges
+            translate([-plate_w/2, -house_h/2, plate_t]) mirror([0, 1, 0]) foot_fillet(plate_w);
         }
         mount_holes();
         translate([plate_w/2 + 1, oh_exit_y, oh_tie_top]) rotate([90, 0, -90]) linear_extrude(wall + 2) arch2d(oh_exit_w, oh_exit_h);   // cable exit, sill level with the block
