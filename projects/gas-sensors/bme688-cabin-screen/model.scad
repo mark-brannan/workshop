@@ -167,28 +167,42 @@ module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate(
 module fillet2d(r = oh_fillet_r, n = 32, d = 0.05) { polygon(concat([for (i = [0:n]) let(a = 270 - 90*i/n) [r - d + r*cos(a), r - d + r*sin(a)]], [[-d, -d]])); }
 module foot_fillet(len, r = oh_fillet_r) { rotate([90, 0, 90]) linear_extrude(len) fillet2d(r); }
 
-// The outside without its cavity: plate, house, and the foot fillets onto the end flanges, all sharp,
-// run past the bed and the cover's seat so those edges stay square.
-module oh_envelope() {
-    translate([0, 0, -2]) linear_extrude(plate_t + 2) rrect(plate_w, plate_h, corner_r);
-    translate([-plate_w/2, -house_h/2, -2]) cube([plate_w, house_h, face_z + 4]);
-    for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2, house_h/2, plate_t]) foot_fillet(plate_w);
+// The outside without its cavity (plate, house, and foot fillets r rf onto the end flanges), with
+// every convex edge rounded r by one rolling ball: the places the ball reaches, written out from
+// the ball's own surfaces instead of a minkowski opening. Plate and house each become a hull of
+// spheres or tori; the fillet strip is a block less a cutter of radius rf along the straight run,
+// which opens over the last r at each end into the inner sheet of a torus (major rf + r, minor r),
+// so it meets the house's rounded corner and the plate's rounded edge tangent. Everything runs
+// past the bed and the cover's seat, so those edges stay square. Mirror-symmetric by construction.
+module oh_rounded_envelope(r = oh_round_r, rf = oh_fillet_r, d = 0.05, n = 64) {
+    b = plate_w/2 - r;                                   // ball centres' reach in x
+    // A ball swept round a circle of radius c; revolved, not sphere(), so its equator reaches r exactly.
+    module swept_ball(c) rotate_extrude($fn = n) intersection() { translate([c, 0]) circle(r = r, $fn = n); translate([0, -r]) square(2*r); }
+    hull() for (sx = [-1, 1], sy = [-1, 1], z = [-2 + r, plate_t - r])           // plate
+        translate([sx*(plate_w/2 - corner_r), sy*(plate_h/2 - corner_r), z]) swept_ball(corner_r - r);
+    hull() for (sx = [-1, 1], sy = [-1, 1], z = [-2 + r, face_z + 2 - r])        // house
+        translate([sx*b, sy*(house_h/2 - r), z]) swept_ball(0);
+    re = rf + r;                                         // the fillet's arc, eroded by the ball
+    k = 24;                                              // cutter stations over each end's torus run
+    xs = concat([-plate_w/2 - 0.1], [for (i = [k:-1:0]) -b - r*i/k], [for (i = [0:k]) b + r*i/k], [plate_w/2 + 0.1]);
+    rad = [for (x = xs) let(t = min(abs(x) - b, r)) abs(x) <= b + 1e-9 ? rf : re - sqrt(max(r*r - t*t, 0))];
+    y0 = house_h/2 - r - 0.5; z0 = plate_t - r - 0.5;   // block starts inside the eroded house and plate
+    cy = house_h/2 + rf - d; cz = plate_t + rf - d;     // fillet centre, d in from both faces as foot_fillet's
+    for (m = [0, 1]) mirror([0, m, 0]) difference() {
+        translate([-plate_w/2, y0, z0]) cube([plate_w, cy - y0, cz - z0]);
+        translate([0, cy, cz]) oh_revolve_x(xs, rad, n);
+    }
 }
 
-// The envelope with every convex edge rounded by one rolling ball (a morphological opening:
-// erode by the ball, then grow by it), so plate edge, house corners and foot fillets blend tangent.
-module oh_rounded_envelope(r = oh_round_r) {
-    box = [plate_w + 10, plate_h + 10, face_z + 14];
-    minkowski() {
-        difference() {
-            translate([0, 0, face_z/2]) cube(box, center = true);
-            minkowski() {
-                difference() { translate([0, 0, face_z/2]) cube(box + [4, 4, 4], center = true); oh_envelope(); }
-                sphere(r = r, $fn = 48);
-            }
-        }
-        sphere(r = r, $fn = 48);
-    }
+// A solid of revolution about x: radius rad[i] at station xs[i], n facets round.
+module oh_revolve_x(xs, rad, n) {
+    m = len(xs);
+    pts = concat([for (i = [0:m - 1], j = [0:n - 1]) let(a = 360*j/n) [xs[i], rad[i]*cos(a), rad[i]*sin(a)]], [[xs[0], 0, 0], [xs[m - 1], 0, 0]]);
+    faces = concat(
+        [for (i = [0:m - 2], j = [0:n - 1]) [i*n + j, (i + 1)*n + j, (i + 1)*n + (j + 1) % n, i*n + (j + 1) % n]],
+        [for (j = [0:n - 1]) [m*n, j, (j + 1) % n]],
+        [for (j = [0:n - 1]) [m*n + 1, (m - 1)*n + (j + 1) % n, (m - 1)*n + j]]);
+    polyhedron(pts, faces);
 }
 
 // The interior's fillet in one piece: the interior box less a box with its bottom and vertical
@@ -211,7 +225,7 @@ module overhead_body() {
     difference() {
         intersection() {
         union() {
-            linear_extrude(plate_t) rrect(plate_w, plate_h, corner_r);
+            linear_extrude(plate_t) square([plate_w + 2, plate_h + 2], center = true);   // oversize: the envelope draws the outline
             linear_extrude(face_z) difference() {                                                     // four walls
                 square([plate_w, house_h], center = true);
                 square([in_w, house_h - 2*wall], center = true);
