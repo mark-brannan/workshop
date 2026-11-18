@@ -25,8 +25,8 @@ def lists(path: Path) -> dict[str, list]:
 
 P = params(HERE / "model.scad")
 LISTS = lists(HERE / "model.scad")
-DROP = 0.0  # flat underside resting on the bosses
-T, H = P["plate_t"] + DROP, P["standoff_h"]  # T: full body thickness
+RECESS = max(0.0, P["boss_h"] - P["post_h"])  # underside pocket over each holed boss
+T, H = P["plate_t"], P["standoff_h"]  # T: full body thickness
 SPAN, PITCH, REACH = P["boss_span"], P["boss_pitch"], P["slot_reach"]
 DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
@@ -76,7 +76,7 @@ def test_bounds_volume_watertight(frame):
     assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0), atol=0.02)
     assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, P["plate_y_hi"]], atol=0.05)  # straight back edge
     assert hi[1] < 83 / 2  # inside the box floor
-    assert VOL_LO < frame.volume < VOL_HI  # mm^3; a solid 144 x 75 x 4.5 plate is 48600
+    assert VOL_LO < frame.volume < VOL_HI  # mm^3; a solid 144 x 75 x 4 plate is 43200
 
 
 def test_one_body_lightened(frame):
@@ -131,12 +131,13 @@ def test_pads_cover_the_four_posts(frame):
                 assert np.isclose(bottom(frame, sx * P["post_dx"] / 2 + ox, sy * P["post_dy"] / 2), 0, atol=0.02)
 
 
-def test_underside_flat_over_bosses_and_posts(frame):
-    assert DROP == 0
+def test_underside_recessed_over_bosses_flat_on_posts(frame):
+    assert RECESS == 1.0  # boss 3.5 over a 2.5 post
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             x, y = sx * SPAN / 2, k * PITCH + (P["slot_d"] / 2 + 1.5)  # beside the slot, over the boss rim
-            assert np.isclose(bottom(frame, x, y), 0, atol=0.02)
+            assert np.isclose(bottom(frame, x, y), RECESS, atol=0.02)
+
 
 
 def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):

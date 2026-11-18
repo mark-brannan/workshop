@@ -92,7 +92,7 @@ ldr_head_h = 2.2;    // its depth from the underside: a 2 mm head, leaving 1.8 o
 ldr_pin_l = 6;       // header pins past the header end (owner); bend or swap them once the module is placed
 
 /* [Plate: hex-lightened] */
-plate_t = 4.5;
+plate_t = 4.0;
 plate_y_lo = -33;    // gland-side edge between the lid-screw columns
 plate_y_hi = 39.5;   // back edge between the lid-screw columns, tangent to the rear post tabs
 rim_w = 2;           // solid rim round the outline
@@ -118,8 +118,8 @@ support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set
 $fn = 48;
 // From HALMET.kicad_pcb, relative to the centre of the 89 x 58 board.
 slots = [[-21.75, 22.5], [22.75, -22.5]];
-drop = 0;            // flat underside on the bosses: pockets over them printed badly
-body_t = plate_t + drop;
+recess = max(0, boss_h - post_h);   // underside pockets this deep over the six holed bosses, so the plate sits on the rest posts, not propped on the bosses
+body_t = plate_t;
 rests = [[36, 18], [-38.5, -19.5]];
 bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach + end_ext;                   // outer edge
@@ -241,7 +241,7 @@ module frame() {
         tie_chamfers();
         translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
             cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
-        if (drop > 0) translate([0, 0, -1]) linear_extrude(drop + 1)
+        if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1)
             for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
                 translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
                 translate([bar_x1 + 2, 0]) circle(d = boss_d + 2);
