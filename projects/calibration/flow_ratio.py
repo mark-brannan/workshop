@@ -18,7 +18,7 @@ from pathlib import Path
 @dataclass
 class P:
     material: str = "ASA-CF"
-    tool: int = 1  # T1 -> CFS 1 slot B (T0 -> 1A: the last PETG job ran T0 from slot 1A)
+    tool: int | None = None  # None: external spool, no tool change, prints what is in the toolhead. n: CFS via T<n>
     nozzle: int = 270
     bed: int = 90
     fan: int = 20  # percent
@@ -148,7 +148,7 @@ def build(p: P) -> str:
         "M140 S0",
         "M104 S0",
         f"START_PRINT EXTRUDER_TEMP={p.nozzle} BED_TEMP={p.bed}",
-        f"T{p.tool}",
+        *([f"T{p.tool}"] if p.tool is not None else []),
         f"M109 S{p.nozzle}",
         "M204 S2000",
         "G1 Z3 F600",
@@ -180,8 +180,8 @@ def build(p: P) -> str:
 
 PRESETS = {
     "ASA-CF": P(),
-    # SUNLU PETG @System as last printed: flow 0.95, 245 C, bed 60, fan 10-30, CFS slot 1A (T0)
-    "PETG": P(material="PETG", tool=0, nozzle=245, bed=60, fan=30, base_flow=0.95,
+    # SUNLU PETG @System as last printed: flow 0.95, 245 C, bed 60, fan 10-30
+    "PETG": P(material="PETG", nozzle=245, bed=60, fan=30, base_flow=0.95,
               ratios=[round(0.90 + 0.01 * i, 2) for i in range(13)]),
 }
 
