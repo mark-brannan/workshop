@@ -1,4 +1,4 @@
-// Lid: 3 mm clear acrylic, laser cut from the DXF; the tray's outline with two M2.5 holes.
+// Lid for the lidded build (potted = false): 3 mm clear acrylic, laser cut from the DXF.
 include <model.scad>
 part = "none";
 mode = "2d";   // [2d:laser profile, 3d:extruded for the render]

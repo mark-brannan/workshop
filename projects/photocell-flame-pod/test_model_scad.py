@@ -13,13 +13,16 @@ HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
 
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
-LEAD_L = P["plug_out"]  # lead = "dupont", the default
-IN_L = P["cell_end"] + P["board_l"] + LEAD_L + P["wire_clear"]
+LEAD_L = P["solder_out"]  # lead = "solder", the default; potted = true
+EXIT_X = P["cell_end"] + P["board_l"] + LEAD_L + P["cable_d"] / 2
+IN_L = EXIT_X + P["cable_d"] / 2 + P["end_clear"]
 IN_W = P["board_w"] + 2 * P["fit"]
 OUT_L, OUT_W = IN_L + 2 * P["wall"], IN_W + 2 * P["wall"]
 BOARD_Z = P["floor_t"] + P["ledge"]
 BOARD_TOP = BOARD_Z + P["board_t"]
-TRAY_H = BOARD_TOP + P["cell_h"] + P["top_clear"]
+POUR_Z = BOARD_TOP + P["cell_h"] - P["cell_t"]
+TRAY_H = POUR_Z + P["pour_rim"]
+CABLE_Z = BOARD_TOP + P["pin_z"]
 HOLE_X = P["cell_end"] + P["board_l"] - P["hole_from_hdr"]
 
 
@@ -47,12 +50,14 @@ def down(mesh, x, y):
 def test_tray_bounds_volume(tray):
     assert tray.is_watertight
     x0, x1 = -P["wall"] - P["tab_l"], IN_L + P["wall"] + P["tab_l"]
-    assert np.allclose(tray.bounds, [[x0, -OUT_W / 2, 0], [x1, OUT_W / 2, TRAY_H]], atol=0.05)
-    assert 5_000 < tray.volume < 9_000
+    y0 = -OUT_W / 2 - P["tie_out"]
+    assert np.allclose(tray.bounds, [[x0, y0, 0], [x1, OUT_W / 2, TRAY_H]], atol=0.05)
+    assert 4_000 < tray.volume < 7_500
 
 
-def test_photocell_clears_the_lid():
-    assert TRAY_H - (BOARD_TOP + P["cell_h"]) == pytest.approx(P["top_clear"]) and P["top_clear"] > 0
+def test_potting_covers_board_and_trimpot_leaves_cell_proud():
+    assert POUR_Z > BOARD_TOP + P["pot_h"] + 1
+    assert BOARD_TOP + P["cell_h"] > TRAY_H  # the cell's face stands above the rim
 
 
 def test_board_rests_on_ledges_and_boss(tray):
@@ -63,26 +68,25 @@ def test_board_rests_on_ledges_and_boss(tray):
     assert np.isclose(down(tray, HOLE_X + P["boss_d"] / 2 - 0.3, 0)[0][2], BOARD_Z, atol=0.02)
 
 
-def test_screw_through_and_nut_pocket(tray):
-    assert len(down(tray, HOLE_X, 0)) == 0  # clearance through the floor
-    nut_floor = down(tray, HOLE_X + P["screw_d"] / 2 + 0.6, 0)[0][2]
-    assert np.isclose(nut_floor, BOARD_Z - P["nut_t"], atol=0.02) and nut_floor > 0
+def test_locating_pin_through_board_hole_no_floor_hole(tray):
+    assert np.isclose(down(tray, HOLE_X, 0)[0][2], BOARD_TOP, atol=0.02)
+    assert P["locate_d"] < 4 - 0.4  # board hole ~4
+    assert len(down(tray, HOLE_X, 0)) == 2  # pin top and the underside: solid, no leak for the pour
 
 
-def test_four_lid_columns_with_pilots(tray):
-    for x in (1.5, IN_L - 1.5):  # inside the column, outside its pilot
-        for y in (-IN_W / 2 + 0.4, IN_W / 2 - 0.4):
-            assert np.isclose(down(tray, x, y)[0][2], TRAY_H, atol=0.05)
-    pilot_bottom = down(tray, 0, IN_W / 2)  # pilot centred on the inside corner
-    assert np.isclose(pilot_bottom[0][2], TRAY_H - P["pilot_h"], atol=0.05)
+def test_cable_exits_side_wall_clear_of_tabs(tray):
+    hits = ray_hits(tray, (EXIT_X, -OUT_W, CABLE_Z), (0, 1, 0))
+    assert hits[0][1] > 0  # nothing in the -Y wall at cable height: first hit is across the tray
+    assert CABLE_Z - P["cable_d"] / 2 > BOARD_Z  # round bottom stays above the board underside
+    assert EXIT_X + P["cable_d"] / 2 < IN_L  # inside the end wall, not over the end tab
+    assert EXIT_X - P["cable_d"] / 2 > P["cell_end"] + P["board_l"] + LEAD_L - 0.01  # past the heatshrink
 
 
-def test_cable_slot_open_to_rim(tray):
-    cable_z = BOARD_TOP + P["pin_z"]
-    hits = ray_hits(tray, (IN_L + 10, 0, cable_z), (-1, 0, 0))
-    assert hits[0][0] < P["cell_end"] + P["board_l"]  # nothing in the end wall at cable height
-    assert cable_z - P["cable_d"] / 2 > BOARD_Z  # round bottom stays above the board underside
-    assert np.isclose(ray_hits(tray, (IN_L + 10, 0, BOARD_Z - 1), (-1, 0, 0))[0][0], IN_L + P["wall"], atol=0.05)
+def test_tie_block_under_exit_with_tunnel(tray):
+    y = -OUT_W / 2 - P["tie_out"] / 2
+    assert np.isclose(down(tray, EXIT_X, y)[0][2], CABLE_Z - P["cable_d"] / 2, atol=0.02)  # cable bed
+    through = ray_hits(tray, (EXIT_X - 20, y, P["tie_h"] / 2), (1, 0, 0))
+    assert all(abs(h[0] - EXIT_X) > P["tie_w"] / 2 + P["tie_side"] - 0.05 for h in through)
 
 
 def test_two_mounting_tab_holes(tray):
