@@ -45,6 +45,8 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
+fin = true;         // print-only break-away support under the back wall
+fin_t = 1.2;
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
@@ -77,6 +79,9 @@ module box() {
     translate([pocket_x - 8, -W / 2 - (front - wall) - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = front + 2 * e);
     translate([pocket_x, W / 2 - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
   }
+  // break-away fin, printed only: stands on the knob wall (the bed) mid fan bay, stops 0.25 short of the back
+  // wall, so the 81 mm roof prints as two ~40 mm bridges. Snap it out before the fan goes in.
+  if (fin) translate([-fin_t / 2, -W / 2 + wall - e, floor_t + 0.4]) cube([fin_t, W - 2 * wall - 0.25 + e, fan_t - 0.4]);
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() { cylinder(d = 6, h = 3); cylinder(d = 2.5, h = 3 + e); }
 }
