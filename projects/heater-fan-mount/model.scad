@@ -19,10 +19,10 @@ fit = 0.4;          // fan to socket, each side
 
 /* [Duct: 3" flex, wire helix right-hand, pitch 15-19 (owner's estimate: residential HVAC or marine blower hose)] */
 duct_id = 76.2;     // 3" nominal, at the wire
-pitch = 17;         // ESTIMATE, owner: 15-19; measure 10 turns at the boat
+pitch = 15;         // ESTIMATE, owner: 15-19; measure 10 turns at the boat
 rib_h = 2.5;        // helical rib that sits between the duct's wire turns
 spigot_h = 25;
-spigot_wall = 3;
+spigot_wall = 2.5;
 spigot_d = duct_id - 0.2 + 2 * rib_h;   // rib crest; the core is a snug slip inside the wire
 spigot_bore = duct_id - 0.2 - 2 * spigot_wall;
 // rib profile in pitch units: x along the axis, y radial from the crest; 45 deg flanks print upright
@@ -44,7 +44,7 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 /* [Shell] */
 wall = 3;
 floor_t = 3;
-plate_t = 4;        // lid and spigot flange
+plate_t = 3;        // lid and spigot flange
 pocket = 40;        // controller pocket, inside, along +X beside the fan bay
 r = 6;              // vertical edge rounding
 
@@ -102,7 +102,7 @@ module spigot() {
     }
     translate([0, 0, -e]) cylinder(d = spigot_bore, h = plate_t + spigot_h + 2 * e);
     holes(4.4, plate_t + 2 * e);
-    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 3.2]) cylinder(d = 8.1, h = 3.2 + e, $fn = 6);   // M4 nuts, under the stack
+    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 2.4]) cylinder(d = 8.1, h = 2.4 + e, $fn = 6);   // M4 nuts, 0.8 proud, under the stack
   }
 }
 
