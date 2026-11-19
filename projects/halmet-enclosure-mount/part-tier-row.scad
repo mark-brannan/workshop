@@ -26,6 +26,7 @@ lid_col_x = 68;  lid_col_y = 34;   // lid-screw column, inner corner (from the 1
 col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
 win_round = 1.5;
+pin_margin = 1;          // plate kept beside a right-hand boss pad, at the notch the bent header pins need
 oled_pin_in = 1.6;       // OLED header row from its front edge (toward the glands): a slot under it for the plug
 plug_w = 12;  plug_d = 4;
 /* [Lightening: plate nothing stands on is cut away] */
@@ -117,6 +118,10 @@ module windows2d() {
         translate([cx - tm_dx/2 + win_inset, 0]) square([tm_dx - 2*win_inset, ob]);
         translate([cx - ox, 0]) square([2*ox, mid_y1]);
     }
+    // right side: each TM1637's header pins, bent well down, need the plate gone from just inside the right-hand
+    // bosses out through the edge, leaving a bar along the window and the pads round those bosses
+    for (y = tm_y) translate([cx + tm_dx/2 - tm_boss_d/2 - pin_margin, y - (tm_dy/2 - tm_boss_d/2 - pin_margin)])
+        square([100, 2*(tm_dy/2 - tm_boss_d/2 - pin_margin)]);
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;
