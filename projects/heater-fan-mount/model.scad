@@ -20,9 +20,9 @@ fit = 0.4;          // fan to socket, each side
 /* [Duct: 3" flex, wire helix right-hand, pitch 15-19 (owner's estimate: residential HVAC or marine blower hose)] */
 duct_id = 76.2;     // 3" nominal, at the wire
 pitch = 15;         // ESTIMATE, owner: 15-19; measure 10 turns at the boat
-rib_h = 2.5;        // helical rib that sits between the duct's wire turns
+rib_h = 2;          // helical rib that sits between the duct's wire turns
 spigot_h = 25;
-spigot_wall = 2.5;
+spigot_wall = 2;     // tube inside the duct: holds shape, no load beyond the duct's own grip
 spigot_d = duct_id - 0.2 + 2 * rib_h;   // rib crest; the core is a snug slip inside the wire
 spigot_bore = duct_id - 0.2 - 2 * spigot_wall;
 // rib profile in pitch units: x along the axis, y radial from the crest; 45 deg flanks print upright
@@ -42,18 +42,19 @@ pot_bushing = 7.5;  // M7 bushing through the wall
 gland = 12.5;       // PG7 cable gland for the 12 V feed
 
 /* [Shell] */
-wall = 3;
-floor_t = 3;
-plate_t = 3;        // lid and spigot flange
+wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
+divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
+floor_t = 2;        // fan sits on it; the screws clamp at the corners
+plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
 pocket = 40;        // controller pocket, inside, along +X beside the fan bay
 r = 6;              // vertical edge rounding
 
 $fn = 96;
 e = 0.01;
 W = max(fan + 2 * fit, rim_d + 2 * collar_fit) + 2 * wall;   // box width (X) and fan-bay depth: the collar never overhangs
-L = W + pocket + wall;                   // box length (X): fan bay, divider, pocket
+L = W + divider + pocket;                   // box length (X): fan bay, divider, pocket
 H = floor_t + fan_t;                     // box height
-pocket_x = W / 2 + pocket / 2;           // pocket centre
+pocket_x = W / 2 - wall + divider + pocket / 2;           // pocket centre
 
 include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
@@ -67,10 +68,10 @@ module box() {
   difference() {
     linear_extrude(H) footprint();
     translate([0, 0, floor_t]) linear_extrude(H) square(fan + 2 * fit, center = true);
-    translate([W / 2, -W / 2 + wall, floor_t]) cube([pocket, W - 2 * wall, H]);
+    translate([W / 2 - wall + divider, -W / 2 + wall, floor_t]) cube([pocket, W - 2 * wall, H]);
     translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
     holes(4.4, floor_t + 2 * e);
-    translate([W / 2 - wall - e, -3, H - 4]) cube([wall + 2 * e, 6, 4 + e]);                          // fan wires into the pocket
+    translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);                          // fan wires into the pocket
     translate([pocket_x - 8, -W / 2 - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = wall + 2 * e);
     translate([pocket_x, W / 2 - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
   }
@@ -102,7 +103,7 @@ module spigot() {
     }
     translate([0, 0, -e]) cylinder(d = spigot_bore, h = plate_t + spigot_h + 2 * e);
     holes(4.4, plate_t + 2 * e);
-    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 2.4]) cylinder(d = 8.1, h = 2.4 + e, $fn = 6);   // M4 nuts, 0.8 proud, under the stack
+    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 1.9]) cylinder(d = 8.1, h = 1.9 + e, $fn = 6);   // M4 nuts, 1.3 proud, under the stack
   }
 }
 
