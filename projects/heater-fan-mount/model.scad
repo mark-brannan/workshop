@@ -2,7 +2,7 @@
 // an 80 mm fan pushes the air up, and a slotted collar clamps over the heater's bottom rim with a hose clamp.
 // Three printed parts, every one a flat face on the bed:
 //   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints knob face down
-//           (smooth cabin face); support only under the back wall's fan-bay span (~81 mm), inside, unseen.
+//           (smooth cabin face); 45 deg gussets behind the fan hold up the back wall, no supports.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
@@ -45,8 +45,7 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
-fin = true;         // print-only break-away support under the back wall
-fin_t = 1.2;
+gusset = 20;        // back strip behind the fan: room for 45 deg gussets that hold up the back wall in print
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
@@ -64,24 +63,25 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 module rrect(w, d, rr = r) offset(rr) offset(-rr) square([w, d]);
-module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + front - wall);
+sock = fan + 2 * fit;
+module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + front - wall + gusset);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
 module box() {
   difference() {
     linear_extrude(H) footprint();
-    translate([0, 0, floor_t]) linear_extrude(H) square(fan + 2 * fit, center = true);
-    translate([W / 2 - wall + divider, -W / 2 + wall, floor_t]) cube([pocket, W - 2 * wall, H]);
+    translate([0, 0, floor_t]) linear_extrude(H) translate([-sock / 2, -sock / 2]) square([sock, sock + gusset]);
+    translate([W / 2 - wall + divider, -W / 2 + wall, floor_t]) cube([pocket, W - 2 * wall + gusset, H]);
     translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
     holes(4.4, floor_t + 2 * e);
     translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);                          // fan wires into the pocket
     translate([pocket_x - 8, -W / 2 - (front - wall) - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = front + 2 * e);
-    translate([pocket_x, W / 2 - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
+    translate([pocket_x, W / 2 + gusset - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
   }
-  // break-away fin, printed only: stands on the knob wall (the bed) mid fan bay, stops 0.25 short of the back
-  // wall, so the 81 mm roof prints as two ~40 mm bridges. Snap it out before the fan goes in.
-  if (fin) translate([-fin_t / 2, -W / 2 + wall - e, floor_t + 0.4]) cube([fin_t, W - 2 * wall - 0.25 + e, fan_t - 0.4]);
+  // 45 deg gussets off the side walls behind the fan: printed knob face down, the back wall bridges ~41 mm
+  for (m = [0, 1]) mirror([m, 0, 0]) translate([0, 0, floor_t - e])
+    linear_extrude(fan_t + e) polygon([[-sock / 2, sock / 2], [-sock / 2, sock / 2 + gusset], [-sock / 2 + gusset, sock / 2 + gusset]]);
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() { cylinder(d = 6, h = 3); cylinder(d = 2.5, h = 3 + e); }
 }
