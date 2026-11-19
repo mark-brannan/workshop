@@ -45,6 +45,7 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
+gusset_t = 1.6;     // gusset plate, 4 lines
 gusset = 20;        // back strip behind the fan: room for 45 deg gussets that hold up the back wall in print
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
@@ -81,7 +82,8 @@ module box() {
   }
   // 45 deg gussets off the side walls behind the fan: printed knob face down, the back wall bridges ~41 mm
   for (m = [0, 1]) mirror([m, 0, 0]) translate([0, 0, floor_t - e])
-    linear_extrude(fan_t + e) polygon([[-sock / 2, sock / 2], [-sock / 2, sock / 2 + gusset], [-sock / 2 + gusset, sock / 2 + gusset]]);
+    linear_extrude(fan_t + e) let(d = gusset_t * sqrt(2), x0 = -sock / 2 - 0.5, y0 = sock / 2 - 0.5, gg = gusset + 0.5 + 0.5)
+      polygon([[x0, y0], [x0 + gg, y0 + gg + 0.5], [x0 + gg - d, y0 + gg + 0.5], [x0, y0 + d]]);   // a 45 deg plate, hollow behind
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() { cylinder(d = 6, h = 3); cylinder(d = 2.5, h = 3 + e); }
 }
