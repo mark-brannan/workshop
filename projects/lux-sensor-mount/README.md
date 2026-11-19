@@ -10,14 +10,13 @@ until #168 merges; this project is where it is printed.
 
 | Part | What | Print |
 |---|---|---|
-| `tray` | Bolt-in tray: potting wall round the edge and the EndPoint, four legs with tenons | plate down, no overhangs |
-| `cradle` | Slab carrying the VEML over the EndPoint, 2.4 mm lip round it, corner blocks; sockets drop onto the tray's leg tenons, glued | slab down, no overhangs |
+| `tray` | One bolt-in tray for both boards: potting wall round the edge and the EndPoint, a bridge carrying the VEML over the EndPoint, a 2.4 mm lip round the bridge | plate down |
 | `ring` | Clamps the PTFE square against the glass; two M3 | flat |
 | `lid` | Top plate with the glass lip, square PTFE pocket, two M3 inserts | top face down, supports for the dome seat |
 | `arm` | Arm half with the collar half, four M3 insert posts for the tray | as modelled |
 | `back` | Collar back half | as modelled |
 
-M3 heat-set inserts throughout. PETG. The EndPoint is held by two M3x5 self-tapping screws (2.7 mm blind holes) through its jack-side mounting holes; the far pair is under the cradle.
+M3 heat-set inserts throughout. PETG. The EndPoint is held by two M3x5 self-tapping screws (2.7 mm blind holes) through its jack-side mounting holes; the far pair is under the VEML bridge.
 
 ## Measured, and from what
 

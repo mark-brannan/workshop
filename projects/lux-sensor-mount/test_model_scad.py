@@ -12,8 +12,7 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 
 # part view -> (extents x, y, z in mm, volume window in mm^3), measured from the 2026-11-19 build
 PARTS = {
-    "tray_print": ((46.0, 70.6, 15.1), (12500, 15500)),
-    "cradle_print": ((34.8, 20.0, 4.4), (1500, 2300)),
+    "tray_print": ((46.0, 70.6, 17.9), (14500, 18000)),
     "ring_print": ((40.0, 29.0, 2.0), (1100, 1450)),
     "lid_print": ((62.1, 143.0, 6.0), (31500, 39000)),
     "arm_half": ((62.1, 143.0, 42.0), (66000, 82000)),
