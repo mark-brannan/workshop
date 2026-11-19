@@ -21,7 +21,7 @@ oled_w = 27.3;  oled_h = 27.8;
 tm_dx = 37.5;  tm_dy = 19;   // module screw spacing
 oled_dx = 23.3;  oled_dy = 23.6;
 tm_boss_h = 3;  tm_boss_d = 6;  tm_hole = 2.8;       // M2.5
-oled_standoff_h = 10;  oled_pad_d = 4.5;  oled_hole = 2.2;   // OLED on stock M2 F/F standoffs, 10 long (2.3 over the sensor stack), M2 screws through plain holes from under the tier, the plate round each hole flat
+oled_standoff_h = 10;  oled_pad_d = 4.5;  oled_hole = 2.5;   // OLED on stock M2 F/F standoffs, 10 long (2.3 over the sensor stack), M2 screws through plain holes from under the tier, the plate round each hole flat
 lid_col_x = 68;  lid_col_y = 34;   // lid-screw column, inner corner (from the 158 x 90 outside)
 col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
