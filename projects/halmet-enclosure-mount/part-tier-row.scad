@@ -118,9 +118,9 @@ module windows2d() {
         translate([cx - tm_dx/2 + win_inset, 0]) square([tm_dx - 2*win_inset, ob]);
         translate([cx - ox, 0]) square([2*ox, mid_y1]);
     }
-    // right side: each TM1637's header pins, bent well down, need the plate gone from just inside the right-hand
-    // bosses out through the edge, leaving a bar along the window and the pads round those bosses
-    for (y = tm_y) translate([cx + tm_dx/2 - tm_boss_d/2 - pin_margin, y - (tm_dy/2 - tm_boss_d/2 - pin_margin)])
+    // right side: each TM1637's header pins, bent well down, need the edge strip beyond the right-hand screw centres
+    // gone, between the two bosses; the plate to the screw line and the pads round the bosses stay
+    for (y = tm_y) translate([cx + tm_dx/2, y - (tm_dy/2 - tm_boss_d/2 - pin_margin)])
         square([100, 2*(tm_dy/2 - tm_boss_d/2 - pin_margin)]);
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
