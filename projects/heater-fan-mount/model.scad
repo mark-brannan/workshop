@@ -5,7 +5,8 @@
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
-// Origin: fan axis on Z, z = 0 on the box's underside, Z up as installed. Knob faces -Y (the cabin).
+// Origin: fan axis on Z, z = 0 on the box's underside, Z up as installed. Knob faces -Y (the cabin);
+// the 12 V gland is on the back (+Y), against the bulkhead, out of sight.
 
 part = "assembly";   // [box, lid, spigot, assembly, exploded, section, plate]
 
@@ -38,22 +39,21 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 wall = 3;
 floor_t = 3;
 plate_t = 4;        // lid and spigot flange
-pocket = 40;        // controller pocket, inside, along -Y
+pocket = 40;        // controller pocket, inside, along +X beside the fan bay
 r = 6;              // vertical edge rounding
 
 $fn = 96;
 e = 0.01;
 W = max(fan + 2 * fit, rim_d + 2 * collar_fit) + 2 * wall;   // box width (X) and fan-bay depth: the collar never overhangs
-D = W + pocket + wall;                   // box depth (Y): fan bay, divider, pocket
+L = W + pocket + wall;                   // box length (X): fan bay, divider, pocket
 H = floor_t + fan_t;                     // box height
-y0 = -W / 2 - pocket - wall;             // box front face (cabin side)
-pocket_y = -W / 2 - pocket / 2;          // pocket centre
+pocket_x = W / 2 + pocket / 2;           // pocket centre
 
 include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 module rrect(w, d, rr = r) offset(rr) offset(-rr) square([w, d]);
-module footprint() translate([-W / 2, y0]) rrect(W, D);
+module footprint() translate([-W / 2, -W / 2]) rrect(L, W);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
@@ -61,14 +61,14 @@ module box() {
   difference() {
     linear_extrude(H) footprint();
     translate([0, 0, floor_t]) linear_extrude(H) square(fan + 2 * fit, center = true);
-    translate([-W / 2 + wall, -W / 2 - pocket, floor_t]) cube([W - 2 * wall, pocket, H]);
+    translate([W / 2, -W / 2 + wall, floor_t]) cube([pocket, W - 2 * wall, H]);
     translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
     holes(4.4, floor_t + 2 * e);
-    translate([-3, -W / 2 - e, H - 4]) cube([6, wall + 2 * e, 4 + e]);                              // fan wires into the pocket
-    translate([-8, y0 - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = wall + 2 * e);
-    translate([14, y0 - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
+    translate([W / 2 - wall - e, -3, H - 4]) cube([wall + 2 * e, 6, 4 + e]);                          // fan wires into the pocket
+    translate([pocket_x - 8, -W / 2 - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = wall + 2 * e);
+    translate([pocket_x, W / 2 - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
   }
-  translate([0, pocket_y, floor_t]) for (x = [-1, 1], y = [-1, 1])
+  translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() { cylinder(d = 6, h = 3); cylinder(d = 2.5, h = 3 + e); }
 }
 
@@ -116,7 +116,7 @@ BOX = "#e0e0dc"; LID = "#e0e0dc";
 module stack(gap = 0) {
   color(BOX) box();
   translate([0, 0, floor_t + gap]) fan_dummy();
-  translate([0, pocket_y, floor_t + 3 + gap * 0.6]) board_dummy();
+  translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t + 3 + gap * 0.6]) board_dummy();
   color(LID) translate([0, 0, H + 2 * gap]) lid();
   color(BOX) translate([0, 0, -gap]) mirror([0, 0, 1]) spigot();
 }
@@ -133,4 +133,5 @@ else if (part == "spigot") spigot();
 else if (part == "exploded") stack(30);
 else if (part == "section") difference() { stack(); translate([0, -200, -100]) cube([400, 400, 400]); }
 else if (part == "plate") plate();
+else if (part == "back") stack();
 else stack();
