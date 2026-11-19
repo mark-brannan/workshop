@@ -147,6 +147,7 @@ def build(p: P) -> str:
         f"; MINX = {minx:.1f}", f"; MINY = {miny:.1f}", f"; MAXX = {maxx:.1f}", f"; MAXY = {maxy:.1f}",
         "M140 S0",
         "M104 S0",
+        *(["BOX_ENABLE_CFS_PRINT ENABLE=0"] if p.tool is None else []),  # spool holder: CFS out of the print
         f"START_PRINT EXTRUDER_TEMP={p.nozzle} BED_TEMP={p.bed}",
         *([f"T{p.tool}"] if p.tool is not None else []),
         f"M109 S{p.nozzle}",
