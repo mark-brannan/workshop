@@ -17,10 +17,16 @@ fan_holes = 71.5;   // square, matches the v4 test print
 fan_bore = 76;      // air path
 fit = 0.4;          // fan to socket, each side
 
-/* [Duct: 3" flex, thread sized off the old part (crest ~84, root ~78)] */
-spigot_d = 80;       // thread crest: a 3" (76.2 ID) duct stretches over it; old spigot ran 80 to 82.8
+/* [Duct: 3" flex, wire helix right-hand, pitch 15-19 (owner's estimate: residential HVAC or marine blower hose)] */
+duct_id = 76.2;     // 3" nominal, at the wire
+pitch = 17;         // ESTIMATE, owner: 15-19; measure 10 turns at the boat
+rib_h = 2.5;        // helical rib that sits between the duct's wire turns
 spigot_h = 25;
-pitch = 6;          // UNMEASURED placeholder: no published standard; measure the duct's wire spacing over 10 turns
+spigot_wall = 3;
+spigot_d = duct_id - 0.2 + 2 * rib_h;   // rib crest; the core is a snug slip inside the wire
+spigot_bore = duct_id - 0.2 - 2 * spigot_wall;
+// rib profile in pitch units: x along the axis, y radial from the crest; 45 deg flanks print upright
+rib = [[-1/2, -rib_h / pitch], [-(1.5 + rib_h) / pitch, -rib_h / pitch], [-1.5 / pitch, 0], [1.5 / pitch, 0], [(1.5 + rib_h) / pitch, -rib_h / pitch], [1/2, -rib_h / pitch]];
 
 /* [Heater rim: UNMEASURED - the rim gauge prints first] */
 rim_d = 75.4;       // outside of the heater's bottom rim: ~76 bore was near a friction fit on the old part (owner)
@@ -92,9 +98,9 @@ module spigot() {
   difference() {
     union() {
       linear_extrude(plate_t) fan_square();
-      translate([0, 0, plate_t - e]) threaded_rod(d = spigot_d, l = spigot_h, pitch = pitch, end_len = 2, anchor = BOTTOM);
+      translate([0, 0, plate_t - e]) generic_threaded_rod(d = spigot_d, l = spigot_h, pitch = pitch, profile = rib, left_handed = false, end_len = 1, anchor = BOTTOM);
     }
-    translate([0, 0, -e]) cylinder(d = fan_bore, h = plate_t + spigot_h + 2 * e);
+    translate([0, 0, -e]) cylinder(d = spigot_bore, h = plate_t + spigot_h + 2 * e);
     holes(4.4, plate_t + 2 * e);
     for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 3.2]) cylinder(d = 8.1, h = 3.2 + e, $fn = 6);   // M4 nuts, under the stack
   }
