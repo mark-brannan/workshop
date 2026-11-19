@@ -24,14 +24,13 @@ drawing beats a photo. The project link shows the part fitted.
 | SparkFun QwiicBus EndPoint, PCA9615 (16988) | SparkFun | 44.45 x 25.4; RJ45 jack; differential pairs on the jack's pads only | SparkFun board file | too long for small-box-sensors |
 | 1803BK PWM fan controller | generic | 32 x 32 (35 with the break-off edge); holes ~26 square; pot with M7 bushing, shaft height unmeasured | listing, not calipered | [heater-fan-mount](projects/heater-fan-mount/) |
 
-The halmet-enclosure-mount model uses 41 x 23 with holes 36 x 19 for the TM1637, from the owner's
-rough calipers. The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
+The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM1637 (owner, caliper; 36 from rough calipers was 1.5 narrow). The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
 
 ## Enclosures
 
 | Part | Where from | Dimensions, mm | Source | Used in |
 |---|---|---|---|---|
-| Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall at 140 x 22.5 pitch; four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
+| Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall, span 143 x pitch 21.7 (owner's estimates, tuned by fit check; model.scad); four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
 | Waterproof box 63 x 58 x 35 | Amazon ABS, black or clear lid, brass inserts | outer 63 x 58 x 35 (older listing 64 x 57); 53 inside across the 58 side; 39 straight wall between corner columns, both walls; lid ~8.5, wall ~2.5, floor ~3; two floor bosses ~6 dia x ~4, ~5.5 in from each short wall (photo estimates) | vendor listings; photos | [one-wire-enclosure](projects/one-wire-enclosure/), [small-box-sensors](projects/small-box-sensors/) |
 
 ## Hardware
