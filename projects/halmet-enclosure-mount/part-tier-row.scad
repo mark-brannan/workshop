@@ -3,7 +3,7 @@
 // plate top at z = 0, everything else up. Origin as model.scad (box floor centre). Three M3 from above hold it to the standoffs.
 /* [Plate] */
 plate_t = 2.5;
-x0 = 21.8;  x1 = 72;     // plate edges; the back part stops at x_back for the lid-screw column
+x0 = 21.3;  x1 = 72;     // plate edges; the back part stops at x_back for the lid-screw column
 x_back = 63.8;
 y_front = -38;  y_back = 39.5;  y_col = 31.4;   // the full-width part spans -y_col..y_col
 round_r = 1.5;
@@ -13,7 +13,7 @@ tier_hole = 3.4;
 island_d = 8;            // solid round each screw, an ear where it falls off the plate
 head_d = 6.5;            // M3 pan head on the tier top
 /* [Modules, one centre line, end to end: 24 + 24 + 28] */
-cx = 44.05;
+cx = 43.55;              // 0.5 left of first packing, the most the front-left tier screw's island allows
 tm_y = [-25, -1];        // TM1637 centres, 23 x 41 boards
 tm_w = 41;  tm_h = 23;
 oled_y = 25.4;           // 27.3 x 27.8 board
@@ -22,7 +22,8 @@ tm_dx = 37.5;  tm_dy = 19;   // module screw spacing
 oled_dx = 23.3;  oled_dy = 23.6;
 tm_boss_h = 3;  tm_boss_d = 6;  tm_hole = 2.8;       // M2.5
 oled_boss_h = 10.5;  oled_boss_d = 4.5;  oled_hole = 0.9;   // self-tapping M1 pilot; tall enough to clear the sensor stack
-lid_col_x = 64.8;  lid_col_y = 32.4;   // lid-screw column, inner corner: a boss next to it is cut flush with the board edge
+lid_col_x = 64.8;  lid_col_y = 32.4;   // lid-screw column, inner corner
+col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
 win_round = 1.5;
 oled_pin_in = 1.6;       // OLED header row from its front edge (toward the glands): a slot under it for the plug
@@ -49,7 +50,6 @@ $fn = 48;
 tm_posts = [for (y = tm_y, sx = [-1, 1], sy = [-1, 1]) [cx + sx*tm_dx/2, y + sy*tm_dy/2]];
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [cx + sx*oled_dx/2, oled_y + sy*oled_dy/2]];
 ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];
-tm_edge = cx + tm_w/2;   // boards' right edge
 
 module rr(a, b, c, d) { offset(r = round_r) offset(delta = -round_r) translate([a, b]) square([c - a, d - b]); }
 function clamp(v, lo, hi) = min(max(v, lo), hi);
@@ -60,56 +60,49 @@ module ear2d(p) {
     inner = abs(p[1]) <= y_col - r ? [x0 + r, x1 - r] : [x0 + r, x_back - r];
     hull() { translate(p) circle(r = r); translate([clamp(p[0], inner[0], inner[1]), clamp(p[1], y_front + r, y_back - r)]) circle(r = r); }
 }
-module bosses2d(posts, d) {   // round, cut flush with the boards' right edge where a post sits beside the lid column
+module bosses2d(posts, d) {   // round, cut col_gap short of the lid column where a post sits beside it
     for (p = posts) intersection() {
         translate(p) circle(d = d);
-        if (abs(p[1]) + d/2 > lid_col_y && p[0] + d/2 > lid_col_x - 1) translate([0, -100]) square([tm_edge, 200]);
+        if (abs(p[1]) + d/2 > lid_col_y && p[0] + d/2 > lid_col_x - 1) translate([0, -100]) square([lid_col_x - col_gap, 200]);
         else translate(p) circle(d = d + 1);
     }
 }
-// Upper right: one straight brace from the OLED's back-right post to the right ear; plate beyond it is cut away.
-module brace_cut() {
-    a = oled_posts[3];   // back-right
-    b = tier_pts[2];
+// Right side, one smooth line: a straight brace from the OLED's back-right post, tangent to both it and the right
+// ear, round the ear, then an S-curve (cubic Bezier) that leaves the ear tangent and lands vertical on the boards'
+// line at col_gap from the lid-screw column, at its clearance corner, so nothing steps or kinks; the plate is everything left of it.
+ear_leave = -10;         // where the S-curve leaves the right ear, degrees from +x
+s_k0 = 16;  s_k3 = 8;    // Bezier handle lengths: off the ear, onto the vertical edge
+function bez(p0, p1, p2, p3, t) = pow(1-t, 3)*p0 + 3*pow(1-t, 2)*t*p1 + 3*(1-t)*t*t*p2 + pow(t, 3)*p3;
+module right_keep2d() {
+    a = oled_posts[3];  ra = oled_boss_d/2 + post_margin;   // back-right OLED post
+    b = tier_pts[2];    rb = island_d/2;                    // right ear
     u = (b - a) / norm(b - a);
-    n = [-u[1], u[0]];   // points away from the plate
-    ta = a + (oled_boss_d/2 + post_margin) * n;
-    tb = b + island_d/2 * n;
-    polygon([ta, tb, [100, tb[1]], [100, 100], [ta[0], 100]]);
-}
-// Lower right: straight in from the right ear to the lid-screw column's clearance corner, then down the flush-cut
-// TM post's edge; nothing in the column's 1 mm clearance.
-module lower_right_cut() {
-    q = [tm_edge, -y_col];
-    b = tier_pts[2];
-    r = island_d/2;
-    d = b - q;
-    L = norm(d);
-    a = asin(r / L);
-    u = d / L;
-    dir = [u[0]*cos(a) + u[1]*sin(a), -u[0]*sin(a) + u[1]*cos(a)];   // u turned toward +x
-    t = q + sqrt(L*L - r*r) * dir;
-    polygon([q, t, [100, t[1]], [100, -100], [q[0], -100]]);
+    n = [-u[1], u[0]];                       // away from the plate
+    sp = (ra - rb) / norm(b - a);
+    m = n*sqrt(1 - sp*sp) + u*sp;            // normal of the common outer tangent
+    ta = a + ra*m;
+    top = atan2(m[1], m[0]);
+    arc = [for (i = [0:24]) let(t = top + (ear_leave - top)*i/24) b + rb*[cos(t), sin(t)]];
+    p0 = b + rb*[cos(ear_leave), sin(ear_leave)];
+    p3 = [lid_col_x - col_gap, -y_col];
+    s = [for (i = [1:32]) bez(p0, p0 + s_k0*[sin(ear_leave), -cos(ear_leave)], p3 + [0, s_k3], p3, i/32)];
+    polygon(concat([[ta[0], 100], ta], arc, s, [[lid_col_x - col_gap, -100], [-100, -100], [-100, 100]]));
 }
 module plate2d() {
     offset(r = corner_r) offset(delta = -corner_r) difference() {
-        offset(r = -swoop_r) offset(delta = swoop_r) difference() {   // swept after the cuts, so lines and ears recurve
-            union() {
-                rr(x0, y_front, x_back, y_back);
-                rr(x0, -y_col, x1, y_col);
-                for (p = tier_pts) ear2d(p);
-                bosses2d(tm_posts, tm_boss_d + 1);
-                // plate out to both straight lines, so they meet the right ear tangent instead of stepping at x1
-                intersection() {
-                    hull() { translate(tier_pts[2]) circle(r = island_d/2); translate(oled_posts[3]) circle(r = oled_boss_d/2 + post_margin); }
-                    translate([0, -100]) square([100, 100 + y_back]);
+        offset(r = -swoop_r) offset(delta = swoop_r) {   // swept after the cut, so ears flow into the edge
+            intersection() {
+                union() {
+                    rr(x0, y_front, x_back, y_back);
+                    rr(x0, -y_col, x1, y_col);
+                    for (p = tier_pts) ear2d(p);
+                    bosses2d(tm_posts, tm_boss_d + 1);
+                    translate([cx, y_front]) square([100, y_back - y_front]);   // out to the right side's line
                 }
-                hull() { translate(tier_pts[2]) circle(r = island_d/2); translate([tm_edge - 1, -y_col]) square(1); }
+                right_keep2d();
             }
-            lower_right_cut();
-            brace_cut();
         }
-        translate([tm_edge, -100]) square([100, 100 - y_col]);   // lid-screw clearance, trimmed hard after the sweep
+        translate([lid_col_x - col_gap, -100]) square([100, 100 - y_col]);   // lid-screw clearance, trimmed hard after the sweep
     }
     bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
     bosses2d(oled_posts, oled_boss_d + 0.4);

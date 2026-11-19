@@ -401,9 +401,12 @@ def test_row_bounds_volume_and_plan_inside_the_box(row):
     assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["oled_boss_h"], abs=0.02)
     assert hi[0] <= 75.5 - 1 and max(-lo[1], hi[1]) <= 41.5 - 1  # inner walls, 1 mm margin
     tm_edge = CX + R["tm_w"] / 2
-    for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut flush with its board instead
-        assert x <= max(P["lid_col_x"] - 1, tm_edge) + 0.01 or abs(y) <= P["lid_col_y"] - 1 + 0.01
-    assert tm_edge < P["lid_col_x"]
+    for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut col_gap short instead
+        assert x <= P["lid_col_x"] - R["col_gap"] + 0.01 or abs(y) <= P["lid_col_y"] - 1 + 0.01
+    assert tm_edge < P["lid_col_x"] - 0.5
+    cut = [p for p in TM_POSTS if p[0] + R["tm_boss_d"] / 2 > P["lid_col_x"] - R["col_gap"]]
+    for x, y in cut:  # the cut boss keeps two perimeters beside its hole
+        assert P["lid_col_x"] - R["col_gap"] - x - R["tm_hole"] / 2 >= 0.8
     assert 6000 < row.volume < 8000  # mm^3; lightened build 6951
 
 
