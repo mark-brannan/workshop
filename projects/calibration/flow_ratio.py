@@ -5,7 +5,7 @@ started over Moonraker without the slicer GUI. Layer 1 prints at the profile's f
 the same; layers 2..N print at the tile's own ratio. Pick the tile whose top is smoothest with no gaps
 between lines and no ridges; that ratio goes into the filament profile.
 
-    uv run python projects/calibration/flow_ratio.py            # writes out/flow_ratio_<material>.gcode
+    uv run python projects/calibration/flow_ratio.py [ASA-CF|PETG]   # writes out/flow_ratio_<material>.gcode
 """
 
 from __future__ import annotations
@@ -178,8 +178,17 @@ def build(p: P) -> str:
     return "\n".join(head + g.lines + tail) + "\n"
 
 
+PRESETS = {
+    "ASA-CF": P(),
+    # SUNLU PETG @System as last printed: flow 0.95, 245 C, bed 60, fan 10-30, CFS slot 1A (T0)
+    "PETG": P(material="PETG", tool=0, nozzle=245, bed=60, fan=30, base_flow=0.95,
+              ratios=[round(0.90 + 0.01 * i, 2) for i in range(13)]),
+}
+
 if __name__ == "__main__":
-    p = P()
+    import sys
+
+    p = PRESETS[sys.argv[1] if len(sys.argv) > 1 else "ASA-CF"]
     out = Path(__file__).parent / "out" / f"flow_ratio_{p.material}.gcode"
     out.write_text(build(p))
     print(out, f"{len(out.read_text().splitlines())} lines")
