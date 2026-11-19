@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # symphony is public: its checkout lets the tests fail on a dead Symphony: link.
+      - uses: actions/checkout@v4
+        with:
+          repository: mark-brannan/symphony
+          path: .symphony
+          filter: blob:none
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -20,6 +26,8 @@ jobs:
       # EGL or OSMesa, and without a display the render segfaults.
       - run: sudo apt-get install -y -q xvfb libgl1 libxrender1
       - run: xvfb-run -a uv run pytest -q
+        env:
+          SYMPHONY_DIR: .symphony
       # shop.build runs every model.py and model.scad; .scad is skipped (not
       # failed) where openscad.exe is absent, which is every runner for now.
       - name: Build every model

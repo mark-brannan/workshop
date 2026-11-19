@@ -1,5 +1,7 @@
 # Segment display enclosure
 
+Symphony: [`firmware/halmet/src/displays.h`](https://github.com/mark-brannan/symphony/tree/main/firmware/halmet/src/displays.h), [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md)
+
 Purpose: a small stand-alone box for the TM1637 4-digit segment display module
 (the one the halmet tier also carries). Two prints, no supports:
 

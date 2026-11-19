@@ -1,5 +1,7 @@
 # Heater fan mount
 
+Symphony: [`diagrams/electrical/circuit-inventory.md`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/circuit-inventory.md)
+
 Combustion-air booster for the diesel heater. A 3" flex duct from a deck vent screws onto the bottom,
 an 80 mm fan pushes the air up, and a slotted collar is hose-clamped over the heater's bottom rim.
 A PWM board in a pocket beside the fan sets the speed from a knob on the cabin face.

@@ -1,5 +1,7 @@
 # Gas sensors
 
+Symphony: [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md), [`host/halos/README.md`](https://github.com/mark-brannan/symphony/tree/main/host/halos/README.md)
+
 An air monitor for the boat. It watches three enclosed spaces and says
 "something changed in here, go and look": a fuel line starting to weep, an
 exhaust joint letting go, a battery locker that smells different from last week.

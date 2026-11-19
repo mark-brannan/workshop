@@ -1,10 +1,11 @@
 # Lux sensor head on the instrument tube
 
+Symphony: [`diagrams/electrical/symphony-dc-overview.drawio`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/symphony-dc-overview.drawio)
+
 Purpose: an upward-facing VEML7700 lux sensor on an arm clamped to the 38.1 mm tube, sealed behind a glass cabochon
 and a PTFE diffuser, plugged in by cat5 with no soldering.
 
-Moved here 2026-11-19 from symphony `hardware/lux_sensor/` (symphony#167, #168). The symphony copy stays the design record
-until #168 merges; this project is where it is printed.
+Moved here 2026-11-19 from symphony `hardware/lux_sensor/` (symphony#167, #168); this is the only copy.
 
 ## Parts (one `part-*.scad` each)
 

@@ -1,5 +1,7 @@
 # Photocell flame pod
 
+Symphony: [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md)
+
 Purpose: a small potted pod for one LM393 photoresistor module ([`parts.md`](../../parts.md)), several
 placed around the engine room as flame detectors.
 

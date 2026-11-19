@@ -1,5 +1,7 @@
 # Outside sensor pod
 
+Symphony: [`firmware`](https://github.com/mark-brannan/symphony/tree/main/firmware)
+
 Purpose: outside air temperature, humidity, light and a second barometer for the boat, published to Signal K.
 Only bare, coated sensor boards sit in the weather, inside a louvred shield. A four-wire lead runs to an
 ESP32 in the dry, which talks WiFi to Signal K. A drowned pod costs a sensor board, not the node.

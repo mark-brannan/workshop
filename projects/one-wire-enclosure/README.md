@@ -1,5 +1,7 @@
 # One-wire enclosure: gland layout
 
+Symphony: [`firmware/halmet/src/halmet_onewire.h`](https://github.com/mark-brannan/symphony/tree/main/firmware/halmet/src/halmet_onewire.h), [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md)
+
 **Drilling template:** [`out/drill-template.pdf`](out/drill-template.pdf), 1:1 on A4, one strip per wall (red dotted = where the corner columns start; `uv run python projects/one-wire-enclosure/template.py` regenerates it from `model.py`). Print at 100 %, check the 50 mm bar. Hole positions are still photo-based until the caliper list at the bottom is done.
 
 Purpose: seven cable entries (6 probe glands, 1 master) in the 63 x 58 x 35 ABS box (black or clear lid, same body) with brass-insert corner screws.

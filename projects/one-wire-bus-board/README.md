@@ -1,5 +1,7 @@
 # One-wire bus board
 
+Symphony: [`firmware/halmet/src/halmet_onewire.h`](https://github.com/mark-brannan/symphony/tree/main/firmware/halmet/src/halmet_onewire.h), [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md)
+
 Purpose: tie seven 3-pin screw terminals, each [G D V] in a row, into three nets
 (GND, DATA, VCC) with no jumpers and no insulated wire. Six field terminals and a
 MASTER whose cable goes to the microcontroller. Any 3-position 2.54 mm screw block, on the front edge, wire entry facing out. Pins are 2.54 mm apart inside a block and 8.2 mm pitch across blocks: the ZPWAN AM128-2.54 body is 8.1 wide by the maker's diagram (7.3-7.8 by calipers), so blocks cannot butt at 3 x 2.54 = 7.62.

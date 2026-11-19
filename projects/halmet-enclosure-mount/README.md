@@ -1,5 +1,7 @@
 # HALMET adapter plate for the 158x90x60 waterproof box
 
+Symphony: [`firmware/halmet`](https://github.com/mark-brannan/symphony/tree/main/firmware/halmet), [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md), [`diagrams/electrical/chart-table-cabinet.drawio`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/chart-table-cabinet.drawio)
+
 Purpose: hold a Hat Labs HALMET board in Hat Labs' pre-drilled 158x90x60 mm
 enclosure (SKU ECK-PW158-H). The board's two M3 slots match nothing in the box,
 so a printed frame screws to the box's six holed floor bosses, rests on its

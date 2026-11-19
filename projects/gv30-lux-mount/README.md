@@ -1,5 +1,7 @@
 # GV30 lux sensor add-on
 
+Symphony: [`systems/electrical.md`](https://github.com/mark-brannan/symphony/tree/main/systems/electrical.md)
+
 Purpose: an upward-facing lux sensor (VEML7700) on the windvane pulpit, carried by the Digital Yacht GV30
 AIS/GPS antenna's existing mount, with no cable in sight.
 

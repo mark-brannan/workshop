@@ -5,6 +5,7 @@
     shop doctor                        which shop tools this box has
     shop printer                       K2 Plus status (read-only)
     shop fusion                      the folder to add in Fusion's Scripts panel
+    shop symphony                      boat-bound projects and the symphony paths they link
 """
 
 from __future__ import annotations
@@ -47,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import printer
 
         return printer.main()
+    if cmd == "symphony":
+        from . import symphony
+
+        return symphony.main()
     if cmd == "fusion":
         base = _fusion_path()
         sep = "\\" if "\\" in base else "/"

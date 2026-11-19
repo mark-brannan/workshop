@@ -1,5 +1,7 @@
 # DIN-rail mount for an 58 x 85 mm AC-DC supply
 
+Symphony: [`diagrams/electrical/chart-table-cabinet.drawio`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/chart-table-cabinet.drawio)
+
 Purpose: hold the supply (Amazon B0DK3SPYNZ, vented metal case, flat back) on a 35 mm TS35
 rail. Two parts: a flat-backed mount, and two stock DIN clips (Maxstupo's heat-insert clip, Printables
 420009, CC BY 4.0, `ref_din_clip_heat_insert.stl`) printed apart and screwed on. Each clip takes two M3 heat

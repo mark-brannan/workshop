@@ -65,3 +65,22 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 ## Verification loop
 
 Build, `uv run pytest -q`, read the PNG, then report with the picture.
+
+## Sibling repo: symphony (the boat)
+
+The boat's system docs live in symphony (public; local checkout `~/symphony`): what is installed, how it is wired, firmware, Signal K.
+This repo holds the object: geometry, caliper numbers, print and cut files, and the wiring inside one box.
+The seam is the box's connectors: inside is here, outside is there.
+
+| Diagram | Home | Format |
+|---|---|---|
+| Boat wiring: DC overview, circuits, cabinet layouts | symphony `diagrams/electrical/` | `.drawio` |
+| Flows, software, signal paths | symphony | `.mmd` |
+| Inside one box: sensor-to-MCU hookup | here, `projects/<slug>/` | `.drawio` |
+| PCB | here, `projects/<slug>/` | KiCad |
+| One-off mockup nobody will edit | not committed | SVG |
+
+- A boat-bound project's README has a `Symphony:` line linking the symphony paths it plugs into (full GitHub URLs to symphony's `main`), or `Symphony: none yet`.
+  `shop symphony` prints the index; a test fails on a link whose path left symphony's main.
+- Before designing a part that will be installed on the boat, read the symphony paths on its `Symphony:` line; firmware, pin choices and circuits there constrain the part.
+- A fact has one home. Don't copy a symphony table here; link it.
