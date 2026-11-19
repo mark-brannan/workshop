@@ -77,8 +77,20 @@ module brace_cut() {
     tb = b + island_d/2 * n;
     polygon([ta, tb, [100, tb[1]], [100, 100], [ta[0], 100]]);
 }
-// Lower right: the lid-screw column, 1 mm clear except where the TM post beside it is cut flush with its board.
-module lid_keepout() translate([tm_edge, -100]) square([100, 100 - y_col]);
+// Lower right: straight in from the right ear to the lid-screw column's clearance corner, then down the flush-cut
+// TM post's edge; nothing in the column's 1 mm clearance.
+module lower_right_cut() {
+    q = [tm_edge, -y_col];
+    b = tier_pts[2];
+    r = island_d/2;
+    d = b - q;
+    L = norm(d);
+    a = asin(r / L);
+    u = d / L;
+    dir = [u[0]*cos(a) + u[1]*sin(a), -u[0]*sin(a) + u[1]*cos(a)];   // u turned toward +x
+    t = q + sqrt(L*L - r*r) * dir;
+    polygon([q, t, [100, t[1]], [100, -100], [q[0], -100]]);
+}
 module plate2d() {
     offset(r = corner_r) offset(delta = -corner_r) difference() {
         offset(r = -swoop_r) offset(delta = swoop_r) union() {
@@ -87,7 +99,7 @@ module plate2d() {
             for (p = tier_pts) ear2d(p);
             bosses2d(tm_posts, tm_boss_d + 1);
         }
-        lid_keepout();
+        lower_right_cut();
         brace_cut();
     }
     bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
