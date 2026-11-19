@@ -67,7 +67,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   STL, against 11 for the earlier open frame; the plate is the stiffer of the two.
   `hex_flat`, `hex_web`, `rim_w` tune it.
 - Each end bar has three fork slots, open toward the box wall, so a boss
-  anywhere within `slot_reach` (2.5 mm) of `boss_span` still takes its screw.
+  anywhere within `slot_reach` (outward) or `slot_reach + slot_in` (inward) of `boss_span` still takes its screw.
 - Two standoffs, 6 mm, at the board's slot centres, each with an M3 heat-set
   insert. Two plain rests on the other diagonal so pushing a plug into a
   terminal block does not rock the board.
