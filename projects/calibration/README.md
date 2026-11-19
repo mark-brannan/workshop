@@ -45,3 +45,11 @@ Card 1793768721f8cb0073.
 ## Not in this project
 
 Router end-mill runout waits for a dial indicator and a known-good collet.
+
+## Part 3: flow ratio, per filament
+
+`flow_ratio.py` writes `out/flow_ratio_<material>.gcode`: 13 solid tiles, flow 0.88 to 1.00, started over
+Moonraker without the slicer. The tab marks the front edge of 0.88; the map is `out/flow_ratio_<material>.png`.
+The smoothest top with no gaps between lines is the filament profile's flow ratio.
+
+![flow ratio map](out/flow_ratio_ASA-CF.png)
