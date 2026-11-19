@@ -12,9 +12,11 @@ part = "frame";      // [frame, gauge:thin solid fit check with the raised featu
 boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
 boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 printed; 21.7 next
 screw_d = 3.4;       // M3 clearance: the tier's standoff screws
-slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (fork slots)
-end_ext = 1;         // each end bar reaches this much past the slots' reach: 3 made 154 overall, 153 fits inside the box; 1 gives 150
-slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
+slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (pill slots)
+end_ext = 3.2;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the slot end, 0.6 past the screw relief; floor is 151 inside, box 153
+slot_reach = 1;      // each pill slot accepts the boss this far in or out of boss_span; closed ends
+relief_d = 5.2;     // top counterbore round each slot for the screw head (M2.5 pan head ~4.7)
+relief_h = 1.5;     // its depth from the top
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
 lid_col_x = 68;      // lid-screw column in each corner, full height: inner edge along X (from the 158 x 90 outside, wall ~2.5)
@@ -29,7 +31,7 @@ pad_r = 4.5;         // semicircle tab over each back rest post (post ~5 diamete
 tab_r = 3.5;         // front (gland side) tabs: narrower, a rounded lobe 7 across, centred tab_dy inside the post so it still covers it
 tab_dy = 1;
 tab_blend = 3;       // concave fillet where the lobe meets the front edge
-gland_chamfer = 2;   // 45-degree chamfer on the top edge under the gland nuts
+tab_bevel = 2.5;     // the front tabs slope down this much from the plate's front edge to the tip, clear of the gland nuts
 
 /* [Zip-tie strain relief: slot pairs, the tie loops under the frame] */
 tie_w = 4;           // slot length; takes ties up to 3.6 mm wide
@@ -112,10 +114,9 @@ gauge_cell = 24.5;      // fit-check windows: hex cells this wide across flats; 
 gauge_web = 4;
 
 /* [Standoffs] */
-standoff_h = 6;      // board underside above the frame; clears pin stubs
-standoff_d = 8;
-insert_d = 4.0;      // M3 heat-set insert
-insert_depth = 6.5;  // blind, from the standoff top
+standoff_h = 5;      // board underside above the frame
+standoff_d = 7;
+insert_d = 4.0;      // M3 heat-set insert, pressed in from the top; the hole runs through the plate
 rest_d = 4;          // plain rests on the other diagonal
 spacer_hole_d = 3.2; // laser and gauge: M3 through a loose spacer
 support_xy = [0, 0]; // centre of the box floor: through hole for an M3 heat-set insert, an adjustable standoff screws in from below as a centre prop
@@ -143,7 +144,7 @@ module at_board(pts) { for (p = pts) translate([p[0] + board_dx, p[1] + board_dy
 // Front tab over a gland-side rest post: a lobe that blends into the front edge with a concave fillet.
 module front_tab2d(sx) {
     offset(r = -tab_blend) offset(r = tab_blend) union() {
-        translate([sx*post_dx/2 - tab_r - tab_blend, plate_y_lo - 1]) square([2*(tab_r + tab_blend), 3]);   // strip along the plate's front edge
+        translate([sx*post_dx/2 - tab_r - 2*tab_blend, plate_y_lo]) square([2*(tab_r + 2*tab_blend), 3]);   // strip flush with the plate's front edge, wide enough for the fillet to run out tangent
         translate([sx*post_dx/2, -post_dy/2 + tab_dy]) circle(r = tab_r);
     }
 }
@@ -218,7 +219,7 @@ module tie_chamfers() {
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
         translate([boss_span/2 - slot_reach, 0]) circle(d = slot_d);
-        translate([bar_x1 + 2, 0]) circle(d = slot_d);
+        translate([boss_span/2 + slot_reach, 0]) circle(d = slot_d);
     }
 }
 
@@ -240,9 +241,15 @@ module raised() {
 }
 
 module insert_holes() {
-    translate([0, 0, tier_z0 - insert_depth]) linear_extrude(insert_depth + 1) for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d);
-    translate([0, 0, body_t + standoff_h - insert_depth])
-        linear_extrude(insert_depth + 1) at_board(slots) circle(d = insert_d);
+    translate([0, 0, -1]) linear_extrude(tier_z0 + 2) for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d, $fn = 64);
+    translate([0, 0, -1]) linear_extrude(body_t + standoff_h + 2) at_board(slots) circle(d = insert_d, $fn = 64);
+}
+
+module tab_bevel_cut() {
+    run = frame_w/2 + plate_y_lo;   // tab length past the plate's front edge
+    rotate([90, 0, 90]) linear_extrude(200, center = true) polygon([
+        [plate_y_lo + 0.5, body_t + tab_bevel*0.5/run], [-frame_w/2 - 1, body_t - tab_bevel*(run + 1)/run],
+        [-frame_w/2 - 1, body_t + 1], [plate_y_lo + 0.5, body_t + 1]]);
 }
 
 // Z = 0 is the top of the rest posts; the holed bosses reach up into the pockets.
@@ -255,14 +262,20 @@ module frame() {
         insert_holes();
         translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
         tie_chamfers();
-        translate([0, -frame_w/2, body_t]) rotate([45, 0, 0])
-            cube([200, gland_chamfer*sqrt(2), gland_chamfer*sqrt(2)], center = true);
-        if (recess > 0) translate([0, 0, -1]) linear_extrude(recess + 1)
-            for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-                translate([boss_span/2 - slot_reach, 0]) circle(d = boss_d + 2);
-                translate([bar_x1 + 2, 0]) circle(d = boss_d + 2);
-            }
+        tab_bevel_cut();
+        if (recess > 0) recess_cut();
+        translate([0, 0, body_t - relief_h]) linear_extrude(relief_h + 1) for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
+            translate([boss_span/2 - slot_reach, 0]) circle(d = relief_d);
+            translate([boss_span/2 + slot_reach, 0]) circle(d = relief_d);
+        }
     }
+}
+
+// 45-degree walls: the pocket over each boss prints without supports.
+module recess_cut() {
+    r1 = boss_d/2 + 0.1;
+    for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1, 1]) translate([0, k*boss_pitch, -1]) hull()
+        for (x = [boss_span/2 - slot_reach, boss_span/2 + slot_reach]) translate([x, 0, 0]) cylinder(h = recess + 1, r1 = r1 + recess + 1, r2 = r1);
 }
 
 // Fast fit check: the frame's outline and slots on a thin plate with big windows; short stubs mark
@@ -283,7 +296,7 @@ module gauge() {
         translate([0, 0, -1]) linear_extrude(gauge_t + gauge_rise + 2) {
             at_board(slots) circle(d = insert_d);
             at_board(rests) circle(d = 1.5);
-            for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d);
+            for (c = concat(tier_cols, mid_cols)) translate(c) circle(d = insert_d, $fn = 64);   // 64 sides: the default hexagon left a sliver at the [30, -20] pad
         }
     }
 }

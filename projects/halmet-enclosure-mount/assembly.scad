@@ -82,7 +82,7 @@ module ldr() {
 
 module tier_standoffs() { for (c = tier_cols) translate([c[0], c[1], tier_z0]) hexpost(tier_standoff); }
 
-module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t]) head(); }
+module screws_floor() { for (sx = [-1, 1], k = [-1, 0, 1]) translate([sx*boss_span/2, k*boss_pitch, body_t - relief_h]) head(); }
 module screws_board() { at_board(slots) translate([0, 0, board_z + pcb_t]) head(); }
 module screws_tier() { for (c = tier_cols) translate([c[0], c[1], tier_z1]) head(); }
 module screws_ldr() {   // M3 up from under the tier, nut on the board top

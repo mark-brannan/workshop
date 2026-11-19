@@ -14,10 +14,23 @@ top and falls onto the chip. The test fires rays from the chip in fourteen direc
 ## Overhead variant
 
 For the underside of the panel above the berth by the nav station: plate up, two screws into the panel,
-chip facing down. The panel is the roof. The cover is a floor with four 5 mm holes under a corrugated baffle, a 1 mm sheet folded at 45°:
-air comes in the holes, runs along the four channels under the folds to their open ends, up and in. It prints floor-down with no supports, no bridges and no fill. The cable leaves a window in one long wall.
-32 x 62 x 16. Prints: `out/bme688-cabin-screen_overhead-body.3mf` and `_overhead-cover.3mf`; the cover takes
-two M2.5 screws on a diagonal.
+chip facing down. The panel is the roof. The cover is a floor with one 10 mm hole under a shallow arch that meets the floor at both
+sides; four fins hold the arch up (arch 0.6 mm, three layers at its crown; fins 0.8 mm, two lines; floor 1.2 mm), each with a 3 mm gap either side of the hole so air can cross between them.
+Air comes in the hole, runs out under the arch to its open ends, up and in. It prints floor-down with no
+supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves through an arched hole in the +x long wall near the Qwiic end, so it can run rearward along the panel. Just inside the hole it rides over a small block on the plate, against that wall; a cable tie (up to 3.6 wide) goes through a tunnel under the block and round the cable for strain relief. Nothing cuts through the plate, and the only hole in the walls is the cable exit.
+32 x 62 x 15.6. Prints: `out/bme688-cabin-screen_overhead-body.3mf` and `_overhead-cover.3mf`; the cover takes
+two M2 screws on a diagonal, into heat-set inserts in the body.
+
+The board sits in a seat: a 1.2 mm ledge under its edges, walls round it flush with its face, and an
+8 mm gap in each short wall for the Qwiic plug. Two M2 screws on one diagonal go into heat-set inserts in
+pads under the board; the walls stop it turning, so the other two holes stay empty.
+
+| Overhead hardware | Count | Size |
+|---|---|---|
+| M2 heat-set inserts | 4 | 3.2 hole, 4 deep (+0.5); the insert size is a guess until the bag or calipers say |
+| Board screws | 2 | M2 x 5 pan head (x 6 bottoms out at 0.1 mm to spare) |
+| Cover screws | 2 | M2 x 6 pan head |
+| Panel screws | 2 | M3 countersunk wood screws |
 
 ![overhead cut-away](out/overhead_section_views.png)
 
@@ -35,7 +48,7 @@ two M2.5 screws on a diagonal.
 | Part | Which |
 |---|---|
 | Printed | body `out/bme688-cabin-screen_scad.3mf`, cover `out/bme688-cabin-screen_cover.3mf` |
-| Board | Adafruit BME688, PID 5046, on four M2.5 self-tapping screws |
+| Board | Adafruit BME688, PID 5046, on four M2.5 self-tapping screws (overhead: see its hardware table) |
 | Cover | hooks under the roof's lip; two M2.5 self-tapping screws at the bottom |
 
 ## Measured, and from what

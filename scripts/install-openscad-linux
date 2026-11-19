@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Native Linux OpenSCAD (Manifold) + BOSL2 for this user, outside any repo or
+# worktree, so every session finds `openscad` on PATH and src/shop/scad.py
+# picks it before any Windows install.
+#
+#   ~/.local/opt/openscad/<version>/   extracted AppImage (no FUSE needed)
+#   ~/.local/opt/openscad/current      -> <version>
+#   ~/.local/bin/openscad              -> current/AppRun
+#   ~/.local/share/OpenSCAD/libraries/BOSL2   (OpenSCAD's user library path)
+#
+# Idempotent. To move the pin, change VERSION and SHA256 (from the .sha256 file
+# beside the AppImage at https://files.openscad.org/snapshots/).
+set -euo pipefail
+
+VERSION=2026.11.18
+SHA256=2b9a204a20944221732450b7018c2b250297b5cf12ea13f998c54326994f461c
+URL="https://files.openscad.org/snapshots/OpenSCAD-${VERSION}-x86_64.AppImage"
+
+OPT="$HOME/.local/opt/openscad"
+BIN="$HOME/.local/bin"
+LIB="$HOME/.local/share/OpenSCAD/libraries"
+
+mkdir -p "$OPT" "$BIN" "$LIB"
+
+if [[ ! -x "$OPT/$VERSION/AppRun" ]]; then
+  work=$(mktemp -d)
+  trap 'rm -rf "$work"' EXIT
+  curl -sSfL -o "$work/openscad.AppImage" "$URL"
+  echo "$SHA256  $work/openscad.AppImage" | sha256sum -c --quiet
+  chmod +x "$work/openscad.AppImage"
+  (cd "$work" && ./openscad.AppImage --appimage-extract >/dev/null)
+  mv "$work/squashfs-root" "$OPT/$VERSION"
+fi
+ln -sfn "$VERSION" "$OPT/current"
+ln -sfn "$OPT/current/AppRun" "$BIN/openscad"
+
+if [[ -d "$LIB/BOSL2/.git" ]]; then
+  git -C "$LIB/BOSL2" pull -q --ff-only
+else
+  git clone -q --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$LIB/BOSL2"
+fi
+
+"$BIN/openscad" --version
+echo "BOSL2 $(git -C "$LIB/BOSL2" log -1 --format='%h %cs')"
+case ":$PATH:" in *":$BIN:"*) ;; *) echo "warning: $BIN is not on PATH" >&2 ;; esac

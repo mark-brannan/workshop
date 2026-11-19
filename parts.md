@@ -12,7 +12,7 @@ drawing beats a photo. The project link shows the part fitted.
 | SSD1306 0.96" OLED | generic | 27.3 x 27.8; holes 23.3 x 23.6, M2.5 or M2 | generic drawing, not calipered | halmet-enclosure-mount |
 | TM1637 4-digit module | generic | board 41.5 x 23.5; holes 37.5 x 19, ~2.8 dia, 0.5 from the edge; display body 30 x 14, face 7 above the board; header 5 above the board's back, 6.8 past its edge | owner, caliper | [segment-display-enclosure](projects/segment-display-enclosure/) |
 | LM393 photoresistor module | Amazon B0FS6866W3 | 32 x 14; one M3 hole between the trimpot and the header, centred across, ~7 from the header end; photocell at the far end; right-angle 3-pin header | vendor drawing; hole position from the photo | halmet-enclosure-mount |
-| LM393 photoresistor module, on hand | | 31 x 14; one M3 hole, ~4 across, centred, its rim 5 from one end and both long edges; header pins 6 past the edge | owner, caliper | [halmet-enclosure-mount](projects/halmet-enclosure-mount/) |
+| LM393 photoresistor module, on hand | | 31 x 14; one M3 hole, ~4 across, centred, its rim 5 from one end and both long edges; header pins 6 past the edge; photocell bent up, its top ~11.5 above the board top | owner, caliper | [halmet-enclosure-mount](projects/halmet-enclosure-mount/), [photocell-flame-pod](projects/photocell-flame-pod/) |
 | ESP32 breakout board | | holes 80 x ~75.5, M2 | owner, caliper | [esp32-breakout-mount](projects/esp32-breakout-mount/) |
 | AC-DC supply, 58 x 85 | Amazon B0DK3SPYNZ | 85 x 58; two base holes on a diagonal, ~75 x ~47, M3 screws | owner, caliper (approx) | [din-rail-psu-mount](projects/din-rail-psu-mount/) |
 | Adafruit STEMMA QT boards: BME688 (5046), ICM-20948 (4554), LTC4311 (4756) | Adafruit | 25.4 x 17.78; four 2.5 holes at 20.32 x 12.7; JST-SH socket at each short edge; ~4.6 overall height | Adafruit board files (BME688 inferred from the BME680 file); product pages | [small-box-sensors](projects/small-box-sensors/), [bme688-halpi2](projects/gas-sensors/bme688-halpi2/) |
@@ -22,6 +22,7 @@ drawing beats a photo. The project link shows the part fitted.
 | HALPI2, I2C and cable entry | Hat Labs | 40-pin header, 2.54 pitch: pin 1 3V3, 3 SDA, 5 SCL, 6 and 9 GND; bus `/dev/i2c-1`, own controller at 0x6d; no Qwiic socket; front panel has 3 blanked positions for PG7 glands (3 included) or SP13, "6mm or 13mm holes"; 45 above the board | docs.hatlabs.fi/halpi2 (hardware, interfaces, troubleshooting); hole sizes not on a drawing | [bme688-halpi2](projects/gas-sensors/bme688-halpi2/) |
 | DSN-MINI-360 buck converter, on hand | | 17.5 x 16.5; the 16.5 side has unused board and can be trimmed to as little as 12; terminal pads ~8.8 apart across the width | owner, caliper (terminal spacing approx) | [outside-sensor-pod](projects/outside-sensor-pod/) (candidate) |
 | SparkFun QwiicBus EndPoint, PCA9615 (16988) | SparkFun | 44.45 x 25.4; RJ45 jack; differential pairs on the jack's pads only | SparkFun board file | too long for small-box-sensors |
+| 1803BK PWM fan controller | generic | 32 x 32 (35 with the break-off edge); holes ~26 square; pot with M7 bushing, shaft height unmeasured | listing, not calipered | [heater-fan-mount](projects/heater-fan-mount/) |
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 36 x 19 for the TM1637, from the owner's
 rough calipers. The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
@@ -46,3 +47,6 @@ rough calipers. The calipered numbers above come from segment-display-enclosure.
 | DS18B20 waterproof probe, the owner's | cable 3.5 OD; probe with its heat shrink 6.3 at the widest; the cable takes an M8 gland (2-5 clamp), fed bare-end first since the probe won't pass the gland | owner, caliper (approx) | [one-wire-enclosure](projects/one-wire-enclosure/) |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
 | DIN clip (preferred, low profile) | Printables 420009, `din_clip_heat_insert.stl`, printed apart, two M3 heat-insert holes 51 mm apart across the rail (model x = 5 and 56, rail centre 27.05), on the clip's centre line; the mount screws on with M3 countersunk | owner's choice of design |
+| Fan GDA8025 IP68, 12 V | 80 x 80 x 25 (~24.5 owner); holes 71.5 square, M4; air bore 76 | vendor drawing; owner (thickness) | [heater-fan-mount](projects/heater-fan-mount/) |
+| Diesel heater bottom rim | ~75.4 outside: a 76 bore was near a friction fit; unmeasured | owner | [heater-fan-mount](projects/heater-fan-mount/) |
+| 3" flex duct, wire helix | 76.2 ID nominal; right-hand wire, pitch 15-19 (estimate) | owner | [heater-fan-mount](projects/heater-fan-mount/) |

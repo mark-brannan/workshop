@@ -93,17 +93,23 @@ def test_board_is_89_by_58_slot_pattern():
     assert np.isclose(x1 - x0, 44.5) and np.isclose(y0 - y1, 45.0)
 
 
-def test_two_standoffs_with_blind_insert_holes(frame):
+def test_two_standoffs_with_through_insert_holes(frame):
     for x, y in SLOTS:
-        assert np.isclose(top(frame, x, y), T + H - P["insert_depth"], atol=0.02)
-        assert T + H - P["insert_depth"] > 0.5
+        assert top(frame, x, y) is None
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), T + H, atol=0.02)
-        assert P["standoff_d"] - P["insert_d"] >= 3.2  # 1.6 mm wall around the insert
+        assert P["standoff_d"] - P["insert_d"] >= 3.0  # 1.5 mm wall around the insert
 
 
 def test_two_rests_level_with_standoffs(frame):
     for x, y in RESTS:
         assert np.isclose(top(frame, x, y), T + H, atol=0.02)
+
+
+def test_slots_are_closed_pills(frame):
+    for sx in (-1, 1):
+        for k in (-1, 0, 1):
+            x = sx * (SPAN / 2 + REACH + P["slot_d"] / 2 + 0.5)  # just past the outer end
+            assert top(frame, x, k * PITCH) is not None  # floor under the relief, not open
 
 
 def test_six_fork_slots_open_over_the_bosses(frame):
@@ -130,7 +136,7 @@ def bottom(mesh, x, y):
 def test_pads_cover_the_four_posts(frame):
     for sx in (-1, 1):
         for sy in (-1, 1):
-            for ox in ((-2, 0, 2) if sy < 0 else (-4, 0, 4)):  # post anywhere within its tab
+            for ox in ((-2, 0, 2) if sy < 0 else (0,)):  # front: post anywhere within its tab; back-left sits beside a through hole
                 assert np.isclose(bottom(frame, sx * P["post_dx"] / 2 + ox, sy * P["post_dy"] / 2), 0, atol=0.02)
 
 
@@ -171,8 +177,7 @@ def test_plate_has_insert_pads_under_the_tier_and_mid_tier_standoffs(frame):
     assert len(COLS) == 3 and len(MID) == 4
     for x, y in PADS:
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
-        assert np.isclose(top(frame, x, y), TIER_Z0 - P["insert_depth"], atol=0.02)  # blind insert hole
-        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # closed underneath
+        assert top(frame, x, y) is None  # insert hole runs through, open both ends
 
 
 def test_tier_is_a_flat_plate_on_its_standoffs(tier):
@@ -478,3 +483,11 @@ def test_row_clears_the_lid_and_the_gland_nuts():
     assert tier_top + R["oled_boss_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
     assert tier_top + R["tm_boss_h"] + 7 < lid - 1  # TM1637 face, 7 above its board's underside
     assert tier_top - RT - floor > GLAND_TOP + 3  # tier underside over the gland nuts
+
+def test_screw_relief_counterbores_on_top(frame):
+    for sx in (-1, 1):
+        for k in (-1, 0, 1):
+            x, y = sx * SPAN / 2, k * PITCH + (P["slot_d"] / 2 + 0.6)  # beside the slot, inside the relief
+            assert np.isclose(top(frame, x, y), T - P["relief_h"], atol=0.02)
+            xo = sx * (SPAN / 2 + REACH + P["relief_d"] / 2 + 0.3)  # past the relief's outer end: a wall remains
+            assert np.isclose(top(frame, xo, k * PITCH), T, atol=0.02)

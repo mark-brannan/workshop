@@ -10,7 +10,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-COLOR = "#b9a6d9"
+COLOR = "#d8cdf0"
+# Camera-fixed key (upper left), fill (right) and top light: faces differ in tone by which way they face.
+LIGHTS = (((-1, 1.5, 1.2), 0.85), ((1.5, -0.2, 0.4), 0.4), ((0, 0, 1), 0.25))
 
 # label -> (direction the camera sits in, view-up, orthographic). X is right in top/front/bottom;
 # the isos sit on the -Y side (front) unless named otherwise, so -Y is nearest the viewer, as in the top view.
@@ -28,9 +30,15 @@ VIEWS = {
 
 
 def _add(p, mesh):
-    """The part, plus dark crease lines so same-facing faces at different heights stay readable."""
-    p.add_mesh(mesh, color=COLOR, smooth_shading=False, show_edges=False)
+    """The part, plus dark crease lines so same-facing faces at different heights stay readable,
+    and ambient occlusion so steps and pockets read as depth."""
+    import pyvista as pv
+
+    for pos, k in LIGHTS:
+        p.renderer.add_light(pv.Light(position=pos, light_type="camera light", intensity=k))
+    p.add_mesh(mesh, color=COLOR, smooth_shading=False, show_edges=False, ambient=0.3, diffuse=0.75, specular=0.05)
     p.add_mesh(mesh.extract_feature_edges(feature_angle=30), color="#2a2a2a", line_width=2)
+    p.enable_ssao(radius=2.5, bias=0.05, kernel_size=128, blur=True)
 
 
 def _look(p, vec, up, ortho):
@@ -44,7 +52,7 @@ def _plotter(shape, window_size):
     import pyvista as pv
 
     pv.OFF_SCREEN = True
-    return pv.Plotter(off_screen=True, shape=shape, window_size=window_size, border=True)
+    return pv.Plotter(off_screen=True, shape=shape, window_size=window_size, border=True, lighting="none")
 
 
 def render_png(mesh_path: Path, png_path: Path, *, views: bool = True, size: int = 600) -> list[Path]:
