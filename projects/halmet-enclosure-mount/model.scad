@@ -14,6 +14,7 @@ boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws
 screw_d = 3.4;       // M3 clearance: the tier's standoff screws
 slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (pill slots)
 end_ext = 3.2;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the slot end, 0.6 past the screw relief; floor is 151 inside, box 153
+slot_in = 1;         // extra reach on the inner end only: boss span can come in this much further than slot_reach (gauge read ~1 mm off)
 slot_reach = 1;      // each pill slot accepts the boss this far in or out of boss_span; closed ends
 relief_d = 5.2;     // top counterbore round each slot for the screw head (M2.5 pan head ~4.7)
 relief_h = 1.5;     // its depth from the top
@@ -128,7 +129,7 @@ slots = [[-21.75, 22.5], [22.75, -22.5]];
 recess = max(0, boss_h - post_h);   // underside pockets this deep over the six holed bosses, so the plate sits on the rest posts, not propped on the bosses
 body_t = plate_t;
 rests = [[36, 18], [-38.5, -19.5]];
-bar_x0 = boss_span/2 - slot_reach - screw_d/2 - 3;   // inner edge of an end bar
+bar_x0 = boss_span/2 - slot_reach - slot_in - screw_d/2 - 3;   // inner edge of an end bar
 bar_x1 = boss_span/2 + slot_reach + end_ext;                   // outer edge
 seg2_y = seg_y + seg_h + seg_gap;
 seg2_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg2_y + sy*seg_hole_dy/2]];
@@ -169,7 +170,7 @@ plate_rects = concat(                         // outline as [x0, y0, x1, y1] box
     [[-bar_x1, y_lo, bar_x1, y_hi], [-lid_col_x + 1, plate_y_lo, lid_col_x - 1, plate_y_hi]],
     []);   // the front tabs are front_tab2d
 keep_rects = concat(
-    [[-100, -100, -(boss_span/2 - slot_reach - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - screw_d/2 - 1.5, -100, 100, 100]],
+    [[-100, -100, -(boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5, -100, 100, 100]],
     [[-lid_col_x + 1, -100, lid_col_x - 1, tie_bar_y + tie_w/2 + 2]],   // solid band along the gland side
     [for (x = tie_bar_xs) [x - tie_gap/2 - tie_t/2 - 2, tie_bar_y - tie_w/2 - 2, x + tie_gap/2 + tie_t/2 + 2, tie_bar_y + tie_w/2 + 2]],
     [for (y = tie_end_ys) [-bar_x1, y - tie_gap/2 - tie_t/2 - 2, -(bar_x0 + bar_x1)/2 + tie_w/2 + 2, y + tie_gap/2 + tie_t/2 + 2]]);
@@ -218,7 +219,7 @@ module tie_chamfers() {
 
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-        translate([boss_span/2 - slot_reach, 0]) circle(d = slot_d);
+        translate([boss_span/2 - slot_reach - slot_in, 0]) circle(d = slot_d);
         translate([boss_span/2 + slot_reach, 0]) circle(d = slot_d);
     }
 }
@@ -265,7 +266,7 @@ module frame() {
         tab_bevel_cut();
         if (recess > 0) recess_cut();
         translate([0, 0, body_t - relief_h]) linear_extrude(relief_h + 1) for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-            translate([boss_span/2 - slot_reach, 0]) circle(d = relief_d);
+            translate([boss_span/2 - slot_reach - slot_in, 0]) circle(d = relief_d);
             translate([boss_span/2 + slot_reach, 0]) circle(d = relief_d);
         }
     }
@@ -275,7 +276,7 @@ module frame() {
 module recess_cut() {
     r1 = boss_d/2 + 0.1;
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1, 1]) translate([0, k*boss_pitch, -1]) hull()
-        for (x = [boss_span/2 - slot_reach, boss_span/2 + slot_reach]) translate([x, 0, 0]) cylinder(h = recess + 1, r1 = r1 + recess + 1, r2 = r1);
+        for (x = [boss_span/2 - slot_reach - slot_in, boss_span/2 + slot_reach]) translate([x, 0, 0]) cylinder(h = recess + 1, r1 = r1 + recess + 1, r2 = r1);
 }
 
 // Fast fit check: the frame's outline and slots on a thin plate with big windows; short stubs mark

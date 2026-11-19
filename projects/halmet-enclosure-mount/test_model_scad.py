@@ -28,6 +28,7 @@ LISTS = lists(HERE / "model.scad")
 RECESS = max(0.0, P["boss_h"] - P["post_h"])  # underside pocket over each holed boss
 T, H = P["plate_t"], P["standoff_h"]  # T: full body thickness
 SPAN, PITCH, REACH = P["boss_span"], P["boss_pitch"], P["slot_reach"]
+IN = P["slot_in"]  # extra reach on the inner end
 DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
@@ -108,7 +109,7 @@ def test_six_fork_slots_open_over_the_bosses(frame):
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             y = k * PITCH
-            for off in (-REACH, 0, REACH):  # boss anywhere in the stated reach
+            for off in (-REACH - IN, 0, REACH):  # boss anywhere in the stated reach
                 assert top(frame, sx * (SPAN / 2 + off), y) is None
             assert np.isclose(top(frame, sx * SPAN / 2, y + PITCH / 2 if k < 0 else y - 4), T, atol=0.02)
 
@@ -151,7 +152,7 @@ def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
 def test_zip_tie_slots_open(frame):
     assert len(LISTS["tie_bar_xs"]) == 6  # six gland-side ties
     pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in LISTS["tie_bar_xs"] for s in (-1, 1)]
-    x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
+    x_end = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
     pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]
     for x, y in pairs:
         assert top(frame, x, y) is None
@@ -161,7 +162,7 @@ def test_zip_tie_slots_open(frame):
 
 def test_board_clear_of_the_left_fork_slots():
     left_edge = -44.5 + DX
-    assert left_edge > -(SPAN / 2 - REACH) + P["slot_d"] / 2  # a driver reaches every left screw
+    assert left_edge > -(SPAN / 2 - REACH - IN) + P["slot_d"] / 2  # a driver reaches every left screw
 
 
 def test_plate_has_insert_pads_under_the_tier_and_mid_tier_standoffs(frame):
@@ -272,7 +273,7 @@ def keep_out():
     board = Polygon([(x + ox, y + oy) for x, y in HALMET])
     esp32 = box(60.5 + ox, 30 + oy, 86 + ox, 48 + oy)  # ESP32 module, overhanging the board's right edge
     usb = box(BOARD_RIGHT, -6, 75.5, 6)  # USB plug path to the right wall
-    heads = unary_union([LineString([(sx * (SPAN / 2 - REACH), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
+    heads = unary_union([LineString([(sx * (SPAN / 2 - REACH - IN), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
                          for sx in (-1, 1) for k in (-1, 0, 1)])  # floor-screw heads anywhere along their fork slots
     ties = unary_union([box(x + s * P["tie_gap"] / 2 - P["tie_t"] / 2, P["tie_bar_y"] - P["tie_w"] / 2,
                             x + s * P["tie_gap"] / 2 + P["tie_t"] / 2, P["tie_bar_y"] + P["tie_w"] / 2)
