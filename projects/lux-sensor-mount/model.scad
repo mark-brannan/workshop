@@ -41,6 +41,8 @@ ep_rear = ep_far - ep[1];
 jack_mouth = ep_rear - jack_over;
 tray_bolts = [[-16.5, ep_rear - 6], [16.5, ep_rear - 6], [-16.5, ep_rear - 20], [16.5, ep_rear - 20]];   // all four behind the EndPoint, inside the edge wall, where the floor is thick enough for the inserts
 qwiic_y = ep_far - 12.7;     // the EndPoint's two Qwiic ports sit this far along, one on each long edge (Eagle .brd J1/J2)
+legs = [for (sx = [-1, 1], dy = [4, -9]) [sx > 0 ? 15 : -17.4, reach + dy]];   // leg corners (x, y); each is 2.4 x 5
+tenon = [1.4, 3.4, 1.6];     // leg-top tenon: x, y, height; the cradle's sockets are 0.4 bigger each way and 0.2 deeper (clearance unmeasured; glued)
 ep_hole = [10.16, 22.86];    // EndPoint mounting holes nearest the jack: half the hole spacing across (25.4 - 2 x 2.54 = 20.32), distance from the far end (Eagle .brd H1/H2; the far pair sits under the VEML bridge, unreachable)
 ep_tap = [2.7, 3.6];         // M3 self-tapping hole in the tray plate: diameter, depth (plate is 4)
 assert(lux_bot - 2 -(ep_top + 4) >= 3, "bridge too low to clear the EndPoint Qwiic ports");
@@ -97,15 +99,26 @@ module tray() difference() {   // prints flat, plate down
       for (sx = [-1, 1]) translate([sx*(ep[0]/2 + 1.2) - 2.5, qwiic_y - 6, 1]) cube([5, 12, 5]);   // Qwiic notches, 1 mm lip kept
     }
     intersection() { tray_body(); translate([-23, ep_rear - 3.4, ep_bot]) cube([46, 2, 5]); }                    // cross wall at the RJ45 end, full width
-    translate([-17.4, plinth_y0, lux_bot - 2]) cube([34.8, plinth, 2]);                                         // bridge carrying the VEML over the EndPoint
-    translate([0, 0, lux_bot]) difference() { translate([-17.4, plinth_y0, 0]) cube([34.8, plinth, 2.4]); translate([-15.4, plinth_y0 + 2, -1]) cube([30.8, plinth - 4, 5]); }   // lip all round the bridge, 2.4 high: pots the VEML and its Qwiic port, stops short of burying the chip
-    for (sx = [-1, 1], dy = [4, -9]) translate([sx > 0 ? 15 : -17.4, reach + dy, ep_bot - 0.01]) cube([2.4, 5, lux_bot - ep_bot - 1.99]);   // four legs outside the EndPoint wall
-    translate([0, 0, lux_bot]) corners(-lux[0]/2 - 0.2, reach - lux[1]/2 - 0.2, lux[0] + 0.4, lux[1] + 0.4, 2.2);
+    for (b = legs) translate([b[0], b[1], ep_bot - 0.01]) {   // four legs outside the EndPoint wall, each with a tenon for the cradle
+      cube([2.4, 5, lux_bot - ep_bot - 1.99]);
+      translate([(2.4 - tenon[0])/2, (5 - tenon[1])/2, 0]) cube([tenon[0], tenon[1], lux_bot - ep_bot - 1.99 + tenon[2]]);
+    }
   }
   translate([-8.75, ep_rear - 4, ep_bot + 1]) cube([17.5, 5, 20]);                                              // break in the cross wall for the RJ45
   for (b = tray_bolts) translate([b[0], b[1], 0]) { cylinder(d = 3.4, h = 100); translate([0, 0, ep_bot - cb[1]]) cylinder(d = cb[0], h = 10); }
   for (b = lid_bosses) translate([b[0], b[1], 0]) cylinder(d = 9, h = 100);
   for (sx = [-1, 1]) translate([sx*ep_hole[0], ep_far - ep_hole[1], ep_bot - ep_tap[1]]) cylinder(d = ep_tap[0], h = ep_tap[1] + 1);   // EndPoint's two jack-side mounting holes: blind, self-tapping M3x5 from the top
+}
+// The cradle carries the VEML over the EndPoint. It is a separate print so that neither piece has a bridge: the tray prints plate down with
+// four free-standing legs, the cradle prints slab down with its lip and corner blocks up. It drops onto the legs' tenons, glued; the EndPoint
+// goes into the open tray from above, so the far end needs no sliding under a roof.
+module cradle() difference() {
+  union() {
+    translate([-17.4, plinth_y0, lux_bot - 2]) cube([34.8, plinth, 2]);                                         // slab
+    translate([0, 0, lux_bot]) difference() { translate([-17.4, plinth_y0, 0]) cube([34.8, plinth, 2.4]); translate([-15.4, plinth_y0 + 2, -1]) cube([30.8, plinth - 4, 5]); }   // lip all round the slab, 2.4 high: pots the VEML and its Qwiic port, stops short of burying the chip
+    intersection() { translate([-17.4, plinth_y0, lux_bot]) cube([34.8, plinth, 3]); translate([0, 0, lux_bot]) corners(-lux[0]/2 - 0.2, reach - lux[1]/2 - 0.2, lux[0] + 0.4, lux[1] + 0.4, 2.2); }   // trimmed to the slab so no block hangs over its edge
+  }
+  for (b = legs) translate([b[0] + 1.2 - (tenon[0] + 0.4)/2, b[1] + 2.5 - (tenon[1] + 0.4)/2, lux_bot - 2 - 1]) cube([tenon[0] + 0.4, tenon[1] + 0.4, 1 + tenon[2] + 0.2]);   // tenon sockets, open to the bed
 }
 module bosses() intersection() { outer(); for (b = lid_bosses) translate([b[0], b[1], Z - 9]) { cylinder(d = 8, h = 9); translate([0,0,-4]) cylinder(d1 = 0, d2 = 8, h = 4); } }
 module arm_half() difference() {
@@ -143,14 +156,15 @@ if (view == "arm_half") arm_half();
 if (view == "back_half") back_half();
 if (view == "lid_print") translate([0, -reach, -Z]) lid();             // bottom face down; the seat is a dome ceiling
 if (view == "tray_print") translate([0, -reach, -tray_bot]) tray();
+if (view == "cradle_print") translate([0, -reach, -(lux_bot - 2)]) cradle();
 if (view == "ring_print") translate([0, -reach, -(Z - ring_t)]) ring();
 module cut() rotate([0, 0, 90]) linear_extrude(1) projection(cut = true) rotate([0, 90, 0]) children();   // x = 0 slice: across = -y, up = z
 if (view == "window") {   // section through the window stack
-  color("CadetBlue") cut() lid(); color("LightCyan") cut() glass(); color("white") cut() ptfe(); color("orange") cut() ring(); color("green") cut() board(); color("Peru") cut() tray();
+  color("CadetBlue") cut() lid(); color("LightCyan") cut() glass(); color("white") cut() ptfe(); color("orange") cut() ring(); color("green") cut() board(); color("Peru") cut() tray(); color("Peru") cut() cradle();
 }
 lift = view == "exploded" ? 35 : 0; back = view == "exploded" ? 40 : 0;
 if (view == "open" || view == "exploded" || view == "closed" || view == "section") rotate([0, cant, 0]) {
-  tube(); board(); cable(); color("Peru") translate([0, 0, lift/2]) tray();
+  tube(); board(); cable(); color("Peru") translate([0, 0, lift/2]) { tray(); cradle(); }
   if (view == "section") { color("SteelBlue") intersection() { arm_half(); translate([-400, -200, -100]) cube(400); } color("CadetBlue") intersection() { lid(); translate([-400, -200, -100]) cube(400); } intersection() { union() { dome(); ptfe(); color("orange") ring(); } translate([-400, -200, -100]) cube(400); } }
   else { color("SteelBlue") arm_half(); color("LightSteelBlue") translate([0, -back, 0]) back_half(); }
   if (view == "closed" || view == "exploded") translate([0, 0, lift]) { color("CadetBlue") lid(); dome(); ptfe(); color("orange") translate([0, 0, -lift/3]) ring(); }
