@@ -80,8 +80,6 @@ module bore_2d() intersection() {                                     // 45 deg 
   hull() { circle(d = fan_bore); translate([0, fan_bore / 2 * sqrt(2)]) square(e, center = true); }
   translate([-fan, -fan]) square([2 * fan, fan + fan / 2 - 1]);
 }
-function boss_2d(rr = 3) = let(c = rr / cos(22.5))                   // octagon with a 45 deg keel underneath
-  (concat([for (a = [22.5:45:247.5]) c * [cos(a), sin(a)]], [[0, -rr - c * sin(22.5)]], [for (a = [292.5:45:337.5]) c * [cos(a), sin(a)]]));
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
@@ -104,10 +102,10 @@ module box() {
   for (m = [0, 1]) mirror([m, 0, 0]) translate([0, 0, floor_t - e])
     linear_extrude(fan_t + e) let(d = gusset_t * sqrt(2), x0 = -sock / 2 - 0.5, y0 = sock / 2 - 0.5, gg = gusset + 0.5 + 0.5)
       polygon([[x0, y0], [x0 + gg, y0 + gg + 0.5], [x0 + gg - d, y0 + gg + 0.5], [x0, y0 + d]]);   // a 45 deg plate, hollow behind
-  // board standoffs: octagon with a 45 deg keel (they stick out sideways in print), flared foot, pointed pilot
+  // board standoffs: round, flared foot, point-up hex pilot
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() {
-      offset_sweep(boss_2d(), height = 3 + e, bottom = os_circle(r = -boss_fillet), steps = 6);
+      offset_sweep(circle(d = 6, $fn = 48), height = 3 + e, bottom = os_circle(r = -boss_fillet), steps = 6);
       translate([0, 0, -e]) linear_extrude(3 + 3 * e) hex_hole(2.5);
     }
 }
