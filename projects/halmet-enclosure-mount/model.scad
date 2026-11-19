@@ -17,8 +17,8 @@ end_ext = 1;         // each end bar reaches this much past the slots' reach: 3 
 slot_reach = 2.5;    // each fork slot accepts the boss this far in or out of boss_span
 boss_h = 3.5;        // holed boss height above the floor
 boss_d = 6;          // holed boss outside diameter (photo)
-lid_col_x = 64.8;    // lid-screw column in each corner, full height: inner edge along X (photo)
-lid_col_y = 32.4;    // and across Y; keep the display clear of both
+lid_col_x = 68;      // lid-screw column in each corner, full height: inner edge along X (from the 158 x 90 outside, wall ~2.5)
+lid_col_y = 34;      // and across Y; keep the display clear of both
 
 /* [Rest posts: four no-hole posts on the long sides] */
 post_dx = 80;        // centre to centre along the length (photo 77 to 80)

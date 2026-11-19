@@ -5,7 +5,7 @@
 plate_t = 2.5;
 x0 = 21.3;  x1 = 72;     // plate edges; the back part stops at x_back for the lid-screw column
 x_back = 63.8;
-y_front = -38;  y_back = 39.5;  y_col = 31.4;   // the full-width part spans -y_col..y_col
+y_front = -38;  y_back = 39.5;  y_col = 31.4;   // the full-width part spans -y_col..y_col; front edge is the lower-right post's radius tangent
 round_r = 1.5;
 /* [Tier screws: M3 through, head on top, into the frame's standoffs] */
 tier_pts = [[19, -22.5], [24, 36], [70, 10.85]];
@@ -22,7 +22,7 @@ tm_dx = 37.5;  tm_dy = 19;   // module screw spacing
 oled_dx = 23.3;  oled_dy = 23.6;
 tm_boss_h = 3;  tm_boss_d = 6;  tm_hole = 2.8;       // M2.5
 oled_boss_h = 10.5;  oled_boss_d = 4.5;  oled_hole = 0.9;   // self-tapping M1 pilot; tall enough to clear the sensor stack
-lid_col_x = 64.8;  lid_col_y = 32.4;   // lid-screw column, inner corner
+lid_col_x = 68;  lid_col_y = 34;   // lid-screw column, inner corner (from the 158 x 90 outside)
 col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
 win_round = 1.5;
@@ -49,6 +49,8 @@ $fn = 48;
 
 tm_posts = [for (y = tm_y, sx = [-1, 1], sy = [-1, 1]) [cx + sx*tm_dx/2, y + sy*tm_dy/2]];
 oled_posts = [for (sx = [-1, 1], sy = [-1, 1]) [cx + sx*oled_dx/2, oled_y + sy*oled_dy/2]];
+lr_post = [cx + tm_dx/2, tm_y[0] - tm_dy/2];   // lower-right TM1637 post: the plate's corner is concentric with it
+lr_r = tm_boss_d/2 + 0.5;   // 0.5 mm of plate round the post
 ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];
 
 module rr(a, b, c, d) { offset(r = round_r) offset(delta = -round_r) translate([a, b]) square([c - a, d - b]); }
@@ -60,13 +62,7 @@ module ear2d(p) {
     inner = abs(p[1]) <= y_col - r ? [x0 + r, x1 - r] : [x0 + r, x_back - r];
     hull() { translate(p) circle(r = r); translate([clamp(p[0], inner[0], inner[1]), clamp(p[1], y_front + r, y_back - r)]) circle(r = r); }
 }
-module bosses2d(posts, d) {   // round, cut col_gap short of the lid column where a post sits beside it
-    for (p = posts) intersection() {
-        translate(p) circle(d = d);
-        if (abs(p[1]) + d/2 > lid_col_y && p[0] + d/2 > lid_col_x - 1) translate([0, -100]) square([lid_col_x - col_gap, 200]);
-        else translate(p) circle(d = d + 1);
-    }
-}
+module bosses2d(posts, d) { for (p = posts) translate(p) circle(d = d); }   // round, never clipped
 // Right side, one smooth line: a straight brace from the OLED's back-right post, tangent to both it and the right
 // ear, round the ear, then an S-curve (cubic Bezier) that leaves the ear tangent and lands vertical on the boards'
 // line at col_gap from the lid-screw column, at its clearance corner, so nothing steps or kinks; the plate is everything left of it.
@@ -84,9 +80,9 @@ module right_keep2d() {
     top = atan2(m[1], m[0]);
     arc = [for (i = [0:24]) let(t = top + (ear_leave - top)*i/24) b + rb*[cos(t), sin(t)]];
     p0 = b + rb*[cos(ear_leave), sin(ear_leave)];
-    p3 = [lid_col_x - col_gap, -y_col];
+    p3 = lr_post + [lr_r, 0];                // the swoop lands on the lower-right post's own radius, tangent vertical
     s = [for (i = [1:32]) bez(p0, p0 + s_k0*[sin(ear_leave), -cos(ear_leave)], p3 + [0, s_k3], p3, i/32)];
-    polygon(concat([[ta[0], 100], ta], arc, s, [[lid_col_x - col_gap, -100], [-100, -100], [-100, 100]]));
+    polygon(concat([[ta[0], 100], ta], arc, s, [[p3[0], -100], [-100, -100], [-100, 100]]));
 }
 module plate2d() {
     offset(r = corner_r) offset(delta = -corner_r) difference() {
@@ -98,11 +94,14 @@ module plate2d() {
                     for (p = tier_pts) ear2d(p);
                     bosses2d(tm_posts, tm_boss_d + 1);
                     translate([cx, y_front]) square([100, y_back - y_front]);   // out to the right side's line
+                    intersection() {   // the lower-right corner: the post's own radius, cut at the front edge
+                        translate(lr_post) circle(r = lr_r);
+                        translate([x0, y_front]) square([100, 100]);
+                    }
                 }
                 right_keep2d();
             }
         }
-        translate([lid_col_x - col_gap, -100]) square([100, 100 - y_col]);   // lid-screw clearance, trimmed hard after the sweep
     }
     bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
     bosses2d(oled_posts, oled_boss_d + 0.4);
