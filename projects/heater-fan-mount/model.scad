@@ -18,14 +18,14 @@ fan_bore = 76;      // air path
 fit = 0.4;          // fan to socket, each side
 
 /* [Duct: 3" flex, thread sized off the old part (crest ~84, root ~78)] */
-spigot_d = 84;
+spigot_d = 80;       // thread crest: a 3" (76.2 ID) duct stretches over it; old spigot ran 80 to 82.8
 spigot_h = 25;
-pitch = 6;          // UNMEASURED: the flex duct's wire pitch
+pitch = 6;          // UNMEASURED placeholder: no published standard; measure the duct's wire spacing over 10 turns
 
 /* [Heater rim: UNMEASURED - the rim gauge prints first] */
-rim_d = 90;         // outside of the heater's bottom rim
+rim_d = 75.4;       // outside of the heater's bottom rim: ~76 bore was near a friction fit on the old part (owner)
 rim_grip = 22;      // collar height over the rim
-collar_fit = 0.6;   // collar bore over the rim, each side, before the clamp closes it
+collar_fit = 0.3;   // collar bore 76.0 over the rim
 slots = 6;          // fingers the hose clamp pulls in
 
 /* [Controller: 1803BK PWM board 32 x 32 (35 with break-off edge), holes ~26 square] */
