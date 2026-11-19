@@ -26,6 +26,8 @@ class P:
     ratios: list[float] = field(default_factory=lambda: [round(0.88 + 0.01 * i, 2) for i in range(13)])
     tile: float = 22.0
     gap: float = 5.0
+    tab: float = 9.0  # label tab on each tile's front edge, flow x100 raised on it
+    tab_layers: int = 3
     cols: int = 7
     origin: tuple[float, float] = (80.0, 150.0)  # front-left of the first tile
     h: float = 0.2
@@ -54,7 +56,7 @@ def tile_origins(p: P) -> list[tuple[float, float]]:
     out = []
     for i, _ in enumerate(p.ratios):
         r, c = divmod(i, p.cols)
-        out.append((p.origin[0] + c * (p.tile + p.gap), p.origin[1] + r * (p.tile + p.gap)))
+        out.append((p.origin[0] + c * (p.tile + p.gap), p.origin[1] + p.tab + r * (p.tile + p.tab + p.gap)))
     return out
 
 
@@ -83,24 +85,28 @@ class G:
         self.x, self.y = x, y
 
 
-def tile(g: G, x0: float, y0: float, layer: int, flow: float, w: float, v_wall: float, v_fill: float):
+def tile(g: G, x0: float, y0: float, layer: int, flow: float, w: float, v_wall: float, v_fill: float,
+         sx: float | None = None, sy: float | None = None):
     p = g.p
+    sx = sx or p.tile
+    sy = sy or p.tile
     s = spacing(w, p.h)
     # two perimeters, outer first inward
     for k in range(2):
         a = w / 2 + k * s
-        pts = [(x0 + a, y0 + a), (x0 + p.tile - a, y0 + a), (x0 + p.tile - a, y0 + p.tile - a), (x0 + a, y0 + p.tile - a)]
+        pts = [(x0 + a, y0 + a), (x0 + sx - a, y0 + a), (x0 + sx - a, y0 + sy - a), (x0 + a, y0 + sy - a)]
         g.travel(*pts[0])
         for q in pts[1:] + pts[:1]:
             g.extrude(*q, w, flow, v_wall)
     # solid fill inside, lines alternating X / Y per layer
     lo = w / 2 + 1.5 * s  # fill line centres start half a spacing inside perimeter 2
-    hi = p.tile - lo
-    n = int((hi - lo) / s) + 1
+    span_c = sy if layer % 2 == 0 else sx  # across the lines
+    span_l = sx if layer % 2 == 0 else sy  # along the lines
+    n = int((span_c - 2 * lo) / s) + 1
     along_x = layer % 2 == 0
     for i in range(n):
         c = lo + i * s
-        a, b = (lo, hi) if i % 2 == 0 else (hi, lo)
+        a, b = (lo, span_l - lo) if i % 2 == 0 else (span_l - lo, lo)
         if along_x:
             start, end = (x0 + a, y0 + c), (x0 + b, y0 + c)
         else:
@@ -112,12 +118,34 @@ def tile(g: G, x0: float, y0: float, layer: int, flow: float, w: float, v_wall: 
         g.extrude(*end, w, flow, v_fill)
 
 
+SEG = {  # 7-segment strokes per digit, unit box 0..1 wide, 0..2 tall
+    "a": ((0, 2), (1, 2)), "b": ((1, 2), (1, 1)), "c": ((1, 1), (1, 0)), "d": ((1, 0), (0, 0)),
+    "e": ((0, 0), (0, 1)), "f": ((0, 1), (0, 2)), "g": ((0, 1), (1, 1)),
+}
+DIGITS = {"0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc", "5": "afgcd",
+          "6": "afgedc", "7": "abc", "8": "abcdefg", "9": "abcdfg"}
+
+
+def label(g: G, x0: float, y0: float, text: str, flow: float):
+    """Raised 7-segment digits centred on the tab under tile (x0, y0)."""
+    p = g.p
+    u, pitch = 2.8, 4.6  # digit width (height 2u) and advance
+    xs = x0 + (p.tile - (len(text) - 1) * pitch - u) / 2
+    ys = y0 - p.tab + (p.tab - 2 * u) / 2
+    for k, ch in enumerate(text):
+        ox = xs + k * pitch
+        for sname in DIGITS[ch]:
+            (ax, ay), (bx, by) = SEG[sname]
+            g.travel(ox + ax * u, ys + ay * u)
+            g.extrude(ox + bx * u, ys + by * u, p.w, flow, 30.0)
+
+
 def build(p: P) -> str:
     g = G(p)
     orgs = tile_origins(p)
     xs = [o[0] for o in orgs]
     ys = [o[1] for o in orgs]
-    minx, miny, maxx, maxy = min(xs), min(ys), max(xs) + p.tile, max(ys) + p.tile
+    minx, miny, maxx, maxy = min(xs), min(ys) - p.tab, max(xs) + p.tile, max(ys) + p.tile
     for li in range(p.layers):
         g.z = p.h * (li + 1)
         g.emit(";LAYER_CHANGE")
@@ -130,11 +158,14 @@ def build(p: P) -> str:
             g.emit(f"; tile flow {r:.2f}")
             tile(g, x0, y0, li, p.base_flow if first else r, p.w1 if first else p.w,
                  p.v1 if first else p.v_wall, p.v1 if first else p.v_fill)
-        # orientation tab on the first tile only: a 6 x 3 lip off its front edge
-        x0, y0 = orgs[0]
-        g.travel(x0 + 2, y0 - 3 + p.w / 2)
-        g.extrude(x0 + 8, y0 - 3 + p.w / 2, p.w, p.base_flow, p.v_wall)
-        g.extrude(x0 + 8, y0 + p.w, p.w, p.base_flow, p.v_wall)
+        for (x0, y0), r in zip(orgs, p.ratios):
+            if li < p.tab_layers:
+                g.emit(f"; label tab {r:.2f}")
+                tile(g, x0, y0 - p.tab, li, p.base_flow, p.w1 if first else p.w,
+                     p.v1 if first else p.v_wall, p.v1 if first else p.v_fill, sx=p.tile, sy=p.tab)
+            elif li < p.tab_layers + 2:
+                g.emit(f"; label digits {r:.2f}")
+                label(g, x0, y0, str(round(r * 100)), p.base_flow)
     grams = g.e_total * g.fil * 1.1 / 1000
     head = [
         "; HEADER_BLOCK_START",
@@ -143,7 +174,7 @@ def build(p: P) -> str:
         f"; total layer number: {p.layers}",
         f"; max_z_height: {p.h * p.layers:.2f}",
         "; HEADER_BLOCK_END",
-        f"; flow ratios, row by row from the tabbed tile: {', '.join(f'{r:.2f}' for r in p.ratios)}",
+        f"; flow ratios (x100 raised on each tile's front tab): {', '.join(f'{r:.2f}' for r in p.ratios)}",
         f"; MINX = {minx:.1f}", f"; MINY = {miny:.1f}", f"; MAXX = {maxx:.1f}", f"; MAXY = {maxy:.1f}",
         "M140 S0",
         "M104 S0",
