@@ -26,7 +26,7 @@ lid_col_x = 68;  lid_col_y = 34;   // lid-screw column, inner corner (from the 1
 col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
 win_round = 1.5;
-pin_margin = 1;          // plate kept beside a right-hand boss pad, at the notch the bent header pins need
+tm_edge = tm_dx/2 + 2.4; // right edge, straight, past the right-hand screw line by hole radius + 1: the bent header pins need the rest
 oled_pin_in = 1.6;       // OLED header row from its front edge (toward the glands): a slot under it for the plug
 plug_w = 12;  plug_d = 4;
 /* [Lightening: plate nothing stands on is cut away] */
@@ -64,12 +64,9 @@ module ear2d(p) {
     hull() { translate(p) circle(r = r); translate([clamp(p[0], inner[0], inner[1]), clamp(p[1], y_front + r, y_back - r)]) circle(r = r); }
 }
 module bosses2d(posts, d) { for (p = posts) translate(p) circle(d = d); }   // round, never clipped
-// Right side, one smooth line: a straight brace from the OLED's back-right post, tangent to both it and the right
-// ear, round the ear, then an S-curve (cubic Bezier) that leaves the ear tangent and lands vertical on the boards'
-// line at col_gap from the lid-screw column, at its clearance corner, so nothing steps or kinks; the plate is everything left of it.
-ear_leave = -10;         // where the S-curve leaves the right ear, degrees from +x
-s_k0 = 16;  s_k3 = 8;    // Bezier handle lengths: off the ear, onto the vertical edge
-function bez(p0, p1, p2, p3, t) = pow(1-t, 3)*p0 + 3*pow(1-t, 2)*t*p1 + 3*(1-t)*t*t*p2 + pow(t, 3)*p3;
+// Right side: a straight brace from the OLED's back-right post, tangent to both it and the right ear, round the ear
+// to its underside, then straight down the right edge, on the line tm_edge past the TM1637s' screw centres.
+ear_leave = -90;         // where the outline leaves the right ear's underside, degrees from +x
 module right_keep2d() {
     a = oled_posts[3];  ra = oled_boss_d/2 + post_margin;   // back-right OLED post
     b = tier_pts[2];    rb = island_d/2;                    // right ear
@@ -81,8 +78,8 @@ module right_keep2d() {
     top = atan2(m[1], m[0]);
     arc = [for (i = [0:24]) let(t = top + (ear_leave - top)*i/24) b + rb*[cos(t), sin(t)]];
     p0 = b + rb*[cos(ear_leave), sin(ear_leave)];
-    p3 = lr_post + [lr_r, 0];                // the swoop lands on the lower-right post's own radius, tangent vertical
-    s = [for (i = [1:32]) bez(p0, p0 + s_k0*[sin(ear_leave), -cos(ear_leave)], p3 + [0, s_k3], p3, i/32)];
+    p3 = [cx + tm_edge, lr_post[1]];                // the right edge: one straight line
+    s = [[p3[0], p0[1]], p3];
     polygon(concat([[ta[0], 100], ta], arc, s, [[p3[0], -100], [-100, -100], [-100, 100]]));
 }
 module plate2d() {
@@ -104,7 +101,10 @@ module plate2d() {
             }
         }
     }
-    bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
+    intersection() {   // every boss stands on plate where the corner rounding nicks it; none past the straight right edge
+        bosses2d(tm_posts, tm_boss_d + 0.4);
+        translate([-100, -100]) square([100 + cx + tm_edge, 200]);
+    }
     bosses2d(oled_posts, oled_boss_d + 0.4);
 }
 module windows2d() {
@@ -118,10 +118,6 @@ module windows2d() {
         translate([cx - tm_dx/2 + win_inset, 0]) square([tm_dx - 2*win_inset, ob]);
         translate([cx - ox, 0]) square([2*ox, mid_y1]);
     }
-    // right side: each TM1637's header pins, bent well down, need the edge strip beyond the right-hand screw centres
-    // gone, between the two bosses; the plate to the screw line and the pads round the bosses stay
-    for (y = tm_y) translate([cx + tm_dx/2, y - (tm_dy/2 - tm_boss_d/2 - pin_margin)])
-        square([100, 2*(tm_dy/2 - tm_boss_d/2 - pin_margin)]);
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;
@@ -151,7 +147,7 @@ module tier_row() {
         union() {
             translate([0, 0, -plate_t]) linear_extrude(plate_t) difference() { plate2d(); windows2d(); }
             translate([0, 0, -0.01]) {
-                linear_extrude(tm_boss_h + 0.01) bosses2d(tm_posts, tm_boss_d);
+                linear_extrude(tm_boss_h + 0.01) intersection() { bosses2d(tm_posts, tm_boss_d); translate([-100, -100]) square([100 + cx + tm_edge, 200]); }
                 linear_extrude(oled_boss_h + 0.01) bosses2d(oled_posts, oled_boss_d);
                 ldr_cradle();
             }
