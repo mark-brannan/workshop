@@ -41,7 +41,9 @@ ep_rear = ep_far - ep[1];
 jack_mouth = ep_rear - jack_over;
 tray_bolts = [[-16.5, ep_rear - 6], [16.5, ep_rear - 6], [-16.5, ep_rear - 20], [16.5, ep_rear - 20]];   // all four behind the EndPoint, inside the edge wall, where the floor is thick enough for the inserts
 qwiic_y = ep_far - 12.7;     // the EndPoint's two Qwiic ports sit this far along, one on each long edge (Eagle .brd J1/J2)
-assert(lux_bot - 2 - (ep_top + 4) >= 3, "bridge too low to clear the EndPoint Qwiic ports");
+ep_hole = [10.16, 22.86];    // EndPoint mounting holes nearest the jack: half the hole spacing across (25.4 - 2 x 2.54 = 20.32), distance from the far end (Eagle .brd H1/H2; the far pair sits under the VEML bridge, unreachable)
+ep_tap = [2.7, 3.6];         // M3 self-tapping hole in the tray plate: diameter, depth (plate is 4)
+assert(lux_bot - 2 -(ep_top + 4) >= 3, "bridge too low to clear the EndPoint Qwiic ports");
 echo(cable_z = cable_z, length = reach + tip_w/2, loop = jack_mouth - (R + wall), plinth_h = lux_bot - ep_bot);
 $fn = 120;
 module ecyl(d, h) rotate_extrude() hull() { translate([d/2 - e, e]) circle(e); translate([d/2 - e, h - e]) circle(e); square([0.01, h]); }
@@ -103,6 +105,7 @@ module tray() difference() {   // prints flat, plate down
   translate([-8.75, ep_rear - 4, ep_bot + 1]) cube([17.5, 5, 20]);                                              // break in the cross wall for the RJ45
   for (b = tray_bolts) translate([b[0], b[1], 0]) { cylinder(d = 3.4, h = 100); translate([0, 0, ep_bot - cb[1]]) cylinder(d = cb[0], h = 10); }
   for (b = lid_bosses) translate([b[0], b[1], 0]) cylinder(d = 9, h = 100);
+  for (sx = [-1, 1]) translate([sx*ep_hole[0], ep_far - ep_hole[1], ep_bot - ep_tap[1]]) cylinder(d = ep_tap[0], h = ep_tap[1] + 1);   // EndPoint's two jack-side mounting holes: blind, self-tapping M3x5 from the top
 }
 module bosses() intersection() { outer(); for (b = lid_bosses) translate([b[0], b[1], Z - 9]) { cylinder(d = 8, h = 9); translate([0,0,-4]) cylinder(d1 = 0, d2 = 8, h = 4); } }
 module arm_half() difference() {

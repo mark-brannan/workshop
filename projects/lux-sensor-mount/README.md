@@ -16,7 +16,7 @@ until #168 merges; this project is where it is printed.
 | `arm` | Arm half with the collar half, four M3 insert posts for the tray | as modelled |
 | `back` | Collar back half | as modelled |
 
-M3 heat-set inserts throughout. PETG.
+M3 heat-set inserts throughout. PETG. The EndPoint is held by two M3x5 self-tapping screws (2.7 mm blind holes) through its jack-side mounting holes; the far pair is under the VEML bridge.
 
 ## Measured, and from what
 
