@@ -26,12 +26,13 @@ class P:
     ratios: list[float] = field(default_factory=lambda: [round(0.88 + 0.01 * i, 2) for i in range(13)])
     tile: float = 22.0
     gap: float = 5.0
-    tab: float = 9.0  # label tab on each tile's front edge, flow x100 raised on it
+    tab: float = 10.0  # label tab on each tile's front edge, flow x100 raised on it
     tab_layers: int = 3
+    digit_layers: int = 4  # raised 0.8 mm above the tab
     cols: int = 7
     origin: tuple[float, float] = (80.0, 150.0)  # front-left of the first tile
     h: float = 0.2
-    layers: int = 5
+    layers: int = 7  # 1.4 mm tiles; the digits need the height
     w: float = 0.42
     w1: float = 0.5  # first layer line width
     v_wall: float = 60.0  # mm/s
@@ -129,7 +130,7 @@ DIGITS = {"0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc", "5"
 def label(g: G, x0: float, y0: float, text: str, flow: float):
     """Raised 7-segment digits centred on the tab under tile (x0, y0)."""
     p = g.p
-    u, pitch = 2.8, 4.6  # digit width (height 2u) and advance
+    u, pitch = 3.5, 5.6  # digit width (height 2u = 7 mm) and advance
     xs = x0 + (p.tile - (len(text) - 1) * pitch - u) / 2
     ys = y0 - p.tab + (p.tab - 2 * u) / 2
     for k, ch in enumerate(text):
@@ -137,7 +138,7 @@ def label(g: G, x0: float, y0: float, text: str, flow: float):
         for sname in DIGITS[ch]:
             (ax, ay), (bx, by) = SEG[sname]
             g.travel(ox + ax * u, ys + ay * u)
-            g.extrude(ox + bx * u, ys + by * u, p.w, flow, 30.0)
+            g.extrude(ox + bx * u, ys + by * u, 0.6, flow, 20.0)  # one wide line per stroke
 
 
 def build(p: P) -> str:
@@ -163,7 +164,7 @@ def build(p: P) -> str:
                 g.emit(f"; label tab {r:.2f}")
                 tile(g, x0, y0 - p.tab, li, p.base_flow, p.w1 if first else p.w,
                      p.v1 if first else p.v_wall, p.v1 if first else p.v_fill, sx=p.tile, sy=p.tab)
-            elif li < p.tab_layers + 2:
+            elif li < p.tab_layers + p.digit_layers:
                 g.emit(f"; label digits {r:.2f}")
                 label(g, x0, y0, str(round(r * 100)), p.base_flow)
     grams = g.e_total * g.fil * 1.1 / 1000
