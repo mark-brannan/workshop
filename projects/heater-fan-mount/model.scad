@@ -141,4 +141,4 @@ else if (part == "exploded") stack(30);
 else if (part == "section") difference() { stack(); translate([0, -200, -100]) cube([400, 400, 400]); }
 else if (part == "plate") plate();
 else if (part == "back") stack();
-else stack();
+else if (part == "assembly") stack();
