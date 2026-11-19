@@ -54,14 +54,6 @@ def built(tmp_path_factory):
 
 
 @pytest.fixture(scope="module")
-def tier(tmp_path_factory):
-    d = tmp_path_factory.mktemp("halmet_tier")
-    for f in ("model.scad", "part-tier.scad"):
-        (d / f).write_text((HERE / f).read_text())
-    return trimesh.load(build_scad(d / "part-tier.scad", d, "tier", render=False)["stl"])
-
-
-@pytest.fixture(scope="module")
 def frame(built):
     return trimesh.load(built["stl"])
 
@@ -148,7 +140,6 @@ def test_underside_recessed_over_bosses_flat_on_posts(frame):
             assert np.isclose(bottom(frame, x, y), RECESS, atol=0.02)
 
 
-
 def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
     for x in LISTS["tie_bar_xs"]:
         outer = x + P["tie_gap"] / 2 + P["tie_t"] / 2  # outer edge of the right-hand slot
@@ -178,52 +169,6 @@ def test_plate_has_insert_pads_under_the_tier_and_mid_tier_standoffs(frame):
     for x, y in PADS:
         assert np.isclose(top(frame, x + P["insert_d"] / 2 + 0.7, y), TIER_Z0, atol=0.02)
         assert top(frame, x, y) is None  # insert hole runs through, open both ends
-
-
-def test_tier_is_a_flat_plate_on_its_standoffs(tier):
-    assert tier.is_watertight and tier.body_count == 1
-    lo, hi = tier.bounds
-    assert np.isclose(lo[2], TIER_TOP - P["tier_t"], atol=0.02)  # flat bottom: nothing hangs below
-    assert np.isclose(hi[2], TIER_TOP + P["ldr_ledge"] + P["pcb_t"], atol=0.02)  # cradle walls on top
-    assert hi[0] < 151 / 2 - 2 and hi[1] <= P["plate_y_hi"] + 0.01  # inside the floor
-
-
-@pytest.mark.skip(reason="older tier (part-tier.scad) predates the three-point tier_cols; part-tier-row.scad replaces it")
-def test_tier_holes_for_standoff_screws_and_module_screws(tier):
-    for x, y in [*COLS, *MOD_POSTS]:
-        assert top(tier, x, y) is None
-    for x, y in COLS:
-        assert np.isclose(top(tier, x + P["screw_d"] / 2 + 0.6, y), TIER_TOP, atol=0.02)  # plate seats on the standoff
-
-
-def test_tier_clears_lid_column_board_and_usb_plug(tier):
-    for v in tier.vertices:
-        assert v[0] <= P["lid_col_x"] - 0.5 or v[1] <= P["lid_col_y"] - 0.5
-    assert P["tier_x0"] - BOARD_RIGHT >= 2
-    for z in (12.0, 15.0):  # USB-C plug path along +X from the board edge
-        assert not ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0)) or ray_hits(tier, (BOARD_RIGHT, USB_Y, z), (1, 0, 0))[0][0] > BOARD_RIGHT + 30
-
-
-SEG_WIN_LO = SEG_Y - P["seg_hole_dy"] / 2 + P["tier_win_inset"]
-SEG2_WIN_TOP = SEG2_Y + P["seg_hole_dy"] / 2 - P["tier_win_inset"]
-
-
-def test_tier_opening_joins_the_two_module_windows(tier):
-    mid = (SEG_Y + SEG2_Y) / 2
-    for y in (SEG_WIN_LO + 0.3, SEG_Y, mid, SEG2_Y, SEG2_WIN_TOP - 0.3):
-        assert top(tier, P["seg_x"], y) is None
-    for cx, cy in MOD_POSTS:  # each module post keeps a solid land toward the opening
-        v = np.array([P["seg_x"] - cx, mid - cy])
-        x, y = np.array([cx, cy]) + 4.8 * v / np.linalg.norm(v)
-        assert top(tier, x, y) is not None
-
-
-def test_cradle_walls_clear_the_tier_screw_heads(tier):
-    for cx, cy in COLS:  # nothing stands on the tier top under an M3 head
-        for r in (P["screw_d"] / 2 + 0.3, P["head_d"] / 2 - 0.5, P["head_d"] / 2):
-            for a in np.radians(range(0, 360, 15)):
-                h = top(tier, cx + r * np.cos(a), cy + r * np.sin(a))
-                assert h is None or h <= TIER_TOP + 0.02
 
 
 @pytest.fixture(scope="module")
@@ -258,24 +203,6 @@ LDR_HOLE = (LDR_X0 + LDR_L - P["ldr_hole_in"], LDR_Y)
 LDR_Z = TIER_TOP + P["ldr_ledge"]  # module underside
 M3_HEX_R = 5.5 / 3 ** 0.5   # tier standoff, 5.5 across flats: corner radius
 M25_HEX_R = 5 / 3 ** 0.5    # module standoff, 5 across flats
-
-
-def test_cradle_ledges_walls_and_screw_boss(tier):
-    w = LDR_W + 2 * P["ldr_fit"]
-    mid = LDR_X0 + 7  # clear of the OLED standoff cut-outs and the screw pad
-    for s in (-1, 1):
-        assert top(tier, mid, LDR_Y + s * (w / 2 - 1)) == pytest.approx(LDR_Z, abs=0.02)  # edge ledge
-        assert top(tier, LDR_X0 + LDR_L / 2, LDR_Y + s * (w / 2 + P["ldr_wall"] / 2)) == pytest.approx(LDR_Z + P["pcb_t"], abs=0.02)  # wall
-    assert top(tier, mid, LDR_Y) is None  # window between the ledges: nothing under the board
-    assert top(tier, mid, LDR_Y + LDR_W / 2 - P["ldr_lip"] / 2) == pytest.approx(TIER_TOP + P["ldr_ledge"], abs=0.02)  # ledge
-    edge = LDR_W / 2 - P["ldr_lip"] / 2  # under the board's edge, inside the lip
-    for s in (-1, 1):
-        assert top(tier, LDR_X0 + P["ldr_cell_clear"] - 0.5, LDR_Y + s * edge) == pytest.approx(TIER_TOP, abs=0.02)  # photocell end bare
-        assert top(tier, mid, LDR_Y + s * (LDR_W / 2 - P["ldr_lip"] - 0.2)) == pytest.approx(TIER_TOP, abs=0.02)  # lip stops short
-    assert P["ldr_lip"] < 1.4 and P["ldr_cell_clear"] >= 3.5  # owner: solder 1.4 in from the edges, 3.5-4 from the cell end
-    assert top(tier, *LDR_HOLE) is None  # M3 clearance hole through, screw up from underneath
-    off = LDR_HOLE[0] + P["screw_d"] / 2 + 0.6, LDR_HOLE[1]
-    assert top(tier, *off) == pytest.approx(LDR_Z, abs=0.02)  # pad at ledge height round the hole
 
 
 def test_sensor_fits_under_the_modules_and_clear_of_their_standoffs():
@@ -328,15 +255,6 @@ def test_tier_gauge_plates_are_square_hollow_and_holed(tmp_path):
                 assert top(part, cx + sx * dx / 2, cy + sy * dy / 2) is None  # hole through
         assert top(part, cx + dx / 2 + g["hole_d"] / 2 + g["margin"] / 2, cy) == pytest.approx(g["thickness"], abs=0.02)  # band is solid
     assert g["seg_hole_dx"] == P["seg_hole_dx"] and g["oled_hole_dy"] == P["oled_hole_dy"]  # same numbers as the tier
-
-
-def test_sensor_screw_head_recess_in_the_tier_underside(tier):
-    bottom = TIER_TOP - P["tier_t"]
-    x, y = LDR_HOLE
-    up = lambda dx: ray_hits(tier, (x + dx, y, -50), (0, 0, 1))[0][2]
-    assert up(2.4) == pytest.approx(bottom + P["ldr_head_h"], abs=0.02)  # inside the recess, outside the screw hole
-    assert up(P["ldr_head_d"] / 2 + 0.8) == pytest.approx(bottom, abs=0.02)  # flat underside beyond it
-    assert P["ldr_head_d"] > P["screw_d"] and P["screw_d"] < P["insert_d"]  # a screw and nut: too narrow for an insert
 
 
 # Standoff pads in plan against what sits on or near the plate
