@@ -93,14 +93,23 @@ module lower_right_cut() {
 }
 module plate2d() {
     offset(r = corner_r) offset(delta = -corner_r) difference() {
-        offset(r = -swoop_r) offset(delta = swoop_r) union() {
-            rr(x0, y_front, x_back, y_back);
-            rr(x0, -y_col, x1, y_col);
-            for (p = tier_pts) ear2d(p);
-            bosses2d(tm_posts, tm_boss_d + 1);
+        offset(r = -swoop_r) offset(delta = swoop_r) difference() {   // swept after the cuts, so lines and ears recurve
+            union() {
+                rr(x0, y_front, x_back, y_back);
+                rr(x0, -y_col, x1, y_col);
+                for (p = tier_pts) ear2d(p);
+                bosses2d(tm_posts, tm_boss_d + 1);
+                // plate out to both straight lines, so they meet the right ear tangent instead of stepping at x1
+                intersection() {
+                    hull() { translate(tier_pts[2]) circle(r = island_d/2); translate(oled_posts[3]) circle(r = oled_boss_d/2 + post_margin); }
+                    translate([0, -100]) square([100, 100 + y_back]);
+                }
+                hull() { translate(tier_pts[2]) circle(r = island_d/2); translate([tm_edge - 1, -y_col]) square(1); }
+            }
+            lower_right_cut();
+            brace_cut();
         }
-        lower_right_cut();
-        brace_cut();
+        translate([tm_edge, -100]) square([100, 100 - y_col]);   // lid-screw clearance, trimmed hard after the sweep
     }
     bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
     bosses2d(oled_posts, oled_boss_d + 0.4);
