@@ -14,7 +14,7 @@ board_z = body_t + standoff_h;      // HALMET underside
 r_cx = row("cx");  r_tm_y = row("tm_y");  r_oled_y = row("oled_y");
 r_ldr_x0 = row("ldr_x0");  r_ldr_y = row("ldr_y");  r_ldr_post = row("ldr_post");
 ldr_z = tier_z1 + ldr_ledge;        // LM393 underside, on its cradle
-oled_z = tier_z1 + row("oled_boss_h");   // OLED underside, on its printed bosses
+oled_z = tier_z1 + row("oled_standoff_h");   // OLED underside, on its standoffs
 seg_z = tier_z1 + row("tm_boss_h");      // TM1637 underside
 floor_z = -boss_h;
 

@@ -322,7 +322,7 @@ def test_row_screws_are_the_frame_standoffs():
 def test_row_bounds_volume_and_plan_inside_the_box(row):
     assert row.is_watertight and row.body_count == 1
     lo, hi = row.bounds
-    assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["oled_boss_h"], abs=0.02)
+    assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["ldr_ledge"] + R["pcb_t"], abs=0.02)  # the sensor cradle walls are the tallest thing
     assert hi[0] <= 75.5 - 1 and max(-lo[1], hi[1]) <= 41.5 - 1  # inner walls, 1 mm margin
     tm_edge = CX + R["tm_w"] / 2
     for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut col_gap short instead
@@ -331,7 +331,7 @@ def test_row_bounds_volume_and_plan_inside_the_box(row):
     cut = [p for p in TM_POSTS if p[0] + R["tm_boss_d"] / 2 > P["lid_col_x"] - R["col_gap"]]
     for x, y in cut:  # the cut boss keeps two perimeters beside its hole
         assert P["lid_col_x"] - R["col_gap"] - x - R["tm_hole"] / 2 >= 0.8
-    assert 6000 < row.volume < 8000  # mm^3; lightened build 6951
+    assert 5000 < row.volume < 7000  # mm^3; no OLED posts, straight right edge: 5997
 
 
 def test_row_prints_flat_nothing_below_or_overhanging(row):
@@ -348,7 +348,7 @@ def test_row_three_screw_holes_in_solid_islands_clear_of_modules(row):
     from shapely.geometry import Point, box
     boards = [box(CX - R["tm_w"] / 2, y - R["tm_h"] / 2, CX + R["tm_w"] / 2, y + R["tm_h"] / 2) for y in RL["tm_y"]]
     boards.append(box(CX - R["oled_w"] / 2, R["oled_y"] - R["oled_h"] / 2, CX + R["oled_w"] / 2, R["oled_y"] + R["oled_h"] / 2))
-    posts = [Point(p).buffer(R["tm_boss_d"] / 2) for p in TM_POSTS] + [Point(p).buffer(R["oled_boss_d"] / 2) for p in OLED_POSTS]
+    posts = [Point(p).buffer(R["tm_boss_d"] / 2) for p in TM_POSTS] + [Point(p).buffer(R["oled_pad_d"] / 2) for p in OLED_POSTS]
     assert len(ROW_SCREWS) == 3
     for x, y in ROW_SCREWS:
         assert top(row, x, y) is None
@@ -360,22 +360,23 @@ def test_row_three_screw_holes_in_solid_islands_clear_of_modules(row):
         assert R["island_d"] >= 8
 
 
-def test_row_module_bosses_holed_at_their_heights(row):
+def test_row_module_holes_and_tm_bosses(row):
     assert len(TM_POSTS) == 8 and len(OLED_POSTS) == 4
-    for posts, h, d, hole in ((TM_POSTS, R["tm_boss_h"], R["tm_boss_d"], R["tm_hole"]),
-                              (OLED_POSTS, R["oled_boss_h"], R["oled_boss_d"], R["oled_hole"])):
-        for x, y in posts:
-            assert top(row, x, y) is None  # holed through
-            assert top(row, x - (d + hole) / 4, y) == pytest.approx(h, abs=0.02)  # boss wall, on the side away from the lid column
+    for x, y in TM_POSTS:
+        assert top(row, x, y) is None  # holed through
+        assert top(row, x - (R["tm_boss_d"] + R["tm_hole"]) / 4, y) == pytest.approx(R["tm_boss_h"], abs=0.02)  # boss wall, on the side away from the lid column
+    for x, y in OLED_POSTS:  # plain holes in flat plate, no boss: the OLED stands on standoffs
+        assert top(row, x, y) is None
+        assert top(row, x - R["oled_hole"] / 2 - 0.5, y) == pytest.approx(0, abs=0.02)
 
 
 def test_row_oled_clears_the_sensor_stack_and_cell_sees_past_it():
     stack = R["ldr_ledge"] + R["pcb_t"] + R["ldr_part_h"]
-    assert R["oled_boss_h"] >= stack + 2.5  # trimpot, pin stubs and clearance under the OLED
+    assert R["oled_standoff_h"] >= stack + 2  # trimpot, pin stubs and clearance under the OLED
     assert R["ldr_y"] == R["oled_y"]  # centred under it
     assert R["ldr_x0"] < CX - R["oled_w"] / 2 - 4  # photocell end out past the OLED's left edge
     outer = R["ldr_w"] / 2 + R["ldr_fit"] + R["ldr_wall"]  # cradle wall faces, between the OLED's post rows
-    assert R["oled_dy"] / 2 - R["oled_boss_d"] / 2 - outer > 0.5
+    assert R["oled_dy"] / 2 - R["oled_pad_d"] / 2 - outer > 0.5
 
 
 def test_row_sensor_cradle_on_top(row):
@@ -399,7 +400,7 @@ def test_row_clears_the_lid_and_the_gland_nuts():
     floor = -P["post_h"]  # z = 0 on the rest posts
     tier_top = TIER_TOP
     lid = P["rim_z"] + P["lid_depth"] + floor
-    assert tier_top + R["oled_boss_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
+    assert tier_top + R["oled_standoff_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
     assert tier_top + R["tm_boss_h"] + 7 < lid - 1  # TM1637 face, 7 above its board's underside
     assert tier_top - RT - floor > GLAND_TOP + 3  # tier underside over the gland nuts
 

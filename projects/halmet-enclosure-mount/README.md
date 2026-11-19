@@ -78,7 +78,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 - Display tier, a separate flat print (`part-tier-row.scad`), no supports: two TM1637s on 3 mm printed bosses and
-  the SSD1306 on 10.5 mm bosses, in one column. It sits on three 25 mm M3 F/F standoffs in heat-set inserts in
+  the SSD1306 on four 10 mm M2.5 F/F standoffs through plain 2.8 mm holes, in one column. It sits on three 25 mm M3 F/F standoffs in heat-set inserts in
   10 mm pads on the plate; three M3 from above hold it down.
 - Four more insert pads (`mid_cols`) wait for a future middle tier.
 - Light sensor, on the tier under the OLED: the LM393 module ([`parts.md`](../../parts.md)) in a cradle

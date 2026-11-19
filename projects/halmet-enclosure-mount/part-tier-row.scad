@@ -21,7 +21,7 @@ oled_w = 27.3;  oled_h = 27.8;
 tm_dx = 37.5;  tm_dy = 19;   // module screw spacing
 oled_dx = 23.3;  oled_dy = 23.6;
 tm_boss_h = 3;  tm_boss_d = 6;  tm_hole = 2.8;       // M2.5
-oled_boss_h = 10.5;  oled_boss_d = 4.5;  oled_hole = 0.9;   // self-tapping M1 pilot; tall enough to clear the sensor stack
+oled_standoff_h = 10;  oled_pad_d = 4.5;  oled_hole = 2.8;   // OLED on stock M2.5 F/F standoffs, 10 long (2.3 over the sensor stack), M2.5 screws through plain holes from under the tier, the plate round each hole flat
 lid_col_x = 68;  lid_col_y = 34;   // lid-screw column, inner corner (from the 158 x 90 outside)
 col_gap = 0.25;          // a boss beside the column is cut this far short of it (the board edge's gap as first packed)
 win_inset = 5;           // opening under the two TM1637s, this far inside their screw centres
@@ -68,7 +68,7 @@ module bosses2d(posts, d) { for (p = posts) translate(p) circle(d = d); }   // r
 // to its underside, then straight down the right edge, on the line tm_edge past the TM1637s' screw centres.
 ear_leave = -90;         // where the outline leaves the right ear's underside, degrees from +x
 module right_keep2d() {
-    a = oled_posts[3];  ra = oled_boss_d/2 + post_margin;   // back-right OLED post
+    a = oled_posts[3];  ra = oled_pad_d/2 + post_margin;   // back-right OLED post
     b = tier_pts[2];    rb = island_d/2;                    // right ear
     u = (b - a) / norm(b - a);
     n = [-u[1], u[0]];                       // away from the plate
@@ -105,14 +105,14 @@ module plate2d() {
         bosses2d(tm_posts, tm_boss_d + 0.4);
         translate([-100, -100]) square([100 + cx + tm_edge, 200]);
     }
-    bosses2d(oled_posts, oled_boss_d + 0.4);
+    bosses2d(oled_posts, oled_pad_d + 0.4);
 }
 module windows2d() {
     module win(y) translate([cx - tm_dx/2 + win_inset, y - tm_dy/2 + win_inset]) square([tm_dx - 2*win_inset, tm_dy - 2*win_inset]);
     // one window under both TM1637s, run on up under the OLED's I2C header: full width to short of the OLED's front
     // bosses, then between them to short of the sensor cradle (it takes in the header plug's slot)
-    ob = oled_y - oled_dy/2 - oled_boss_d/2 - post_margin;      // below the OLED's front bosses
-    ox = oled_dx/2 - oled_boss_d/2 - post_margin;               // between them
+    ob = oled_y - oled_dy/2 - oled_pad_d/2 - post_margin;      // below the OLED's front bosses
+    ox = oled_dx/2 - oled_pad_d/2 - post_margin;               // between them
     offset(r = win_round) offset(delta = -win_round) offset(r = -win_round) offset(delta = win_round) union() {
         hull() for (y = tm_y) win(y);
         translate([cx - tm_dx/2 + win_inset, 0]) square([tm_dx - 2*win_inset, ob]);
@@ -148,13 +148,12 @@ module tier_row() {
             translate([0, 0, -plate_t]) linear_extrude(plate_t) difference() { plate2d(); windows2d(); }
             translate([0, 0, -0.01]) {
                 linear_extrude(tm_boss_h + 0.01) intersection() { bosses2d(tm_posts, tm_boss_d); translate([-100, -100]) square([100 + cx + tm_edge, 200]); }
-                linear_extrude(oled_boss_h + 0.01) bosses2d(oled_posts, oled_boss_d);
                 ldr_cradle();
             }
         }
         for (p = tier_pts) translate([p[0], p[1], -plate_t - 1]) cylinder(d = tier_hole, h = plate_t + 2);
         for (p = tm_posts) translate([p[0], p[1], -plate_t - 1]) cylinder(d = tm_hole, h = plate_t + tm_boss_h + 2);
-        for (p = oled_posts) translate([p[0], p[1], -plate_t - 1]) cylinder(d = oled_hole, h = plate_t + oled_boss_h + 2, $fn = 16);
+        for (p = oled_posts) translate([p[0], p[1], -plate_t - 1]) cylinder(d = oled_hole, h = plate_t + 2);
         translate([ldr_post[0], ldr_post[1], -plate_t - 1]) cylinder(d = tier_hole, h = 20);   // M3 up through the board, nut on top
         translate([ldr_post[0], ldr_post[1], -plate_t - 1]) cylinder(d = ldr_head_d, h = 1 + ldr_head_h);   // head recess
     }
@@ -162,7 +161,7 @@ module tier_row() {
 
 // assembly.scad `use`s this file and cannot see its variables: it reads them here.
 function row(k) = let(t = [["cx", cx], ["tm_y", tm_y], ["tm_posts", tm_posts], ["oled_y", oled_y], ["tm_boss_h", tm_boss_h],
-    ["oled_boss_h", oled_boss_h], ["oled_pin_in", oled_pin_in], ["ldr_x0", ldr_x0], ["ldr_y", ldr_y], ["ldr_post", ldr_post]])
+    ["oled_standoff_h", oled_standoff_h], ["oled_pin_in", oled_pin_in], ["ldr_x0", ldr_x0], ["ldr_y", ldr_y], ["ldr_post", ldr_post]])
     t[search([k], t)[0]][1];
 
 tier_row();
