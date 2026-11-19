@@ -29,8 +29,8 @@ oled_pin_in = 1.6;       // OLED header row from its front edge (toward the glan
 plug_w = 12;  plug_d = 4;
 /* [Lightening: plate nothing stands on is cut away] */
 post_margin = 1.5;       // plate kept round a boss, past its radius
-cut_x = 59.5;            // upper right: plate right of the OLED's right posts...
-cut_y = 16.5;            // ...and above the right ear, under the photocell's header pins and by the enclosure corner
+swoop_r = 8;             // outline: inside corners swept at this radius, so ears flow into the edge
+corner_r = 3;            // outline: outside corners
 mid_y1 = 15.4;           // centre: window under the OLED's I2C header, up to short of the sensor cradle's front wall
 /* [Light sensor on top: LM393 module, component side up, one M3 up from under the tier, nut on top] */
 ldr_x0 = 25.5;  ldr_y = 25.4;  ldr_l = 31;  ldr_w = 14;   // photocell end at ldr_x0, out past the OLED's left edge
@@ -67,16 +67,31 @@ module bosses2d(posts, d) {   // round, cut flush with the boards' right edge wh
         else translate(p) circle(d = d + 1);
     }
 }
+// Upper right: one straight brace from the OLED's back-right post to the right ear; plate beyond it is cut away.
+module brace_cut() {
+    a = oled_posts[3];   // back-right
+    b = tier_pts[2];
+    u = (b - a) / norm(b - a);
+    n = [-u[1], u[0]];   // points away from the plate
+    ta = a + (oled_boss_d/2 + post_margin) * n;
+    tb = b + island_d/2 * n;
+    polygon([ta, tb, [100, tb[1]], [100, 100], [ta[0], 100]]);
+}
+// Lower right: the lid-screw column, 1 mm clear except where the TM post beside it is cut flush with its board.
+module lid_keepout() translate([tm_edge, -100]) square([100, 100 - y_col]);
 module plate2d() {
-    difference() {
-        union() {
+    offset(r = corner_r) offset(delta = -corner_r) difference() {
+        offset(r = -swoop_r) offset(delta = swoop_r) union() {
             rr(x0, y_front, x_back, y_back);
             rr(x0, -y_col, x1, y_col);
             for (p = tier_pts) ear2d(p);
-            bosses2d(tm_posts, tm_boss_d + 1);   // every boss stands on plate, none overhangs the edge
+            bosses2d(tm_posts, tm_boss_d + 1);
         }
-        offset(r = round_r) translate([cut_x + round_r, cut_y + round_r]) square(100);   // inside corner rounded
+        lid_keepout();
+        brace_cut();
     }
+    bosses2d(tm_posts, tm_boss_d + 0.4);   // every boss stands on plate where the corner rounding nicks it
+    bosses2d(oled_posts, oled_boss_d + 0.4);
 }
 module windows2d() {
     module win(y) translate([cx - tm_dx/2 + win_inset, y - tm_dy/2 + win_inset]) square([tm_dx - 2*win_inset, tm_dy - 2*win_inset]);
