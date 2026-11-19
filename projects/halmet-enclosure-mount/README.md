@@ -55,7 +55,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 | Boss height | 3.5 | owner; read as height, not hole diameter (agent's reading) |
 | Solid post height | 2 | owner; lower than the bosses, so the frame passes over them |
 | Inner floor | 151 x 83 | owner |
-| Lid-screw column | round, in each corner; inner face ~11 from the outside wall square to it, ~11.5 on the diagonal from the outside corner | owner, calipers from outside |
+| Lid-screw column | round, in each corner; inner face ~11 from the outside wall square to it, ~11.5 on the diagonal from the outside corner; wall ~2.5. From the 158 x 90 outside: inner face at X ±68, Y ±34 | owner, calipers from outside |
 | Floor to lowest gland nut | 2 to 3 | owner; the frame stays 14 mm clear of that wall in plan |
 | `screw_d` | 3.4 | M3 clearance for the tier's standoff screws; guess |
 
