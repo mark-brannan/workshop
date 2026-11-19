@@ -9,7 +9,7 @@ drawing beats a photo. The project link shows the part fitted.
 | Part | Where from | Dimensions, mm | Source | Used in |
 |---|---|---|---|---|
 | Hat Labs HALMET | Hat Labs | 89 x 58; two 4.8 x 3.2 slots at 45°, centres (22.75, 51.5) and (67.25, 6.5) from the lower-left corner; R8.5 concave cut at three corners | `HALMET.kicad_pcb`, hatlabs/HALMET-hardware | [halmet-enclosure-mount](projects/halmet-enclosure-mount/) |
-| SSD1306 0.96" OLED | generic | 27.3 x 27.8; holes 23.3 x 23.6, M2.5 or M2 | generic drawing, not calipered | halmet-enclosure-mount |
+| SSD1306 0.96" OLED | generic | 27.3 x 27.8; holes 23.3 x 23.6, M2 (owner) | generic drawing, not calipered | halmet-enclosure-mount |
 | TM1637 4-digit module | generic | board 41.5 x 23.5; holes 37.5 x 19, ~2.8 dia, 0.5 from the edge; display body 30 x 14, face 7 above the board; header 5 above the board's back, 6.8 past its edge | owner, caliper | [segment-display-enclosure](projects/segment-display-enclosure/) |
 | LM393 photoresistor module | Amazon B0FS6866W3 | 32 x 14; one M3 hole between the trimpot and the header, centred across, ~7 from the header end; photocell at the far end; right-angle 3-pin header | vendor drawing; hole position from the photo | halmet-enclosure-mount |
 | LM393 photoresistor module, on hand | | 31 x 14; one M3 hole, ~4 across, centred, its rim 5 from one end and both long edges; header pins 6 past the edge; photocell bent up, its top ~11.5 above the board top | owner, caliper | [halmet-enclosure-mount](projects/halmet-enclosure-mount/), [photocell-flame-pod](projects/photocell-flame-pod/) |
