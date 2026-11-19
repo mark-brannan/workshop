@@ -1,7 +1,8 @@
 // Diesel-heater combustion-air fan mount: a 3" flexible duct from a deck vent screws onto the bottom,
 // an 80 mm fan pushes the air up, and a slotted collar clamps over the heater's bottom rim with a hose clamp.
 // Three printed parts, every one a flat face on the bed:
-//   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints floor down.
+//   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints knob face down
+//           (smooth cabin face); support only under the back wall's fan-bay span (~81 mm), inside, unseen.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
@@ -43,6 +44,7 @@ gland = 12.5;       // PG7 cable gland for the 12 V feed
 
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
+front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
@@ -60,7 +62,7 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 module rrect(w, d, rr = r) offset(rr) offset(-rr) square([w, d]);
-module footprint() translate([-W / 2, -W / 2]) rrect(L, W);
+module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + front - wall);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
@@ -72,7 +74,7 @@ module box() {
     translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
     holes(4.4, floor_t + 2 * e);
     translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);                          // fan wires into the pocket
-    translate([pocket_x - 8, -W / 2 - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = wall + 2 * e);
+    translate([pocket_x - 8, -W / 2 - (front - wall) - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = front + 2 * e);
     translate([pocket_x, W / 2 - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
   }
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t]) for (x = [-1, 1], y = [-1, 1])
@@ -141,4 +143,4 @@ else if (part == "exploded") stack(30);
 else if (part == "section") difference() { stack(); translate([0, -200, -100]) cube([400, 400, 400]); }
 else if (part == "plate") plate();
 else if (part == "back") stack();
-else stack();
+else if (part == "assembly") stack();
