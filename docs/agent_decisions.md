@@ -12,3 +12,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261117t233234z
 - Piezo N-FET source wired to J201 pin 16 (GND) Undo: change the source row to J201 pin 12 or 14 ([#3](https://github.com/mark-brannan/workshop/pull/3))
+
+### 20261120t093844z
+- masthead-sky-sensor UV: AS7331 over hand-fitting LTR-390's last stock Undo: swap the UV row back before any board order ([#5](https://github.com/mark-brannan/workshop/pull/5))
