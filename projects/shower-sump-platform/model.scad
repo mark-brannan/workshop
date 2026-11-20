@@ -14,6 +14,13 @@ len = 110;           // fore-aft
 /* [Hull] */
 hull_angle = 55;     // degrees above horizontal across the boat at the bond line: the bilge V (Fusion v6 legs)
 
+/* [Sump screws and opening (from the Fusion v6 deck)] */
+holes = [[93, 25], [93, -34], [100, 0], [-93, 25], [-93, -34], [-100, 0]];   // the sump's wing holes
+hole_d = 3;          // self-tapping pilot, as Fusion had it
+boss_d = 9;
+boss_h = 12;         // screw depth below the deck top
+opening = [176, 80]; // cut out of the deck's middle, under the sump
+
 /* [Build] */
 deck_t = 4;
 skirt_h = 20;        // vertical depth of the bonding face
@@ -25,12 +32,19 @@ run = skirt_h / tan(hull_angle);              // inward step of the skirt over i
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
 
 // deck and skirts apart: a hull() of whole end sections would fill the space under the deck
-module platform() {
+module platform() difference() {
+  frame();
+  for (h = holes) translate([h[0], h[1], -boss_h - e]) cylinder(d = hole_d, h = boss_h + 2 * e, $fn = 24);
+  translate([-opening[0] / 2, -opening[1] / 2, -deck_t - e]) cube([opening[0], opening[1], deck_t + 2 * e]);
+}
+
+module frame() {
   hw_a = w_aft / 2 - bond_gap / sin(hull_angle);
   hw_f = w_fwd / 2 - bond_gap / sin(hull_angle);
   // deck: a trapezoid in plan
   translate([0, 0, -deck_t]) linear_extrude(deck_t)
     polygon([[-hw_a, -len / 2], [hw_a, -len / 2], [hw_f, len / 2], [-hw_f, len / 2]]);
+  for (h = holes) translate([h[0], h[1], -boss_h]) cylinder(d = boss_d, h = boss_h, $fn = 32);
   for (s = [-1, 1]) hull() for (p = [[hw_a, -len / 2], [hw_f, len / 2]])
     translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(e, center = true)
       scale([s, 1]) polygon([[p[0], 0], [p[0] - run, -skirt_h], [p[0] - run - tn, -skirt_h], [p[0] - tn, 0]]);

@@ -22,6 +22,11 @@ edges are skirts that lean in at `hull_angle` (the bilge V); `w_aft` against `w_
 bow. Each skirt is one flat face, the bonding face, held `bond_gap` inside the hull for the adhesive.
 Underneath is open; nothing reaches the keel. Prints deck down.
 
+The sump screws down through six Ø3 pilots into 12 mm bosses, at the Fusion deck's hole positions; only the
+platform is bonded, so the sump comes out for cleaning. The middle is cut through (`opening`, 176 x 80).
+Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it
+received is not recorded.
+
 ## Measured
 
 Nothing yet. The widths, length and angle are the Fusion v6 numbers, which were close but not right.

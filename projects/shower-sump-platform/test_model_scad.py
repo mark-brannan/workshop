@@ -31,14 +31,22 @@ def installed():
 
 def test_bbox_and_volume(installed):
     assert installed.extents == pytest.approx([2 * HW, P["len"], P["skirt_h"]], abs=0.1)
-    assert installed.is_watertight and 100_000 < installed.volume < 250_000
+    assert installed.is_watertight and 50_000 < installed.volume < 150_000
 
 
 def test_open_underside_and_skirt(installed):
     up = [0, 0, 1]
-    # under the middle, the first thing met is the deck's underside
-    assert ray_hits(installed, [0, 0, -50], up)[0][2] == pytest.approx(-P["deck_t"], abs=0.05)
+    # under the deck beside the opening, the first thing met is the deck's underside
+    assert ray_hits(installed, [0, 50, -50], up)[0][2] == pytest.approx(-P["deck_t"], abs=0.05)
     # the skirt (both V's: plan taper and hull angle)'s outer face leans in at the hull angle: halfway down it sits run/2 inside the top edge
     z = -P["skirt_h"] / 2
     x = ray_hits(installed, [HW + 20, 0, z], [-1, 0, 0])[0][0]
     assert x == pytest.approx(HW0 + z / math.tan(A), abs=0.1)
+
+
+def test_screw_holes_and_opening(installed):
+    down = [0, 0, -1]
+    for x, y in [(93, 25), (93, -34), (100, 0), (-93, 25), (-93, -34), (-100, 0)]:
+        assert not ray_hits(installed, [x, y, 5], down), f"pilot open at {x}, {y}"
+        assert ray_hits(installed, [x + P["hole_d"] / 2 + 1, y, 5], down)[0][2] == pytest.approx(0, abs=0.05)
+    assert not ray_hits(installed, [0, 0, 5], down), "opening in the middle"
