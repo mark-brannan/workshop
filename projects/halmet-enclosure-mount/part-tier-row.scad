@@ -121,26 +121,23 @@ module windows2d() {
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;
-    wx0 = ldr_x0 + ldr_cell_clear;
+    wx0 = max(ldr_x0 + ldr_cell_clear, x0 + 4);   // a 4 mm rail stays along the plate's left edge, tying the back-left screw ear to the rest
     translate([wx0, ldr_y - (w/2 - ldr_fit - ldr_lip) + ldr_win_edge])
         square([ldr_post[0] - ldr_boss_d/2 - 1 - wx0, 2*(w/2 - ldr_fit - ldr_lip - ldr_win_edge)]);
     // right of the OLED: the brace to the right ear, cut back to a rim along the diagonal edge, a ring round the ear and a margin round the
     // OLED's right-hand bosses and the TM1637s' back-right boss
-    rim = 3;
+    rim = 2.4;
     offset(r = win_round) offset(delta = -win_round) difference() {
-        intersection() {
-            offset(delta = -rim) plate2d();
-            translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
+        offset(r = -3) offset(delta = 3) union() {   // closed with a 3 mm radius: no steps where the bay meets the brace window
+            intersection() {
+                offset(delta = -rim) plate2d();
+                translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
+            }
+            // a rounded-rectangle bay under the OLED's right half, between its right-hand posts, 2.7 mm short of the sensor ledges' ends
+            offset(r = 3) offset(delta = -3) translate([51, 19.5]) square([9, 11.5]);
         }
-        translate(tier_pts[2]) circle(r = island_d/2 + 1.5);
+        translate(tier_pts[2]) circle(r = island_d/2 + 1);
     }
-    // under the OLED, past the sensor's screw pad: between the ledges as far as they run, then up the strip beside the OLED's
-    // right-hand posts, joined to the window below
-    iw = w/2 - ldr_fit - ldr_lip - ldr_win_edge;               // half-width between the ledges
-    ex = ldr_x0 + ldr_l + 0.8;                                  // past the ledges' ends
-    rx = oled_posts[3][0] - oled_pad_d/2 - post_margin;         // short of the OLED's right-hand bosses
-    translate([ldr_post[0] + ldr_boss_d/2 + 1.5, ldr_y - iw]) square([ex - ldr_post[0] - ldr_boss_d/2 - 1.5, 2*iw]);
-    translate([ex, mid_y1 - 1]) square([rx - ex, oled_posts[3][1] - oled_pad_d/2 - post_margin - mid_y1 + 1]);
 }
 
 // Sensor cradle (as model.scad's tier): edge ledges and a screw pad lift the board off its solder, side walls stop it turning.
