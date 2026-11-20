@@ -1,6 +1,6 @@
 // Tray and cover for the ICM-20948 IMU and a QwiicBus EndPoint on a horizontal shelf, mid-boat, dry.
 // X along the tray: the RJ45 jack faces -x, its mouth at x = 0; the IMU sits at the +x end. Y across, Z up.
-// The cover drops over both boards and the same four screws hold cover and tray to the shelf.
+// Two screws on the centre line hold the tray to the shelf; eight M2.5 self-tappers hold the boards. The cover just drops over a lip.
 // Print the tray as shown (floor down). The cover part file flips it, roof down: no supports for either.
 part = "tray";       // tray | cover | assembly
 
@@ -21,17 +21,19 @@ imu = [25.4, 17.78, 1.6];   // Adafruit ICM-20948 4554
 board_gap = 16;             // EndPoint's +x end to the IMU's -x end: the IMU's Qwiic plug and the cable's bend
 post_h = 5;                 // board underside above the floor: clears solder on the boards' backs
 
-/* [Fasteners] (insert holes a guess: no calibration yet) */
-ep_insert = [4.0, 5.5];     // M3 heat-set insert: hole, depth
-imu_insert = [3.6, 4.5];    // M2.5 brass heat-set insert; brass or nylon screws near the magnetometer
-ep_post_d = 7;
-imu_post_d = 6;
+/* [Board screws] (pilot a guess: no calibration yet) */
+pilot = [2.1, 6];           // M2.5 self-tapper into PETG: hole, depth from the post top. Same screw for both boards
+post_d = 6;
 
-/* [Mounting] */
-ear_hole = 4.8;      // #8 / M4 wood screw, generous for a printed hole
-ear_r = 5.5;
-ear_t = 3;           // each of tray and cover
-ear_xs = [6, 88];
+/* [Shelf screws] */
+shelf_hole = 4.8;    // #8 / M4 pan-head wood screw, generous for a printed hole
+ear_r = 5.5;         // the ear past the +x wall
+tongue_hole_x = -13; // the hole in the tongue, between the cover wall and the saddle
+
+/* [Cover lip] */
+lip_h = 3;           // above the floor top
+lip_t = 1.2;
+lip_gap = 0.4;       // cover's inside to the lip, each side: a loose drop-on
 
 /* [Cable] */
 slot_w = 19;         // plug opening in the -x wall, open at the bottom; plug 11.7 wide, boot wider
@@ -56,22 +58,26 @@ ox0 = -wall; ox1 = in_x1 + wall; oy0 = in_y0 - wall; oy1 = in_y1 + wall;
 z_b = floor_t + post_h;            // boards' underside
 ep_holes = [for (dx = [2.54, 22.86], sy = [-1, 1]) [ep_x1 - dx, sy*10.16]];
 imu_holes = [for (sx = [-1, 1], sy = [-1, 1]) [imu_cx + sx*10.16, sy*6.35]];
-ears = [for (x = ear_xs) for (y = [oy0 - ear_r + 1, oy1 + ear_r - 1]) [x, y]];
+shelf_holes = [[ox1 + ear_r - 1, 0], [tongue_hole_x, 0]];
 echo(length = ox1 - tie_x + saddle[0]/2, width = oy1 - oy0, height = floor_t + in_h + roof_t);
 
 module footprint() translate([ox0, oy0]) square([ox1 - ox0, oy1 - oy0]);
-module ear2d() for (e = ears) translate(e) hull() { circle(r = ear_r); translate([-ear_r, e[1] < 0 ? ear_r - 1 : -ear_r - 1]) square([2*ear_r, 2]); }
+module ear2d() translate(shelf_holes[0]) hull() { circle(r = ear_r); translate([-ear_r - 1, -ear_r]) square([2, 2*ear_r]); }
+module lip2d() difference() {
+  translate([0, in_y0]) offset(delta = -lip_gap) square([in_x1, in_y1 - in_y0]);
+  translate([0, in_y0]) offset(delta = -lip_gap - lip_t) square([in_x1, in_y1 - in_y0]);
+  translate([-1, -slot_w/2]) square([lip_t + lip_gap + 2, slot_w]);    // open at the plug
+}
 
 module tray() difference() {
   union() {
     linear_extrude(floor_t) { footprint(); ear2d(); translate([tie_x, -saddle[1]/2]) square([ox0 - tie_x + 1, saddle[1]]); }
-    for (p = ep_holes) translate([p[0], p[1], 0]) cylinder(d = ep_post_d, h = z_b);
-    for (p = imu_holes) translate([p[0], p[1], 0]) cylinder(d = imu_post_d, h = z_b);
+    for (p = concat(ep_holes, imu_holes)) translate([p[0], p[1], 0]) cylinder(d = post_d, h = z_b);
+    translate([0, 0, floor_t - 0.01]) linear_extrude(lip_h + 0.01) lip2d();
     translate([tie_x - saddle[0]/2, -saddle[1]/2, 0]) cube(saddle);
   }
-  for (p = ep_holes) translate([p[0], p[1], z_b - ep_insert[1]]) cylinder(d = ep_insert[0], h = 10);
-  for (p = imu_holes) translate([p[0], p[1], z_b - imu_insert[1]]) cylinder(d = imu_insert[0], h = 10);
-  for (e = ears) translate([e[0], e[1], -1]) cylinder(d = ear_hole, h = 10);
+  for (p = concat(ep_holes, imu_holes)) translate([p[0], p[1], z_b - pilot[1]]) cylinder(d = pilot[0], h = 10);
+  for (e = shelf_holes) translate([e[0], e[1], -1]) cylinder(d = shelf_hole, h = 10);
   // saddle: cable groove on top, tie slot through it underneath
   translate([tie_x, 0, saddle[2]]) rotate([0, 90, 0]) cylinder(d = 7, h = saddle[0] + 2, center = true);
   translate([tie_x - 2, -20, saddle[2] - 7]) cube([4, 40, 2.2]);
@@ -82,20 +88,11 @@ module tray() difference() {
 module arrow2d() polygon([[-9, -1.2], [3, -1.2], [3, -3.5], [9, 0], [3, 3.5], [3, 1.2], [-9, 1.2]]);
 
 module cover() difference() {
-  union() {
-    translate([0, 0, floor_t]) linear_extrude(in_h + roof_t) footprint();
-    for (e = ears) hull() {               // ears with a 45 degree wedge back to the wall: no overhang printed roof-down
-      translate([e[0], e[1], floor_t]) cylinder(r = ear_r, h = ear_t);
-      translate([e[0] - ear_r, e[1] < 0 ? oy0 : oy1 - 0.01, floor_t]) cube([2*ear_r, 0.01, ear_t + abs(e[1] - (e[1] < 0 ? oy0 : oy1)) + ear_r]);
-    }
-  }
+  translate([0, 0, floor_t]) linear_extrude(in_h + roof_t) footprint();
   translate([0, in_y0, floor_t - 1]) cube([in_x1, in_y1 - in_y0, in_h + 1]);
-  for (e = ears) translate([e[0], e[1], 0]) cylinder(d = ear_hole, h = 100);
-  for (e = ears) translate([e[0], e[1], floor_t + ear_t]) cylinder(r = ear_r + 0.3, h = 100);   // screw-head room above the ear
   translate([ox0 - 1, -slot_w/2, floor_t - 1]) cube([wall + 2, slot_w, slot_top + 1]);          // plug opening, open at the bottom
   for (x = [ep_x0 + 4 : vent_pitch : in_x1 - 6], y = [oy0 - 1, in_y1 - 1])                     // vertical vent slots, both long walls, low
-    if (x < ear_xs[0] - ear_r - 2 || x > ear_xs[0] + ear_r + 2) if (x < ear_xs[1] - ear_r - 2 || x > ear_xs[1] + ear_r + 2)
-      translate([x, y, floor_t + 2]) cube([vent_w, wall + 2, vent_h]);
+      translate([x, y, floor_t + lip_h + 1]) cube([vent_w, wall + 2, vent_h]);
   translate([imu_cx, 0, floor_t + in_h + roof_t - 0.6]) linear_extrude(1) arrow2d();               // same arrow on the roof, for lining up on the shelf
 }
 

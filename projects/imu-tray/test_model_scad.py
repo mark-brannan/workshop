@@ -53,26 +53,33 @@ def test_tray_bounds_and_volume(tray):
     assert tray.is_watertight
     lo, hi = tray.bounds
     assert np.isclose(lo[0], P["tie_x"] - 7 / 2, atol=0.02)          # saddle [7, 16, 11]
-    assert np.isclose(hi[0], IN_X1 + P["wall"], atol=0.02)
+    assert np.isclose(hi[0], IN_X1 + P["wall"] + 2 * P["ear_r"] - 1, atol=0.02)   # the shelf ear past the +x wall
     assert np.isclose(lo[2], 0) and np.isclose(hi[2], 11, atol=0.02)
     assert 10_000 < tray.volume < 20_000
 
 
-def test_tray_posts_hold_inserts_without_breaking_through(tray):
-    holes = [(EP_X1 - dx, sy * 10.16, 5.5) for dx in (2.54, 22.86) for sy in (-1, 1)]
-    holes += [(IMU_CX + sx * 10.16, sy * 6.35, 4.5) for sx in (-1, 1) for sy in (-1, 1)]
-    for x, y, depth in holes:
+def test_eight_posts_with_blind_pilot_holes(tray):
+    holes = [(EP_X1 - dx, sy * 10.16) for dx in (2.54, 22.86) for sy in (-1, 1)]
+    holes += [(IMU_CX + sx * 10.16, sy * 6.35) for sx in (-1, 1) for sy in (-1, 1)]
+    depth = 6
+    for x, y in holes:
         h = down(tray, x, y)
-        assert np.isclose(h[0][2], Z_B - depth, atol=0.02)    # floor of the insert hole: blind, inside the post
+        assert np.isclose(h[0][2], Z_B - depth, atol=0.02)    # floor of the pilot hole: blind, inside the post
         assert Z_B - depth > 0.5
         assert np.isclose(down(tray, x + 2.4, y)[0][2], Z_B, atol=0.02)   # post rim at board height
 
 
-def test_four_ear_holes_go_through(tray, cover):
-    for x in (6, 88):
-        for y in (-17 - 5.5 + 1, 26 + 5.5 - 1):
-            assert len(down(tray, x, y)) == 0
-            assert len(down(cover, x, y)) == 0
+def test_two_shelf_holes_on_the_centre_line(tray):
+    for x in (IN_X1 + P["wall"] + 5.5 - 1, P["tongue_hole_x"]):
+        assert len(down(tray, x, 0)) == 0
+        assert len(down(tray, x + 3.5, 0)) == 2
+
+
+def test_cover_clears_the_lip(tray):
+    # the cover's inside is the inside footprint; the lip stands lip_gap inside it all round
+    assert P["lip_gap"] >= 0.3
+    assert np.isclose(down(tray, 30, P["in_y0"] + P["lip_gap"] + P["lip_t"] / 2)[0][2], P["floor_t"] + P["lip_h"], atol=0.02)
+    assert np.isclose(down(tray, 30, P["in_y0"] - 0.1)[0][2], P["floor_t"], atol=0.02)
 
 
 def test_cover_bounds_and_volume(cover):
@@ -100,7 +107,7 @@ def test_cover_vents_and_plug_slot(cover):
     # printed roof-down: cover z = TOP - assembled z. A ray across the -x wall at the plug axis finds the slot.
     z = TOP - (Z_B + EP[2] + 6.5)
     assert len(ray_hits(cover, (-10, 0, z), (1, 0, 0))) == 2       # only the +x wall
-    zv = TOP - (P["floor_t"] + 2 + P["vent_h"] / 2)
+    zv = TOP - (P["floor_t"] + P["lip_h"] + 1 + P["vent_h"] / 2)
     xs = np.arange(EP_X0 + 4, IN_X1 - 6 + 1e-6, P["vent_pitch"])
     open_ = sum(len(ray_hits(cover, (x + P["vent_w"] / 2, 0, zv), (0, -1, 0))) == 0 for x in xs)   # from inside out through the -y wall
     assert open_ >= 10

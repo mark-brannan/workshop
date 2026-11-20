@@ -12,26 +12,26 @@ Every joint plugs in (RJ45, Qwiic); no solder.
 |---|---|---|
 | Tray | `out/imu-tray_scad.3mf` | floor down, no supports |
 | Cover | `out/imu-tray_cover.3mf` | roof down, no supports |
-| Fit gauge, prints first | `out/imu-tray_gauge.3mf` | 1 mm outline with 5 mm post rings: check the ear holes and set one insert of each size |
+| Fit gauge, prints first | `out/imu-tray_gauge.3mf` | 1 mm outline with 5 mm post rings: try an M2.5 self-tapper in a pilot hole and a shelf screw in each shelf hole |
 
-PETG. Outside 134 x 43 (ears 54) x 28.5 high, saddle included.
+PETG. Outside about 144 x 43 x 28.5 high, saddle and ear included.
 
 ## What goes in
 
 | | |
 |---|---|
-| IMU | Adafruit ICM-20948, PID 4554, on four M2.5 brass heat-set inserts; brass or nylon M2.5 screws (steel near the magnetometer is a hard-iron offset) |
-| Extender | SparkFun QwiicBus EndPoint 16988, on four M3 heat-set inserts |
+| Boards | ICM-20948 (Adafruit 4554) and QwiicBus EndPoint (SparkFun 16988), eight M2.5 x 8 self-tapping screws into 2.1 pilot holes, no inserts. Brass or stainless near the IMU (steel near the magnetometer is a hard-iron offset) |
 | Between them | Qwiic cable, 100 mm: EndPoint's +y port, round to the IMU's -x socket |
-| Shelf | four #8 or M4 pan-head wood screws through cover ear and tray ear together |
+| Shelf | two #8 or M4 pan-head wood screws on the centre line: the ear past the IMU and the hole by the saddle, both reachable with the boards in |
+| Cover | drops over a 3 mm lip, 0.4 loose each side; nothing holds it down |
 | Cat5e | one zip tie through the saddle, so a tug pulls on the tray, not the jack |
 
 ## Assembly
 
-1. Heat-set the eight inserts.
-2. Boards on, screws in. Qwiic cable between them.
+1. Boards on, eight screws in.
+2. Qwiic cable between them.
 3. Tray on the shelf, arrow (+x, the IMU's x axis) toward the bow, or set pypilot's heading offset to match. Plug the cat5e in, tie it to the saddle.
-4. Cover over, four screws through both ears into the shelf.
+4. Cover on.
 
 ## Coating (optional)
 
@@ -52,6 +52,6 @@ It guards against salt-air corrosion; the cover does the rest. Skip it if the sp
 |---|---|---|
 | Jack height above the board | 13.5 | cover has 2.9 above it |
 | Plug axis above the board | 6.5 | plug opening 19 wide, 23 high from the floor |
-| M3 insert hole, M2.5 insert hole | 4.0, 3.6 | the gauge |
-| Ear hole | 4.8 | the gauge; printed holes run small on the K2 |
+| M2.5 self-tapper pilot | 2.1 | the gauge |
+| Shelf hole | 4.8 | the gauge; printed holes run small on the K2 |
 | Qwiic plug and cable room on the EndPoint's +y side | 11 | look at the assembly; the cable route isn't modelled |
