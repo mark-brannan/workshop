@@ -112,9 +112,7 @@ spray (`skirt_lap`), and the **weep hole** from the magnet chamber out the body'
 - Board actually bought, if not the Adafruit 6357
 - Magnet diameter and thickness; shaft diameter and whether a magnet sticks to it
 - Quadrant stud radius, which fixes the arm hole
-- The pedestal's seat: its two holes run along its arm's centre line, and here they are square to it
 - Header and plug: the height they need under the board
-- What holds the M4 screws in the pedestal (its holes are plain)
 - Fit clearances, once `projects/calibration/` has numbers
 
 Open: axis offset. The datasheet wants the magnet within 0.25 mm of the chip's centre; here that rides on printed pins, studs and a

@@ -140,6 +140,16 @@ if (relief_h > 0) for (t = tall) {
     assert(ledge_z >= top + 1.2 || ri >= bearing_od/2 + 1.2, "a tall part's relief reaches the bearing bore: longer cap_grip");
 }
 
+// What the seat under this needs, for a model that reads this one through `use` (rudder-sensor-pedestal):
+// footprint [x, y], flange [hole pitch along x, hole diameter], heights [cup floor to flange face, flange face to arm top],
+// the arm's centre direction from the hole line, and the stud radii.
+function sensor_foot() = [foot_l, foot_w];
+function sensor_flange() = [flange_pitch, flange_hole_d];
+function sensor_heights() = [cup_h, arm_top];
+function sensor_arm_zero() = arm_zero;
+function sensor_arm_radii() = arm_radii;
+function sensor_m4_head() = m4_head;
+
 module rrect(w, d, h, r = 4) linear_extrude(h) offset(r) square([w - 2*r, d - 2*r], center = true);
 // hole along y with a pointed top: prints without support
 module tear_y(d, l) rotate([90, 0, 0]) linear_extrude(l, center = true) hull() { circle(d = d); polygon([[-d/2*cos(45), d/2*sin(45)], [d/2*cos(45), d/2*sin(45)], [0, d/2*sqrt(2)]]); }
