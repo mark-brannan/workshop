@@ -32,6 +32,7 @@ The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM163
 |---|---|---|---|---|
 | Waterproof box 158 x 90 x 60 | Hat Labs ECK-PW158-H | inside floor ~151 x 83; floor to rim 39; six holed bosses ~3.5 tall, span 143 x pitch 21.7 (owner's estimates, tuned by fit check; model.scad); four no-hole posts ~80 x 70; lid-screw column in each corner; lid 17 deep, rim to ceiling (owner, caliper, may read 0.5 over at the gasket); six 13 mm holes on one long wall | vendor page; owner; first print | [halmet-enclosure-mount](projects/halmet-enclosure-mount/enclosure/) |
 | Waterproof box 63 x 58 x 35 | Amazon ABS, black or clear lid, brass inserts | outer 63 x 58 x 35 (older listing 64 x 57); 53 inside across the 58 side; 39 straight wall between corner columns, both walls; lid ~8.5, wall ~2.5, floor ~3; two floor bosses ~6 dia x ~4, ~5.5 in from each short wall (photo estimates) | vendor listings; photos | [one-wire-enclosure](projects/one-wire-enclosure/), [small-box-sensors](projects/small-box-sensors/) |
+| Shower sump box, 750 GPH pump (unbranded) | | box 186 wide x 275 long (length "measure it!"); 334 overall; 112 tall; wings 215 tip to tip, tabs ~90 long (approx); per side two 9 slots 59 apart at 186 across, and one 5 hole at 200 across, 25 from a slot | owner, Fusion parameters (2026-02), some flagged unmeasured | [shower-sump-platform](projects/shower-sump-platform/) |
 
 ## Hardware
 

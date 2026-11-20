@@ -1,0 +1,24 @@
+Name,Unit,Expression,Value,Comments,Favorite
+sump_outer_width,mm,215 mm,215.00,,false
+sump_center_hole_width,mm,200 mm,200.00,,false
+sump_slot_hole_width,mm,186 mm,186.00,,false
+sump_box_width,mm,186 mm,186.00,,false
+sump_total_length,mm,334 mm,334.00,,false
+sump_slot_hole_spacing,mm,59 mm,59.00,,false
+slot_hole_diameter,mm,9 mm,9.00,,false
+center_hole_diameter,mm,5 mm,5.00,,false
+slot_to_center_hole_offset,mm,25 mm,25.00,,false
+sump_tab_length,mm,90 mm,90.00,aproximate (measure the actuals),false
+platform_top_width,mm,240 mm,240.00,,false
+sump_total_height,mm,112 mm,112.00,,false
+sump_box_length,mm,275 mm,275.00,measure it!,false
+sump_box_center_hole_offset,mm,42 mm,42.00,TK measure!,false
+platform_top_length,mm,110 mm,110.00,,false
+platform_thickness,mm,12 mm,12.00,,false
+platform_surface_angle,deg,35 deg,35.0,,false
+screw_hole_diameter,mm,3 mm,3.00,,false
+screw_hole_depth,mm,7 mm,7.00,,false
+center_rib_thickness,mm,12 mm,12.00,,false
+taper_angle,deg,10.3 deg,10.3,,false
+chamfer_angle,deg,55.0 deg,55.0,,false
+chamfer_length,mm,8.402 mm,8.402,,false
