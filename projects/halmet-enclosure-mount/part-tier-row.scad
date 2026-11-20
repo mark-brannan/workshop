@@ -9,7 +9,7 @@ y_front = -38;  y_back = 39.5;  y_col = 31.4;   // the full-width part spans -y_
 round_r = 1.5;
 /* [Tier screws: M3 through, head on top, into the frame's standoffs] */
 tier_pts = [[19, -22.5], [24, 36], [70, 10.85]];
-tier_hole = 3.4;
+tier_hole = 3.7;
 island_d = 8;            // solid round each screw, an ear where it falls off the plate
 head_d = 6.5;            // M3 pan head on the tier top
 /* [Modules, one centre line, end to end: 24 + 24 + 28] */
