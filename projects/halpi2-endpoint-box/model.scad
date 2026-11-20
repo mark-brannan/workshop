@@ -5,7 +5,7 @@
 // X along the board: the RJ45 mouth sits in a window in the +x wall, the jack's own body closing it.
 // The HALPI2 lead enters the -x wall to a 2.54-pitch screw terminal on the board's header row.
 // The Qwiic plugs go in from outside, through small holes in the long walls. Print floor down, no slicer
-// supports: a breakaway prop in the RJ45 window holds its top; snip it out at the sill.
+// supports: a breakaway tree in the RJ45 window holds its top; snip its trunk at the sill.
 part = "box";        // box | assembly
 
 /* [Box] */
@@ -39,7 +39,6 @@ lead_z = 4;          // lead axis above the board's top: the terminal's wire ent
 
 /* [Print] */
 prop_line = 0.5;     // breakaway prop wall: one nozzle line
-prop_w = 4;          // its arm along the window top; leaves two bridges of 6.55
 prop_gap = 0.2;      // one layer between prop and window top, so it lets go
 
 /* [Mounting] */
@@ -77,17 +76,22 @@ module box() difference() {
   for (sy = [-1, 1]) translate([ex, sy*mount_pitch/2, -1]) cylinder(d = ear_hole, h = ear_t + 2);
   translate([in_x1 - 1, -jack_w/2 - win_fit, z_t]) cube([wall + 2, jack_w + 2*win_fit, jack_h + win_fit]);   // RJ45 window
   for (sy = [-1, 1]) translate([qwiic_x, sy > 0 ? in_half_y + wall + 1 : -in_half_y + 1, z_t]) rotate([90, 0, 0]) linear_extrude(wall + 2) gable(qwiic_hole[0], qwiic_hole[1]);
-  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([90, 0, -90]) linear_extrude(wall + 2) teardrop(lead_d);   // HALPI2 lead
+  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([0, -90, 0]) cylinder(d = lead_d, h = wall + 2);   // HALPI2 lead
 }
 
 // Openings in upright walls end in a 45 degree roof, so no top is a flat overhang.
 module gable(w, h) polygon([[-w/2, 0], [w/2, 0], [w/2, h], [0, h + w/2], [-w/2, h]]);
-module teardrop(d) { circle(d = d); rotate(45) square(d/2); }
 
-// A plus-shaped single-line post standing on the window sill, inside the wall's thickness.
-module window_prop() translate([in_x1 + wall/2, 0, z_t - 0.2]) linear_extrude(jack_h + win_fit - prop_gap + 0.2) {
-  square([wall - 0.4, prop_line], center = true);
-  square([prop_line, prop_w], center = true);
+// A breakaway tree in the wall's thickness: a trunk on the sill, 45 degree branches meeting the window top
+// every 2 mm or so, one layer below it. Snip the trunk at the sill and pull the tree out.
+module window_prop() {
+  T = jack_h + win_fit - prop_gap;
+  side = jack_w/2 + win_fit - prop_gap;                       // outer tips rest one layer off the side walls
+  rise = prop_line*sqrt(2);
+  translate([in_x1 + wall - 0.2, 0, z_t]) rotate([90, 0, -90]) linear_extrude(wall - 0.4) {
+    translate([-prop_line/2, -0.2]) square([prop_line, T + 0.2]);
+    for (s = [-1, 1], d = [side/4 : side/4 : side]) polygon([[0, T - d - rise], [0, T - d], [s*d, T], [s*d, T - rise]]);
+  }
 }
 
 module boards() {
