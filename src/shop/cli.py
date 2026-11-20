@@ -2,6 +2,7 @@
 
     shop build [projects/<slug> ...]   build every project, or the ones named
     shop gauge projects/<slug> "mount()" <z_plate> [<z_wall>]   a thin fit-check part sliced from the model
+    shop views <file.scad> <view> [out.png] [-D k=v ...]   six labelled views of one model view, montaged
     shop doctor                        which shop tools this box has
     shop printer                       K2 Plus status (read-only)
     shop fusion                      the folder to add in Fusion's Scripts panel
@@ -42,6 +43,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import gauge
 
         return gauge.main(rest)
+    if cmd == "views":
+        from . import views
+
+        return views.main(rest)
     if cmd == "doctor":
         return doctor()
     if cmd == "printer":
