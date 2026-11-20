@@ -28,6 +28,7 @@ Then `shop build`, `shop doctor` (which tools this box has), `shop fusion`
     uv run python -m shop.build                      # every project, .py and .scad alike
     uv run python -m shop.build projects/demo-bracket  # one project
     uv run pytest -q
+    shop views projects/<slug>/model.scad <view>   # six labelled OpenSCAD views, montaged into out/
 
 `.scad` models build through whatever OpenSCAD the box has (`src/shop/scad.py`);
 on WSL the Windows Nightly is preferred when installed. `projects/README-ab.md` is the measured

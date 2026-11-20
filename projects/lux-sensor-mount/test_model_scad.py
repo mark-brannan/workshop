@@ -1,4 +1,4 @@
-"""Tests for the tube-mounted lux sensor head: each printed part's bounding box, volume window and watertightness."""
+"""Tests for the tube-mounted lux sensor head (rev 10): each printed part's bounding box, volume window and watertightness."""
 
 import tempfile
 from pathlib import Path
@@ -10,13 +10,11 @@ from shop.scad import OpenSCAD, find_openscad
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
 
-# part view -> (extents x, y, z in mm, volume window in mm^3), measured from the 2026-11-19 build
+# part view -> (extents x, y, z in mm, volume window in mm^3), measured from the 2026-11-19 rev 10 build
 PARTS = {
-    "tray_print": ((46.0, 70.6, 17.9), (14500, 18000)),
-    "ring_print": ((40.0, 29.0, 2.0), (1100, 1450)),
-    "lid_print": ((62.1, 143.0, 6.0), (31500, 39000)),
-    "arm_half": ((62.1, 143.0, 42.0), (66000, 82000)),
-    "back_half": ((62.1, 25.0, 48.0), (28000, 35000)),
+    "front_print": ((60.1, 48.0, 24.6), (20000, 25500)),
+    "aft_print": ((60.1, 48.0, 94.5), (64000, 80000)),
+    "cup_print": ((41.0, 25.2, 15.9), (5400, 6900)),
 }
 
 
