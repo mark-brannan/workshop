@@ -1,6 +1,6 @@
 # IMU tray: ICM-20948 and QwiicBus EndPoint, mid-boat
 
-Symphony: [`reference/pypilot_containerization.md`](https://github.com/mark-brannan/symphony/tree/main/reference/pypilot_containerization.md), [`runbooks/pypilot.md`](https://github.com/mark-brannan/symphony/tree/main/runbooks/pypilot.md)
+Symphony: [`reference/pypilot_containerization.md`](https://github.com/mark-brannan/symphony/tree/main/reference/pypilot_containerization.md), [`runbooks/pypilot.md`](https://github.com/mark-brannan/symphony/tree/main/runbooks/pypilot.md), [`research/imu-mag/`](https://github.com/mark-brannan/symphony/tree/main/research/imu-mag/README.md)
 
 Purpose: hold pypilot's IMU and its cat5e I2C extender on a horizontal shelf in the middle of the boat, in a dry spot.
 A walled box with four mounting feet outside it, so it screws down with or without the boards in; the wall tops are rebated for an optional 3 mm lid, clear acrylic or printed. Not sealed.
