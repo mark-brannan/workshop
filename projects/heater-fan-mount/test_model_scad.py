@@ -96,6 +96,14 @@ def test_box_gussets_hold_the_back_wall(box):
     assert ray_hits(box, (0, -H / 2, z), (1, 0, 0)) != []
 
 
+def test_box_yz_fins_under_the_back_wall(box):
+    # just under the back wall, a ray along X crosses each fin as an entry and exit fin_t apart
+    z = BOX_DEPTH - P["wall"] - 0.5
+    xs = sorted(h[0] for h in ray_hits(box, (-W, -H / 2, z), (1, 0, 0)))
+    fins = [a for a, b in zip(xs, xs[1:]) if abs(b - a - P["fin_t"]) < 0.05]
+    assert len(fins) == P["fins_fan"] + 2, xs
+
+
 def test_box_four_board_standoffs(box):
     found = 0
     for x in (-1, 1):

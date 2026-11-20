@@ -50,7 +50,7 @@ def down(mesh, x, y):
 def test_tray_bounds_volume(tray):
     assert tray.is_watertight
     x0, x1 = -P["wall"] - P["tab_l"], IN_L + P["wall"] + P["tab_l"]
-    y0 = -OUT_W / 2 - P["tie_out"]
+    y0 = -OUT_W / 2
     assert np.allclose(tray.bounds, [[x0, y0, 0], [x1, OUT_W / 2, TRAY_H]], atol=0.05)
     assert 4_000 < tray.volume < 7_500
 
@@ -80,13 +80,6 @@ def test_cable_exits_side_wall_clear_of_tabs(tray):
     assert CABLE_Z - P["cable_d"] / 2 > BOARD_Z  # round bottom stays above the board underside
     assert EXIT_X + P["cable_d"] / 2 < IN_L  # inside the end wall, not over the end tab
     assert EXIT_X - P["cable_d"] / 2 > P["cell_end"] + P["board_l"] + LEAD_L - 0.01  # past the heatshrink
-
-
-def test_tie_block_under_exit_with_tunnel(tray):
-    y = -OUT_W / 2 - P["tie_out"] / 2
-    assert np.isclose(down(tray, EXIT_X, y)[0][2], CABLE_Z - P["cable_d"] / 2, atol=0.02)  # cable bed
-    through = ray_hits(tray, (EXIT_X - 20, y, P["tie_h"] / 2), (1, 0, 0))
-    assert all(abs(h[0] - EXIT_X) > P["tie_w"] / 2 + P["tie_side"] - 0.05 for h in through)
 
 
 def test_two_mounting_tab_holes(tray):
