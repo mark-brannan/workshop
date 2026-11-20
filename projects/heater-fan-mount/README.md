@@ -12,7 +12,7 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 
 | Part | File | Prints | Volume |
 |---|---|---|---|
-| Box: fan socket and controller pocket | `part-box.scad` | knob face down; 45° gussets hold up the back wall, no supports | 48.6 cm³ |
+| Box: fan socket and controller pocket | `part-box.scad` | knob face down; 45° gussets and thin YZ fins under the back wall leave short bridges (~13 mm), no supports | 50.9 cm³ |
 | Lid with the 76 mm collar | `part-lid.scad` | plate down | 32.2 cm³ |
 | Spigot: flange and duct thread | `part-spigot.scad` | flange down | 20.2 cm³ |
 | **Gauge, prints first** | `part-gauge.scad` | ring faces down | 23.5 cm³ |
