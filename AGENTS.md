@@ -82,6 +82,7 @@ Build, `uv run pytest -q`, read the PNG, then report with the picture.
 The boat's system docs live in symphony (public; local checkout `~/symphony`): what is installed, how it is wired, firmware, Signal K.
 This repo holds the object: geometry, caliper numbers, print and cut files, and the wiring inside one box.
 The seam is the box's connectors: inside is here, outside is there.
+Undecided is not a home. Work goes where its purpose is: choosing something for Symphony starts in symphony, in its `research/`. A project starts here when there is a thing to make.
 
 | Diagram | Home | Format |
 |---|---|---|
