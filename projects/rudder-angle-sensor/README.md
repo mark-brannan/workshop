@@ -19,11 +19,10 @@ the rim. Magnet face to chip top is **1.9 mm**: 0.5 air, 1.0 wall, 0.4 to the ch
 
 Read from Adafruit's schematic for the 6357: the chip's `VDD5` and `VDD3` pins are both on net `3.3V`, the output of the AP2127K-3.3
 regulator `U2`, whose input is net `VCC` (header pin 1, VIN). The chip's output pin is net `PWMOUT`, header pin 6. So fed 5 V, this
-board's output swings 0 to 3.3 V and follows the regulator, not the 5 V supply. pypilot's own sensor is ratiometric to 5 V. Ways out,
-not chosen here:
+board's output swings 0 to 3.3 V and follows the regulator, not the 5 V supply. pypilot's own sensor is ratiometric to 5 V.
 
-- a bare AS5600 module wired the datasheet's 5 V way (5 V on VDD5V, only a capacitor on VDD3V3);
-- keep this board and accept 3.3 V full scale, if the controller's input can be scaled or calibrated to it.
+2026-11-20: this board stays, at 3.3 V full scale; pypilot's rudder calibration takes up the scale. The other way, not taken, is an
+AS5600 board wired the datasheet's 5 V way (5 V on VDD5V, only a capacitor on VDD3V3); ams's AS5600-SO_EK_AB ships like that.
 
 From the AS5600 datasheet, not checked on a part: the analog output spans a full turn by default, so ±35° of rudder uses about a fifth
 of the swing until the range is narrowed over I2C, and the wrap point has to sit outside the rudder's travel.
@@ -104,7 +103,7 @@ spray (`skirt_lap`), and the **weep hole** from the magnet chamber out the body'
 ## To fill in before printing
 
 - Bearing actually on hand: inside, outside, width, and the inner race's outer diameter
-- Board actually bought, and the 3.3 V or 5 V choice above
+- Board actually bought, if not the Adafruit 6357
 - Magnet diameter and thickness; shaft diameter and whether a magnet sticks to it
 - Quadrant stud radius, which fixes the arm hole
 - Mount pattern and screw size of the pedestal's seat
