@@ -128,9 +128,13 @@ module windows2d() {
     // OLED's right-hand bosses and the TM1637s' back-right boss
     rim = 2.4;
     offset(r = win_round) offset(delta = -win_round) difference() {
-        intersection() {
-            offset(delta = -rim) plate2d();
-            translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
+        union() {
+            intersection() {
+                offset(delta = -rim) plate2d();
+                translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
+            }
+            // a rough bay under the OLED's right half, between its right-hand posts, 2.7 mm short of the sensor ledges' ends
+            polygon([[60, 18.5], [55.5, 18.5], [52.5, 20.5], [51, 24], [51.5, 28.5], [54, 31], [60, 31.5]]);
         }
         translate(tier_pts[2]) circle(r = island_d/2 + 1);
     }
