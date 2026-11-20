@@ -83,7 +83,7 @@ module box() difference() {
 module gable(w, h) polygon([[-w/2, 0], [w/2, 0], [w/2, h], [0, h + w/2], [-w/2, h]]);
 
 // A breakaway tree in the wall's thickness: a trunk on the sill, 45 degree branches meeting the window top
-// every 2 mm or so, one layer below it. Snip the trunk at the sill and pull the tree out.
+// every 2 mm or so, and a thin rail across the tips one layer below it. Snip the trunk at the sill and pull the tree out.
 module window_prop() {
   T = jack_h + win_fit - prop_gap;
   side = jack_w/2 + win_fit - prop_gap;                       // outer tips rest one layer off the side walls
@@ -91,6 +91,7 @@ module window_prop() {
   translate([in_x1 + wall - 0.2, 0, z_t]) rotate([90, 0, -90]) linear_extrude(wall - 0.4) {
     translate([-prop_line/2, -0.2]) square([prop_line, T + 0.2]);
     for (s = [-1, 1], d = [side/4 : side/4 : side]) polygon([[0, T - d - rise], [0, T - d], [s*d, T], [s*d, T - rise]]);
+    translate([-side, T - 0.4]) square([2*side, 0.4]);       // a two-layer rail across the tips: the top prints on it
   }
 }
 
