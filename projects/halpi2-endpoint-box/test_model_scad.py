@@ -1,0 +1,85 @@
+"""Tests for the HALPI2 EndPoint box: bounds, volume, solid floor, screws outside the cavity, openings."""
+
+import re
+import tempfile
+from pathlib import Path
+
+import numpy as np
+import pytest
+import trimesh
+from shop.scad import OpenSCAD, find_openscad
+from shop.testing import ray_hits
+
+HERE = Path(__file__).parent
+pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
+
+P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*(-?[\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
+W = P["wall"]
+IN_X0 = P["in_x0"]
+IN_X1 = 44.45 + P["jack_over"]
+EX = (IN_X0 + IN_X1) / 2
+HY = P["in_half_y"]
+Z_B = P["floor_t"] + P["post_h"]
+Z_T = Z_B + 1.6
+H = P["lid_z"] + P["lid_t"]
+PITCH = P["mount_pitch"]
+
+
+@pytest.fixture(scope="module")
+def box():
+    osc = OpenSCAD()
+    with tempfile.TemporaryDirectory() as d:
+        stl = Path(d) / "m.stl"
+        osc.run(HERE / "model.scad", stl)
+        mesh = trimesh.load(stl)
+    osc.cleanup()
+    return mesh
+
+
+def down(mesh, x, y):
+    return ray_hits(mesh, (x, y, 100), (0, 0, -1))
+
+
+def test_bounds_and_volume(box):
+    assert box.is_watertight
+    r = P["ear_d"] / 2
+    assert np.allclose(box.bounds, [[IN_X0 - W, -PITCH / 2 - r, 0], [IN_X1 + W, PITCH / 2 + r, H]], atol=0.05)
+    assert 12_000 < box.volume < 25_000
+
+
+def test_floor_is_solid_for_potting(box):
+    for x in np.linspace(IN_X0 + 1, IN_X1 - 1, 9):
+        for y in np.linspace(-HY + 1, HY - 1, 7):
+            assert len(down(box, x, y)) >= 2, (x, y)          # every ray through the cavity meets a floor
+
+
+def test_ear_holes_at_clip_pitch_outside_the_cavity(box):
+    for sy in (-1, 1):
+        y = sy * PITCH / 2
+        assert len(down(box, EX, y)) == 0                      # the hole goes clean through
+        assert np.isclose(down(box, EX + 3, y)[0][2], P["ear_t"], atol=0.02)
+        assert PITCH / 2 - 6 >= HY - P["jog"] + W - 0.01       # a head 12 across clears the stepped-in wall
+    assert P["ear_hole"] > 3.5                                 # a #6 wood screw passes
+
+
+def test_four_posts_with_blind_pilots(box):
+    for x in (2.54, 22.86):
+        for y in (-10.16, 10.16):
+            assert np.isclose(down(box, x, y)[0][2], Z_B - P["pilot_depth"], atol=0.02)
+            assert np.isclose(down(box, x + 2.5, y)[0][2], Z_B, atol=0.02)
+
+
+def test_rj45_window_matches_the_jack(box):
+    z = Z_T + P["jack_h"] / 2
+    assert len(ray_hits(box, (IN_X1 - 5, 0, z), (1, 0, 0))) == 0
+    half = P["jack_w"] / 2 + P["win_fit"]
+    assert len(ray_hits(box, (IN_X1 - 5, half + 0.3, z), (1, 0, 0))) == 2       # wall beside the window
+    assert len(ray_hits(box, (IN_X1 - 5, 0, Z_T - 0.3), (1, 0, 0))) == 2        # wall under it: resin stays in
+    assert Z_T + P["jack_h"] + 1.5 <= P["lid_z"]
+
+
+def test_qwiic_notches_above_the_fill_line(box):
+    x = P["qwiic_x"]
+    assert len(ray_hits(box, (x, -HY - 10, P["notch_z"] + 1), (0, 1, 0))) == 0    # both rims notched, facing each other
+    assert len(ray_hits(box, (x, -HY - 10, P["notch_z"] - 1), (0, 1, 0))) == 4    # below the notches both walls are whole
+    assert P["notch_z"] > Z_T + 4                              # room for resin over the board's parts
