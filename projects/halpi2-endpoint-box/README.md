@@ -12,7 +12,7 @@ The RJ45 goes to the far EndPoint (the IMU tray). The board can be conformal-coa
 
 | Part | File | Make |
 |---|---|---|
-| Box | `out/halpi2-endpoint-box_scad.3mf` | PETG, floor down, slicer supports off; snip the prop out of the RJ45 window |
+| Box | `out/halpi2-endpoint-box_scad.3mf` | PETG, floor down, slicer supports off; snip the tree out of the RJ45 window |
 | Fit gauge, prints first | `out/halpi2-endpoint-box_gauge.3mf` | try an M3 in a post pilot and the clip screws or wood screws in the ears |
 
 61.7 x 30.2 x 26.1 high; 62 across the ears.

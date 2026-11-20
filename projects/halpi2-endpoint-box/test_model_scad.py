@@ -96,8 +96,8 @@ def test_lead_hole_in_the_minus_x_wall_at_the_terminal(box):
     assert len(ray_hits(box, (IN_X0 + 2, P["term_y"] + 5, z), (-1, 0, 0))) == 2 # beside it the wall is whole
 
 
-def test_no_bridge_longer_than_the_slicer_allows(box):
-    """Every opening's flat top is a bridge of 10 or less (the 3mf's max_bridge_length), prop included."""
+def test_window_top_rests_on_the_tree(box):
+    """No stretch of the RJ45 window's flat top is more than 2.5 from a branch tip."""
     def longest_gap(start, along, lo, hi):
         run = worst = 0.0
         for t in np.arange(lo, hi, 0.1):
@@ -108,7 +108,7 @@ def test_no_bridge_longer_than_the_slicer_allows(box):
         return worst
 
     top = Z_T + P["jack_h"] + P["win_fit"] - 0.01
-    assert 5 < longest_gap((IN_X1 + W / 2, 0, top), (0, 1, 0), -8.55, 8.55) <= 10     # RJ45 window, propped
+    assert longest_gap((IN_X1 + W / 2, 0, top), (0, 1, 0), -8.55, 8.55) <= 2.5         # RJ45 window, on its tree
 
 
 def test_only_the_propped_window_top_is_a_flat_overhang(box):
