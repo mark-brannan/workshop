@@ -121,7 +121,7 @@ module windows2d() {
     translate([cx - plug_w/2, oled_y - oled_h/2 + oled_pin_in - plug_d/2]) square([plug_w, plug_d]);   // OLED header plug
     // under the light sensor, between its ledges, from the photocell end's bare zone to short of the screw pad
     w = ldr_w + 2*ldr_fit;
-    wx0 = ldr_x0 + ldr_cell_clear;
+    wx0 = max(ldr_x0 + ldr_cell_clear, x0 + 4);   // a 4 mm rail stays along the plate's left edge, tying the back-left screw ear to the rest
     translate([wx0, ldr_y - (w/2 - ldr_fit - ldr_lip) + ldr_win_edge])
         square([ldr_post[0] - ldr_boss_d/2 - 1 - wx0, 2*(w/2 - ldr_fit - ldr_lip - ldr_win_edge)]);
     // right of the OLED: the brace to the right ear, cut back to a rim along the diagonal edge, a ring round the ear and a margin round the
