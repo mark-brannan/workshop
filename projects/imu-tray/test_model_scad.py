@@ -52,7 +52,8 @@ def down(mesh, x, y):
 
 def test_tray_bounds_and_volume(tray):
     assert tray.is_watertight
-    assert np.allclose(tray.bounds, [[-W, P["in_y0"] - W, 0], [IN_X1 + W, P["in_y1"] + W, H]], atol=0.02)
+    FL = P["foot_l"]
+    assert np.allclose(tray.bounds, [[-W - FL, P["in_y0"] - W, 0], [IN_X1 + W + FL, P["in_y1"] + W, H]], atol=0.02)
     assert 15_000 < tray.volume < 30_000
 
 
@@ -60,15 +61,19 @@ def test_eight_posts_with_blind_pilot_holes(tray):
     holes = [(EP_X1 - dx, sy * 10.16) for dx in (2.54, 22.86) for sy in (-1, 1)]
     holes += [(IMU_CX + sx * 10.16, sy * 6.35) for sx in (-1, 1) for sy in (-1, 1)]
     for x, y in holes:
-        assert np.isclose(down(tray, x, y)[0][2], Z_B - 6, atol=0.02)     # floor of the pilot hole: blind, inside the post
+        assert np.isclose(down(tray, x, y)[0][2], Z_B - P["pilot_depth"], atol=0.02)     # floor of the pilot hole: blind, inside the post
         assert Z_B - 6 > 0.5
         assert np.isclose(down(tray, x + 2.4, y)[0][2], Z_B, atol=0.02)   # post rim at board height
 
 
-def test_two_shelf_holes_clear_of_the_boards(tray):
-    for x in (P["shelf_inset"], IN_X1 - P["shelf_inset"]):
-        assert len(down(tray, x, P["shelf_y"])) == 0
-        assert P["shelf_y"] - P["shelf_hole"] / 2 - 3 > EP[1] / 2       # a pan head clears the EndPoint's edge
+def test_four_feet_outside_the_box_clear_of_the_plug(tray):
+    FL, FW = P["foot_l"], P["foot_w"]
+    for x in (-W - FL / 2, IN_X1 + W + FL / 2):
+        for y in (P["in_y0"] - W + FW / 2, P["in_y1"] + W - FW / 2):
+            assert len(down(tray, x, y)) == 0                            # the screw hole
+            assert np.isclose(down(tray, x + 3.5, y)[0][2], P["foot_t"], atol=0.02)
+    assert P["foot_t"] + 4 < Z_B + EP[2] + P["plug_z"] - 8          # the plug and cable pass well above the feet
+    assert len(down(tray, 30, 19)) == 2                                  # no holes left in the floor
 
 
 def test_lid_fits_the_rebate_flush(tray, lid):
@@ -91,3 +96,11 @@ def test_plug_opening_in_the_minus_x_wall(tray):
     z = Z_B + EP[2] + 6.5
     assert len(ray_hits(tray, (-10, 0, z), (1, 0, 0))) == 2           # only the +x wall
     assert len(ray_hits(tray, (-10, -14, z), (1, 0, 0))) == 4         # beside the opening the -x wall is there
+
+
+def test_pilot_sizes_per_board(tray):
+    # a ray just inside the pilot's radius falls into the hole; just outside, it lands on the post top
+    for x, y, d in [(EP_X1 - 2.54, 10.16, P["ep_pilot"]), (IMU_CX + 10.16, 6.35, P["imu_pilot"])]:
+        assert down(tray, x + d / 2 - 0.1, y)[0][2] < Z_B - 1
+        assert np.isclose(down(tray, x + d / 2 + 0.1, y)[0][2], Z_B, atol=0.02)
+    assert P["ep_pilot"] < 3.0 and P["imu_pilot"] < 2.5
