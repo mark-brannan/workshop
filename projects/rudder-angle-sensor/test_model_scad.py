@@ -1,4 +1,4 @@
-"""Rudder angle sensor: each printed part's bounding box, volume window and open or closed features, and two other parts sets."""
+"""Rudder angle sensor: each printed part's bounding box, volume window and open or closed features, the flange screws' reach, and three other parts sets."""
 
 import re
 import tempfile
@@ -15,19 +15,22 @@ P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*(-?[\d.]+)\s*;", (HERE / 
 UP = [0, 0, 1]
 PRINTS = ("body", "cup", "cap", "arm", "spacer")
 
-# part -> (extents x, y, z in mm, volume window in mm^3), from the 2026-11-20 rev 1 build
+# part -> (extents x, y, z in mm, volume window in mm^3), from the 2026-11-20 rev 2 build (608 bearing)
 PARTS = {
-    "body": ((50.0, 25.78, 25.0), (9500, 12500)),
-    "cup": ((50.0, 25.78, 15.2), (10000, 13500)),
-    "cap": ((10.0, 10.0, 7.5), (300, 420)),
-    "arm": ((83.7, 23.5, 13.6), (7000, 9500)),
-    "spacer": ((12.8, 12.8, 6.0), (220, 300)),
+    "body": ((50.0, 34.1, 29.95), (14000, 17500)),
+    "cup": ((50.0, 34.1, 15.2), (15500, 19000)),
+    "cap": ((14.0, 14.0, 8.45), (680, 870)),
+    "arm": ((128.25, 32.5, 13.6), (11500, 14500)),
+    "spacer": ((21.8, 21.8, 6.0), (380, 480)),
 }
 # other bearings and boards the model has to survive: a one-line tweak each in the Customizer
 ALT = {
-    "625 bearing, 5 mm shaft, same board": ["bearing_id=5", "bearing_od=16", "shaft_d=5", "race_od=7.6"],
-    "608 bearing, 8 mm shaft, bare 23 mm module": [
-        "bearing_id=8", "bearing_od=22", "bearing_w=7", "shaft_d=8", "race_od=12",
+    "R8 bearing, 1/2 in shaft, flange holes at 48": [
+        "bearing_id=12.7", "bearing_od=28.575", "bearing_w=7.9375", "shaft_d=12.7", "race_od=17", "race_gap_od=24.5",
+        "flange_pitch=48",   # at 40 the screw heads sit under this bearing's tower
+    ],
+    "686 bearing, 6 mm shaft": ["bearing_id=6", "bearing_od=13", "bearing_w=5", "shaft_d=6", "race_od=8", "race_gap_od=11"],
+    "608 bearing, bare 23 mm module": [
         "board_l=23", "board_w=23", "board_r=1", "hole_dx=17", "hole_dy=17", "hole_d=3", "tall=[]", "chip_h=1.75",
     ],
 }
@@ -89,8 +92,20 @@ def test_cup_cable_exit_and_pins(parts):
 
 
 def test_arm_stud_holes_and_bore(parts):
-    for r in (0, 40, 50, 60):
+    for r in (0, 60, 80, 100):
         assert not ray_hits(parts["arm"], [r, 0, -5], UP), r
+
+
+@pytest.mark.parametrize("rudder", [-40, 0, 40])
+def test_both_flange_screws_reachable_through_the_travel(rudder):
+    """Straight down onto each screw head's centre and rim, nothing is met before the flange's top face."""
+    asm = build("assembly", [f"rudder={rudder}"])
+    r = P["m4_head"] / 2 - 0.1
+    for s in (-1, 1):
+        for dx, dy in ((0, 0), (r, 0), (-r, 0), (0, r), (0, -r)):
+            x, y = s * P["flange_pitch"] / 2 + dx, dy
+            top = max((h[2] for h in ray_hits(asm, [x, y, 200], [0, 0, -1])), default=P["flange_t"])
+            assert top == pytest.approx(P["flange_t"], abs=0.05), (rudder, x, y)
 
 
 def test_plate_is_five_bodies():
