@@ -1,22 +1,22 @@
 // Box for the HALPI2-end QwiicBus EndPoint, just outside the HALPI2. Coated or potted: either works.
 // The floor is solid and every mounting screw is outside the cavity, so a potted board never comes out.
 // Two ears at mid-length take the preferred DIN clip's two M3 screws (51 apart) or two wood screws when
-// it hangs upside down under a panel. The walls jog inward at the ears so a screw head clears them.
+// it hangs upside down under a panel. The body is the board's width plus its walls.
 // X along the board: the RJ45 mouth sits in a window in the +x wall, the jack's own body closing it.
-// The Qwiic sockets face +-y, 12.7 from the board's -x end; their cables leave by notches in the rims.
-// Pot to below the notches. Print as shown, floor down, no supports.
+// The HALPI2 lead enters the -x wall to a 2.54-pitch screw terminal on the board's header row.
+// The Qwiic plugs go in from outside, through small holes in the long walls. Print floor down, no supports.
 part = "box";        // box | assembly
 
 /* [Box] */
 floor_t = 2.5;
-wall = 2.5;
-in_x0 = -1.5;        // the board's -x end to the -x wall
-in_half_y = 20;      // inside half-width: board 12.7 plus 7.3 for each Qwiic plug and its cable's turn upward
+wall = 2;
+in_x0 = -3.5;        // the screw terminal overhangs the board's -x end (a guess)
+in_half_y = 13.1;    // board 12.7 plus 0.4
 lid_z = 23.1;        // floor bottom to the rebate: jack top plus 1.5 (jack height a guess)
 
 /* [Lid rebate, for a coated board] */
 lid_t = 3;
-ledge = 1.2;
+ledge = 1;
 
 /* [Board] (SparkFun 16988 board file, parts.md) */
 ep = [44.45, 25.4, 1.6];
@@ -30,17 +30,17 @@ post_d = 6;
 
 /* [Openings] */
 win_fit = 0.3;       // jack to window, each side
-notch_w = 5;         // Qwiic cable notch in each long wall's rim
-notch_z = 14;        // notch bottom above the floor bottom; the resin stops under it
-qwiic_x = 12.7;      // the sockets' x on the board (board file)
+qwiic_x = 12.7;      // the sockets' x on the board; mouths 0.48 inside its edges (board file)
+qwiic_hole = [7, 3.6]; // plug 6 wide, socket 2.9 tall (JST-SH, a guess); bottom at the board's top
+term_y = 1.27;       // header row centre: GND 3V3 SDA SCL at y -2.54..5.08 (board file, x 1.27)
+lead_d = 5.5;        // the HALPI2 lead, a round 4-core about 4 across
+lead_z = 4;          // lead axis above the board's top: the terminal's wire entry (a guess)
 
 /* [Mounting] */
 mount_pitch = 51;    // DIN clip (Printables 420009) heat inserts; any two wood screws when hung under a panel
 ear_d = 11;
 ear_t = 4;
 ear_hole = 4.2;      // M3 pan head into the clip, or a #6 / 3.5 wood screw; K2 holes run small
-jog = 3;             // wall stepped in at each ear, so a head up to 12 across clears it
-jog_l = 14;          // along x
 
 /* [Hidden] */
 $fn = 48;
@@ -52,10 +52,7 @@ H = lid_z + lid_t;
 holes = [for (x = [2.54, 22.86], sy = [-1, 1]) [x, sy*10.16]];
 echo(outside = [in_x1 - in_x0 + 2*wall, 2*(in_half_y + wall), H], over_ears = mount_pitch + ear_d);
 
-module inside2d() difference() {
-  translate([in_x0, -in_half_y]) square([in_x1 - in_x0, 2*in_half_y]);
-  for (sy = [-1, 1]) translate([ex - jog_l/2, sy > 0 ? in_half_y - jog : -in_half_y - 1]) square([jog_l, jog + 1]);
-}
+module inside2d() translate([in_x0, -in_half_y]) square([in_x1 - in_x0, 2*in_half_y]);
 
 module box() difference() {
   union() {
@@ -67,19 +64,21 @@ module box() difference() {
     for (p = holes) translate([p[0], p[1], 0]) cylinder(d = post_d, h = z_b);
     for (sy = [-1, 1]) linear_extrude(ear_t) hull() {
       translate([ex, sy*mount_pitch/2]) circle(d = ear_d);
-      translate([ex - ear_d/2, sy > 0 ? in_half_y - jog : -in_half_y + jog - 1]) square([ear_d, 1]);
+      translate([ex - ear_d/2, sy > 0 ? in_half_y : -in_half_y - 1]) square([ear_d, 1]);
     }
   }
   for (p = holes) translate([p[0], p[1], z_b - pilot_depth]) cylinder(d = ep_pilot, h = 10);
   for (sy = [-1, 1]) translate([ex, sy*mount_pitch/2, -1]) cylinder(d = ear_hole, h = ear_t + 2);
   translate([in_x1 - 1, -jack_w/2 - win_fit, z_t]) cube([wall + 2, jack_w + 2*win_fit, jack_h + win_fit]);   // RJ45 window
-  for (sy = [-1, 1]) translate([qwiic_x - notch_w/2, sy > 0 ? in_half_y - 1 : -in_half_y - wall - 1, notch_z]) cube([notch_w, wall + 2, H]);
+  for (sy = [-1, 1]) translate([qwiic_x - qwiic_hole[0]/2, sy > 0 ? in_half_y - 1 : -in_half_y - wall - 1, z_t]) cube([qwiic_hole[0], wall + 2, qwiic_hole[1]]);
+  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([0, -90, 0]) cylinder(d = lead_d, h = wall + 2);   // HALPI2 lead
 }
 
 module boards() {
   color("seagreen") translate([0, -ep[1]/2, z_b]) cube(ep);
   color("silver") translate([ep[0] + jack_over - 23.2, -jack_w/2, z_t]) cube([23.2, jack_w, jack_h]);
-  for (sy = [-1, 1]) color("black") translate([qwiic_x - 3, sy > 0 ? 12.7 - 4 : -12.7 - 0.5, z_t]) cube([6, 4.5, 3]);
+  for (sy = [-1, 1]) color("black") translate([qwiic_x - 3, sy > 0 ? 12.7 - 4.6 : -12.7, z_t]) cube([6, 4.6, 2.9]);
+  color("limegreen") translate([in_x0, term_y - 5.08, z_t]) cube([7, 10.16, 8.5]);   // 4-way 2.54 terminal
 }
 
 if (part == "box") box();

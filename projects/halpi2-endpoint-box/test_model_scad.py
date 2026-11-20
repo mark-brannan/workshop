@@ -58,8 +58,12 @@ def test_ear_holes_at_clip_pitch_outside_the_cavity(box):
         y = sy * PITCH / 2
         assert len(down(box, EX, y)) == 0                      # the hole goes clean through
         assert np.isclose(down(box, EX + 3, y)[0][2], P["ear_t"], atol=0.02)
-        assert PITCH / 2 - 6 >= HY - P["jog"] + W - 0.01       # a head 12 across clears the stepped-in wall
+    assert PITCH / 2 - 6 >= HY + W                             # a head 12 across clears the wall
     assert P["ear_hole"] > 3.5                                 # a #6 wood screw passes
+
+
+def test_body_is_the_board_width_plus_walls():
+    assert 2 * (HY + W) <= 25.4 + 1 + 2 * W
 
 
 def test_four_posts_with_blind_pilots(box):
@@ -78,8 +82,15 @@ def test_rj45_window_matches_the_jack(box):
     assert Z_T + P["jack_h"] + 1.5 <= P["lid_z"]
 
 
-def test_qwiic_notches_above_the_fill_line(box):
-    x = P["qwiic_x"]
-    assert len(ray_hits(box, (x, -HY - 10, P["notch_z"] + 1), (0, 1, 0))) == 0    # both rims notched, facing each other
-    assert len(ray_hits(box, (x, -HY - 10, P["notch_z"] - 1), (0, 1, 0))) == 4    # below the notches both walls are whole
-    assert P["notch_z"] > Z_T + 4                              # room for resin over the board's parts
+def test_qwiic_holes_at_the_sockets_and_no_other_side_openings(box):
+    z = Z_T + 1.5
+    assert len(ray_hits(box, (P["qwiic_x"], -HY - 10, z), (0, 1, 0))) == 0      # straight through both holes
+    assert len(ray_hits(box, (P["qwiic_x"] + 5, -HY - 10, z), (0, 1, 0))) == 4  # beside them the walls are whole
+    for x in (0, 30, 50):
+        assert len(ray_hits(box, (x, -HY - 10, Z_T + 8), (0, 1, 0))) == 4
+
+
+def test_lead_hole_in_the_minus_x_wall_at_the_terminal(box):
+    z = Z_T + P["lead_z"]
+    assert len(ray_hits(box, (IN_X0 + 2, P["term_y"], z), (-1, 0, 0))) == 0     # out through the hole
+    assert len(ray_hits(box, (IN_X0 + 2, P["term_y"] + 5, z), (-1, 0, 0))) == 2 # beside it the wall is whole
