@@ -77,11 +77,11 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   terminal block does not rock the board.
 - Flat underneath, resting on the six bosses. Four pads reach over the no-hole posts, which sit
   about 1 mm lower; a 1 mm stick-on pad on each closes the gap if the plate rocks.
-- Zip-tie strain relief: U-channel loops standing 3.5 mm proud of the plate, all worked
+- Zip-tie strain relief: U-channel loops, each a ring standing 8 mm proud of the plate on a 45-degree foot, all worked
   from above with the plate screwed in. Push the tie down one leg; the bowl turns it and it comes
   back up the other, round the core the cable sits on. Six along the gland-side edge, two on the left
-  end beside the terminal blocks. The core's underside is a 45-degree point and each leg has a 45-degree lead-in,
-  so the loops print without supports. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
+  end beside the terminal blocks. The core's underside is a 45-degree point, each leg has a 45-degree lead-in and the ring's
+  underside meets its foot at 45 degrees, so the loops print without supports. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 - Display tier, a separate flat print (`part-tier-row.scad`), no supports: two TM1637s on 3 mm printed bosses and

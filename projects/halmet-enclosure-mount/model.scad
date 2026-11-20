@@ -39,8 +39,8 @@ tie_w = 4.2;         // channel width; takes ties up to 3.6 mm wide
 tie_t = 2;           // each leg of the U, along the tie's run: a 1.3 tie plus play
 tie_core = 5;        // core between the legs: the cable saddle, and what the tie turns round
 tie_wall = 1.6;      // loop walls
-tie_floor = 1.2;     // under the channel's bowl
-tie_rise = 3.5;      // loop top above the plate
+tie_floor = 1.2;     // plate top to the channel's bowl: the U stands proud of the plate
+tie_rise = 8;        // loop top above the plate
 tie_flare = 0.8;     // 45-degree lead-in at the top of each leg
 tie_bar_y = -28.5;   // loops along the gland-side edge, front wall clear of the tab bevel
 tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
@@ -143,6 +143,7 @@ tier_z1 = tier_z0 + tier_standoff + tier_t;  // top of the tier plate
 tie_ro = tie_core/2 + tie_t;            // bowl's outer radius
 tie_lx = 2*(tie_ro + tie_wall);         // loop footprint along the tie's run
 tie_ly = tie_w + 2*tie_wall;            // and across it
+tie_zc = body_t + tie_floor + tie_ro;   // bowl centre
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
 
@@ -218,7 +219,7 @@ module tie_each() {
 // Push the tie down one leg; the bowl turns it and it comes back up the other. The core's
 // underside is a 45-degree point and the leg lead-ins face up, so it prints without supports.
 module tie_channel2d() {
-    c = tie_core/2; top = body_t + tie_rise; zc = tie_floor + tie_ro;
+    c = tie_core/2; top = body_t + tie_rise; zc = tie_zc;
     difference() {
         union() {
             translate([0, zc]) circle(r = tie_ro);
@@ -230,9 +231,16 @@ module tie_channel2d() {
     }
 }
 
+// The loop's outside follows the U, on a 45-degree foot so its underside prints without supports.
 module tie_loops() {
-    tie_each() translate([0, 0, body_t - 0.01]) linear_extrude(tie_rise + 0.01)
-        offset(r = 1) square([tie_lx - 2, tie_ly - 2], center = true);
+    r = tie_ro + tie_wall; foot = r*sqrt(2) - (tie_zc - body_t);   // half-width where the 45-degree tangent meets the plate
+    tie_each() rotate([90, 0, 0]) linear_extrude(tie_ly, center = true) intersection() {
+        hull() {
+            translate([0, tie_zc]) circle(r = r);
+            translate([-foot, body_t - 0.01]) square([2*foot, 0.01]);
+        }
+        translate([-r - 1, 0]) square([2*r + 2, body_t + tie_rise]);
+    }
 }
 
 module tie_channels() { tie_each() rotate([90, 0, 0]) linear_extrude(tie_w, center = true) tie_channel2d(); }

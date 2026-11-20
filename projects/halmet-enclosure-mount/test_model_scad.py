@@ -68,7 +68,7 @@ def test_bounds_volume_watertight(frame):
     assert frame.is_watertight
     lo, hi = frame.bounds
     assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH - P["end_ext"], SPAN / 2 + REACH + P["end_ext"]], atol=0.05)
-    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0), atol=0.02)
+    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0, T + P["tie_rise"]), atol=0.02)
     back = max(P["plate_y_hi"], *(y + P["tier_boss_d"] / 2 for _, y in PADS))  # straight back edge, bulged by a pad
     assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, back], atol=0.05)
     assert hi[1] <= 83 / 2 - 1  # inside the box floor
@@ -149,7 +149,7 @@ LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0
 
 def test_tie_loops_worked_from_above(frame):
     assert len(LOOPS) == 8  # six gland-side, two on the left end
-    zc = P["tie_floor"] + RO
+    zc = T + P["tie_floor"] + RO
     leg = P["tie_core"] / 2 + P["tie_t"] / 2
     for x, y, ux, uy in LOOPS:
         assert np.isclose(top(frame, x, y), TIE_TOP, atol=0.02)  # core: the cable saddle
@@ -157,8 +157,11 @@ def test_tie_loops_worked_from_above(frame):
         for s in (-1, 1):  # each leg open from the top down to the bowl
             assert np.isclose(top(frame, x + s * ux * leg, y + s * uy * leg), zc - np.sqrt(RO**2 - leg**2), atol=0.1)
         hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]  # under the core: the channel joins the legs
-        assert np.isclose(hits[1], zc - P["tie_core"] / 2, atol=0.05) and np.isclose(hits[2], P["tie_floor"], atol=0.05)
+        assert np.isclose(hits[1], zc - P["tie_core"] / 2, atol=0.05) and np.isclose(hits[2], T + P["tie_floor"], atol=0.05)
         assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched: nothing to reach from below
+        r = RO + P["tie_wall"]
+        assert top(frame, x + ux * (r - 0.2), y + uy * (r - 0.2)) > T + P["tie_floor"] + RO  # stands proud: the ring at its widest
+        assert np.isclose(top(frame, x + ux * (r + 0.3), y + uy * (r + 0.3)), T, atol=0.02)      # plate beside it
 
 
 def test_board_clear_of_the_left_fork_slots():
