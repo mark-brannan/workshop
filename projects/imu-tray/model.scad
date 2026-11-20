@@ -27,9 +27,11 @@ board_gap = 16;             // EndPoint's +x end to the IMU's -x end: the IMU's 
 post_h = 5;                 // board underside above the floor: clears solder on the boards' backs
 
 /* [Screws] (hole sizes a guess: no calibration yet) */
-pilot = [2.1, 6];           // M2.5 self-tapper into PETG: hole, depth from the post top. Same screw for both boards
+ep_pilot = 2.6;             // M3 screw tapped straight into the post (EndPoint holes are 3.2)
+imu_pilot = 2.1;            // M2.5 screw tapped straight into the post (ICM-20948 holes are 2.5)
+pilot_depth = 6;            // from the post top
 post_d = 6;
-shelf_hole = 4.8;           // four #8 / M4 pan-head wood screws, one per foot
+shelf_hole = 4.8;           // four ordinary wood screws (#8, 4 mm), one per foot
 foot_l = 11;                // past the end wall
 foot_w = 10;                // across, from the box's side face inward: clear of the plug opening
 foot_t = 3;
@@ -67,7 +69,8 @@ module tray() difference() {
     for (f = feet) translate([f[0], f[1], 0]) linear_extrude(foot_t)
       hull() { translate([f[0] < 0 ? 0 : -foot_l/2 - 2, -foot_w/2]) square([foot_l/2 + 2, foot_w]); translate([f[0] < 0 ? -foot_l/2 + foot_w/2 : foot_l/2 - foot_w/2, 0]) circle(d = foot_w); }   // 2 mm into the wall
   }
-  for (p = concat(ep_holes, imu_holes)) translate([p[0], p[1], z_b - pilot[1]]) cylinder(d = pilot[0], h = 10);
+  for (p = ep_holes) translate([p[0], p[1], z_b - pilot_depth]) cylinder(d = ep_pilot, h = 10);
+  for (p = imu_holes) translate([p[0], p[1], z_b - pilot_depth]) cylinder(d = imu_pilot, h = 10);
   for (f = feet) translate([f[0], f[1], -1]) cylinder(d = shelf_hole, h = 10);
   translate([-wall - 1, -slot_w/2, slot_z]) cube([wall + 2, slot_w, H]);                     // plug opening
   translate([imu_cx, 0, floor_t - 0.6]) linear_extrude(1) arrow2d();                          // the IMU's +x, under the board

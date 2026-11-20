@@ -7,7 +7,7 @@ use <model.scad>
 z_plate = 1;   // slice height through the plate: its outline and through-holes
 z_wall = 6;    // slice height through the walls the object sits against; below 0 for none
 gauge_t = 1;       // gauge plate thickness
-gauge_rise = 5;    // post height above the plate: deep enough to try a self-tapper in a pilot hole
+gauge_rise = 5;    // post height above the plate: deep enough to try an M3 and an M2.5 screw in their pilot holes
 
 module gauge_slice() {
     linear_extrude(gauge_t) projection(cut = true) translate([0, 0, -z_plate]) children();
