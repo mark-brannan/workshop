@@ -1,6 +1,6 @@
 // Frame that holds a Hat Labs HALMET board in the 158x90x60 pre-drilled box.
 // Screws to the box's six holed floor bosses and rests on its four no-hole posts;
-// two standoffs take the board's M3 slots. Zip-tie loops give the wiring strain relief, all worked from above.
+// two standoffs take the board's M3 slots. Zip-tie staples give the wiring strain relief, all worked from above.
 // A separate tier (part-tier-row.scad) screws onto it and carries the displays at rim height.
 // An LM393 light sensor rides in a cradle on the tier, under the OLED; its photocell peeks out past the OLED's left edge.
 // Origin: centre of the box floor. X along the box length. Print flat, standoffs up. The tier() below is the older tier (part-tier.scad).
@@ -34,15 +34,14 @@ tab_dy = 1;
 tab_blend = 3;       // concave fillet where the lobe meets the front edge
 tab_bevel = 2.5;     // the front tabs slope down this much from the plate's front edge to the tip, clear of the gland nuts
 
-/* [Zip-tie strain relief: U-channel loops, worked from above with the plate in the box] */
-tie_w = 4.2;         // channel width; takes ties up to 3.6 mm wide
-tie_t = 2;           // each leg of the U, along the tie's run: a 1.3 tie plus play
-tie_core = 5;        // core between the legs: the cable saddle, and what the tie turns round
-tie_wall = 1.6;      // loop walls
-tie_floor = 1.2;     // plate top to the channel's bowl: the U stands proud of the plate
-tie_rise = 8;        // loop top above the plate
-tie_flare = 0.8;     // 45-degree lead-in at the top of each leg
-tie_bar_y = -28.5;   // loops along the gland-side edge, front wall clear of the tab bevel
+/* [Zip-tie strain relief: a small staple on the plate, the tie passes under its bar] */
+tie_w = 4.4;         // tunnel width; takes ties up to 3.6 mm wide
+tie_t = 2;           // tunnel height at its sides, above the plate
+tie_len = 5;         // staple thickness along the tie's run
+tie_wall = 2;        // staple legs either side of the tunnel
+tie_rise = 6;        // staple top above the plate; the tunnel's 45-degree peaked roof sits inside
+tie_round = 1;       // corner radius
+tie_bar_y = -28.5;   // staples along the gland-side edge, front face clear of the tab bevel
 tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
 tie_end_ys = [-10.5, 10.5];  // loops on the left end, between bosses
 
@@ -140,10 +139,8 @@ seg_posts = [for (sx = [-1, 1], sy = [-1, 1]) [seg_x + sx*seg_hole_dx/2, seg_y +
 ldr_post = [ldr_x0 + ldr_l - ldr_hole_in, ldr_y];   // the module's one M3 hole
 tier_z0 = tier_pad_h;                  // standoff feet: top of the pads
 tier_z1 = tier_z0 + tier_standoff + tier_t;  // top of the tier plate
-tie_ro = tie_core/2 + tie_t;            // bowl's outer radius
-tie_lx = 2*(tie_ro + tie_wall);         // loop footprint along the tie's run
+tie_lx = tie_len;                       // staple footprint along the tie's run
 tie_ly = tie_w + 2*tie_wall;            // and across it
-tie_zc = body_t + tie_floor + tie_ro;   // bowl centre
 y_hi = boss_pitch + 6;    // end bars
 y_lo = -boss_pitch - 6;
 
@@ -215,35 +212,17 @@ module tie_each() {
     for (y = tie_end_ys) translate([-(bar_x0 + bar_x1)/2, y]) rotate(90) children();
 }
 
-// The loop's channel in its run plane (local x, z): a U whose legs open on top, round the core.
-// Push the tie down one leg; the bowl turns it and it comes back up the other. The core's
-// underside is a 45-degree point and the leg lead-ins face up, so it prints without supports.
-module tie_channel2d() {
-    c = tie_core/2; top = body_t + tie_rise; zc = tie_zc;
-    difference() {
-        union() {
-            translate([0, zc]) circle(r = tie_ro);
-            translate([-tie_ro, zc]) square([2*tie_ro, top - zc + 1]);
-            polygon([[-tie_ro - tie_flare, top + 0.01], [-tie_ro, top - tie_flare], [tie_ro, top - tie_flare], [tie_ro + tie_flare, top + 0.01], [tie_ro + tie_flare, top + 1], [-tie_ro - tie_flare, top + 1]]);
-        }
-        polygon([[-c + tie_flare, top + 2], [-c + tie_flare, top], [-c, top - tie_flare], [-c, zc], [0, zc - c],
-                 [c, zc], [c, top - tie_flare], [c - tie_flare, top], [c - tie_flare, top + 2]]);
-    }
-}
-
-// The loop's outside follows the U, on a 45-degree foot so its underside prints without supports.
+// Staple: a rounded block with a tunnel through it along the tie's run. The tunnel's roof
+// is a 45-degree peak, so it prints without supports.
 module tie_loops() {
-    r = tie_ro + tie_wall; foot = r*sqrt(2) - (tie_zc - body_t);   // half-width where the 45-degree tangent meets the plate
-    tie_each() rotate([90, 0, 0]) linear_extrude(tie_ly, center = true) intersection() {
-        hull() {
-            translate([0, tie_zc]) circle(r = r);
-            translate([-foot, body_t - 0.01]) square([2*foot, 0.01]);
-        }
-        translate([-r - 1, 0]) square([2*r + 2, body_t + tie_rise]);
-    }
+    tie_each() translate([0, 0, body_t - 0.01]) linear_extrude(tie_rise + 0.01)
+        offset(r = tie_round) square([tie_lx - 2*tie_round, tie_ly - 2*tie_round], center = true);
 }
 
-module tie_channels() { tie_each() rotate([90, 0, 0]) linear_extrude(tie_w, center = true) tie_channel2d(); }
+module tie_channels() {
+    tie_each() translate([0, 0, body_t]) rotate([90, 0, 90]) linear_extrude(tie_lx + 0.02, center = true)
+        polygon([[-tie_w/2, 0], [tie_w/2, 0], [tie_w/2, tie_t], [0, tie_t + tie_w/2], [-tie_w/2, tie_t]]);
+}
 
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
@@ -275,8 +254,10 @@ module insert_holes() {
 
 module tab_bevel_cut() {
     run = frame_w/2 + plate_y_lo;   // tab length past the plate's front edge
+    y0 = plate_y_lo - 0.2;          // the bevel starts just out on the tab: starting at the edge itself left a non-manifold edge
+    k = tab_bevel/run;
     rotate([90, 0, 90]) linear_extrude(200, center = true) polygon([
-        [plate_y_lo + 0.5, body_t + tab_bevel*0.5/run], [-frame_w/2 - 1, body_t - tab_bevel*(run + 1)/run],
+        [plate_y_lo + 0.5, body_t + k*(plate_y_lo + 0.5 - y0)], [-frame_w/2 - 1, body_t - k*(y0 + frame_w/2 + 1)],
         [-frame_w/2 - 1, body_t + 1], [plate_y_lo + 0.5, body_t + 1]]);
 }
 

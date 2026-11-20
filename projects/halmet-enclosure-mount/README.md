@@ -21,8 +21,8 @@ inside measurements: [`enclosure/`](enclosure/README.md).
 - [x] Build and test the post/tie revision; `overlay.py` draws the built DXF (`out/overlay.png`)
 - [x] Raised SSD1306 display posts (`model.scad`, tests, overlay)
 - [x] Hex-lightened plate replaces the open frame; every display post on solid plate
-- [x] Tie points worked from above: U-channel loops replace the slot pairs that looped under the plate
-- [ ] Print a loop, check a tie pushes round it
+- [x] Tie points worked from above: staples replace the slot pairs that looped under the plate
+- [ ] Print a staple, check a tie threads it
 - [ ] Fit check in the box, then tune the box parameters
 - [ ] Final print or cut, fitted
 
@@ -67,7 +67,7 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
 
 - One plate, 148 x 77, lightened by a hex lattice: 9 mm cells, 2 mm walls, a
   2 mm rim. Cells are clipped where they meet a solid island (screw ends, rest
-  pads, standoffs, rests, tier bosses, tie loops). 25.8 cm3 measured from the
+  pads, standoffs, rests, tier bosses, tie staples). 25.8 cm3 measured from the
   STL, against 11 for the earlier open frame; the plate is the stiffer of the two.
   `hex_flat`, `hex_web`, `rim_w` tune it.
 - Each end bar has three fork slots, open toward the box wall, so a boss
@@ -77,11 +77,10 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   terminal block does not rock the board.
 - Flat underneath, resting on the six bosses. Four pads reach over the no-hole posts, which sit
   about 1 mm lower; a 1 mm stick-on pad on each closes the gap if the plate rocks.
-- Zip-tie strain relief: U-channel loops, each a ring standing 8 mm proud of the plate on a 45-degree foot, all worked
-  from above with the plate screwed in. Push the tie down one leg; the bowl turns it and it comes
-  back up the other, round the core the cable sits on. Six along the gland-side edge, two on the left
-  end beside the terminal blocks. The core's underside is a 45-degree point, each leg has a 45-degree lead-in and the ring's
-  underside meets its foot at 45 degrees, so the loops print without supports. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
+- Zip-tie strain relief: small rounded staples, 5 x 8.4 mm and 6 mm tall, each with a tunnel the
+  tie passes under, all worked from above with the plate screwed in. Six along the gland-side edge,
+  two on the left end beside the terminal blocks. The tunnel's roof is a 45-degree peak inside the
+  block, so it prints without supports. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 - Display tier, a separate flat print (`part-tier-row.scad`), no supports: two TM1637s on 3 mm printed bosses and

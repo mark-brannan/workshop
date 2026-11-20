@@ -141,27 +141,23 @@ def test_underside_recessed_over_bosses_flat_on_posts(frame):
             assert np.isclose(bottom(frame, x, y), RECESS, atol=0.02)
 
 
-RO = P["tie_core"] / 2 + P["tie_t"]  # bowl's outer radius
 TIE_TOP = T + P["tie_rise"]
 X_END = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
 LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0, 1) for y in LISTS["tie_end_ys"]]  # centre, run direction
 
 
-def test_tie_loops_worked_from_above(frame):
+def test_tie_staples_worked_from_above(frame):
     assert len(LOOPS) == 8  # six gland-side, two on the left end
-    zc = T + P["tie_floor"] + RO
-    leg = P["tie_core"] / 2 + P["tie_t"] / 2
+    assert P["tie_rise"] - P["tie_t"] - P["tie_w"] / 2 >= 1.5  # bar over the tunnel's peak
     for x, y, ux, uy in LOOPS:
-        assert np.isclose(top(frame, x, y), TIE_TOP, atol=0.02)  # core: the cable saddle
-        assert np.isclose(top(frame, x + ux * (RO + P["tie_wall"] / 2), y + uy * (RO + P["tie_wall"] / 2)), TIE_TOP, atol=0.02)
-        for s in (-1, 1):  # each leg open from the top down to the bowl
-            assert np.isclose(top(frame, x + s * ux * leg, y + s * uy * leg), zc - np.sqrt(RO**2 - leg**2), atol=0.1)
-        hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]  # under the core: the channel joins the legs
-        assert np.isclose(hits[1], zc - P["tie_core"] / 2, atol=0.05) and np.isclose(hits[2], T + P["tie_floor"], atol=0.05)
-        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched: nothing to reach from below
-        r = RO + P["tie_wall"]
-        assert top(frame, x + ux * (r - 0.2), y + uy * (r - 0.2)) > T + P["tie_floor"] + RO  # stands proud: the ring at its widest
-        assert np.isclose(top(frame, x + ux * (r + 0.3), y + uy * (r + 0.3)), T, atol=0.02)      # plate beside it
+        hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]
+        assert np.isclose(hits[0], TIE_TOP, atol=0.02)  # flat top
+        assert np.isclose(hits[1], T + P["tie_t"] + P["tie_w"] / 2, atol=0.02)  # tunnel's peak
+        assert np.isclose(hits[2], T, atol=0.02)  # tunnel floor is the plate top
+        z = T + P["tie_t"] / 2  # through the tunnel along the run: nothing in the way
+        through = ray_hits(frame, (x - ux * 10, y - uy * 10, z), (ux, uy, 0))
+        assert not any(abs((h[0] - x) * ux + (h[1] - y) * uy) < P["tie_len"] for h in through)
+        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched
 
 
 def test_board_clear_of_the_left_fork_slots():
@@ -279,8 +275,8 @@ def keep_out():
     usb = box(BOARD_RIGHT, -6, 75.5, 6)  # USB plug path to the right wall
     heads = unary_union([LineString([(sx * (SPAN / 2 - REACH - IN), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
                          for sx in (-1, 1) for k in (-1, 0, 1)])  # floor-screw heads anywhere along their fork slots
-    ties = unary_union([box(x - RO, P["tie_bar_y"] - P["tie_w"] / 2, x + RO, P["tie_bar_y"] + P["tie_w"] / 2)
-                        for x in LISTS["tie_bar_xs"]])  # the channel's openings, where the tie runs
+    ties = unary_union([box(x - P["tie_len"] / 2 - 2, P["tie_bar_y"] - P["tie_w"] / 2, x + P["tie_len"] / 2 + 2, P["tie_bar_y"] + P["tie_w"] / 2)
+                        for x in LISTS["tie_bar_xs"]])  # the tunnel and 2 mm either side, where the tie runs
     halmet_posts = unary_union([Point(p).buffer(P["standoff_d"] / 2) for p in SLOTS] + [Point(p).buffer(P["rest_d"] / 2) for p in RESTS])
     return {"board": unary_union([board, esp32]), "usb": usb, "floor heads": heads, "ties": ties, "halmet posts": halmet_posts}
 
