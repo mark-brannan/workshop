@@ -76,12 +76,11 @@ module box() difference() {
   for (sy = [-1, 1]) translate([ex, sy*mount_pitch/2, -1]) cylinder(d = ear_hole, h = ear_t + 2);
   translate([in_x1 - 1, -jack_w/2 - win_fit, z_t]) cube([wall + 2, jack_w + 2*win_fit, jack_h + win_fit]);   // RJ45 window
   for (sy = [-1, 1]) translate([qwiic_x, sy > 0 ? in_half_y + wall + 1 : -in_half_y + 1, z_t]) rotate([90, 0, 0]) linear_extrude(wall + 2) gable(qwiic_hole[0], qwiic_hole[1]);
-  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([90, 0, -90]) linear_extrude(wall + 2) teardrop(lead_d);   // HALPI2 lead
+  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([0, -90, 0]) cylinder(d = lead_d, h = wall + 2);   // HALPI2 lead
 }
 
 // Openings in upright walls end in a 45 degree roof, so no top is a flat overhang.
 module gable(w, h) polygon([[-w/2, 0], [w/2, 0], [w/2, h], [0, h + w/2], [-w/2, h]]);
-module teardrop(d) { circle(d = d); rotate(45) square(d/2); }
 
 // A breakaway tree in the wall's thickness: a trunk on the sill, 45 degree branches meeting the window top
 // every 2 mm or so, one layer below it. Snip the trunk at the sill and pull the tree out.

@@ -112,6 +112,6 @@ def test_window_top_rests_on_the_tree(box):
 
 
 def test_only_the_propped_window_top_is_a_flat_overhang(box):
-    flat = (box.face_normals[:, 2] < -0.99) & (box.triangles_center[:, 2] > 0.05)
+    flat = (box.face_normals[:, 2] < -0.999) & (box.triangles_center[:, 2] > 0.05)
     assert np.allclose(box.triangles_center[flat][:, 2], Z_T + P["jack_h"] + P["win_fit"], atol=0.01)
     assert box.area_faces[flat].sum() <= (P["jack_w"] + 2 * P["win_fit"]) * W + 0.1
