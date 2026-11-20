@@ -35,7 +35,7 @@ swoop_r = 8;             // outline: inside corners swept at this radius, so ear
 corner_r = 3;            // outline: outside corners
 mid_y1 = 15.4;           // centre: window under the OLED's I2C header, up to short of the sensor cradle's front wall
 /* [Light sensor on top: LM393 module, component side up, one M3 up from under the tier, nut on top] */
-ldr_x0 = 25.5;  ldr_y = 25.4;  ldr_l = 31;  ldr_w = 14;   // photocell end at ldr_x0, out past the OLED's left edge
+ldr_x0 = 17.3;  ldr_y = 25.4;  ldr_l = 31;  ldr_w = 14;   // photocell end at ldr_x0: 4 mm out past the plate's left edge, the ledges start on it (x0 = ldr_x0 + ldr_cell_clear)
 ldr_hole_in = 7;         // screw hole from the header end
 ldr_part_h = 4.6;        // trimpot above the board top
 pcb_t = 1.6;
@@ -130,14 +130,17 @@ module windows2d() {
 module ldr_cradle() {
     w = ldr_w + 2*ldr_fit;
     linear_extrude(ldr_ledge) {
-        for (s = [-1, 1]) translate([ldr_x0 + ldr_cell_clear, ldr_y + (s < 0 ? -w/2 : w/2 - ldr_fit - ldr_lip)])
-            square([ldr_l - ldr_cell_clear, ldr_fit + ldr_lip]);
+        for (s = [-1, 1]) let(ly = ldr_y + (s < 0 ? -w/2 : w/2 - ldr_fit - ldr_lip),
+            // a tier screw head over the ledge moves its start past the head too
+            lx = max(concat([ldr_x0 + ldr_cell_clear], [for (c = tier_pts)
+                if (c[0] < ldr_x0 + ldr_l/2 && abs(c[1] - ly - (ldr_fit + ldr_lip)/2) < head_d/2 + 0.5 + (ldr_fit + ldr_lip)/2) c[0] + head_d/2 + 0.5])))
+            translate([lx, ly]) square([ldr_x0 + ldr_l - lx, ldr_fit + ldr_lip]);
         translate(ldr_post) circle(d = ldr_boss_d);
     }
     linear_extrude(ldr_ledge + pcb_t) for (s = [-1, 1]) let(
         y0 = ldr_y + (s < 0 ? -w/2 - ldr_wall : w/2),
         // a tier screw head over the wall's photocell half moves the wall's start past the head
-        wx0 = max(concat([ldr_x0 + 1.5], [for (c = tier_pts)
+        wx0 = max(concat([x0], [for (c = tier_pts)
             if (c[0] < ldr_x0 + ldr_l/2 && abs(c[1] - y0 - ldr_wall/2) < head_d/2 + 0.5 + ldr_wall/2) c[0] + head_d/2 + 0.5])))
         translate([wx0, y0]) square([ldr_x0 + ldr_l - 1.5 - wx0, ldr_wall]);
 }

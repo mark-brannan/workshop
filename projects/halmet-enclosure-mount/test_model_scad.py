@@ -374,7 +374,7 @@ def test_row_oled_clears_the_sensor_stack_and_cell_sees_past_it():
     stack = R["ldr_ledge"] + R["pcb_t"] + R["ldr_part_h"]
     assert R["oled_standoff_h"] >= stack + 2  # trimpot, pin stubs and clearance under the OLED
     assert R["ldr_y"] == R["oled_y"]  # centred under it
-    assert R["ldr_x0"] < CX - R["oled_w"] / 2 - 4  # photocell end out past the OLED's left edge
+    assert R["ldr_x0"] < R["x0"]  # photocell end out past the plate's left edge
     outer = R["ldr_w"] / 2 + R["ldr_fit"] + R["ldr_wall"]  # cradle wall faces, between the OLED's post rows
     assert R["oled_dy"] / 2 - R["oled_pad_d"] / 2 - outer > 0.5
 
@@ -382,12 +382,14 @@ def test_row_oled_clears_the_sensor_stack_and_cell_sees_past_it():
 def test_row_sensor_cradle_on_top(row):
     w = R["ldr_w"] + 2 * R["ldr_fit"]
     x0, y = R["ldr_x0"], R["ldr_y"]
-    mid = x0 + 7
+    mid = x0 + 16  # past the screw head's clearance, over both ledges
     z_board = R["ldr_ledge"]
     for s in (-1, 1):
         assert top(row, mid, y + s * (w / 2 - 1)) == pytest.approx(z_board, abs=0.02)  # edge ledge
         assert top(row, x0 + R["ldr_l"] / 2, y + s * (w / 2 + R["ldr_wall"] / 2)) == pytest.approx(z_board + R["pcb_t"], abs=0.02)  # wall
-        assert top(row, x0 + R["ldr_cell_clear"] - 0.5, y + s * (R["ldr_w"] / 2 - R["ldr_lip"] / 2)) == pytest.approx(0, abs=0.02)  # cell end bare
+        assert top(row, R["x0"] - 0.5, y) is None  # the cell end hangs past the plate: nothing under it
+    assert top(row, R["x0"] + 0.5, y - (w / 2 - 1)) == pytest.approx(z_board, abs=0.02)  # the front ledge starts on the plate (the back one starts past the screw head)
+    assert x0 + R["ldr_cell_clear"] >= R["x0"] - 0.01  # no ledge starts off the plate (no supports)
     assert top(row, mid, y) is None  # window between the ledges
     assert top(row, *RLDR_HOLE) is None  # M3 up from underneath
     assert top(row, RLDR_HOLE[0] + R["tier_hole"] / 2 + 0.6, y) == pytest.approx(z_board, abs=0.02)  # pad round it
