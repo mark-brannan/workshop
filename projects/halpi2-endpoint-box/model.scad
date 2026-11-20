@@ -76,9 +76,13 @@ module box() difference() {
   for (p = holes) translate([p[0], p[1], z_b - pilot_depth]) cylinder(d = ep_pilot, h = 10);
   for (sy = [-1, 1]) translate([ex, sy*mount_pitch/2, -1]) cylinder(d = ear_hole, h = ear_t + 2);
   translate([in_x1 - 1, -jack_w/2 - win_fit, z_t]) cube([wall + 2, jack_w + 2*win_fit, jack_h + win_fit]);   // RJ45 window
-  for (sy = [-1, 1]) translate([qwiic_x - qwiic_hole[0]/2, sy > 0 ? in_half_y - 1 : -in_half_y - wall - 1, z_t]) cube([qwiic_hole[0], wall + 2, qwiic_hole[1]]);
-  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([0, -90, 0]) cylinder(d = lead_d, h = wall + 2);   // HALPI2 lead
+  for (sy = [-1, 1]) translate([qwiic_x, sy > 0 ? in_half_y + wall + 1 : -in_half_y + 1, z_t]) rotate([90, 0, 0]) linear_extrude(wall + 2) gable(qwiic_hole[0], qwiic_hole[1]);
+  translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([90, 0, -90]) linear_extrude(wall + 2) teardrop(lead_d);   // HALPI2 lead
 }
+
+// Openings in upright walls end in a 45 degree roof, so no top is a flat overhang.
+module gable(w, h) polygon([[-w/2, 0], [w/2, 0], [w/2, h], [0, h + w/2], [-w/2, h]]);
+module teardrop(d) { circle(d = d); rotate(45) square(d/2); }
 
 // A plus-shaped single-line post standing on the window sill, inside the wall's thickness.
 module window_prop() translate([in_x1 + wall/2, 0, z_t - 0.2]) linear_extrude(jack_h + win_fit - prop_gap + 0.2) {

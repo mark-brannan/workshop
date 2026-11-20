@@ -108,6 +108,10 @@ def test_no_bridge_longer_than_the_slicer_allows(box):
         return worst
 
     top = Z_T + P["jack_h"] + P["win_fit"] - 0.01
-    assert 5 < longest_gap((IN_X1 + W / 2, 0, top), (0, 1, 0), -8.55, 8.55) <= 10        # RJ45 window, propped
-    assert longest_gap((0, HY + W / 2, Z_T + 3.59), (1, 0, 0), 9.2, 16.2) <= 10          # Qwiic hole
-    assert P["lead_d"] <= 10
+    assert 5 < longest_gap((IN_X1 + W / 2, 0, top), (0, 1, 0), -8.55, 8.55) <= 10     # RJ45 window, propped
+
+
+def test_only_the_propped_window_top_is_a_flat_overhang(box):
+    flat = (box.face_normals[:, 2] < -0.99) & (box.triangles_center[:, 2] > 0.05)
+    assert np.allclose(box.triangles_center[flat][:, 2], Z_T + P["jack_h"] + P["win_fit"], atol=0.01)
+    assert box.area_faces[flat].sum() <= (P["jack_w"] + 2 * P["win_fit"]) * W + 0.1
