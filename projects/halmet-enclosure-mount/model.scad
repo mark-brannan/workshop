@@ -11,7 +11,7 @@ part = "frame";      // [frame, gauge:thin solid fit check with the raised featu
 /* [Box: owner's estimates, tune after a gauge print] */
 boss_span = 143;     // holed bosses, centre to centre: 140 printed, its screws sat at the fork mouths (photo), so +3 (1.5 a side)
 boss_pitch = 21.7;   // neighbouring bosses on one end: 21 printed, outer screws hit inside their slots; 22.5 printed, a touch wide (photo); 22 printed; 21.7 next
-screw_d = 3.4;       // M3 clearance: the tier's standoff screws
+screw_d = 3.7;       // M3 clearance: the tier's standoff screws
 slot_d = 2.8;        // M2.5 clearance: the screws into the bosses (pill slots)
 end_ext = 3.2;       // each end bar reaches this much past the slots' reach: a 1.5 rim past the slot end, 0.6 past the screw relief; floor is 151 inside, box 153
 slot_in = 1;         // extra reach on the inner end only: boss span can come in this much further than slot_reach (gauge read ~1 mm off)
