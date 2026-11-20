@@ -35,11 +35,19 @@ SVG is an intermediate only; never the deliverable handed to the user.
 
 - Millimetres. Z up.
 - Print orientation is the model orientation unless the project README says otherwise.
-- No flat bridges. Every ceiling in print orientation is self-supporting (45° roof, arch, gussets, point-up hole). A flat span gets designed only after talking it over with the user, with a support plan or an agreed choice to accept the defects.
+- Supports are designed, not left to the slicer. Every overhang and ceiling in print orientation holds itself up by shape, for example:
+  - a wall or slope at 45° or steeper, or the part reoriented so the overhang becomes a wall
+  - a point-up (teardrop) or small hexagonal hole
+  - a 45° roof or arch over a wider opening, or the opening run out to the rim
+  - a gusset under a ledge, shelf or boss; a stepped 45° corbel where a gusset won't fit
+  - a 45° chamfer on a downward-facing edge, since a fillet goes flat at its foot; fillets on vertical and upward edges
+  - a downward-facing counterbore printed over two sacrificial bridge layers laid at 90°
+  - a split into flat prints
+
+  Where shape can't do it, model a breakaway support into the part. Flat overhangs and bridges tend to print badly even when short; avoid them where a shape will do, and raise any that remain with the user. The README says how each overhang is held. `shop build` warns on a flat overhang with its unsupported span; it never fails.
 - Parameters at the top of every model: a dataclass (Python) or Customizer-commented variables (OpenSCAD).
 - Every model has a test file asserting bounding box, a volume window and feature counts.
 - Every build writes a PNG; the agent looks at it before reporting.
-- Think about supports while designing, not at the slicer. Prefer a print orientation and shapes that hold themselves up: 45° or steeper, a small round or hexagonal hole, a 45° roof over a wider opening, an opening run to the rim, a split into flat prints. Where shape can't do it, model a breakaway support into the part. Flat overhangs tend to print badly even when short; avoid them where a shape will do. The README says how each overhang is held. `shop build` warns on a flat overhang with its unsupported span; it never fails.
 - A plate-like part whose hole spacing or fit against a measured object is unproven gets a `part-gauge.scad`, and the gauge prints first. By default it is sliced from the model: `shop gauge projects/<slug> "mount()" <z_plate> [<z_wall>]`. It is hand-written where the gauge should drop features or save plastic.
 
 ## Fit numbers (calibration)
