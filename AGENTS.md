@@ -35,6 +35,7 @@ SVG is an intermediate only; never the deliverable handed to the user.
 
 - Millimetres. Z up.
 - Print orientation is the model orientation unless the project README says otherwise.
+- No flat bridges. Every ceiling in print orientation is self-supporting (45° roof, arch, gussets, point-up hole). A flat span gets designed only after talking it over with the user, with a support plan or an agreed choice to accept the defects.
 - Parameters at the top of every model: a dataclass (Python) or Customizer-commented variables (OpenSCAD).
 - Every model has a test file asserting bounding box, a volume window and feature counts.
 - Every build writes a PNG; the agent looks at it before reporting.
