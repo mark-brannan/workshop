@@ -126,13 +126,13 @@ module windows2d() {
         square([ldr_post[0] - ldr_boss_d/2 - 1 - wx0, 2*(w/2 - ldr_fit - ldr_lip - ldr_win_edge)]);
     // right of the OLED: the brace to the right ear, cut back to a rim along the diagonal edge, a ring round the ear and a margin round the
     // OLED's right-hand bosses and the TM1637s' back-right boss
-    rim = 3;
+    rim = 2.4;
     offset(r = win_round) offset(delta = -win_round) difference() {
         intersection() {
             offset(delta = -rim) plate2d();
             translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
         }
-        translate(tier_pts[2]) circle(r = island_d/2 + 1.5);
+        translate(tier_pts[2]) circle(r = island_d/2 + 1);
     }
 }
 
