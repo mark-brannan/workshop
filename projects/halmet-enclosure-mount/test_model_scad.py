@@ -111,7 +111,7 @@ def test_six_fork_slots_open_over_the_bosses(frame):
             y = k * PITCH
             for off in (-REACH - IN, 0, REACH):  # boss anywhere in the stated reach
                 assert top(frame, sx * (SPAN / 2 + off), y) is None
-            assert np.isclose(top(frame, sx * SPAN / 2, y + PITCH / 2 if k < 0 else y - 4), T, atol=0.02)
+            assert np.isclose(top(frame, sx * SPAN / 2, y + 4 if k < 0 else y - 4), T, atol=0.02)  # solid bar beside the boss, clear of the end tie loops
 
 
 def test_laser_profile_is_millimetres_on_cut_layer(built):
@@ -141,23 +141,24 @@ def test_underside_recessed_over_bosses_flat_on_posts(frame):
             assert np.isclose(bottom(frame, x, y), RECESS, atol=0.02)
 
 
-def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
-    for x in LISTS["tie_bar_xs"]:
-        outer = x + P["tie_gap"] / 2 + P["tie_t"] / 2  # outer edge of the right-hand slot
-        assert np.isclose(bottom(frame, outer + P["tie_c"] / 2, P["tie_bar_y"]), P["tie_c"] / 2, atol=0.05)
-        web = x + P["tie_gap"] / 2 - P["tie_t"] / 2 - 0.2  # web side stays square
-        assert np.isclose(bottom(frame, web, P["tie_bar_y"]), 0, atol=0.02)
+RO = P["tie_core"] / 2 + P["tie_t"]  # bowl's outer radius
+TIE_TOP = T + P["tie_rise"]
+X_END = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
+LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0, 1) for y in LISTS["tie_end_ys"]]  # centre, run direction
 
 
-def test_zip_tie_slots_open(frame):
-    assert len(LISTS["tie_bar_xs"]) == 6  # six gland-side ties
-    pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in LISTS["tie_bar_xs"] for s in (-1, 1)]
-    x_end = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
-    pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]
-    for x, y in pairs:
-        assert top(frame, x, y) is None
-    for x in LISTS["tie_bar_xs"]:  # web between the two slots of a pair carries the tie
-        assert np.isclose(top(frame, x, P["tie_bar_y"]), T, atol=0.02)
+def test_tie_loops_worked_from_above(frame):
+    assert len(LOOPS) == 8  # six gland-side, two on the left end
+    zc = P["tie_floor"] + RO
+    leg = P["tie_core"] / 2 + P["tie_t"] / 2
+    for x, y, ux, uy in LOOPS:
+        assert np.isclose(top(frame, x, y), TIE_TOP, atol=0.02)  # core: the cable saddle
+        assert np.isclose(top(frame, x + ux * (RO + P["tie_wall"] / 2), y + uy * (RO + P["tie_wall"] / 2)), TIE_TOP, atol=0.02)
+        for s in (-1, 1):  # each leg open from the top down to the bowl
+            assert np.isclose(top(frame, x + s * ux * leg, y + s * uy * leg), zc - np.sqrt(RO**2 - leg**2), atol=0.1)
+        hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]  # under the core: the channel joins the legs
+        assert np.isclose(hits[1], zc - P["tie_core"] / 2, atol=0.05) and np.isclose(hits[2], P["tie_floor"], atol=0.05)
+        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched: nothing to reach from below
 
 
 def test_board_clear_of_the_left_fork_slots():
@@ -275,9 +276,8 @@ def keep_out():
     usb = box(BOARD_RIGHT, -6, 75.5, 6)  # USB plug path to the right wall
     heads = unary_union([LineString([(sx * (SPAN / 2 - REACH - IN), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
                          for sx in (-1, 1) for k in (-1, 0, 1)])  # floor-screw heads anywhere along their fork slots
-    ties = unary_union([box(x + s * P["tie_gap"] / 2 - P["tie_t"] / 2, P["tie_bar_y"] - P["tie_w"] / 2,
-                            x + s * P["tie_gap"] / 2 + P["tie_t"] / 2, P["tie_bar_y"] + P["tie_w"] / 2)
-                        for x in LISTS["tie_bar_xs"] for s in (-1, 1)])
+    ties = unary_union([box(x - RO, P["tie_bar_y"] - P["tie_w"] / 2, x + RO, P["tie_bar_y"] + P["tie_w"] / 2)
+                        for x in LISTS["tie_bar_xs"]])  # the channel's openings, where the tie runs
     halmet_posts = unary_union([Point(p).buffer(P["standoff_d"] / 2) for p in SLOTS] + [Point(p).buffer(P["rest_d"] / 2) for p in RESTS])
     return {"board": unary_union([board, esp32]), "usb": usb, "floor heads": heads, "ties": ties, "halmet posts": halmet_posts}
 
