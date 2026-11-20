@@ -128,7 +128,7 @@ module windows2d() {
     // OLED's right-hand bosses and the TM1637s' back-right boss
     rim = 2.4;
     offset(r = win_round) offset(delta = -win_round) difference() {
-        union() {
+        offset(r = -3) offset(delta = 3) union() {   // closed with a 3 mm radius: no steps where the bay meets the brace window
             intersection() {
                 offset(delta = -rim) plate2d();
                 translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
