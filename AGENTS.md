@@ -60,6 +60,7 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 - Push to `main`. No PRs, no drafts, no "shall I commit" turns.
 - A checkpoint whose next step is a print or a physical test is pushed the same turn: to `main`, or to the PR when the work is on one. No turn spent asking.
 - Outputs under `out/` are committed. Git LFS only once a file passes 5 MB, not before.
+- The 3MF is what the user prints and looks at. A change to a printable part is not done, and a print is never named as the next step, until `shop build projects/<slug>` has regenerated its 3MF and the commit is on `main`. A PNG render alone is not a deliverable. Check `origin/main` holds the new 3MF before saying so.
 - A project is `projects/<slug>/` with `README.md` (purpose, constraints, what was measured and from what), `model.scad` or `model.py`, a test file, `out/`.
 
 ## Verification loop
