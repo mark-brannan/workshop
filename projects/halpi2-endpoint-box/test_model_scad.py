@@ -75,7 +75,7 @@ def test_four_posts_with_blind_pilots(box):
 
 def test_rj45_window_matches_the_jack(box):
     z = Z_T + P["jack_h"] / 2
-    assert len(ray_hits(box, (IN_X1 - 5, 0, z), (1, 0, 0))) == 0
+    assert len(ray_hits(box, (IN_X1 - 5, 5, z), (1, 0, 0))) == 0
     half = P["jack_w"] / 2 + P["win_fit"]
     assert len(ray_hits(box, (IN_X1 - 5, half + 0.3, z), (1, 0, 0))) == 2       # wall beside the window
     assert len(ray_hits(box, (IN_X1 - 5, 0, Z_T - 0.3), (1, 0, 0))) == 2        # wall under it: resin stays in
@@ -94,3 +94,20 @@ def test_lead_hole_in_the_minus_x_wall_at_the_terminal(box):
     z = Z_T + P["lead_z"]
     assert len(ray_hits(box, (IN_X0 + 2, P["term_y"], z), (-1, 0, 0))) == 0     # out through the hole
     assert len(ray_hits(box, (IN_X0 + 2, P["term_y"] + 5, z), (-1, 0, 0))) == 2 # beside it the wall is whole
+
+
+def test_no_bridge_longer_than_the_slicer_allows(box):
+    """Every opening's flat top is a bridge of 10 or less (the 3mf's max_bridge_length), prop included."""
+    def longest_gap(start, along, lo, hi):
+        run = worst = 0.0
+        for t in np.arange(lo, hi, 0.1):
+            o = np.array(start, float) + t * np.array(along)
+            below = [h for h in ray_hits(box, o, (0, 0, -1)) if o[2] - h[2] < 0.5]
+            run = 0.0 if below else run + 0.1
+            worst = max(worst, run)
+        return worst
+
+    top = Z_T + P["jack_h"] + P["win_fit"] - 0.01
+    assert 5 < longest_gap((IN_X1 + W / 2, 0, top), (0, 1, 0), -8.55, 8.55) <= 10        # RJ45 window, propped
+    assert longest_gap((0, HY + W / 2, Z_T + 3.59), (1, 0, 0), 9.2, 16.2) <= 10          # Qwiic hole
+    assert P["lead_d"] <= 10

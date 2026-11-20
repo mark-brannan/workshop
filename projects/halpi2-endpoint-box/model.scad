@@ -4,7 +4,8 @@
 // it hangs upside down under a panel. The body is the board's width plus its walls.
 // X along the board: the RJ45 mouth sits in a window in the +x wall, the jack's own body closing it.
 // The HALPI2 lead enters the -x wall to a 2.54-pitch screw terminal on the board's header row.
-// The Qwiic plugs go in from outside, through small holes in the long walls. Print floor down, no supports.
+// The Qwiic plugs go in from outside, through small holes in the long walls. Print floor down, no slicer
+// supports: a breakaway prop in the RJ45 window holds its top; snip it out at the sill.
 part = "box";        // box | assembly
 
 /* [Box] */
@@ -35,6 +36,11 @@ qwiic_hole = [7, 3.6]; // plug 6 wide, socket 2.9 tall (JST-SH, a guess); bottom
 term_y = 1.27;       // header row centre: GND 3V3 SDA SCL at y -2.54..5.08 (board file, x 1.27)
 lead_d = 5.5;        // the HALPI2 lead, a round 4-core about 4 across
 lead_z = 4;          // lead axis above the board's top: the terminal's wire entry (a guess)
+
+/* [Print] */
+prop_line = 0.5;     // breakaway prop wall: one nozzle line
+prop_w = 4;          // its arm along the window top; leaves two bridges of 6.55
+prop_gap = 0.2;      // one layer between prop and window top, so it lets go
 
 /* [Mounting] */
 mount_pitch = 51;    // DIN clip (Printables 420009) heat inserts; any two wood screws when hung under a panel
@@ -74,6 +80,12 @@ module box() difference() {
   translate([in_x0 + 1, term_y, z_t + lead_z]) rotate([0, -90, 0]) cylinder(d = lead_d, h = wall + 2);   // HALPI2 lead
 }
 
+// A plus-shaped single-line post standing on the window sill, inside the wall's thickness.
+module window_prop() translate([in_x1 + wall/2, 0, z_t - 0.2]) linear_extrude(jack_h + win_fit - prop_gap + 0.2) {
+  square([wall - 0.4, prop_line], center = true);
+  square([prop_line, prop_w], center = true);
+}
+
 module boards() {
   color("seagreen") translate([0, -ep[1]/2, z_b]) cube(ep);
   color("silver") translate([ep[0] + jack_over - 23.2, -jack_w/2, z_t]) cube([23.2, jack_w, jack_h]);
@@ -81,5 +93,5 @@ module boards() {
   color("limegreen") translate([in_x0, term_y - 5.08, z_t]) cube([7, 10.16, 8.5]);   // 4-way 2.54 terminal
 }
 
-if (part == "box") box();
+if (part == "box") { box(); window_prop(); }
 if (part == "assembly") { box(); boards(); }

@@ -98,5 +98,8 @@ def test_two_mounting_tab_holes(tray):
 def test_lid_outline_and_two_holes(lid):
     assert lid.is_watertight
     assert np.allclose(lid.bounds, [[-P["wall"], -OUT_W / 2, 0], [IN_L + P["wall"], OUT_W / 2, P["lid_t"]]], atol=0.02)
-    assert len(down(lid, 0, -IN_W / 2)) == 0 and len(down(lid, IN_L, IN_W / 2)) == 0
-    assert len(down(lid, 0, IN_W / 2)) > 0  # the other diagonal is solid
+    ci = P["col_in"]
+    assert len(down(lid, ci, -(IN_W / 2 - ci))) == 0 and len(down(lid, IN_L - ci, IN_W / 2 - ci)) == 0
+    assert len(down(lid, ci, IN_W / 2 - ci)) > 0  # the other diagonal is solid
+    # hole edge at least 2 mm from the lid's edge
+    assert ci + P["wall"] - P["lid_hole_d"] / 2 >= 2

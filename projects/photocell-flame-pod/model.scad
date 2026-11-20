@@ -47,7 +47,8 @@ nut_t = 2.4;
 nut_fit = 0.15;       // per side; press fit, uncalibrated
 screw_d = 3.4;        // M3 clearance, through the floor
 top_clear = 1;        // photocell top to the lid's underside
-column_d = 5;         // lid-screw columns in the four inside corners
+column_d = 4.4;       // lid-screw columns near the four inside corners
+col_in = 1.9;         // column centre in from the inner wall faces: the lid hole sits 3.5 from the lid edge
 pilot_d = 2.2;        // M2.5 self-tapping; calibration pending
 pilot_h = 8;
 lid_t = 3;            // clear acrylic, laser cut
@@ -81,7 +82,7 @@ board_top = board_z + board_t;
 pour_z = board_top + cell_h - cell_t;      // potted: epoxy line, the cell body's underside
 tray_h = potted ? pour_z + pour_rim : board_top + cell_h + top_clear;
 cable_z = board_top + pin_z;               // cable centre, level with the header pins
-cols = [for (x = [0, in_l], y = [-in_w/2, in_w/2]) [x, y]];
+cols = [for (x = [col_in, in_l - col_in], y = [-(in_w/2 - col_in), in_w/2 - col_in]) [x, y]];
 
 module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
 module outline() { translate([in_l/2, 0]) rrect(out_l, out_w, corner_r); }
