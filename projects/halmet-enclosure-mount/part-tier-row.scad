@@ -134,13 +134,6 @@ module windows2d() {
         }
         translate(tier_pts[2]) circle(r = island_d/2 + 1.5);
     }
-    // under the OLED, past the sensor's screw pad: between the ledges as far as they run, then up the strip beside the OLED's
-    // right-hand posts, joined to the window below
-    iw = w/2 - ldr_fit - ldr_lip - ldr_win_edge;               // half-width between the ledges
-    ex = ldr_x0 + ldr_l + 0.8;                                  // past the ledges' ends
-    rx = oled_posts[3][0] - oled_pad_d/2 - post_margin;         // short of the OLED's right-hand bosses
-    translate([ldr_post[0] + ldr_boss_d/2 + 1.5, ldr_y - iw]) square([ex - ldr_post[0] - ldr_boss_d/2 - 1.5, 2*iw]);
-    translate([ex, mid_y1 - 1]) square([rx - ex, oled_posts[3][1] - oled_pad_d/2 - post_margin - mid_y1 + 1]);
 }
 
 // Sensor cradle (as model.scad's tier): edge ledges and a screw pad lift the board off its solder, side walls stop it turning.
