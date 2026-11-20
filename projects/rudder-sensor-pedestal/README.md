@@ -10,7 +10,7 @@ Prototype. Nothing here is measured:
 
 | Size | Value | Source |
 |---|---|---|
-| Sensor footprint, height, mounting holes | 50 × 35 × 22, two M4 at 40 | guess; the store page gives none |
+| Sensor footprint, height, mounting holes | 50 × 35 × 22, two M4 at 40; it has three holes | guess; three holes: owner, [store page](https://pypilot.org/opencart/index.php?route=product/product&language=en-gb&product_id=54) |
 | Column height (mount surface to seat) | 80 | guess; set by the quadrant's height above what the base screws to |
 | Rod length (stock to sensor shaft) | 300 to 420 | guess, from the photo's ratios and the drive's pin distance |
 | Base screws | four #10 wood screws | guess; assumes wood or a floor to screw to |
