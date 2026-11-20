@@ -124,6 +124,16 @@ module windows2d() {
     wx0 = ldr_x0 + ldr_cell_clear;
     translate([wx0, ldr_y - (w/2 - ldr_fit - ldr_lip) + ldr_win_edge])
         square([ldr_post[0] - ldr_boss_d/2 - 1 - wx0, 2*(w/2 - ldr_fit - ldr_lip - ldr_win_edge)]);
+    // right of the OLED: the brace to the right ear, cut back to a rim along the diagonal edge, a ring round the ear and a margin round the
+    // OLED's right-hand bosses and the TM1637s' back-right boss
+    rim = 3;
+    offset(r = win_round) offset(delta = -win_round) difference() {
+        intersection() {
+            offset(delta = -rim) plate2d();
+            translate([oled_posts[3][0] + oled_pad_d/2 + post_margin, tm_posts[7][1] + tm_boss_d/2 + post_margin]) square([100, 100]);
+        }
+        translate(tier_pts[2]) circle(r = island_d/2 + 1.5);
+    }
     // under the OLED, past the sensor's screw pad: between the ledges as far as they run, then up the strip beside the OLED's
     // right-hand posts, joined to the window below
     iw = w/2 - ldr_fit - ldr_lip - ldr_win_edge;               // half-width between the ledges
