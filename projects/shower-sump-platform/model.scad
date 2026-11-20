@@ -1,59 +1,40 @@
-// Shower-sump platform: a flat deck the sump sits on, carried by V-shaped frames that sit in the
-// hull's V down in the bilge, forward of amidships. Bilge water runs under the deck and through a
-// notch at the keel in each frame.
-// Installed axes: X across the boat, Y fore-aft (+Y toward the bow), Z up; z = 0 at the aft keel.
-// Print: deck on the bed (part = "print", the default). The frames stand up off it, so nothing overhangs.
+// Shower-sump platform: a flat deck the size of the sump's base, set at the height where the sump's
+// wings just reach the hull. Its two long edges are skirts leaning in at the hull's angle; they are the
+// bonding faces, bedded in thickened epoxy or 5200. Nothing reaches down to the keel.
+// Installed axes: X across the boat, Y fore-aft (+Y toward the bow), Z up; z = 0 at the deck's top.
+// Print: deck on the bed (part = "print", the default). The skirts lean in 90 - hull_angle from vertical.
 
 part = "print";      // [print, installed]
 
-/* [Sump: footprint on the deck (unmeasured)] */
-sump_w = 180;        // across the boat
-sump_l = 280;        // fore-aft
-margin = 5;          // deck beyond the sump, each side
+/* [Sump base, which sets the deck (unmeasured; Fusion v6 numbers)] */
+w_aft = 280;         // across the boat at the aft edge, hull to hull at deck height
+w_fwd = 240;         // same at the forward edge: the V toward the bow (Fusion v6: 18 per 100 each side)
+len = 110;           // fore-aft
 
-/* [Hull V (unmeasured)] */
-deadrise_aft = 25;   // degrees above horizontal, each side, at the aft frame
-deadrise_fwd = 25;   // same at the forward frame; the V gets steeper toward the bow
-keel_rise = 0;       // degrees the keel line climbs toward the bow over the platform's length
-keel_w = 30;         // flat at the bottom of each frame, where the keel or a hull flat meets it
+/* [Hull] */
+hull_angle = 55;     // degrees above horizontal across the boat at the bond line: the bilge V (Fusion v6 legs)
 
 /* [Build] */
-deck_t = 3;
-frames = 5;          // evenly spaced, the end ones flush with the deck's ends
-frame_t = 4;         // along Y
-limber_w = 20;       // water notch at the keel
-limber_h = 8;
-side = 3;            // square edge outboard of each frame, so the V never ends in a knife edge
+deck_t = 4;
+skirt_h = 20;        // vertical depth of the bonding face
+skirt_t = 4;         // measured square to the face
+bond_gap = 1.5;      // adhesive, each side: the skirt sits this far inside the hull line
 
-W = sump_w + 2 * margin;
-L = sump_l + 2 * margin;
 e = 0.01;
+run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
+tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
 
-function lerp(a, b, t) = a + (b - a) * t;
-function y_at(i) = -L / 2 + frame_t / 2 + i * (L - frame_t) / (frames - 1);
-function t_at(i) = i / (frames - 1);
-function keel_z(y) = (y + L / 2) * tan(keel_rise);
-function rise(a) = (W / 2 - keel_w / 2) * tan(a);
-// deck underside is level, just above the highest frame's outboard top
-z_deck = side + max([for (i = [0 : frames - 1]) keel_z(y_at(i)) + rise(lerp(deadrise_aft, deadrise_fwd, t_at(i)))]);
-H = z_deck + deck_t;
-
-module frame(i) {
-  y = y_at(i);
-  a = lerp(deadrise_aft, deadrise_fwd, t_at(i));
-  z0 = keel_z(y);
-  translate([0, y + frame_t / 2, 0]) rotate([90, 0, 0]) linear_extrude(frame_t)
-    difference() {
-      polygon([[-keel_w / 2, z0], [keel_w / 2, z0], [W / 2, z0 + rise(a)], [W / 2, z_deck + deck_t / 2],
-               [-W / 2, z_deck + deck_t / 2], [-W / 2, z0 + rise(a)]]);
-      translate([-limber_w / 2, z0 - e]) square([limber_w, limber_h + e]);
-    }
-}
-
+// deck and skirts apart: a hull() of whole end sections would fill the space under the deck
 module platform() {
-  translate([-W / 2, -L / 2, z_deck]) cube([W, L, deck_t]);
-  for (i = [0 : frames - 1]) frame(i);
+  hw_a = w_aft / 2 - bond_gap / sin(hull_angle);
+  hw_f = w_fwd / 2 - bond_gap / sin(hull_angle);
+  // deck: a trapezoid in plan
+  translate([0, 0, -deck_t]) linear_extrude(deck_t)
+    polygon([[-hw_a, -len / 2], [hw_a, -len / 2], [hw_f, len / 2], [-hw_f, len / 2]]);
+  for (s = [-1, 1]) hull() for (p = [[hw_a, -len / 2], [hw_f, len / 2]])
+    translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(e, center = true)
+      scale([s, 1]) polygon([[p[0], 0], [p[0] - run, -skirt_h], [p[0] - run - tn, -skirt_h], [p[0] - tn, 0]]);
 }
 
 if (part == "installed") platform();
-else translate([0, 0, H]) rotate([180, 0, 0]) platform();
+else rotate([180, 0, 0]) platform();

@@ -1,4 +1,4 @@
-"""Tests for the shower-sump platform: bounding box, volume window, frame count, the V and the limber notch."""
+"""Tests for the shower-sump platform: bounding box, volume window, the open underside and the skirt angle."""
 
 import math
 import re
@@ -13,9 +13,9 @@ from shop.testing import ray_hits
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*(-?[\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
-W = P["sump_w"] + 2 * P["margin"]
-L = P["sump_l"] + 2 * P["margin"]
-RISE = (W / 2 - P["keel_w"] / 2) * math.tan(math.radians(P["deadrise_aft"])) + P["side"]
+A = math.radians(P["hull_angle"])
+HW = max(P["w_aft"], P["w_fwd"]) / 2 - P["bond_gap"] / math.sin(A)
+HW0 = (P["w_aft"] + P["w_fwd"]) / 4 - P["bond_gap"] / math.sin(A)  # at y = 0
 
 
 @pytest.fixture(scope="module")
@@ -30,20 +30,15 @@ def installed():
 
 
 def test_bbox_and_volume(installed):
-    assert installed.extents == pytest.approx([W, L, RISE + P["deck_t"]], abs=0.1)
-    assert installed.is_watertight and 250_000 < installed.volume < 500_000
+    assert installed.extents == pytest.approx([2 * HW, P["len"], P["skirt_h"]], abs=0.1)
+    assert installed.is_watertight and 100_000 < installed.volume < 250_000
 
 
-def test_frames_and_v(installed):
+def test_open_underside_and_skirt(installed):
     up = [0, 0, 1]
-    # a ray up the keel line, beside the notch, meets one frame per station
-    x = P["limber_w"] / 2 + 2
-    hits = ray_hits(installed, [x, -L, 1], [0, 1, 0])
-    assert len(hits) == 2 * P["frames"]
-    # under a frame, the bottom follows the deadrise
-    y = -L / 2 + P["frame_t"] / 2
-    for xo in (40, 70):
-        z = ray_hits(installed, [xo, y, -10], up)[0][2]
-        assert z == pytest.approx((xo - P["keel_w"] / 2) * math.tan(math.radians(P["deadrise_aft"])), abs=0.2)
-    # the limber notch is open at the keel
-    assert ray_hits(installed, [0, y, -10], up)[0][2] == pytest.approx(P["limber_h"], abs=0.05)
+    # under the middle, the first thing met is the deck's underside
+    assert ray_hits(installed, [0, 0, -50], up)[0][2] == pytest.approx(-P["deck_t"], abs=0.05)
+    # the skirt (both V's: plan taper and hull angle)'s outer face leans in at the hull angle: halfway down it sits run/2 inside the top edge
+    z = -P["skirt_h"] / 2
+    x = ray_hits(installed, [HW + 20, 0, z], [-1, 0, 0])[0][0]
+    assert x == pytest.approx(HW0 + z / math.tan(A), abs=0.1)
