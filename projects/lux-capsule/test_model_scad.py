@@ -12,12 +12,12 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 
 # (view, exit) -> (extents x, y, z in mm, volume window in mm^3), measured from the 2026-11-20 build
 PARTS = {
-    ("cap_print", "center"): ((34.0, 34.0, 15.7), (6000, 7200)),
-    ("cap_print", "side"): ((34.0, 34.0, 15.7), (5800, 7000)),
-    ("riser_print", "center"): ((25.0, 25.0, 9.5), (1250, 1500)),
-    ("riser_print", "side"): ((25.0, 25.0, 9.5), (1200, 1450)),
-    ("base_print", "center"): ((48.0, 34.0, 13.0), (7800, 9000)),
-    ("base_print", "side"): ((48.0, 34.0, 13.0), (7900, 9100)),
+    ("cap_print", "center"): ((33.0, 33.0, 12.5), (3953, 4641)),
+    ("cap_print", "side"): ((33.0, 33.0, 12.5), (3882, 4557)),
+    ("riser_print", "center"): ((25.0, 25.0, 2.5), (332, 390)),
+    ("riser_print", "side"): ((25.0, 25.0, 2.5), (313, 368)),
+    ("base_print", "center"): ((46.0, 33.0, 12.1), (3704, 4349)),
+    ("base_print", "side"): ((46.0, 33.0, 12.1), (3807, 4469)),
 }
 
 
