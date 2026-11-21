@@ -14,12 +14,9 @@ from shop.scad import OpenSCAD
 
 HERE = Path(__file__).parent
 PANELS = [
-    ("bench: plate and boards, from the back", "open", "60,240,260"),
-    ("bench: straight down", "open", "0,0,300"),
-    ("exploded: plate and boards out of the tray front", "exploded", "-250,-200,-120"),
-    ("section x = 0, from +X", "section", "300,0,0"),
-    ("section x = 0, tilted", "section", "300,-120,180"),
-    ("translucent tray, assembled", "xray", "120,-160,230"),
+    ("FRONT: what you see at the desk (+X on the left)", "front", "0,0,300"),
+    ("FRONT, see-through: boards behind the face", "front_xray", "0,0,300"),
+    ("SIDE, tray cut away: arm and tape LEFT, you RIGHT", "side_xray", "0,0,300"),
 ]
 
 def main():
@@ -30,14 +27,14 @@ def main():
         def one(i):
             _, view, eye = PANELS[i]
             osc.run(HERE / "model.scad", pngs[i], "--render", "--autocenter", "--viewall", "--imgsize=900,700",
-                    "--colorscheme=Tomorrow", f"--camera={eye},0,0,0", "-D", f'view="{view}"')
+                    "--colorscheme=Tomorrow", "--projection=ortho", f"--camera={eye},0,0,0", "-D", f'view="{view}"')
         with ThreadPoolExecutor(len(PANELS)) as pool:
             list(pool.map(one, range(len(PANELS))))
         osc.cleanup()
         cmd = ["montage"]
         for p, (label, *_) in zip(pngs, PANELS):
             cmd += ["-label", label, str(p)]
-        subprocess.run([*cmd, "-tile", "3x2", "-geometry", "700x544+4+4", "-pointsize", "20", str(out)], check=True)
+        subprocess.run([*cmd, "-tile", "3x1", "-geometry", "900x700+4+4", "-pointsize", "26", str(out)], check=True)
     print(out)
 
 main()

@@ -268,13 +268,43 @@ module standins() {
     color("silver") translate([0, in_h + wall, usb_z]) rotate([-90, 0, 0]) linear_extrude(18) square([10.5, 7], center = true);
 }
 
+// Example screen content for the review renders. Text reads correctly seen from the front
+// (the front looks along +z, so it is mirrored in X here).
+module screens() {
+    translate([0, 0, plate_z0]) mirror([1, 0, 0]) {
+        color("black") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.1]) linear_extrude(0.11)
+            square([tm_disp_l - 2, tm_disp_w - 2], center = true);
+        color("red") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.3]) linear_extrude(0.2)
+            text("1:42", size = 8, halign = "center", valign = "center", font = "DejaVu Sans Mono:style=Bold");
+        color("black") translate([0, ol_cy + ol_win_dy, face_t + ol_gap - 0.1]) linear_extrude(0.11)
+            square([21.7, 10.9], center = true);
+        color("white") for (i = [0:2]) translate([0, ol_cy + ol_win_dy + 3.3 - i*3.3, face_t + ol_gap - 0.3])
+            linear_extrude(0.2) text(["SITTING 1:42", "PRESENT 98%", "WIFI -61 dBm"][i], size = 1.9,
+                halign = "center", valign = "center", font = "DejaVu Sans Mono");
+    }
+}
+
 // Review views, placed coordinates (the tray's back is up in the renders from +Z).
 module ghost(a = 0.18) { color([0.45, 0.6, 0.7, a]) children(); }
 module cut_half() {   // remove x > 0 so the stack of boards shows in section
     difference() { children(); translate([0, -500, -500]) cube([500, 1000, 1000]); }
 }
 
-if (view == "plate") plate();
+// As-mounted orientations, Y up in the image: front = what you see at the desk (+X on the left);
+// side = looking from +X, arm on the left and you on the right; top = looking down, arm at the bottom.
+module orient(o) {
+    if (o == "front") rotate([0, 180, 0]) children();
+    else if (o == "side") rotate([0, -90, 0]) children();
+    else if (o == "top") rotate([90, 0, 0]) children();
+    else children();
+}
+
+if (view == "front") orient("front") { tray_placed(); plate_placed(); screens(); }
+else if (view == "front_xray") orient("front") { ghost(0.12) tray_placed(); ghost(0.25) plate_placed(); standins(); screens(); }
+else if (view == "side_xray") orient("side") { cut_half() tray_placed(); plate_placed(); standins(); }
+else if (view == "side") orient("side") cut_half() { tray_placed(); plate_placed(); standins(); }
+else if (view == "top_xray") orient("top") { ghost(0.15) tray_placed(); plate_placed(); standins(); }
+else if (view == "plate") plate();
 else if (view == "tray") tray();
 else if (view == "open") { plate_placed(); standins(); }                  // bench state, tray off
 else if (view == "xray") { ghost() tray_placed(); plate_placed(); standins(); }
