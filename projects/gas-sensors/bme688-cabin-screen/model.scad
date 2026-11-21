@@ -64,7 +64,12 @@ oh_seat_wall = 1.2;  // seat walls round the board, flush with its face; stop it
 oh_qwiic_w = 8;      // gap in each short seat wall for the Qwiic plug, on the centre line
 
 /* [Hidden] */
-$fn = 48;
+// Facet count comes from the radius ($fa/$fs), not a fixed $fn. The part-*.scad files `use` this file, which
+// drops its top-level $fa/$fs, so each printed part has a wrapper that sets them again.
+fa = 6;
+fs = 0.4;
+$fa = fa;
+$fs = fs;
 eps = 0.01;
 in_w = plate_w - 2*wall;                 // 28.8 between the side walls
 face_z = depth - cover_t;                // 14.4: the side walls' fronts, where the cover seats
@@ -224,11 +229,13 @@ module overhead_cover() {
     }
 }
 
-module overhead_cover_print() { translate([0, 0, face_z + oh_floor_t]) rotate([180, 0, 0]) overhead_cover(); }
+module overhead_cover_print() { $fa = fa; $fs = fs; translate([0, 0, face_z + oh_floor_t]) rotate([180, 0, 0]) overhead_cover(); }
+
+module overhead_body_print() { $fa = fa; $fs = fs; overhead_body(); }
 
 module overhead_assembly() { overhead_body(); overhead_cover(); }
 
-if (part == "overhead_body") overhead_body();
+if (part == "overhead_body") overhead_body_print();
 if (part == "overhead_cover") overhead_cover_print();
 if (part == "overhead_assembly") overhead_assembly();
 if (part == "overhead_section") difference() { overhead_assembly(); translate([1, -50, -1]) cube([50, 100, 50]); }
