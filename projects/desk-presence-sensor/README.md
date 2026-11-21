@@ -70,7 +70,8 @@ pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
    window, four M2.5 x 6 self-tappers from behind.
 2. OLED: glass to the window, four M2 self-tappers from behind.
 3. Radar: antenna side to the plate in its rib pocket, a dab of hot glue at two corners.
-4. D1 mini: drop it onto its four pillars, component side toward the plate, USB end up. It covers
+4. D1 mini: drop it onto its four pillars, component side toward the plate, USB end up; a post in the
+   tray presses it on, so stick a 1 mm foam tape pad on the post's tip. It covers
    the radar and the top of the OLED, so the displays go on first; to reach a screw later, unplug it.
 5. Jumpers per the table, then push the plate into the tray until the barbs click. Tape the back
    to the arm.
@@ -87,7 +88,7 @@ pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
 
 The radar takes the hardware UART at 256000 baud, so the logger moves to D4 (GPIO2), as in
 [d1-mini-sensor-node](../d1-mini-sensor-node/esphome/node.yaml). Radar OUT is not wired; D5 now
-drives the TM1637. No firmware for this box yet.
+drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 
 ## Measured, and from what
 
@@ -112,3 +113,7 @@ drives the TM1637. No firmware for this box yet.
 
 - Perma-proto or a PCB later would cut the depth to ~20: `jumper_h` and `bend` set it.
 - Firmware: sitting timer on the TM1637, stats on the OLED.
+- Owner's current thinking, 2026-11-21, not yet modelled: the front face and walls become one deep shell, held
+  by gentle snaps (pencil) on a shallow back plate taped to the arm. The D1 mini moves to the bottom, near the radar,
+  maybe lying flat and slid into side grooves; a part of its own holds it, never the taped back.
+  Side by side in the face plane it can't fit: radar 22 + D1 25.6 > 42 inside. Flat as a shelf behind the radar, it can (34.2 across).
