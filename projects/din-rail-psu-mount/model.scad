@@ -27,7 +27,8 @@ lip_t = 2;           // lip wall thickness on the three thin sides, outside the 
 /* [PSU mounting features] (caliper ~; x right, y toward the back, centred on the footprint, left = left in normal view) */
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
 slot_w = 3.4;        // the PSU's U slot and pill width (~)
-holes = [[-23.2, -36.7], [-23.2, 29.8]];   // blind holes in the PSU underside: fit test 1 moved each 1 mm in X (to centre) and 1 mm in Y (toward each other)
+psu_hole_d = 3.83;   // the two holes that meet the PSU's blind holes: hole_d + 0.33
+holes = [[-23.2, -36.7], [-23.55, 30.15]];   // blind holes in the PSU underside; the upper-left one moved 0.5 mm diagonally out (-X, +Y)
 top_hole = [-22.75, 38.7];  // loose M3 hole where the PSU's U slot mates (not a slot in the mount); fit test 1 moved it 0.75 mm toward the centre
 pill = [25, -39];    // closed pill, 5.5 long tip to tip, long axis along Y (guess); fit test 1 moved it 1.5 mm to the outer edge (+X) and 1.5 mm down (-Y)
 pill_len = 5.5;
@@ -91,8 +92,8 @@ module tie_roundovers() {
 module tie_slots() { for (x = tie_xs, s = [-1, 1]) translate([x + s*tie_gap/2, tie_y, -1]) linear_extrude(lip_h + plate_t + 2) square([tie_t, tie_w], center = true); }
 
 // M3 through-hole with a 90 degree countersink opening into the pocket (up) or onto the back (down)
-module csk_hole(up) {
-    translate([0, 0, -1]) cylinder(d = hole_d, h = plate_t + 2);
+module csk_hole(up, d = hole_d) {
+    translate([0, 0, -1]) cylinder(d = d, h = plate_t + 2);
     if (up) translate([0, 0, plate_t - csk_h]) cylinder(d1 = csk_d - 2*csk_h, d2 = csk_d + 2, h = csk_h + 1);
     else translate([0, 0, -1]) cylinder(d1 = csk_d + 2, d2 = csk_d - 2*csk_h, h = csk_h + 1);
 }
@@ -107,7 +108,7 @@ module mount() {
             translate([0, 0, plate_t - 0.01]) linear_extrude(lip_h + 0.01) difference() { outline(); pocket(); }   // the lip, rising from the PSU side
         }
         for (x = clip_xs, y = clip_ys) translate([x, y, 0]) csk_hole(up = true);   // clip screws, heads under the PSU
-        for (h = holes) translate(h) csk_hole(up = false);                       // PSU screws, heads flush with the back: a clip may sit over them
+        for (h = holes) translate(h) csk_hole(up = false, d = psu_hole_d);                       // PSU screws, heads flush with the back: a clip may sit over them
         tie_slots();
         tie_chamfers();
         tie_roundovers();
