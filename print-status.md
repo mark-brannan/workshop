@@ -18,4 +18,3 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | lux-sensor-mount, lux-capsule, lux-tube-cap, gv30-lux-mount | needs design work | |
 | small-box-sensors, imu-tray, halpi2-endpoint-box, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |
 | rudder-angle-sensor, rudder-sensor-pedestal | low priority | |
-| demo-bracket | toolchain demo, not a real part | see `projects/README-ab.md` |

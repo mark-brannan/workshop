@@ -26,20 +26,11 @@ Then `shop build`, `shop doctor` (which tools this box has), `shop fusion`
 
     uv sync
     uv run python -m shop.build                      # every project, .py and .scad alike
-    uv run python -m shop.build projects/demo-bracket  # one project
+    uv run python -m shop.build projects/esp32-breakout-mounts  # one project
     uv run pytest -q
     shop views projects/<slug>/model.scad <view>   # six labelled OpenSCAD views, montaged into out/
 
 `.scad` models build through whatever OpenSCAD the box has (`src/shop/scad.py`);
 on WSL the Windows Nightly is preferred when installed. `projects/README-ab.md` is the measured
-OpenSCAD vs build123d comparison on the two demos.
+OpenSCAD vs build123d comparison on two demo parts (since removed; see git history).
 
-## Gallery
-
-| demo-bracket |
-|---|
-| ![bracket](projects/demo-bracket/out/bracket.png) |
-| ![bracket views](projects/demo-bracket/out/bracket_views.png) |
-| ![bracket scad](projects/demo-bracket/out/bracket_scad.png) |
-
-Third row: the same parts from `model.scad`, rendered by OpenSCAD.
