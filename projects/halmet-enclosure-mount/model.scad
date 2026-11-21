@@ -44,7 +44,6 @@ tie_round = 0.8;     // the block's edges: vertical and top
 tie_chamfer = 0.5;   // the slot's roof meets its walls on a 45-degree chamfer
 tie_foot = 0.8;      // 45-degree chamfer at the foot of each leg, outside; the mouth faces stay plain, clear of the end bars' screw pockets
 tie_mouth = 0.5;     // the slot's mouths flare by this radius at the roof and walls, so the tie bends over a curve
-tie_fin = 0.45;      // one extrusion line down the slot's middle, holding up the flat roof; punch it out after printing
 tie_bar_y = -27.7;   // staples along the gland-side edge, foot chamfer clear of the plate's front edge and the tab bevel
 tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
 tie_end_ys = [-10.5, 10.5];  // loops on the left end, between bosses
@@ -251,11 +250,6 @@ module tie_slot() {
 
 module tie_channels() { tie_each() translate([0, 0, body_t]) tie_slot(); }
 
-// Breakaway fin down each slot's centre line, one line thick, overlapping the roof so it joins the part.
-module tie_fins() {
-    tie_each() translate([-tie_lx/2 + 0.01, -tie_fin/2, body_t - 0.01]) cube([tie_lx - 0.02, tie_fin, tie_t + tie_mouth + 0.01]);
-}
-
 module fork_slots() {
     for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
         translate([boss_span/2 - slot_reach - slot_in, 0]) circle(d = slot_d);
@@ -295,23 +289,20 @@ module tab_bevel_cut() {
 
 // Z = 0 is the top of the rest posts; the holed bosses reach up into the pockets.
 module frame() {
-    union() {
-        tie_fins();
-        difference() {
-            union() {
-                linear_extrude(body_t) profile(false);
-                raised();
-                tie_loops();
-            }
-            insert_holes();
-            translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
-            tie_channels();
-            tab_bevel_cut();
-            if (recess > 0) recess_cut();
-            translate([0, 0, body_t - relief_h]) linear_extrude(relief_h + 1) for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
-                translate([boss_span/2 - slot_reach - slot_in, 0]) circle(d = relief_d);
-                translate([boss_span/2 + slot_reach, 0]) circle(d = relief_d);
-            }
+    difference() {
+        union() {
+            linear_extrude(body_t) profile(false);
+            raised();
+            tie_loops();
+        }
+        insert_holes();
+        translate([support_xy[0], support_xy[1], -1]) cylinder(d = insert_d, h = body_t + 2);   // centre prop: through, insert from the top
+        tie_channels();
+        tab_bevel_cut();
+        if (recess > 0) recess_cut();
+        translate([0, 0, body_t - relief_h]) linear_extrude(relief_h + 1) for (sx = [-1, 1], k = [-1, 0, 1]) scale([sx, 1]) translate([0, k*boss_pitch]) hull() {
+            translate([boss_span/2 - slot_reach - slot_in, 0]) circle(d = relief_d);
+            translate([boss_span/2 + slot_reach, 0]) circle(d = relief_d);
         }
     }
 }
