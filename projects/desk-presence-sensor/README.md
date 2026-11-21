@@ -22,10 +22,13 @@ Owner's, 2026-11-20. Numbered so a change can cite one.
 | R2 | The OLED sits just above the segmented display | next easiest to see |
 | R3 | The radar sensor sits low, clear of the monitor | the monitor bezel blocks its view |
 | R4 | The bottom-most position is the segmented display or the radar (R1 and R3 compete for it) | |
-| R5 | The cable comes up and out the back | |
+| R5 | The USB cable exits up and back through the top wall, never through the back | the back is taped flat |
 | R6 | The back is flat and taped to the monitor with double-sided tape: no screws or openings that the tape must cover | |
 | R7 | 45 mm wide, to match the monitor arm stem | |
 | R8 | PETG, no supports | print economy |
+| R9 | Stacking order, bottom to top: radar, TM1637, OLED. Held, 2026-11-21 | settles R4 |
+| R10 | Back flat and shallow; it closes with a gentle snap. Held, 2026-11-21 | |
+| R11 | The D1 mini may be bare: no male header pins assumed | one on hand is bare |
 
 Status: the order is radar (bottom), TM1637, OLED; the D1 mini stands behind the radar and TM1637
 wiring, USB up, and the cable leaves through the top wall near the back (R1 to R5 met). Not yet checked against the real monitor.
