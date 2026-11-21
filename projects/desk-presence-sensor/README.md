@@ -113,3 +113,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 
 - Perma-proto or a PCB later would cut the depth to ~20: `jumper_h` and `bend` set it.
 - Firmware: sitting timer on the TM1637, stats on the OLED.
+- Owner's current thinking, 2026-11-21, not yet modelled: the front face and walls become one deep shell, held
+  by gentle snaps (pencil) on a shallow back plate taped to the arm. The D1 mini moves to the bottom, near the radar,
+  maybe lying flat and slid into side grooves; a part of its own holds it, never the taped back.
+  Side by side in the face plane it can't fit: radar 22 + D1 25.6 > 42 inside. Flat as a shelf behind the radar, it can (34.2 across).
