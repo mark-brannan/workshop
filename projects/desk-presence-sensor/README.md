@@ -70,7 +70,8 @@ pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
    window, four M2.5 x 6 self-tappers from behind.
 2. OLED: glass to the window, four M2 self-tappers from behind.
 3. Radar: antenna side to the plate in its rib pocket, a dab of hot glue at two corners.
-4. D1 mini: drop it onto its four pillars, component side toward the plate, USB end up. It covers
+4. D1 mini: drop it onto its four pillars, component side toward the plate, USB end up; a post in the
+   tray presses it on, so stick a 1 mm foam tape pad on the post's tip. It covers
    the radar and the top of the OLED, so the displays go on first; to reach a screw later, unplug it.
 5. Jumpers per the table, then push the plate into the tray until the barbs click. Tape the back
    to the arm.

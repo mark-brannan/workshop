@@ -69,7 +69,8 @@ d1_front_z = 24;     // board's component side, from the plate front: clears the
 d1_usb_over = 1;     // socket proud of the board end, guessed
 d1_shield_h = 3.2;   // ESP-12 can above the board, guessed
 d1_shield_dy = -13;  // shield centre from the board's top (USB) end, guessed
-tape_t = 1;          // foam tape between the can and its pad
+tape_t = 1;          // foam tape on the pusher post's tip, pressing the D1's back
+pusher_d = 6;        // post from the tray back that clamps the D1 onto its pillars
 d1_slack = 0.5;
 d1_rib_t = 1.2;
 d1_rib_leg = 5;
@@ -238,6 +239,9 @@ module tray_placed() {
                 for (y = hook_ys)  // snap barbs on the leaves: 45 deg lead-in and catch
                     along_y(sx, y, leaf_w, [[0, 0], [barb, barb], [0, 2*barb]]);
             }
+            // Pusher post: between the two header rows, it presses the D1 onto its pillars through foam tape.
+            d1_back = plate_z0 + d1_front_z + d1_t;
+            translate([0, d1_cy, d1_back + tape_t]) cylinder(d = pusher_d, h = shell_h - d1_back - tape_t + 0.01);
         }
         for (sx = [-1, 1], y = hook_ys, d = [-1, 1])   // two slits free each leaf, open to the rim
             translate([sx*in_w/2, y + d*(leaf_w/2 + slit/2), leaf_len/2 - 0.5])
