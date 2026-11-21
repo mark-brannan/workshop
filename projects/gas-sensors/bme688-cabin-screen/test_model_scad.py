@@ -63,14 +63,14 @@ def test_overhead_holes(oh_body, oh_assembly):
     for sy in (-1, 1):
         assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
     seat = P["plate_t"] + P["pad_h"]
-    bottom = P["oh_insert_l"] + P["oh_insert_extra"]
-    for x, y in ((-P["hole_dy"] / 2, P["hole_dx"] / 2), (P["hole_dy"] / 2, -P["hole_dx"] / 2)):   # board inserts, one diagonal
-        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(seat - bottom, abs=0.05)
-    for x, y in ((P["hole_dy"] / 2, P["hole_dx"] / 2), (-P["hole_dy"] / 2, -P["hole_dx"] / 2)):   # the other two holes are free
-        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)
+    bottom = P["oh_pilot_l"]
+    for sx in (-1, 1):       # board pilot holes, all four corners, blind
+        for sy in (-1, 1):
+            hit = ray_hits(oh_body, [sx * P["hole_dy"] / 2, sy * P["hole_dx"] / 2, 30], [0, 0, -1])
+            assert hit[0][2] == pytest.approx(seat - bottom, abs=0.05)
     by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
     bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
-    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' inserts through the floor
+    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' pilot holes through the floor
         assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
 
 

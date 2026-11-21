@@ -53,13 +53,12 @@ oh_tie_roof = 1.2;   // block above the tunnel's crown; the cable lies on it
 oh_tie_len = 2.4;    // block along y, the tie's run under the cable
 oh_tie_side = 0.8;   // block inboard of the tunnel; the long wall is its other side
 oh_tie_flare = 0.6;  // chamfer round each tunnel mouth, so the tie finds its way in
-oh_insert_d = 3.2;   // M2 heat-set insert hole; insert size a guess (3.2 x 4) until the bag or calipers say
-oh_insert_l = 4;
-oh_insert_extra = 0.5; // hole past the insert's end, for the plastic it pushes down
-oh_screw_d = 2.4;    // M2 clearance in the cover's floor
-oh_cboss_d = 6.2;      // cover bosses round the inserts
+oh_pilot_d = 2.2;    // M2.5 self-tapping pilot; printed holes come out small, so the first print is the test
+oh_pilot_l = 4.5;   // blind; an M2.5 x 6 through the board (1.6) reaches 0.1 short of the bottom
+oh_screw_d = 2.9;    // M2.5 clearance in the cover's floor
+oh_cboss_d = 6.2;      // cover bosses round the pilot holes
 oh_round_r = 1.5;    // every outside convex edge but the bed's; 2.5 or more would reach the cable exit
-oh_pad_d = 6;        // board seat: insert pads under two holes on one diagonal
+oh_pad_d = 6;        // board seat: pads under the four holes
 oh_lip = 1.2;        // seat ledge reaches this far in under the board's edge
 oh_seat_wall = 1.2;  // seat walls round the board, flush with its face; stop it turning on two screws
 oh_qwiic_w = 8;      // gap in each short seat wall for the Qwiic plug, on the centre line
@@ -83,14 +82,14 @@ module mount_holes() {
 oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
-oh_posts = [[-hole_dy/2, hole_dx/2], [hole_dy/2, -hole_dx/2]];      // board screws, on the same diagonal
+oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];   // board screws, all four holes
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
 oh_tie_top = plate_t + oh_tie_h + oh_tie_roof;                // 5.8: the cable's bed at the exit
 oh_fillet_r = roof_y - (oh_exit_y + oh_tie_len/2);             // 1.7: wall-foot fillets; inside the end wall it starts at the tunnel's far mouth
 oh_pocket = [board_w + 2*fit, board_l + 2*fit];
 
-// The board's seat: a ledge under its edges, insert pads under two holes, walls to its face
+// The board's seat: a ledge under its edges, pads under the four holes, walls to its face
 // with a gap in each short wall for the Qwiic plug.
 module oh_seat() {
     linear_extrude(oh_seat_z) difference() {
@@ -154,7 +153,7 @@ module inner_fillet(r = oh_fillet_r, d = 0.05) {
     }
 }
 
-module oh_insert_hole(top) { translate([0, 0, top - oh_insert_l - oh_insert_extra]) cylinder(d = oh_insert_d, h = oh_insert_l + oh_insert_extra + 1); }
+module oh_pilot_hole(top) { translate([0, 0, top - oh_pilot_l]) cylinder(d = oh_pilot_d, h = oh_pilot_l + 1); }
 
 module overhead_body() {
     difference() {
@@ -184,8 +183,8 @@ module overhead_body() {
             }
             translate([in_w/2 - oh_tie_w - oh_tie_flare - 1, 0, plate_t - eps]) cube([oh_tie_w + oh_tie_flare + 1.2, house_h, oh_tie_top]);
         }
-        for (b = oh_bosses) translate(b) oh_insert_hole(face_z);
-        for (p = oh_posts) translate(p) oh_insert_hole(oh_seat_z);
+        for (b = oh_bosses) translate(b) oh_pilot_hole(face_z);
+        for (p = oh_posts) translate(p) oh_pilot_hole(oh_seat_z);
     }
 }
 
