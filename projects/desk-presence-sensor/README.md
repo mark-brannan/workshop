@@ -4,38 +4,46 @@ Symphony: none yet
 
 Purpose: a sitting timer for the desk. An LD2410C radar senses you in the chair, a D1 mini
 (ESP8266) counts, the TM1637 shows the timer and the OLED shows troubleshooting and other stats.
-The box is 45 wide to match the monitor arm stem. Its flat back tapes to the arm, facing the chair.
-The D1 mini lies across the box behind the displays, so the box is short and deep.
-The sides are smooth. The only openings are the two display windows and the USB plug in the +X side wall.
-Not sealed against water or dust.
+The box is 45 wide to match the monitor arm stem. Its flat back tapes to the arm with double-sided
+tape, facing the chair, so nothing goes through the back: the **front plate** carries every board and
+the **back tray** clips over it. The D1 mini stands behind the displays, USB up, so the box is short
+and deep. The only openings are the two display windows and the USB plug in the top. Not sealed.
 
-Outside: 45 x 85 x 49 mm (shell 46.5 deep + 2.5 cover); was 45 x 117 x 33 with the D1 mini beside the displays.
+Outside: 45 x 94 x 50 mm (was 45 x 117 x 33 with the D1 mini beside the displays).
 
 ## Prints, PETG, no supports
 
 | Part | File | Orientation | Overhangs |
 |---|---|---|---|
-| Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the face plus 2 mm of posts and ribs |
-| Shell | `model.scad` | face down | front edge 45° chamfer; USB hole in the +X wall has a 45° gabled roof; everything else rises from the face |
-| Cover | `part-cover.scad` | tape face down | countersinks open toward the bed at 45° |
+| Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the plate plus 2 mm of posts and ribs |
+| Front plate | `model.scad` | front face down | everything rises from the face; no overhangs |
+| Back tray | `part-tray.scad` | tape face down | stop ribs and snap barbs have 45° undersides; USB hole has a 45° gabled roof toward the rim |
+
+## How it goes together
+
+```
+ side section, front at the left
+ plate    boards            Dupont housings        D1 mini + its jumpers   tape face
+ |=====|  radar/OLED/TM  |  up to z ~ 19  |      D1 at z = 24, USB up  |  (flat, taped)
+ 0    1.3                                         ^ four pillars carry its corners
+```
+
+The plate pushes into the tray's open front, past four snap leaves (a wall strip freed by two slits,
+a 45° barb on its end), until its back face meets four stop ribs. The barbs hold it. To open,
+pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
 
 ## Layout (front view, top to bottom)
 
 ```
- front view                          side section (+X wall right)
- +-------------+                     face  boards   Dupont      D1 mini
- | D1 mini  |  |  behind everything  |=====|radar,OLED|housings |==[usb]== USB out the +X wall
- |  (behind)|  |  (dashed outline)   z 0   2-5       to ~19     24
- |  (radar)    |  no hole: looks through the 1.5 mm face
+ +----[usb]----+   USB plug through a gabled hole in the top wall
+ |  D1 mini    |   behind everything at z = 24; four corner pillars, L-ribs; starts at the OLED header edge
+ |  (radar)    |   no hole: looks through the 1.5 mm plate; rib pocket, dab of hot glue
  |  +-------+  |
- |  | OLED  |  |  window 24 x 13; four M2 x 4-5 self-tappers into posts
+ |  | OLED  |  |   window 24 x 13; four M2 x 4-5 self-tappers into posts
  |  +-------+  |
- | [ 88:88 ]   |  TM1637 window; four M2.5 x 6 self-tappers into corner posts
+ | [ 88:88 ]   |   TM1637 window; four M2.5 x 6 self-tappers into corner posts
  +-------------+
 ```
-The D1 mini lies across the box at z = 24 from the face, resting on four pillars at its ends with
-L-ribs to locate it, over the radar and the top of the OLED. Its Dupont jumpers go straight back.
-To reach a display screw, unplug the D1 mini and lift it out.
 
 ## Assembly
 
@@ -43,10 +51,11 @@ To reach a display screw, unplug the D1 mini and lift it out.
    wires to the joints on the board's back (the bent pins can't fit at 45 wide). Display into its
    window, four M2.5 x 6 self-tappers from behind.
 2. OLED: glass to the window, four M2 self-tappers from behind.
-3. Radar: antenna side to the face in its rib pocket, a dab of hot glue at two corners.
-4. D1 mini: drop it onto its four pillars, component side toward the face, USB end toward +X.
-5. Jumpers per the table, USB in through the +X wall, cover on: four M3 countersunk into heat-set
-   inserts in the side posts. Tape the cover to the arm.
+3. Radar: antenna side to the plate in its rib pocket, a dab of hot glue at two corners.
+4. D1 mini: drop it onto its four pillars, component side toward the plate, USB end up. It covers
+   the radar and the top of the OLED, so the displays go on first; to reach a screw later, unplug it.
+5. Jumpers per the table, then push the plate into the tray until the barbs click. Tape the back
+   to the arm.
 
 ## Wiring (Dupont, D1 mini side)
 
