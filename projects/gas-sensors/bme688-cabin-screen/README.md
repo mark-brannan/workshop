@@ -22,7 +22,7 @@ supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves 
 two M2 screws on a diagonal, into heat-set inserts in the body.
 
 The board sits in a seat: a 1.2 mm ledge under its edges, walls round it flush with its face, and an
-8 mm gap in each short wall for the Qwiic plug. Two M2 screws on one diagonal go into heat-set inserts in
+10 mm gap in each short wall for the Qwiic plug. Two M2 screws on one diagonal go into heat-set inserts in
 pads under the board; the walls stop it turning, so the other two holes stay empty.
 
 | Overhead hardware | Count | Size |

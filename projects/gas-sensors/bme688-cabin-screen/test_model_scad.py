@@ -131,7 +131,7 @@ def test_overhead_volume_windows(oh_body, oh_cover):
     assert 1800 < oh_cover.volume < 2500
 
 
-def test_overhead_holes(oh_body, oh_assembly):
+def test_overhead_holes(oh_body, oh_cover):
     for sy in (-1, 1):
         assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
     seat = P["plate_t"] + P["pad_h"]
@@ -142,8 +142,12 @@ def test_overhead_holes(oh_body, oh_assembly):
         assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(P["plate_t"], abs=0.05)
     by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
     bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
-    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' inserts through the floor
-        assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
+    for x, y in ((-bx, by), (bx, -by)):      # the body's inserts
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
+    for x, y in ((-bx, by), (bx, -by)):      # the cover as printed is turned over (y mirrored): its screw holes sit on the other diagonal in the model, so they meet the inserts
+        assert not ray_hits(oh_cover, [x, y, 30], [0, 0, -1])
+    for x, y in ((-bx, -by), (bx, by)):
+        assert ray_hits(oh_cover, [x, y, 30], [0, 0, -1])
 
 
 def test_overhead_seat(oh_body):
