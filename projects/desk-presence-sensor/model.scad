@@ -58,13 +58,13 @@ rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
 
 /* [D1 mini, top] (vendor drawing, not calipered) */
-d1_l = 34.2;         // Y, USB end up
-d1_w = 25.6;         // X
+d1_l = 34.2;         // X, USB end toward +X; the D1 lies across the box behind the displays
+d1_w = 25.6;         // Y
 d1_t = 1;
-d1_front_z = 8;      // board's component side, from the outer face
+d1_front_z = 24;     // board's component side, from the outer face: clears the radar and OLED Dupont housings (top at ~19)
 d1_usb_over = 1;     // socket proud of the board end, guessed
 d1_shield_h = 3.2;   // ESP-12 can above the board, guessed
-d1_shield_dy = -13;  // shield centre from the board's top (USB) end, guessed
+d1_shield_dy = -13;  // shield centre from the board's USB end, guessed
 tape_t = 1;          // foam tape between the can and its pad
 d1_slack = 0.5;
 d1_rib_t = 1.2;
@@ -96,19 +96,19 @@ in_w = box_w - 2*wall;
 tm_cy = tm_clear + tm_w/2;
 ol_cy = tm_w + 2*tm_clear + gap + ol_h/2;
 rd_cy = ol_cy + ol_h/2 + gap + rd_rib_t + rd_slack + rd_h/2;
-d1_cy = rd_cy + rd_h/2 + rd_slack + rd_rib_t + gap + d1_slack + d1_l/2;
-in_h = d1_cy + d1_l/2 + d1_usb_over;
+d1_cy = ol_cy + ol_h/2 + d1_slack + d1_w/2;      // D1 starts at the OLED header edge, covers the radar
+in_h = d1_cy + d1_w/2 + d1_slack + d1_rib_t;
 out_h = in_h + 2*wall;
 shell_h = d1_front_z + d1_t + jumper_h + bend;   // rim, from the outer face
 box_d = shell_h + cover_t;
 tm_board_z = tm_recess + tm_disp_h;
 ol_board_z = face_t + ol_gap + ol_glass_h;
 usb_z = d1_front_z - 1.4;                        // socket centre: 2.8 tall on the board front
-pad_top = d1_front_z - d1_shield_h - tape_t;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
 ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
 post_x = in_w/2 - post_d/2 + 0.5;               // fused into the side walls
-posts = [for (sx = [-1, 1], y = [ol_cy, d1_cy - d1_l/2 + 4]) [sx*post_x, y]];
+// Cover screws beside the OLED: the D1 lies across everything above it.
+posts = [for (sx = [-1, 1], dy = [-9, 9]) [sx*post_x, ol_cy + dy]];
 cy0 = in_h/2;                                    // box centre, Y
 
 module rrect(w, h, r) { offset(r = r) square([w - 2*r, h - 2*r], center = true); }
@@ -140,13 +140,20 @@ module ol_posts_2d() {
     }
 }
 
-// Four L-ribs locate the D1 mini's corners; its sides stay open for the reset button.
+// The D1 mini lies across the box behind the displays. Four corner pillars (fused to the side
+// walls, clear of the OLED and radar) carry its ends; L-ribs on top of them locate it.
 module d1_ribs_2d() {
-    ix = d1_w/2 + d1_slack; iy = d1_l/2 + d1_slack; t = d1_rib_t;
+    ix = d1_l/2 + d1_slack; iy = d1_w/2 + d1_slack; t = d1_rib_t;
     for (sx = [-1, 1], sy = [-1, 1]) translate([0, d1_cy]) scale([sx, sy]) {
         translate([ix, iy - d1_rib_leg + t]) square([t, d1_rib_leg]);
         translate([ix - d1_rib_leg + t, iy]) square([d1_rib_leg, t]);
     }
+}
+module d1_pillars_2d() {
+    x0 = d1_l/2 - 1;   // 1 mm of board end rests on the pillar
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*(x0 + in_w/2)/2, d1_cy + sy*(d1_w/2 - 2.5)])
+            square([in_w/2 - x0 + 0.01, 5], center = true);
 }
 
 module rd_ribs_2d() {
@@ -157,12 +164,12 @@ module rd_ribs_2d() {
     }
 }
 
-// The USB plug hole in the top wall: a 45 deg gable over the plug, no flat ceiling.
+// The USB plug hole in the +X wall: a 45 deg gable over the plug, no flat ceiling.
 module usb_hole() {
-    translate([0, in_h - 1, 0]) rotate([-90, 0, 0]) linear_extrude(wall + 2)
-        translate([0, -usb_z]) union() {
+    translate([in_w/2 - 1, d1_cy, usb_z]) rotate([90, 0, 90]) linear_extrude(wall + 2)
+        union() {
             square([usb_w, usb_h], center = true);
-            translate([0, -usb_h/2]) rotate(45) square(usb_w/sqrt(2), center = true);
+            translate([0, usb_h/2]) rotate(45) square(usb_w/sqrt(2), center = true);
         }
 }
 
@@ -179,9 +186,8 @@ module shell() {
             linear_extrude(tm_board_z) tm_posts_2d();
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
+            linear_extrude(d1_front_z) d1_pillars_2d();
             linear_extrude(d1_front_z + d1_t + 1) d1_ribs_2d();
-            translate([0, d1_cy + d1_l/2 + d1_shield_dy, 0]) linear_extrude(pad_top)
-                square([9, 9], center = true);
             for (p = posts) translate(p) linear_extrude(shell_h) hull() {
                 circle(d = post_d);
                 translate([sign(p[0])*(in_w/2 + 0.5) - p[0], 0]) square([1, post_d], center = true);
@@ -221,15 +227,15 @@ module standins() {
     color("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
     color("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(1.2) square([ol_w, ol_h], center = true);
     color("orchid") translate([0, rd_cy, face_t]) linear_extrude(1) square([rd_w, rd_h], center = true);
-    color("royalblue") translate([0, d1_cy, d1_front_z]) linear_extrude(d1_t) square([d1_w, d1_l], center = true);
+    color("royalblue") translate([0, d1_cy, d1_front_z]) linear_extrude(d1_t) square([d1_l, d1_w], center = true);
     color("dimgray") {
         translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
         translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
-        translate([0, d1_cy + d1_l/2 + d1_shield_dy, d1_front_z - d1_shield_h]) linear_extrude(d1_shield_h) square([12, 15], center = true);
+        translate([d1_l/2 + d1_shield_dy, d1_cy, d1_front_z - d1_shield_h]) linear_extrude(d1_shield_h) square([15, 12], center = true);
     }
     color("black") for (sx = [-1, 1])   // D1 jumper housings, two rows of eight
-        translate([sx*11.43, d1_cy, d1_front_z + d1_t]) linear_extrude(jumper_h) square([2.54, 20.3], center = true);
-    color("silver") translate([0, in_h + wall, usb_z]) rotate([-90, 0, 0]) linear_extrude(18) square([10.5, 7], center = true);
+        translate([0, d1_cy + sx*11.43, d1_front_z + d1_t]) linear_extrude(jumper_h) square([20.3, 2.54], center = true);
+    color("silver") translate([in_w/2 + wall, d1_cy, usb_z]) rotate([90, 0, 90]) linear_extrude(18) square([10.5, 7], center = true);
 }
 
 // Review views of the parts against each other (the cover hides everything when it is on).

@@ -17,8 +17,8 @@ IN_W = P["box_w"] - 2 * P["wall"]
 TM_CY = P["tm_clear"] + P["tm_w"] / 2
 OL_CY = P["tm_w"] + 2 * P["tm_clear"] + P["gap"] + P["ol_h"] / 2
 RD_CY = OL_CY + P["ol_h"] / 2 + P["gap"] + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
-D1_CY = RD_CY + P["rd_h"] / 2 + P["rd_slack"] + P["rd_rib_t"] + P["gap"] + P["d1_slack"] + P["d1_l"] / 2
-IN_H = D1_CY + P["d1_l"] / 2 + P["d1_usb_over"]
+D1_CY = OL_CY + P["ol_h"] / 2 + P["d1_slack"] + P["d1_w"] / 2   # the D1 lies across the box, USB toward +X
+IN_H = D1_CY + P["d1_w"] / 2 + P["d1_slack"] + P["d1_rib_t"]
 SHELL_H = P["d1_front_z"] + P["d1_t"] + P["jumper_h"] + P["bend"]
 TM_BOARD_Z = P["tm_recess"] + P["tm_disp_h"]
 OL_BOARD_Z = P["face_t"] + P["ol_gap"] + P["ol_glass_h"]
@@ -84,24 +84,36 @@ def test_board_posts_blind_pilots_at_board_height(shell):
                 assert np.isclose(down(shell, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)
 
 
-def test_usb_hole_in_top_wall(shell):
+def test_usb_hole_in_side_wall(shell):
     usb_z = P["d1_front_z"] - 1.4
-    top_hit = lambda x, z: ray_hits(shell, (x, IN_H + 20, z), (0, -1, 0))
-    assert top_hit(0, usb_z)[0][1] < IN_H  # through the top wall
-    assert np.isclose(top_hit(P["usb_w"] / 2 + 2, usb_z)[0][1], IN_H + P["wall"], atol=0.05)
-    assert usb_z - P["usb_h"] / 2 > P["face_t"]  # plug clears the face
+    side = lambda y, z: ray_hits(shell, (IN_W / 2 + 20, y, z), (-1, 0, 0))
+    assert side(D1_CY, usb_z)[0][0] < IN_W / 2  # through the +X wall
+    assert np.isclose(side(D1_CY + P["usb_w"] / 2 + 2, usb_z)[0][0], IN_W / 2 + P["wall"], atol=0.05)
+    assert usb_z - P["usb_h"] / 2 > P["d1_front_z"] - 6  # plug sits at the D1, behind the displays
+
+
+
+def test_d1_pillars_carry_its_ends(shell):
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x = sx * (P["d1_l"] / 2 + 0.5)
+            y = D1_CY + sy * (P["d1_w"] / 2 - 2.5)
+            assert np.isclose(down(shell, x - sx * 1.0, y)[0][2], P["d1_front_z"], atol=0.05)
 
 
 def test_four_insert_posts(shell):
     post_x = IN_W / 2 - P["post_d"] / 2 + 0.5
     for sx in (-1, 1):
-        for y in (OL_CY, D1_CY - P["d1_l"] / 2 + 4):
+        for dy in (-9, 9):
+            y = OL_CY + dy
             assert np.isclose(down(shell, sx * post_x, y)[0][2], SHELL_H - P["insert_depth"], atol=0.05)
             assert np.isclose(down(shell, sx * post_x + P["insert_d"] / 2 + 0.4, y)[0][2], SHELL_H, atol=0.05)
+            assert abs(post_x) - P["post_d"] / 2 > P["ol_w"] / 2  # clear of the OLED board
 
 
 def test_jumper_depth():
     assert SHELL_H - (P["d1_front_z"] + P["d1_t"] + P["jumper_h"]) >= 4
+    assert 30 < SHELL_H < 50
 
 
 def test_cover_flat_back_and_countersinks(cover):
@@ -110,4 +122,4 @@ def test_cover_flat_back_and_countersinks(cover):
     assert np.allclose(cover.bounds, [[x0, y0, 0], [x1, y1, P["cover_t"] + P["lip_h"]]], atol=0.05)
     assert len(ray_hits(cover, (0, IN_H / 2, -10), (0, 0, 1))) > 0  # solid middle: the tape face
     post_x = IN_W / 2 - P["post_d"] / 2 + 0.5
-    assert len(down(cover, post_x, OL_CY)) == 0  # screw hole through
+    assert len(down(cover, post_x, OL_CY + 9)) == 0  # screw hole through

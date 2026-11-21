@@ -5,32 +5,37 @@ Symphony: none yet
 Purpose: a sitting timer for the desk. An LD2410C radar senses you in the chair, a D1 mini
 (ESP8266) counts, the TM1637 shows the timer and the OLED shows troubleshooting and other stats.
 The box is 45 wide to match the monitor arm stem. Its flat back tapes to the arm, facing the chair.
-The sides are smooth. The only openings are the two display windows and the USB plug in the top.
+The D1 mini lies across the box behind the displays, so the box is short and deep.
+The sides are smooth. The only openings are the two display windows and the USB plug in the +X side wall.
 Not sealed against water or dust.
 
-Outside: 45 x 117.4 x 33 mm (shell 30.5 deep + 2.5 cover).
+Outside: 45 x 85 x 49 mm (shell 46.5 deep + 2.5 cover); was 45 x 117 x 33 with the D1 mini beside the displays.
 
 ## Prints, PETG, no supports
 
 | Part | File | Orientation | Overhangs |
 |---|---|---|---|
 | Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the face plus 2 mm of posts and ribs |
-| Shell | `model.scad` | face down | front edge 45° chamfer; USB hole in the top wall has a 45° gabled roof; everything else rises from the face |
+| Shell | `model.scad` | face down | front edge 45° chamfer; USB hole in the +X wall has a 45° gabled roof; everything else rises from the face |
 | Cover | `part-cover.scad` | tape face down | countersinks open toward the bed at 45° |
 
 ## Layout (front view, top to bottom)
 
 ```
- +----[usb]----+   USB plug through a gabled hole in the top wall
- |  D1 mini    |   component side toward the face; foam tape on the ESP can, four corner ribs
- |             |
- |  (radar)    |   no hole: looks through the 1.5 mm face; rib pocket, dab of hot glue
+ front view                          side section (+X wall right)
+ +-------------+                     face  boards   Dupont      D1 mini
+ | D1 mini  |  |  behind everything  |=====|radar,OLED|housings |==[usb]== USB out the +X wall
+ |  (behind)|  |  (dashed outline)   z 0   2-5       to ~19     24
+ |  (radar)    |  no hole: looks through the 1.5 mm face
  |  +-------+  |
- |  | OLED  |  |   window 24 x 13; four M2 x 4-5 self-tappers into posts
+ |  | OLED  |  |  window 24 x 13; four M2 x 4-5 self-tappers into posts
  |  +-------+  |
- | [ 88:88 ]   |   TM1637 window; four M2.5 x 6 self-tappers into corner posts
+ | [ 88:88 ]   |  TM1637 window; four M2.5 x 6 self-tappers into corner posts
  +-------------+
 ```
+The D1 mini lies across the box at z = 24 from the face, resting on four pillars at its ends with
+L-ribs to locate it, over the radar and the top of the OLED. Its Dupont jumpers go straight back.
+To reach a display screw, unplug the D1 mini and lift it out.
 
 ## Assembly
 
@@ -39,9 +44,8 @@ Outside: 45 x 117.4 x 33 mm (shell 30.5 deep + 2.5 cover).
    window, four M2.5 x 6 self-tappers from behind.
 2. OLED: glass to the window, four M2 self-tappers from behind.
 3. Radar: antenna side to the face in its rib pocket, a dab of hot glue at two corners.
-4. D1 mini: a square of 1 mm foam tape on the ESP-12 can, press it onto the pad, USB end to the
-   top wall hole.
-5. Jumpers per the table, USB in through the top, cover on: four M3 countersunk into heat-set
+4. D1 mini: drop it onto its four pillars, component side toward the face, USB end toward +X.
+5. Jumpers per the table, USB in through the +X wall, cover on: four M3 countersunk into heat-set
    inserts in the side posts. Tape the cover to the arm.
 
 ## Wiring (Dupont, D1 mini side)
