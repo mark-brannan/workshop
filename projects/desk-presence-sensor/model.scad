@@ -94,8 +94,10 @@ rail_x = 13.4;       // windows run between the side rails: D1 edge plus room fo
 seat = 3;            // D1 resting on the tray at each short end, Y
 seat_x = 9.8;        // top seats start here (corners only: the socket and CH340 sit between)
 lip_t = 1.6;         // lip wall, Y
-lip_hw = 8;          // lip half width, X
-catch = 0.6;         // lip and hook reach over the board
+lip_hw = 8;          // centre stop block half width, X; the corner hooks run outward from here
+catch = 0.6;         // top hook reach over the board
+lip_catch = 0.8;     // lower corner hook reach over the board (deeper: two short hooks hold the whole edge)
+stop_rec = 1.0;      // guessed (owner: under 1 mm): pocket in the seat by the stop block, clear of what sticks out of the wifi module under the board
 hook_x0 = 8;         // hook from here outward, clear of the plug
 hook_w = 4.3;
 hook_t = 1.0;        // post, Y; flexes away from the board
@@ -244,20 +246,29 @@ module hook_profile() {   // (Y, Z): post, catch with a 45 deg underside and a 4
 }
 
 module lip_profile() {    // (Y, Z): wall with a 45 deg underside catch over the board's lower edge
-    w = d1_y0 - d1_clr; tip = w + catch + d1_clr;
-    polygon([[tray_y0, tray_z0], [w, tray_z0], [w, catch_z], [tip, catch_z + catch + d1_clr],
-             [tip, catch_z + catch + d1_clr + 0.4], [tray_y0, catch_z + catch + d1_clr + 0.4]]);
+    w = d1_y0 - d1_clr; tip = w + lip_catch + d1_clr;
+    polygon([[tray_y0, tray_z0], [w, tray_z0], [w, catch_z], [tip, catch_z + lip_catch + d1_clr],
+             [tip, catch_z + lip_catch + d1_clr + 0.4], [tray_y0, catch_z + lip_catch + d1_clr + 0.4]]);
 }
 
 module tray_placed() {
-    translate([0, 0, tray_z0]) linear_extrude(tray_t) tray_frame_2d();
+    difference() {
+        translate([0, 0, tray_z0]) linear_extrude(tray_t) tray_frame_2d();
+        translate([-lip_hw, d1_y0, tray_z0 + tray_t - stop_rec]) cube([2*lip_hw, seat, stop_rec + 1]);   // seat pocket by the stop block
+    }
     for (sx = [-1, 1]) {
         s = xs(sx, seat_x, rail_x + 0.01); r = xs(sx, hook_x0, rail_x + 0.01); p = xs(sx, hook_x0, hook_x0 + hook_w);
         translate([s[0], d1_y1 - seat, tray_z0]) cube([s[1] - s[0], seat_y1 - d1_y1 + seat, tray_t]);    // top seat
         translate([r[0], seat_y1 - 0.01, tray_z0]) cube([r[1] - r[0], tm_win_y1 - seat_y1 + 0.02, hook_root]);  // hook root
         yz(p[0], p[1]) hook_profile();
     }
-    yz(-lip_hw, lip_hw) lip_profile();
+    // lower edge: the lip profile across the full width, its catch cut away in the centre. What is left there is the stop
+    // block (the board's lower edge bears on it, flush with the board's face so the module's can clears it, no overhang);
+    // the two corner hooks stand outside it.
+    difference() {
+        yz(-rail_x, rail_x) lip_profile();
+        translate([-lip_hw, tray_y0 - 1, tray_z0 + tray_t + d1_t]) cube([2*lip_hw, lip_t + 3, 3]);
+    }
     translate([0, 0, tray_z0]) linear_extrude(strap_t) tray_frame_2d(strap = true);   // strap under the plug
 }
 

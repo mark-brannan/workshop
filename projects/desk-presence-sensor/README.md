@@ -41,7 +41,7 @@ printed or checked against the real monitor.
 | Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the plate plus 2 mm of posts and ribs |
 | Shell | `model.scad` | front face down | none: posts and ribs rise from the face; windows and pilots run straight through; cable slot open to the rim |
 | Back plate | `part-back.scad` | tape face down | tab bumps are 45° both faces |
-| D1 tray | `part-tray.scad` | on its front (the face on the TM1637), D1 side up | lip and hook catches have 45° undersides; windows run straight through; hook posts stand free over a 0.6 root layer |
+| D1 tray | `part-tray.scad` | on its front (the face on the TM1637), D1 side up | corner-hook and top-hook catches have 45° undersides; the stop block has no overhang; windows run straight through; hook posts stand free over a 0.6 root layer |
 
 ## How it goes together
 
@@ -58,7 +58,7 @@ display pins, with the four screw pads in them; windows clear the display pins, 
 at the -X end and the D1's underside parts, and the plug passes over a 1.6 mm strap on the front
 face that closes the frame. The TM1637's four screws go tray -> board ->
 post, so the tray needs no fixings of its own. The D1 mini lies on the tray's back, underside to
-the tray, can toward the arm: its lower short edge tucks under a lip, and two hooks at the top
+the tray, can toward the arm: its lower short edge bears on a centre stop block (flush with the board's face, so the wifi module's can clears it) and tucks under two corner hooks either side of it, with a 1 mm pocket in the seat beside the block for whatever sticks out under the module, and two hooks at the top
 corners, beside the USB socket, snap over its upper short edge. The long edges, with the pad rows,
 touch nothing. The USB plug points straight up behind the OLED; the cable lies in the top-wall slot.
 The back plate's four tabs click 0.5 mm bumps into V grooves in the side walls; pry at a corner to open.
@@ -119,7 +119,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | USB plug overmold `plug_w` x `plug_t` x `plug_l`; socket axis `usb_h` | 11 x 7.5 x 18; 1.5 above the board | overmolds vary; **the plug sets the depth** |
 | TM1637 back: joints `tm_joint_h`, display pin rows `tm_pin_row` | 1.5; two rows 10.16 apart, within x -7.1 to 5.6 | typical 0.36" display; the tray's windows assume the rest of the back is bare |
 | Radar back `rd_back` | 3 behind its board | clipped pins plus wire |
-| Hook catch `catch`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
+| Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
 | Snap `bump` | 0.5 | calibration pending |
 | OLED holes, glass | 23.3 x 23.6; glass 26.7 x 19.3, 2.4 thick, centred | generic drawing |
 | OLED active-area offset `ol_win_dy` | 1.5 toward the header | typical module; the gauge shows it |
