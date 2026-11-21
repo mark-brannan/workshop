@@ -135,7 +135,9 @@ def test_tray_screw_holes_through_pads_bear(tray):
 def test_tray_windows(tray):
     assert len(down(tray, 0, TM_CY)) == 0                                # D1 underside and display pins
     assert len(down(tray, -TRAY_HW + 1, 34)) == 0                        # TM1637 header joints
-    assert len(down(tray, 0, TRAY_Y1 - 1)) == 0                          # plug passes the top band
+    strap = down(tray, 0, TRAY_Y1 - 1)                                   # plug passes over the strap
+    assert np.isclose(strap[0][2], P["strap_t"], atol=0.02)
+    assert USB_Z - P["plug_t"] / 2 - TRAY_Z0 - P["strap_t"] >= 1.0        # room under a plug fatter than guessed
     assert np.isclose(down(tray, 0, P["d1_y0"] + 1)[0][2], P["tray_t"], atol=0.02)   # D1 seat, bottom
 
 

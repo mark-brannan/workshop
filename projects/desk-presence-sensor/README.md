@@ -55,7 +55,8 @@ printed or checked against the real monitor.
 
 The tray is a frame. Its front bears on the TM1637's back along two side rails and a band above the
 display pins, with the four screw pads in them; windows clear the display pins, the header joints
-at the -X end, the D1's underside parts and the plug. The TM1637's four screws go tray -> board ->
+at the -X end and the D1's underside parts, and the plug passes over a 1.6 mm strap on the front
+face that closes the frame. The TM1637's four screws go tray -> board ->
 post, so the tray needs no fixings of its own. The D1 mini lies on the tray's back, underside to
 the tray, can toward the arm: its lower short edge tucks under a lip, and two hooks at the top
 corners, beside the USB socket, snap over its upper short edge. The long edges, with the pad rows,

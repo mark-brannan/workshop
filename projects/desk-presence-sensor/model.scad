@@ -101,6 +101,7 @@ hook_w = 4.3;
 hook_t = 1.0;        // post, Y; flexes away from the board
 hook_slot = 0.8;     // free gap either side of the post
 hook_root = 0.6;     // post joins the tray only in this bottom layer
+strap_t = 1.6;       // bed-side strap closing the plug gap; leaves room under a plug fatter than guessed
 hdr_win = [-17.3, 28.5, 40.3];   // TM1637 header joints, -X end: window x from the edge to [0], y [1] to [2]
 
 /* [Back plate and snaps] */
@@ -226,12 +227,12 @@ module shell() {
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side
 // rails, a band above the display pins and the plate below the board, with the screw pads in
 // them. Windows clear the display pins, the header joints, the D1's underside and the plug.
-module tray_frame_2d() {
+module tray_frame_2d(strap = false) {   // strap: the plug pass stops at the top band, closing the frame
     difference() {
         translate([0, (tray_y0 + tray_y1)/2]) rrect(2*tray_hw, tray_y1 - tray_y0, 1);
         translate([-rail_x, d1_y0 + seat]) square([2*rail_x, tm_win_y1 - d1_y0 - seat]);   // D1 underside, display pins
         translate([-tray_hw - 1, hdr_win[1]]) square([hdr_win[0] + tray_hw + 1, hdr_win[2] - hdr_win[1]]);
-        translate([-plug_w/2 - 0.8, tm_win_y1 - 1]) square([plug_w + 1.6, tray_y1]);       // plug passes
+        translate([-plug_w/2 - 0.8, tm_win_y1 - 1]) square([plug_w + 1.6, strap ? 1 : tray_y1]);   // plug passes
         for (h = tm_holes) translate(h) circle(d = tray_hole_d);
     }
 }
@@ -257,6 +258,7 @@ module tray_placed() {
         yz(p[0], p[1]) hook_profile();
     }
     yz(-lip_hw, lip_hw) lip_profile();
+    translate([0, 0, tray_z0]) linear_extrude(strap_t) tray_frame_2d(strap = true);   // strap under the plug
 }
 
 module back() { translate([0, 0, box_d]) rotate([0, 180, 0]) back_placed(); }
