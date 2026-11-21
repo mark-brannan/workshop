@@ -22,7 +22,8 @@ inside measurements: [`enclosure/`](enclosure/README.md).
 - [x] Raised SSD1306 display posts (`model.scad`, tests, overlay)
 - [x] Hex-lightened plate replaces the open frame; every display post on solid plate
 - [x] Tie points worked from above: staples replace the slot pairs that looped under the plate
-- [ ] Print a staple, check a tie threads it
+- [x] Staples softened: rounded edges, flared mouths, flat roof on a punch-out fin
+- [ ] Print a staple, punch out its fin, check a tie threads it
 - [ ] Fit check in the box, then tune the box parameters
 - [ ] Final print or cut, fitted
 
@@ -77,10 +78,11 @@ owner's eyeball numbers. The frame is built to be tuned from a fit check.
   terminal block does not rock the board.
 - Flat underneath, resting on the six bosses. Four pads reach over the no-hole posts, which sit
   about 1 mm lower; a 1 mm stick-on pad on each closes the gap if the plate rocks.
-- Zip-tie strain relief: small rounded staples, 5 x 8.4 mm and 6 mm tall, each with a tunnel the
-  tie passes under, all worked from above with the plate screwed in. Six along the gland-side edge,
-  two on the left end beside the terminal blocks. The tunnel's roof is a 45-degree peak inside the
-  block, so it prints without supports. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
+- Zip-tie strain relief: small staples, 5 x 8.4 mm and 4.5 mm tall, rounded on every edge but the foot,
+  each with a low slot the tie passes under, all worked from above with the plate screwed in. Six along the gland-side edge,
+  two on the left end beside the terminal blocks. The slot is 2 mm high under a flat roof, its mouths flared 0.5 mm
+  so the tie bends over a curve. A fin one extrusion line thick runs down the slot's middle and holds the roof up
+  while it prints; punch it out after. Ties to 3.6 mm wide. The laser profile has no tie points: use stick-on tie mounts.
 - `board_dy` moves the board, rails and standoffs together, away from the
   gland-nut wall.
 - Display tier, a separate flat print (`part-tier-row.scad`), no supports: two TM1637s on 3 mm printed bosses and

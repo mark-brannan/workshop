@@ -148,15 +148,19 @@ LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0
 
 def test_tie_staples_worked_from_above(frame):
     assert len(LOOPS) == 8  # six gland-side, two on the left end
-    assert P["tie_rise"] - P["tie_t"] - P["tie_w"] / 2 >= 1.5  # bar over the tunnel's peak
+    assert P["tie_rise"] - P["tie_t"] - P["tie_round"] - P["tie_mouth"] >= 0.4  # roof keeps a flat band between its top round and the mouth flare
+    off = P["tie_fin"] / 2 + P["tie_w"] / 4  # mid-way across one half of the slot, beside the fin
     for x, y, ux, uy in LOOPS:
-        hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]
+        vx, vy = -uy * off, ux * off
+        hits = [h[2] for h in ray_hits(frame, (x + vx, y + vy, 50), (0, 0, -1))]
         assert np.isclose(hits[0], TIE_TOP, atol=0.02)  # flat top
-        assert np.isclose(hits[1], T + P["tie_t"] + P["tie_w"] / 2, atol=0.02)  # tunnel's peak
-        assert np.isclose(hits[2], T, atol=0.02)  # tunnel floor is the plate top
-        z = T + P["tie_t"] / 2  # through the tunnel along the run: nothing in the way
-        through = ray_hits(frame, (x - ux * 10, y - uy * 10, z), (ux, uy, 0))
+        assert np.isclose(hits[1], T + P["tie_t"], atol=0.02)  # flat roof
+        assert np.isclose(hits[2], T, atol=0.02)  # slot floor is the plate top
+        z = T + P["tie_t"] / 2  # through the slot along the run, beside the fin: nothing in the way
+        through = ray_hits(frame, (x + vx - ux * 10, y + vy - uy * 10, z), (ux, uy, 0))
         assert not any(abs((h[0] - x) * ux + (h[1] - y) * uy) < P["tie_len"] for h in through)
+        fin = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]
+        assert len(fin) == 2 and np.isclose(fin[0], TIE_TOP, atol=0.02)  # the fin fills the slot's centre line, roof to plate
         assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched
 
 
