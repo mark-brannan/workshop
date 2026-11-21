@@ -47,6 +47,8 @@ tie_mouth = 0.5;     // the slot's mouths flare by this radius at the roof and w
 tie_bar_y = -27.7;   // staples along the gland-side edge, foot chamfer clear of the plate's front edge and the tab bevel
 tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
 tie_end_ys = [-10.5, 10.5];  // loops on the left end, between bosses
+tie_right_ys = [-10.5];      // right end: the front one mirrors the left; the back one's place is the tier pad at (70, 10.85)
+tie_back = [[48, 34.2]];     // loops along the back edge, run along X, behind the OLED; foot chamfer clear of the rim
 
 /* [Board position on the floor] */
 board_dx = -20.75;   // left edge just clear of the left fork slots
@@ -180,7 +182,8 @@ keep_rects = concat(
     [[-100, -100, -(boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5, -100, 100, 100]],
     [[-lid_col_x + 1, -100, lid_col_x - 1, tie_bar_y + tie_ly/2 + tie_foot + 1]],   // solid band along the gland side
     [for (x = tie_bar_xs) [x - tie_lx/2 - 1, tie_bar_y - tie_ly/2 - 1, x + tie_lx/2 + 1, tie_bar_y + tie_ly/2 + tie_foot + 1]],
-    [for (y = tie_end_ys) [-bar_x1, y - tie_lx/2 - 1, -(bar_x0 + bar_x1)/2 + tie_ly/2 + 1, y + tie_lx/2 + 1]]);
+    [for (sx = [-1, 1], y = (sx < 0 ? tie_end_ys : tie_right_ys)) let (xc = sx*(bar_x0 + bar_x1)/2) [xc - tie_ly/2 - 1, y - tie_lx/2 - 1, xc + tie_ly/2 + 1, y + tie_lx/2 + 1]],
+    [for (p = tie_back) [p[0] - tie_lx/2 - 1, p[1] - tie_ly/2 - 1, p[0] + tie_lx/2 + 1, p[1] + tie_ly/2 + tie_foot + 1]]);
 keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1]) [sx*post_dx/2, post_dy/2, pad_r]],
     [for (sx = [-1, 1]) [sx*post_dx/2, -post_dy/2 + tab_dy, tab_r]],
@@ -212,7 +215,8 @@ module solid2d() { difference() { outline2d(); lattice2d(); } }
 // Children at each tie loop's centre: the tie runs along local X, the channel's width along local Y.
 module tie_each() {
     for (x = tie_bar_xs) translate([x, tie_bar_y]) children();
-    for (y = tie_end_ys) translate([-(bar_x0 + bar_x1)/2, y]) rotate(90) children();
+    for (sx = [-1, 1], y = (sx < 0 ? tie_end_ys : tie_right_ys)) translate([sx*(bar_x0 + bar_x1)/2, y]) rotate(90) children();
+    for (p = tie_back) translate(p) rotate(180) children();   // foot chamfer faces the rim, as on the gland-side row
 }
 
 // Staple: a block rounded on every edge but its foot, a chamfer at the foot of each leg, and a low
