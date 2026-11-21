@@ -9,7 +9,7 @@ tape, facing the chair, so nothing goes through the back: the **front plate** ca
 the **back tray** clips over it. The D1 mini stands behind the displays, USB up, so the box is short
 and deep. The only openings are the two display windows and the USB plug in the top. Not sealed.
 
-Outside: 45 x 94 x 50 mm (was 45 x 117 x 33 with the D1 mini beside the displays).
+Outside: 45 x 91 x 50 mm (was 45 x 117 x 33 with the D1 mini beside the displays).
 
 ## Requirements
 
