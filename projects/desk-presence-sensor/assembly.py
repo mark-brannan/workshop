@@ -1,9 +1,9 @@
-"""Assembly review sheet for the desk presence sensor: boards against the shell and the lid.
+"""Assembly review sheet for the desk presence sensor: boards, tray and back plate in the shell.
 
     uv run python projects/desk-presence-sensor/assembly.py   ->  out/desk-presence-sensor_assembly_views.png
 
-Panels: the plate with its boards on the bench, exploded out of the tray, sections at x = 0,
-and the translucent tray over the solid plate and boards.
+Panels: the front as seen at the desk, the front see-through (boards and tray behind the face),
+and a side section through a D1 hook, the tray and the D1 mini, with the USB plug behind it.
 """
 import shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -16,7 +16,7 @@ HERE = Path(__file__).parent
 PANELS = [
     ("FRONT: what you see at the desk (+X on the left)", "front", "0,0,300"),
     ("FRONT, see-through: boards behind the face", "front_xray", "0,0,300"),
-    ("SIDE, tray cut away: arm and tape LEFT, you RIGHT", "side_xray", "0,0,300"),
+    ("SIDE, cut through a D1 hook: arm and tape LEFT, you RIGHT", "side_xray", "0,0,300"),
 ]
 
 def main():
