@@ -216,14 +216,12 @@ module cover() {
     }
 }
 
-// Stand-ins for the review render only.
+// Stand-ins for the review render only; one colour per component so they read apart.
 module standins() {
-    color("seagreen") {
-        translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
-        translate([0, ol_cy, ol_board_z]) linear_extrude(1.2) square([ol_w, ol_h], center = true);
-        translate([0, rd_cy, face_t]) linear_extrude(1) square([rd_w, rd_h], center = true);
-        translate([0, d1_cy, d1_front_z]) linear_extrude(d1_t) square([d1_w, d1_l], center = true);
-    }
+    color("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
+    color("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(1.2) square([ol_w, ol_h], center = true);
+    color("orchid") translate([0, rd_cy, face_t]) linear_extrude(1) square([rd_w, rd_h], center = true);
+    color("royalblue") translate([0, d1_cy, d1_front_z]) linear_extrude(d1_t) square([d1_w, d1_l], center = true);
     color("dimgray") {
         translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
         translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
@@ -234,8 +232,19 @@ module standins() {
     color("silver") translate([0, in_h + wall, usb_z]) rotate([-90, 0, 0]) linear_extrude(18) square([10.5, 7], center = true);
 }
 
+// Review views of the parts against each other (the cover hides everything when it is on).
+// Translucent shell and cover so the boards read through them; stand-ins stay solid.
+module ghost(a = 0.18) { color([0.45, 0.6, 0.7, a]) children(); }
+module cover_seated() { translate([0, 0, shell_h + cover_t]) mirror([0, 0, 1]) cover(); }
+module cut_half() {   // remove x > 0 so the stack of boards shows in section
+    difference() { children(); translate([0, -500, -500]) cube([500, 1000, 1000]); }
+}
+
 if (view == "shell") shell();
 else if (view == "cover") cover();
+else if (view == "open") { shell(); standins(); }                                   // no cover
+else if (view == "xray") { ghost() shell(); standins(); ghost() translate([0, 0, 14]) cover_seated(); }
+else if (view == "section") cut_half() { shell(); standins(); cover_seated(); }     // seated, cut at x = 0
 else {
     shell();
     standins();
