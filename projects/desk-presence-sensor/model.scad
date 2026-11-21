@@ -113,7 +113,7 @@ tab_clr = 0.2;       // tab to the wall
 bump = 0.5;          // 45 deg both faces: gentle
 bump_z = 3;          // bump centre in front of the shell rim
 
-view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded
+view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded | layers
 
 /* [Hidden] */
 $fn = 48;
@@ -276,23 +276,45 @@ module back_placed() {
 }
 
 // Stand-ins for the review renders only. cut = true sections each at cut_x, keeping its colour on the cut face.
-module standins(cut = false) {
-    module paint(c) { if (cut) color(c) cut_side() children(); else color(c) children(); }
-    paint("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
-    paint("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
-    paint("orchid") translate([0, rd_cy, face_t]) linear_extrude(rd_t) square([rd_w, rd_h], center = true);
-    paint("black") translate([0, rd_cy + rd_h/2 - 1.5, face_t + rd_t]) linear_extrude(rd_back) square([12.7, 2], center = true);
-    paint("royalblue") translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
-    paint("dimgray") {
-        translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
-        translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+module paint(c, cut) { if (cut) color(c) cut_side() children(); else color(c) children(); }
+module si_radar(cut = false) {
+    paint("orchid", cut) translate([0, rd_cy, face_t]) linear_extrude(rd_t) square([rd_w, rd_h], center = true);
+    paint("black", cut) translate([0, rd_cy + rd_h/2 - 1.5, face_t + rd_t]) linear_extrude(rd_back) square([12.7, 2], center = true);
+}
+module si_tm(cut = false) {
+    paint("seagreen", cut) translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
+    paint("dimgray", cut) translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
+}
+module si_ol(cut = false) {
+    paint("tomato", cut) translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
+    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+}
+module si_d1(cut = false) {
+    paint("royalblue", cut) translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
+    paint("dimgray", cut) {
         translate([-6, d1_y0 + 7, d1_z0 + d1_t]) cube([12, 15, d1_shield_h]);             // ESP-12 can
         translate([-4, d1_y1 - 12, d1_z0 - d1_under]) cube([8, 8, d1_under]);             // CH340, underside
         translate([-4, d1_y1 - 5 + usb_lip, d1_z0 + d1_t]) cube([8, 5, 2*usb_h]);         // USB socket
     }
-    paint("silver") {
+}
+module si_plug(cut = false) {
+    paint("silver", cut) {
         translate([0, plug_y0, usb_z]) rotate([-90, 0, 0]) linear_extrude(plug_l) square([plug_w, plug_t], center = true);
         translate([0, plug_y0 + plug_l, usb_z]) rotate([-90, 0, 0]) cylinder(d = cable_d, h = in_h + wall - d1_y1 - plug_l + 6);
+    }
+}
+module standins(cut = false) { si_radar(cut); si_tm(cut); si_ol(cut); si_d1(cut); si_plug(cut); }
+
+// Exploded along the depth, layer by layer in assembly order, box upright, seen from behind.
+explode = 32;
+module exploded() {
+    rotate([90, 0, 0]) {
+        shell();
+        translate([0, 0, 1*explode]) { si_radar(); si_ol(); }
+        translate([0, 0, 2*explode]) si_tm();
+        translate([0, 0, 3*explode]) color("orange") tray_placed();
+        translate([0, 0, 4.3*explode]) { si_d1(); si_plug(); }
+        translate([0, 0, 6.2*explode]) back_placed();
     }
 }
 
@@ -327,5 +349,6 @@ else if (view == "side_xray") orient("side") { color("lightgray") cut_side() she
 else if (view == "shell") shell();
 else if (view == "back") back();
 else if (view == "tray") tray();
+else if (view == "layers") exploded();
 else if (view == "open") { shell(); standins(); color("orange") tray_placed(); }
 else { shell(); standins(); color("orange") tray_placed(); translate([0, 0, 25]) back_placed(); }
