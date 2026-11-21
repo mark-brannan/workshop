@@ -26,12 +26,12 @@ lip_t = 2;           // lip wall thickness on the three thin sides, outside the 
 
 /* [PSU mounting features] (caliper ~; x right, y toward the back, centred on the footprint, left = left in normal view) */
 hole_d = 3.5;        // M3, easy slip fit; the head bears on the rail side
-slot_w = 3.4;        // the PSU's U slot and pill width (~)
+slot_w = 3.73;       // the pill cut-out width: the PSU's ~3.4 + 0.33 play
 psu_hole_d = 3.83;   // the two holes that meet the PSU's blind holes: hole_d + 0.33
 holes = [[-23.2, -36.7], [-23.55, 30.15]];   // blind holes in the PSU underside; the upper-left one moved 0.5 mm diagonally out (-X, +Y)
 top_hole = [-22.75, 38.7];  // loose M3 hole where the PSU's U slot mates (not a slot in the mount); fit test 1 moved it 0.75 mm toward the centre
 pill = [25, -39];    // closed pill, 5.5 long tip to tip, long axis along Y (guess); fit test 1 moved it 1.5 mm to the outer edge (+X) and 1.5 mm down (-Y)
-pill_len = 5.5;
+pill_len = 5.83;     // 5.5 + 0.33 play
 
 /* [DIN clips] screwed to the back; the rail runs along X, its centre line on y = 0 */
 clip_xs = [-20, 0, 20];      // three clip positions along the rail: one clip at 0, or two at -20 / 20
@@ -65,7 +65,7 @@ module outline() offset(r = -fillet_r) offset(delta = fillet_r) offset(r = corne
 
 // the PSU's pill as a plate cut-out (closed slot); the top hole is a plain loose M3 hole
 module slots2d() {
-    translate(top_hole) circle(d = hole_d);
+    translate(top_hole) circle(d = psu_hole_d);
     hull() for (s = [-1, 1]) translate([pill[0], pill[1] + s*(pill_len - slot_w)/2]) circle(d = slot_w);
 }
 
