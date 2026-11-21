@@ -87,7 +87,7 @@ pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
 
 The radar takes the hardware UART at 256000 baud, so the logger moves to D4 (GPIO2), as in
 [d1-mini-sensor-node](../d1-mini-sensor-node/esphome/node.yaml). Radar OUT is not wired; D5 now
-drives the TM1637. No firmware for this box yet.
+drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 
 ## Measured, and from what
 
