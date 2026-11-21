@@ -11,6 +11,25 @@ and deep. The only openings are the two display windows and the USB plug in the 
 
 Outside: 45 x 94 x 50 mm (was 45 x 117 x 33 with the D1 mini beside the displays).
 
+## Requirements
+
+Owner's, 2026-11-20. Numbered so a change can cite one.
+
+| # | Requirement | Why |
+|---|---|---|
+| R1 | The segmented display (TM1637) is the lowest of the displays | easiest to see at the desk |
+| R2 | The OLED sits just above the segmented display | next easiest to see |
+| R3 | The radar sensor sits low, clear of the monitor | the monitor bezel blocks its view |
+| R4 | The bottom-most position is the segmented display or the radar (R1 and R3 compete for it) | |
+| R5 | The cable comes up and out the back | |
+| R6 | The back is flat and taped to the monitor with double-sided tape: no screws or openings that the tape must cover | |
+| R7 | 45 mm wide, to match the monitor arm stem | |
+| R8 | PETG, no supports | print economy |
+
+Open: where R5's cable leaves (top edge, or through the back near the top), and which of R1 or R3 takes
+the bottom. The current layout (D1, radar, OLED, TM1637 from the top) breaks R3 and R5's intent
+only by putting the radar mid-box; the order is to be redone against R1 to R4.
+
 ## Prints, PETG, no supports
 
 | Part | File | Orientation | Overhangs |
