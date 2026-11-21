@@ -148,6 +148,7 @@ LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0
 
 def test_tie_staples_worked_from_above(frame):
     assert len(LOOPS) == 8  # six gland-side, two on the left end
+    assert P["tie_bar_y"] - (P["tie_w"] / 2 + P["tie_wall"]) - P["tie_foot"] > P["plate_y_lo"]  # foot chamfer stays on the plate, clear of the tab bevel
     assert P["tie_rise"] - P["tie_t"] - P["tie_round"] - P["tie_mouth"] >= 0.4  # roof keeps a flat band between its top round and the mouth flare
     off = P["tie_fin"] / 2 + P["tie_w"] / 4  # mid-way across one half of the slot, beside the fin
     for x, y, ux, uy in LOOPS:

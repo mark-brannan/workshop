@@ -41,9 +41,11 @@ tie_len = 5;         // staple thickness along the tie's run
 tie_wall = 2;        // staple legs either side of the slot
 tie_rise = 4.5;      // staple top above the plate
 tie_round = 0.8;     // the block's edges: vertical and top
+tie_chamfer = 0.5;   // the slot's roof meets its walls on a 45-degree chamfer
+tie_foot = 0.8;      // 45-degree chamfer at the foot of each leg, outside; the mouth faces stay plain, clear of the end bars' screw pockets
 tie_mouth = 0.5;     // the slot's mouths flare by this radius at the roof and walls, so the tie bends over a curve
 tie_fin = 0.45;      // one extrusion line down the slot's middle, holding up the flat roof; punch it out after printing
-tie_bar_y = -28.5;   // staples along the gland-side edge, front face clear of the tab bevel
+tie_bar_y = -27.7;   // staples along the gland-side edge, foot chamfer clear of the plate's front edge and the tab bevel
 tie_bar_xs = [-55, -33, -11, 11, 33, 55];  // evenly along the gland-side edge
 tie_end_ys = [-10.5, 10.5];  // loops on the left end, between bosses
 
@@ -177,8 +179,8 @@ plate_rects = concat(                         // outline as [x0, y0, x1, y1] box
     []);   // the front tabs are front_tab2d
 keep_rects = concat(
     [[-100, -100, -(boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5), 100], [boss_span/2 - slot_reach - slot_in - screw_d/2 - 1.5, -100, 100, 100]],
-    [[-lid_col_x + 1, -100, lid_col_x - 1, tie_bar_y + tie_ly/2 + 1]],   // solid band along the gland side
-    [for (x = tie_bar_xs) [x - tie_lx/2 - 1, tie_bar_y - tie_ly/2 - 1, x + tie_lx/2 + 1, tie_bar_y + tie_ly/2 + 1]],
+    [[-lid_col_x + 1, -100, lid_col_x - 1, tie_bar_y + tie_ly/2 + tie_foot + 1]],   // solid band along the gland side
+    [for (x = tie_bar_xs) [x - tie_lx/2 - 1, tie_bar_y - tie_ly/2 - 1, x + tie_lx/2 + 1, tie_bar_y + tie_ly/2 + tie_foot + 1]],
     [for (y = tie_end_ys) [-bar_x1, y - tie_lx/2 - 1, -(bar_x0 + bar_x1)/2 + tie_ly/2 + 1, y + tie_lx/2 + 1]]);
 keep_discs = concat(   // [x, y, r]
     [for (sx = [-1, 1]) [sx*post_dx/2, post_dy/2, pad_r]],
@@ -214,26 +216,36 @@ module tie_each() {
     for (y = tie_end_ys) translate([-(bar_x0 + bar_x1)/2, y]) rotate(90) children();
 }
 
-// Staple: a block rounded on every edge but its foot, with a low flat-roofed slot along the tie's run.
+// Staple: a block rounded on every edge but its foot, a chamfer at the foot of each leg, and a low
+// flat-roofed slot along the tie's run.
 module tie_loops() {
     r = tie_round;
-    tie_each() translate([0, 0, body_t - 0.01]) hull() for (sx = [-1, 1], sy = [-1, 1])
-        translate([sx*(tie_lx/2 - r), sy*(tie_ly/2 - r), 0]) {
-            cylinder(r = r, h = tie_rise + 0.01 - r, $fn = 32);
-            translate([0, 0, tie_rise + 0.01 - r]) sphere(r = r, $fn = 32);
+    tie_each() translate([0, 0, body_t - 0.01]) {
+        hull() for (sx = [-1, 1], sy = [-1, 1])
+            translate([sx*(tie_lx/2 - r), sy*(tie_ly/2 - r), 0]) {
+                cylinder(r = r, h = tie_rise + 0.01 - r, $fn = 32);
+                translate([0, 0, tie_rise + 0.01 - r]) sphere(r = r, $fn = 32);
+            }
+        hull() {
+            linear_extrude(0.01) offset(r = r, $fn = 32) square([tie_lx - 2*r - 0.2, tie_ly - 2*r + 2*tie_foot - 0.2], center = true);
+            translate([0, 0, tie_foot]) linear_extrude(0.01) offset(r = r, $fn = 32) square([tie_lx - 2*r - 0.2, tie_ly - 2*r - 0.2], center = true);   // 0.1 inside the block: no coincident faces
         }
+    }
 }
 
-// The slot in local coordinates: straight through the middle, each mouth a quarter-round flare
-// at the roof and both walls, built from hulled slices. The floor is the plate, left flat.
+// The slot in local coordinates: straight through the middle, roof corners chamfered, each mouth
+// a quarter-round flare at the roof and both walls, built from hulled slices. The floor is the plate, left flat.
 module tie_slot() {
     n = 8;
     function sl(k) = [tie_lx/2 - tie_mouth + tie_mouth*sin(90*k/n), tie_mouth*(1 - cos(90*k/n))];
-    module slice(x, g) translate([x, 0, (tie_t + g)/2]) cube([0.01, tie_w + 2*g, tie_t + g], center = true);
+    module slice(x, g) {
+        w = tie_w/2 + g; h = tie_t + g; c = tie_chamfer;
+        translate([x, 0, 0]) rotate([90, 0, 90]) linear_extrude(0.01, center = true)
+            polygon([[-w, 0], [w, 0], [w, h - c], [w - c, h], [-w + c, h], [-w, h - c]]);
+    }
     hull() for (sx = [-1, 1]) slice(sx*(tie_lx/2 - tie_mouth), 0);
-    for (sx = [-1, 1], k = [0 : n - 1]) scale([sx, 1, 1]) hull() {
-        slice(sl(k)[0], sl(k)[1]);
-        slice(sl(k + 1)[0] + (k == n - 1 ? 0.02 : 0), sl(k + 1)[1]);
+    for (sx = [-1, 1]) scale([sx, 1, 1]) {
+        for (k = [0 : n - 1]) hull() { slice(sl(k)[0], sl(k)[1]); slice(sl(k + 1)[0], sl(k + 1)[1]); }
     }
 }
 
@@ -277,8 +289,8 @@ module tab_bevel_cut() {
     y0 = plate_y_lo - 0.2;          // the bevel starts just out on the tab: starting at the edge itself left a non-manifold edge
     k = tab_bevel/run;
     rotate([90, 0, 90]) linear_extrude(200, center = true) polygon([
-        [plate_y_lo + 0.5, body_t + k*(plate_y_lo + 0.5 - y0)], [-frame_w/2 - 1, body_t - k*(y0 + frame_w/2 + 1)],
-        [-frame_w/2 - 1, body_t + 1], [plate_y_lo + 0.5, body_t + 1]]);
+        [plate_y_lo - 0.1, body_t + k*(plate_y_lo - 0.1 - y0)], [-frame_w/2 - 1, body_t - k*(y0 + frame_w/2 + 1)],
+        [-frame_w/2 - 1, body_t + 1], [plate_y_lo - 0.1, body_t + 1]]);
 }
 
 // Z = 0 is the top of the rest posts; the holed bosses reach up into the pockets.
