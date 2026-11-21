@@ -2,8 +2,8 @@
 
     uv run python projects/desk-presence-sensor/assembly.py   ->  out/desk-presence-sensor_assembly_views.png
 
-Panels: open from the back at an angle, open straight down, section at x = 0 from +X,
-and a translucent shell and lid with the boards solid (where a lid-mounted display would sit).
+Panels: the plate with its boards on the bench, exploded out of the tray, sections at x = 0,
+and the translucent tray over the solid plate and boards.
 """
 import shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -14,12 +14,12 @@ from shop.scad import OpenSCAD
 
 HERE = Path(__file__).parent
 PANELS = [
-    ("open, from the back, from +Y", "open", "60,240,260"),
-    ("open, from the back, from -Y", "open", "-60,-240,260"),
-    ("open, straight down the back", "open", "0,0,300"),
+    ("bench: plate and boards, from the back", "open", "60,240,260"),
+    ("bench: straight down", "open", "0,0,300"),
+    ("exploded: plate and boards out of the tray front", "exploded", "-250,-200,-120"),
     ("section x = 0, from +X", "section", "300,0,0"),
-    ("section x = 0, from +X, tilted", "section", "300,-120,180"),
-    ("translucent shell and lid, from the back", "xray", "120,-160,230"),
+    ("section x = 0, tilted", "section", "300,-120,180"),
+    ("translucent tray, assembled", "xray", "120,-160,230"),
 ]
 
 def main():
