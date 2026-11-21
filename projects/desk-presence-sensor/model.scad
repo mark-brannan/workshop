@@ -1,17 +1,17 @@
 // Desk presence sensor: D1 mini (ESP8266), LD2410C radar, SSD1306 OLED and a
-// TM1637 4-digit display in one slim box that tapes flat to a monitor arm.
+// TM1637 4-digit display in one box that tapes flat to a monitor arm.
 //
-// Two parts. The FRONT PLATE carries everything: both display windows, the board posts,
-// the radar and D1 mini ribs. It is a flat print, wired open on the bench. The BACK TRAY is
-// the walls, the USB hole and the flat face that tapes to the arm; the plate pushes into its
-// open front and four snap leaves in the long walls catch it against four stop ribs.
+// Three parts. The SHELL is the front face and all four walls in one deep print: both display
+// windows, the board posts, the radar ribs and the D1 mini's slots. The BACK plate is a flat
+// tape face whose four tabs snap gently into the shell's open back. The RETAINER is a strip
+// pressed into the D1's slots behind it, so the taped back never holds a board.
 //
-// Placed (assembled) coordinates: z = 0 is the tray's front rim, +z toward the arm, X across
-// (45 wide), Y up the box as mounted (+Y top, where the USB cable leaves). The plate front sits
-// plate_z0 behind the rim. Top to bottom: D1 mini (USB plug through the top wall), radar (no
-// hole: it looks through the plate), OLED window, TM1637 window. Every board is on Dupont
-// jumpers; the depth is set by the D1 mini's jumpers.
-// plate() prints front face down; tray() prints on its tape face (rotated 180 about Y).
+// Placed coordinates: z = 0 is the outer front face, +z toward the arm, X across (45 wide),
+// Y up as mounted (+Y top). Bottom to top on the face: radar (looks through the face),
+// TM1637, OLED. The D1 mini stands on edge behind the radar and TM1637 wiring, USB end up,
+// near the +X wall; it slides in from the back along a floor slot and a wall ledge slot.
+// The USB cable rises behind the OLED and leaves through a slot in the top wall, open to the back rim.
+// shell() prints face down; back() prints tape face down; retainer() prints on its flat side.
 
 /* [Box] */
 box_w = 45;          // matches the monitor arm stem
@@ -21,7 +21,7 @@ corner_r = 3;        // vertical corners
 face_chamfer = 0.8;  // 45 deg on the front edge (it faces the bed)
 gap = 2.5;           // between board zones, Y
 
-/* [TM1637, bottom] (owner, caliper, from segment-display-enclosure) */
+/* [TM1637, bottom display] (owner, caliper, from segment-display-enclosure) */
 tm_l = 41.5;
 tm_w = 23.5;
 tm_t = 1.6;          // guessed, standard PCB
@@ -38,7 +38,7 @@ tm_pilot_d = 2.2;    // M2.5 self-tapping, calibration pending
 tm_post_d = 5;
 win_clear = 0.3;     // per side around the display body
 
-/* [OLED, middle] (generic drawing, not calipered) */
+/* [OLED, top display] (generic drawing, not calipered) */
 ol_w = 27.3;         // X
 ol_h = 27.8;         // Y, header at the top edge, pins out the back
 ol_hole_dx = 23.3;
@@ -60,65 +60,65 @@ rd_h = 16;           // Y
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
+rd_stack = 19.5;     // radar board + header + Dupont housings, from the outer face, guessed
 
-/* [D1 mini, top] (vendor drawing, not calipered) */
+/* [D1 mini, on edge] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
-d1_w = 25.6;         // X
+d1_w = 25.6;         // Z, front to back
 d1_t = 1;
-d1_front_z = 24;     // board's component side, from the plate front: clears the radar and OLED Dupont housings (top at ~19)
-d1_usb_over = 1;     // socket proud of the board end, guessed
-d1_shield_h = 3.2;   // ESP-12 can above the board, guessed
-d1_shield_dy = -13;  // shield centre from the board's top (USB) end, guessed
-tape_t = 1;          // foam tape on the pusher post's tip, pressing the D1's back
-pusher_d = 6;        // post from the tray back that clamps the D1 onto its pillars
-d1_slack = 0.5;
-d1_rib_t = 1.2;
-d1_rib_leg = 5;
-jumper_h = 16.5;     // header plastic + Dupont housing behind the board
-bend = 5;            // jumper wire bend room before the cover
+d1_shield_h = 3.2;   // ESP-12 can, toward the +X wall, guessed
+can_clr = 0.5;       // can to the wall
+d1_z0 = rd_stack + 1;   // board's front edge: behind the radar's Dupont housings
+slot_clr = 0.25;     // per side, board in its slots
+slot_deep = 1.5;     // board edge engagement, each slot
+d1_y0 = 1.5;         // board's lower edge above the inner floor
+d1_slack = 0.5;      // up, so the board slides
+usb_gap = 13;        // ledge cut away around the USB socket and plug, Z
+cable_slot_w = 8;    // top wall slot, X; the plug fits from inside, the cable lies in it
+jumper_h = 16.5;     // header plastic + Dupont housing beside the board, -X
 
-/* [USB plug] (guessed: overmolds vary) */
-usb_w = 12;
-usb_h = 8;
-
-/* [Back tray, plate and clips] */
+/* [Back plate and snaps] */
 back_t = 2.5;        // tape face thickness
-plate_clr = 0.3;     // plate edge to tray wall, per side
-barb = 0.8;          // snap barb height, 45 deg both faces
-plate_z0 = 1.3;      // plate front behind the rim: where the barb's catch face meets the plate corner
-leaf_len = 14;       // snap leaf length from the rim, cut by two slits
-leaf_w = 8;
-slit = 0.8;
-rib = 1.0;           // stop rib height, 45 deg underside
-rib_len = 10;
+tab_len = 6;         // snap tab, into the shell
+tab_t = 1.2;
+tab_w = 10;
+tab_clr = 0.2;       // tab to the wall
+bump = 0.5;          // 45 deg both faces: gentle
+bump_z = 3;          // bump centre in front of the shell rim
 
-view = "plate";      // plate | tray | exploded | open | xray | section
+/* [Retainer] */
+ret_t = 3;           // along Z, behind the board
+ret_body = 2.5;      // across X, flush with the board's -X face
+
+view = "shell";      // shell | back | retainer | front | front_xray | side_xray | open | exploded
 
 /* [Hidden] */
 $fn = 48;
 in_w = box_w - 2*wall;
-// Zones, Y from the inner bottom wall up.
-// Bottom to top: radar (R3), TM1637 (R1), OLED (R2), then the D1 mini standing behind the OLED, USB up.
 rd_cy = 0.5 + rd_rib_t + rd_slack + rd_h/2;
 tm_cy = rd_cy + rd_h/2 + rd_slack + rd_rib_t + gap + tm_clear + tm_w/2;
 ol_cy = tm_cy + tm_w/2 + tm_clear + gap + ol_h/2;
-d1_bot = ol_cy - ol_h/2 + 2;                     // D1's lower end sits over the OLED's lower edge
-d1_cy = d1_bot + d1_l/2;
-in_h = d1_cy + d1_l/2 + d1_slack + d1_rib_t + 0.3;
+in_h = ol_cy + ol_h/2 + 0.5;
 out_h = in_h + 2*wall;
-shell_h = plate_z0 + d1_front_z + d1_t + jumper_h + bend;   // tray cavity depth from the rim
-box_d = shell_h + back_t;
+cy0 = in_h/2;
 tm_board_z = tm_recess + tm_disp_h;
 ol_board_z = face_t + ol_gap + ol_glass_h;
-usb_z = plate_z0 + d1_front_z - 1.4;             // socket centre, from the rim
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
 ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
-pw = in_w - 2*plate_clr;                         // plate width and height
-ph = in_h - 2*plate_clr;
-plate_back = plate_z0 + face_t;
-hook_ys = [tm_cy, ol_cy + 14];                        // snap leaves, each long wall
-rib_ys = [rd_cy, ol_cy + 3];                         // stop ribs, each long wall
-cy0 = in_h/2;                                    // box centre, Y
+d1_x = in_w/2 - can_clr - d1_shield_h - d1_t/2;   // board mid-plane
+d1_z1 = d1_z0 + d1_w;
+d1_zc = (d1_z0 + d1_z1)/2;
+d1_y1 = d1_y0 + d1_l;
+shell_d = d1_z1 + ret_t + 0.5;                    // rim, from the front face
+box_d = shell_d + back_t;
+slot_w = d1_t + 2*slot_clr;
+rail_x0 = d1_x - slot_w/2 - 1.5;                  // rails run from here to the +X wall
+floor_top = d1_y0 + slot_deep;
+ledge_y0 = d1_y1 + d1_slack - slot_deep;          // ledge underside
+ledge_y1 = ledge_y0 + slot_deep + 2;
+ledge_z0 = tm_board_z + tm_t + 4;                 // ledge starts behind the TM1637 and its solder joints
+tab_ys = [cy0 - 22, cy0 + 22];
+cable_x = d1_x;
 
 module rrect(w, h, r) { offset(r = r) square([w - 2*r, h - 2*r], center = true); }
 module outline(grow = 0) { translate([0, cy0]) rrect(box_w + 2*grow, out_h + 2*grow, corner_r + grow); }
@@ -133,12 +133,15 @@ module ol_glass_keepout() {
 
 // TM1637 corner posts, filled out to the side walls, clipped clear of the display.
 module tm_posts_2d() {
-    difference() {
-        for (h = tm_holes) hull() {
-            translate(h) circle(d = tm_post_d);
-            translate([sign(h[0])*pw/2, h[1]]) square([0.01, tm_post_d], center = true);
+    intersection() {
+        square([in_w + 0.02, 2*in_h], center = true);
+        difference() {
+            for (h = tm_holes) hull() {
+                translate(h) circle(d = tm_post_d);
+                translate([sign(h[0])*in_w/2, h[1]]) square([0.01, tm_post_d], center = true);
+            }
+            tm_disp_keepout();
         }
-        tm_disp_keepout();
     }
 }
 
@@ -149,32 +152,6 @@ module ol_posts_2d() {
     }
 }
 
-// The D1 mini stands behind the displays, USB up. Four corner pillars rise from the plate, beyond
-// the OLED edge and clear of the radar ribs, and carry its corners; L-ribs on top locate it.
-// Four L-ribs locate the D1 mini's corners; its sides stay open for the reset button.
-module d1_ribs_2d() {
-    ix = d1_w/2 + d1_slack; iy = d1_l/2 + d1_slack; t = d1_rib_t;
-    for (sx = [-1, 1], sy = [-1, 1]) translate([0, d1_cy]) scale([sx, sy]) {
-        translate([ix, iy - d1_rib_leg + t]) square([t, d1_rib_leg]);
-        translate([ix - d1_rib_leg + t, iy]) square([d1_rib_leg, t]);
-    }
-}
-
-module d1_pillars_2d() {
-    x0 = d1_w/2 - 1;                       // 1 mm of board edge rests on the top pillars
-    bx0 = ol_w/2 + 0.1;                    // lower pillars stay outside the OLED board
-    for (sx = [-1, 1]) {
-        translate([sx*(x0 + pw/2)/2, d1_cy + d1_l/2 - 2]) square([pw/2 - x0, 4], center = true);
-        translate([sx*(bx0 + pw/2)/2, d1_bot + 1]) square([pw/2 - bx0, 3], center = true);
-    }
-}
-// 45 deg corbels reach the lower pillars in over the OLED's edge to the D1's corners.
-module d1_corbels() {
-    x0 = d1_w/2 - 1; bx0 = ol_w/2 + 0.1 + 0.5; zc = d1_front_z - (bx0 - x0);
-    for (sx = [-1, 1]) translate([0, d1_bot + 1, 0]) rotate([90, 0, 0]) linear_extrude(3, center = true)
-        scale([sx, 1]) polygon([[bx0, zc], [bx0, d1_front_z], [x0, d1_front_z]]);
-}
-
 module rd_ribs_2d() {
     translate([0, rd_cy]) difference() {
         square([rd_w + 2*(rd_slack + rd_rib_t), rd_h + 2*(rd_slack + rd_rib_t)], center = true);
@@ -183,29 +160,48 @@ module rd_ribs_2d() {
     }
 }
 
-// The USB plug hole in the tray's top wall. Tray prints tape face down, so the rim is up:
-// the 45 deg gable points at the rim (a small notch there), no flat ceiling.
-module usb_hole() {
-    translate([0, in_h - 1, 0]) rotate([-90, 0, 0]) linear_extrude(wall + 2)
-        translate([0, -usb_z]) union() {
-            square([usb_w, usb_h], center = true);
-            translate([0, usb_h/2]) rotate(45) square(usb_w/sqrt(2), center = true);
+// D1 slots. The floor rail rises from the face, so its slot is solid in front of the board: that is the stop.
+module floor_rail() {
+    difference() {
+        translate([rail_x0, -0.01, 0]) cube([in_w/2 - rail_x0 + 0.01, floor_top + 0.01, shell_d]);
+        translate([d1_x - slot_w/2, d1_y0, d1_z0]) cube([slot_w, slot_deep + 1, shell_d]);
+    }
+}
+// Ledge rail on the +X wall at the board's top edge, cut away around the USB socket. Both segments
+// start on a 45 deg slope out of the wall (the shell prints face down).
+module ledge_rail() {
+    w = in_w/2 - rail_x0; xa = in_w/2 + 0.01; g0 = d1_zc - usb_gap/2; g1 = d1_zc + usb_gap/2;
+    difference() {
+        translate([0, ledge_y1, 0]) rotate([90, 0, 0]) linear_extrude(ledge_y1 - ledge_y0) {
+            polygon([[xa, ledge_z0], [rail_x0, ledge_z0 + w], [rail_x0, g0], [xa, g0]]);
+            polygon([[xa, g1], [rail_x0, g1 + w], [rail_x0, shell_d - 0.01], [xa, shell_d - 0.01]]);
         }
+        translate([d1_x - slot_w/2, ledge_y0 - 1, 0]) cube([slot_w, slot_deep + 1, shell_d + 1]);
+    }
 }
 
-// Everything that belongs to the plate, in placed coordinates (front face at plate_z0).
-module plate_placed() {
-    translate([0, 0, plate_z0]) intersection() {   // the TM1637 posts would poke past the edge: clip to the outline
-        linear_extrude(60) translate([0, cy0]) rrect(pw, ph, 1);
-        difference() {
+// Snap groove in the side walls: a 45 deg V matching the tab bumps.
+module snap_grooves() {
+    for (sx = [-1, 1], y = tab_ys)
+        translate([sx*in_w/2, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w + 2, center = true)
+            polygon([[0, -bump - 0.1], [sx*(bump + 0.1), 0], [0, bump + 0.1]]);
+}
+
+module shell() {
+    difference() {
         union() {
-            linear_extrude(face_t) translate([0, cy0]) rrect(pw, ph, 1);
+            difference() {
+                hull() {
+                    linear_extrude(0.01) offset(delta = -face_chamfer) outline();
+                    translate([0, 0, face_chamfer]) linear_extrude(shell_d - face_chamfer) outline();
+                }
+                translate([0, cy0, face_t]) linear_extrude(shell_d) square([in_w, in_h], center = true);
+            }
             linear_extrude(tm_board_z) tm_posts_2d();
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
-            linear_extrude(d1_front_z) d1_pillars_2d();
-            d1_corbels();
-            linear_extrude(d1_front_z + d1_t + 1) d1_ribs_2d();
+            floor_rail();
+            ledge_rail();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
             tm_disp_keepout();
@@ -213,69 +209,52 @@ module plate_placed() {
         }
         for (h = tm_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = tm_pilot_d, h = tm_board_z);
         for (h = ol_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = ol_pilot_d, h = ol_board_z);
-        }
+        // cable slot through the top wall, open to the rim: no roof to print
+        translate([cable_x - cable_slot_w/2, in_h - 1, d1_zc - 4]) cube([cable_slot_w, wall + 2, shell_d]);
+        snap_grooves();
     }
 }
 
-// Profile (a = inward from the long wall, b = z) extruded along Y, centred on y.
-module along_y(sx, y, len, pts) {
-    translate([sx*in_w/2, y, 0]) rotate([90, 0, 0]) linear_extrude(len, center = true)
-        scale([-sx, 1]) polygon(pts);
-}
-
-module tray_placed() {
-    difference() {
-        union() {
-            difference() {
-                hull() {
-                    linear_extrude(0.01) offset(delta = -face_chamfer) outline();
-                    translate([0, 0, face_chamfer]) linear_extrude(box_d - face_chamfer) outline();
-                }
-                translate([0, cy0, -1]) linear_extrude(shell_h + 1) square([in_w, in_h], center = true);
-            }
-            for (sx = [-1, 1]) {
-                for (y = rib_ys)   // stop ribs: flat face toward the rim, 45 deg underside
-                    along_y(sx, y, rib_len, [[0, plate_back], [rib, plate_back], [0, plate_back + rib]]);
-                for (y = hook_ys)  // snap barbs on the leaves: 45 deg lead-in and catch
-                    along_y(sx, y, leaf_w, [[0, 0], [barb, barb], [0, 2*barb]]);
-            }
-            // Pusher post: between the two header rows, it presses the D1 onto its pillars through foam tape.
-            d1_back = plate_z0 + d1_front_z + d1_t;
-            translate([0, d1_cy, d1_back + tape_t]) cylinder(d = pusher_d, h = shell_h - d1_back - tape_t + 0.01);
-        }
-        for (sx = [-1, 1], y = hook_ys, d = [-1, 1])   // two slits free each leaf, open to the rim
-            translate([sx*in_w/2, y + d*(leaf_w/2 + slit/2), leaf_len/2 - 0.5])
-                cube([wall*2 + 2, slit, leaf_len + 1], center = true);
-        usb_hole();
+// Back plate, placed: tape face outermost, four tabs reaching into the shell mouth.
+module back_placed() {
+    translate([0, 0, shell_d]) linear_extrude(back_t) outline();
+    for (sx = [-1, 1], y = tab_ys) {
+        x_out = sx*(in_w/2 - tab_clr);
+        translate([x_out - (sx > 0 ? tab_t : 0), y - tab_w/2, shell_d - tab_len]) cube([tab_t, tab_w, tab_len + 0.01]);
+        translate([x_out, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w, center = true)
+            polygon([[0, -bump], [sx*bump, 0], [0, bump]]);
     }
 }
 
-// Printed orientations.
-module plate() { translate([0, 0, -plate_z0]) plate_placed(); }
-module tray() { translate([0, 0, box_d]) rotate([0, 180, 0]) tray_placed(); }
+// Retainer, placed: a body between the rails, tongues into both slots, flush with the board's -X face.
+module retainer_placed() {
+    x0 = d1_x - slot_w/2 + 0.05;
+    translate([x0, floor_top + 0.2, d1_z1 + 0.2]) cube([ret_body, ledge_y0 - floor_top - 0.4, ret_t]);
+    translate([x0, d1_y0 + 0.1, d1_z1 + 0.2]) cube([slot_w - 0.1, ledge_y0 + slot_deep - d1_y0 + d1_slack - 0.3, ret_t]);
+}
 
-// Stand-ins for the review render only; one colour per component so they read apart.
+module back() { translate([0, 0, box_d]) rotate([0, 180, 0]) back_placed(); }
+module retainer() { rotate([0, -90, 0]) translate([-(d1_x - slot_w/2 + 0.05), 0, 0]) retainer_placed(); }
+
+// Stand-ins for the review renders only.
 module standins() {
-    translate([0, 0, plate_z0]) {
-        color("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
-        color("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(1.2) square([ol_w, ol_h], center = true);
-        color("orchid") translate([0, rd_cy, face_t]) linear_extrude(1) square([rd_w, rd_h], center = true);
-        color("royalblue") translate([0, d1_cy, d1_front_z]) linear_extrude(d1_t) square([d1_w, d1_l], center = true);
-        color("dimgray") {
-            translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
-            translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
-            translate([0, d1_cy + d1_l/2 + d1_shield_dy, d1_front_z - d1_shield_h]) linear_extrude(d1_shield_h) square([12, 15], center = true);
-        }
-        color("black") for (sx = [-1, 1])   // D1 jumper housings, two rows of eight
-            translate([sx*11.43, d1_cy, d1_front_z + d1_t]) linear_extrude(jumper_h) square([2.54, 20.3], center = true);
+    color("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
+    color("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(1.2) square([ol_w, ol_h], center = true);
+    color("orchid") translate([0, rd_cy, face_t]) linear_extrude(1) square([rd_w, rd_h], center = true);
+    color("black") translate([-5, rd_cy, face_t]) linear_extrude(rd_stack - face_t) square([12.7, 2.5], center = true);
+    color("royalblue") translate([d1_x - d1_t/2, d1_y0, d1_z0]) cube([d1_t, d1_l, d1_w]);
+    color("dimgray") {
+        translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
+        translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+        translate([d1_x + d1_t/2, d1_y1 - 13 - 7.5, d1_zc - 6]) cube([d1_shield_h, 15, 12]);
     }
-    color("silver") translate([0, in_h + wall, usb_z]) rotate([-90, 0, 0]) linear_extrude(18) square([10.5, 7], center = true);
+    color("black") for (sz = [-1, 1])   // D1 jumper housings, two rows of eight, toward -X
+        translate([d1_x - d1_t/2 - jumper_h, d1_y0 + d1_l/2 - 10.15, d1_zc + sz*11.43 - 1.27]) cube([jumper_h, 20.3, 2.54]);
+    color("silver") translate([d1_x, d1_y1, d1_zc]) rotate([-90, 0, 0]) linear_extrude(in_h + wall - d1_y1 + 6) square([7, 10.5], center = true);
 }
 
-// Example screen content for the review renders. Text reads correctly seen from the front
-// (the front looks along +z, so it is mirrored in X here).
 module screens() {
-    translate([0, 0, plate_z0]) mirror([1, 0, 0]) {
+    mirror([1, 0, 0]) {
         color("black") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.1]) linear_extrude(0.11)
             square([tm_disp_l - 2, tm_disp_w - 2], center = true);
         color("red") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.3]) linear_extrude(0.2)
@@ -288,32 +267,23 @@ module screens() {
     }
 }
 
-// Review views, placed coordinates (the tray's back is up in the renders from +Z).
 module ghost(a = 0.18) { color([0.45, 0.6, 0.7, a]) children(); }
-module cut_half() {   // remove x > 0 so the stack of boards shows in section
-    difference() { children(); translate([0, -500, -500]) cube([500, 1000, 1000]); }
+module cut_side() {   // remove x > d1_x + 3 (beyond the D1) so its slots and the stack show in section
+    difference() { children(); translate([d1_x + 3, -500, -500]) cube([500, 1000, 1000]); }
 }
 
-// As-mounted orientations, Y up in the image: front = what you see at the desk (+X on the left);
-// side = looking from +X, arm on the left and you on the right; top = looking down, arm at the bottom.
+// As mounted, Y up in the image: front = at the desk (+X on the left); side = looking from +X, arm on the left.
 module orient(o) {
     if (o == "front") rotate([0, 180, 0]) children();
     else if (o == "side") rotate([0, -90, 0]) children();
-    else if (o == "top") rotate([90, 0, 0]) children();
     else children();
 }
 
-if (view == "front") orient("front") { tray_placed(); plate_placed(); screens(); }
-else if (view == "front_xray") orient("front") { ghost(0.12) tray_placed(); ghost(0.25) plate_placed(); standins(); screens(); }
-else if (view == "side_xray") orient("side") { cut_half() tray_placed(); plate_placed(); standins(); }
-else if (view == "side") orient("side") cut_half() { tray_placed(); plate_placed(); standins(); }
-else if (view == "top_xray") orient("top") { ghost(0.15) tray_placed(); plate_placed(); standins(); }
-else if (view == "plate") plate();
-else if (view == "tray") tray();
-else if (view == "open") { plate_placed(); standins(); }                  // bench state, tray off
-else if (view == "xray") { ghost() tray_placed(); plate_placed(); standins(); }
-else if (view == "section") cut_half() { tray_placed(); plate_placed(); standins(); }
-else {   // exploded: plate and boards pulled 25 mm out of the front
-    tray_placed();
-    translate([0, 0, -25]) { plate_placed(); standins(); }
-}
+if (view == "front") orient("front") { shell(); back_placed(); screens(); }
+else if (view == "front_xray") orient("front") { ghost(0.15) shell(); standins(); screens(); }
+else if (view == "side_xray") orient("side") { cut_side() shell(); ghost(0.3) back_placed(); color("orange") retainer_placed(); standins(); }
+else if (view == "shell") shell();
+else if (view == "back") back();
+else if (view == "retainer") retainer();
+else if (view == "open") { shell(); standins(); color("orange") retainer_placed(); }
+else { shell(); standins(); translate([0, 0, 25]) back_placed(); }
