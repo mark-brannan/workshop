@@ -48,6 +48,8 @@ The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM163
 | PG7 nylon gland | thread 12.5 x 8 long; body hex 15; locknut 19 across flats x 5 (Essentra), which differs from the 15 in one-wire-enclosure | Altech table; Essentra listing | |
 | DS18B20 waterproof probe, the owner's | cable 3.5 OD; probe with its heat shrink 6.3 at the widest; the cable takes an M8 gland (2-5 clamp), fed bare-end first since the probe won't pass the gland | owner, caliper (approx) | [one-wire-enclosure](projects/one-wire-enclosure/) |
 | DIN rail TS35 | 34.5 measured, 35 nominal | owner, caliper | din-rail-psu-mount |
+| V/A digital meter on its DIN mount | 57 wide x 45 tall x 42.3 deep; the depth is from the rail's outermost edge; part number not recorded | owner, 2026-11-20 | symphony [`chart-table-cabinet.drawio`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/chart-table-cabinet.drawio) |
+| Lever terminal block, 2 into 10 (+/-), DIN mount | 54 wide x 42 tall x 27.5 deep; depth datum not stated; part number not recorded | owner, 2026-11-20 | symphony `chart-table-cabinet.drawio` |
 | DIN clip (preferred, low profile) | Printables 420009, `din_clip_heat_insert.stl`, printed apart, two M3 heat-insert holes 51 mm apart across the rail (model x = 5 and 56, rail centre 27.05), on the clip's centre line; the mount screws on with M3 countersunk | owner's choice of design |
 | Fan GDA8025 IP68, 12 V | 80 x 80 x 25 (~24.5 owner); holes 71.5 square, M4; air bore 76 | vendor drawing; owner (thickness) | [heater-fan-mount](projects/heater-fan-mount/) |
 | Diesel heater bottom rim | ~75.4 outside: a 76 bore was near a friction fit; unmeasured | owner | [heater-fan-mount](projects/heater-fan-mount/) |
