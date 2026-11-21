@@ -143,11 +143,11 @@ def test_underside_recessed_over_bosses_flat_on_posts(frame):
 
 TIE_TOP = T + P["tie_rise"]
 X_END = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
-LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0, 1) for y in LISTS["tie_end_ys"]]  # centre, run direction
+LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0, 1) for y in LISTS["tie_end_ys"]] + [(-X_END, y, 0, 1) for y in LISTS["tie_right_ys"]] + [(x, y, 1, 0) for x, y in LISTS["tie_back"]]  # centre, run direction
 
 
 def test_tie_staples_worked_from_above(frame):
-    assert len(LOOPS) == 8  # six gland-side, two on the left end
+    assert len(LOOPS) == 10  # six gland-side, two on the left end, one on the right, one on the back
     assert P["tie_bar_y"] - (P["tie_w"] / 2 + P["tie_wall"]) - P["tie_foot"] > P["plate_y_lo"]  # foot chamfer stays on the plate, clear of the tab bevel
     assert P["tie_rise"] - P["tie_t"] - P["tie_round"] - P["tie_mouth"] >= 0.4  # roof keeps a flat band between its top round and the mouth flare
     for x, y, ux, uy in LOOPS:
