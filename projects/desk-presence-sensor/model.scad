@@ -97,10 +97,12 @@ view = "plate";      // plate | tray | exploded | open | xray | section
 $fn = 48;
 in_w = box_w - 2*wall;
 // Zones, Y from the inner bottom wall up.
-tm_cy = tm_clear + tm_w/2;
-ol_cy = tm_w + 2*tm_clear + gap + ol_h/2;
-rd_cy = ol_cy + ol_h/2 + gap + rd_rib_t + rd_slack + rd_h/2;
-d1_cy = ol_cy + ol_h/2 + d1_slack + d1_l/2;      // D1 starts at the OLED header edge, lies over the radar, USB up
+// Bottom to top: radar (R3), TM1637 (R1), OLED (R2), then the D1 mini standing behind the OLED, USB up.
+rd_cy = 0.5 + rd_rib_t + rd_slack + rd_h/2;
+tm_cy = rd_cy + rd_h/2 + rd_slack + rd_rib_t + gap + tm_clear + tm_w/2;
+ol_cy = tm_cy + tm_w/2 + tm_clear + gap + ol_h/2;
+d1_bot = ol_cy - ol_h/2 + 2;                     // D1's lower end sits over the OLED's lower edge
+d1_cy = d1_bot + d1_l/2;
 in_h = d1_cy + d1_l/2 + d1_slack + d1_rib_t + 0.3;
 out_h = in_h + 2*wall;
 shell_h = plate_z0 + d1_front_z + d1_t + jumper_h + bend;   // tray cavity depth from the rim
@@ -113,8 +115,8 @@ ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hol
 pw = in_w - 2*plate_clr;                         // plate width and height
 ph = in_h - 2*plate_clr;
 plate_back = plate_z0 + face_t;
-hook_ys = [tm_cy, ol_cy];                        // snap leaves, each long wall
-rib_ys = [rd_cy, d1_cy];                         // stop ribs, each long wall
+hook_ys = [tm_cy, ol_cy + 14];                        // snap leaves, each long wall
+rib_ys = [rd_cy, ol_cy + 3];                         // stop ribs, each long wall
 cy0 = in_h/2;                                    // box centre, Y
 
 module rrect(w, h, r) { offset(r = r) square([w - 2*r, h - 2*r], center = true); }
@@ -158,11 +160,18 @@ module d1_ribs_2d() {
 }
 
 module d1_pillars_2d() {
-    x0 = d1_w/2 - 1;                       // 1 mm of board edge rests on the pillar
+    x0 = d1_w/2 - 1;                       // 1 mm of board edge rests on the top pillars
+    bx0 = ol_w/2 + 0.1;                    // lower pillars stay outside the OLED board
     for (sx = [-1, 1]) {
-        translate([sx*(x0 + pw/2)/2, d1_cy - d1_l/2 + 1.15 - 0.5 + 0.5]) square([pw/2 - x0, 2.8], center = true);
         translate([sx*(x0 + pw/2)/2, d1_cy + d1_l/2 - 2]) square([pw/2 - x0, 4], center = true);
+        translate([sx*(bx0 + pw/2)/2, d1_bot + 1]) square([pw/2 - bx0, 3], center = true);
     }
+}
+// 45 deg corbels reach the lower pillars in over the OLED's edge to the D1's corners.
+module d1_corbels() {
+    x0 = d1_w/2 - 1; bx0 = ol_w/2 + 0.1 + 0.5; zc = d1_front_z - (bx0 - x0);
+    for (sx = [-1, 1]) translate([0, d1_bot + 1, 0]) rotate([90, 0, 0]) linear_extrude(3, center = true)
+        scale([sx, 1]) polygon([[bx0, zc], [bx0, d1_front_z], [x0, d1_front_z]]);
 }
 
 module rd_ribs_2d() {
@@ -194,6 +203,7 @@ module plate_placed() {
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
             linear_extrude(d1_front_z) d1_pillars_2d();
+            d1_corbels();
             linear_extrude(d1_front_z + d1_t + 1) d1_ribs_2d();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {

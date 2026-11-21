@@ -26,9 +26,8 @@ Owner's, 2026-11-20. Numbered so a change can cite one.
 | R7 | 45 mm wide, to match the monitor arm stem | |
 | R8 | PETG, no supports | print economy |
 
-Open: where R5's cable leaves (top edge, or through the back near the top), and which of R1 or R3 takes
-the bottom. The current layout (D1, radar, OLED, TM1637 from the top) breaks R3 and R5's intent
-only by putting the radar mid-box; the order is to be redone against R1 to R4.
+Status: the order is radar (bottom), TM1637, OLED, with the D1 mini behind the OLED, USB up through the
+top wall (R1 to R5 met; the cable bends back over the top edge). Not yet checked against the real monitor.
 
 ## Prints, PETG, no supports
 
@@ -55,12 +54,12 @@ pry a leaf out at the rim. The plate sits 1.3 mm behind the rim.
 
 ```
  +----[usb]----+   USB plug through a gabled hole in the top wall
- |  D1 mini    |   behind everything at z = 24; four corner pillars, L-ribs; starts at the OLED header edge
- |  (radar)    |   no hole: looks through the 1.5 mm plate; rib pocket, dab of hot glue
- |  +-------+  |
- |  | OLED  |  |   window 24 x 13; four M2 x 4-5 self-tappers into posts
- |  +-------+  |
- | [ 88:88 ]   |   TM1637 window; four M2.5 x 6 self-tappers into corner posts
+ |  D1 mini    |   behind the OLED at z = 24; four corner pillars (lower pair on 45 deg corbels), L-ribs
+ | +---------+ |
+ | |  OLED   | |   window 24 x 13; four M2 x 4-5 self-tappers into posts (under the D1: unplug it)
+ | +---------+ |
+ | [ 88:88 ]   |   TM1637 window, the lowest display; four M2.5 x 6 self-tappers into corner posts
+ |  (radar)    |   bottom: no hole, looks through the 1.5 mm plate; rib pocket, dab of hot glue
  +-------------+
 ```
 

@@ -15,9 +15,11 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
 IN_W = P["box_w"] - 2 * P["wall"]
 PW = IN_W - 2 * P["plate_clr"]
-TM_CY = P["tm_clear"] + P["tm_w"] / 2
-OL_CY = P["tm_w"] + 2 * P["tm_clear"] + P["gap"] + P["ol_h"] / 2
-D1_CY = OL_CY + P["ol_h"] / 2 + P["d1_slack"] + P["d1_l"] / 2   # D1 stands behind the displays, USB up
+RD_CY = 0.5 + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
+TM_CY = RD_CY + P["rd_h"] / 2 + P["rd_slack"] + P["rd_rib_t"] + P["gap"] + P["tm_clear"] + P["tm_w"] / 2
+OL_CY = TM_CY + P["tm_w"] / 2 + P["tm_clear"] + P["gap"] + P["ol_h"] / 2
+D1_BOT = OL_CY - P["ol_h"] / 2 + 2
+D1_CY = D1_BOT + P["d1_l"] / 2   # D1 stands behind the OLED, USB up
 IN_H = D1_CY + P["d1_l"] / 2 + P["d1_slack"] + P["d1_rib_t"] + 0.3
 SHELL_H = P["plate_z0"] + P["d1_front_z"] + P["d1_t"] + P["jumper_h"] + P["bend"]
 BOX_D = SHELL_H + P["back_t"]
@@ -68,8 +70,7 @@ def test_oled_window_through(plate):
 
 
 def test_radar_looks_through_solid_face(plate):
-    rd_cy = OL_CY + P["ol_h"] / 2 + P["gap"] + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
-    hits = down(plate, 0, rd_cy)
+    hits = down(plate, 0, RD_CY)
     assert len(hits) > 0 and np.isclose(hits[0][2], P["face_t"], atol=0.02)
 
 
@@ -79,15 +80,21 @@ def test_board_posts_blind_pilots_at_board_height(plate):
             for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
                                (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2, P["ol_pilot_d"], OL_BOARD_Z)):
                 assert np.isclose(down(plate, x, y)[0][2], P["face_t"] - 1, atol=0.02)  # blind, never through the face
-                assert np.isclose(down(plate, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)
+                assert np.isclose(ray_hits(plate, (x + d / 2 + 0.3, y, 15), (0, 0, -1))[0][2], z, atol=0.02)  # from under the D1
 
 
 def test_d1_pillars_carry_its_corners(plate):
-    x = P["d1_w"] / 2 - 0.5
     for sx in (-1, 1):
-        for y in (D1_CY - P["d1_l"] / 2 + 1.5, D1_CY + P["d1_l"] / 2 - 2):
-            assert np.isclose(down(plate, sx * x, y)[0][2], P["d1_front_z"], atol=0.05)
-    assert D1_CY - P["d1_l"] / 2 >= OL_CY + P["ol_h"] / 2  # D1 starts at the OLED header edge
+        # top pair, beyond everything: 1 mm under the board edge
+        assert np.isclose(down(plate, sx * (P["d1_w"] / 2 - 0.5), D1_CY + P["d1_l"] / 2 - 2)[0][2], P["d1_front_z"], atol=0.05)
+        # lower pair, outside the OLED board, with a 45 deg corbel reaching in under the D1
+        assert np.isclose(down(plate, sx * (P["ol_w"] / 2 + 1), D1_BOT + 1)[0][2], P["d1_front_z"], atol=0.05)
+        assert np.isclose(down(plate, sx * (P["d1_w"] / 2 - 0.5), D1_BOT + 1)[0][2], P["d1_front_z"], atol=0.05)
+
+
+def test_stack_order_bottom_up_radar_tm_oled(plate):
+    assert RD_CY < TM_CY < OL_CY < D1_CY   # R3, R1, R2
+    assert D1_BOT > TM_CY + P["tm_w"] / 2   # the D1 never covers the segmented display
 
 
 def test_tray_bounds_flat_tape_face(tray):
@@ -109,15 +116,14 @@ def test_usb_hole_in_top_wall(tray):
 
 def test_snap_leaves_and_stop_ribs(tray):
     z = BOX_D - 5   # inside a leaf
-    for y in (TM_CY, OL_CY):
+    for y in (TM_CY, OL_CY + 14):
         side = lambda yy: ray_hits(tray, (IN_W / 2 + 20, yy, z), (-1, 0, 0))
         assert np.isclose(side(y)[0][0], IN_W / 2 + P["wall"], atol=0.1)           # the leaf itself
         assert len(side(y + P["leaf_w"] / 2 + P["slit"] / 2)) == 0         # the slits on both walls let the ray clean through
     # the stop rib narrows the opening just behind where the plate's back face sits
     zb = BOX_D - (P["plate_z0"] + P["face_t"] + 0.2)
-    rd_cy = OL_CY + P["ol_h"] / 2 + P["gap"] + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
-    assert np.isclose(ray_hits(tray, (IN_W / 2 + 20, rd_cy, zb), (-1, 0, 0))[0][0], IN_W / 2 + P["wall"], atol=0.1)
-    assert np.isclose(ray_hits(tray, (0, rd_cy, zb), (1, 0, 0))[0][0], IN_W / 2 - P["rib"] * 0.8, atol=0.4)
+    assert np.isclose(ray_hits(tray, (IN_W / 2 + 20, RD_CY, zb), (-1, 0, 0))[0][0], IN_W / 2 + P["wall"], atol=0.1)
+    assert np.isclose(ray_hits(tray, (0, RD_CY, zb), (1, 0, 0))[0][0], IN_W / 2 - P["rib"] * 0.8, atol=0.4)
 
 
 def test_plate_fits_the_tray_mouth():
