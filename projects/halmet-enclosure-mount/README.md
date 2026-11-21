@@ -119,7 +119,7 @@ The tier overhangs the HALMET's right edge by 2 mm, so the HALMET comes off with
 ## Wiring
 
 Pin numbers are from `HALMET.kicad_pcb` (hatlabs/HALMET-hardware) pad nets, read 2026-11-17.
-GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halmet drives as a test pulse. The one exception is GPIO 5, the hours display's DIO: it is the only other free output pin, and a TM1637 DIO idles high, which is what the pin's boot-time pull-up expects.
+GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halmet drives as a test pulse. The hours display's DIO is on GPIO 13 (the JTAG TCK pin, header pin 17), which gives up hardware JTAG debugging; GPIO 14 (pin 19) stays free as an output.
 
 | From | HALMET connector, pin | Net |
 |---|---|---|
@@ -134,7 +134,7 @@ GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halm
 | TM1637 GND, both displays | GPIO 2x10, 3 | GND |
 | TM1637 CLK, both displays | GPIO 2x10, 7 | GPIO 16 |
 | TM1637 DIO, RPM display | GPIO 2x10, 5 | GPIO 17 |
-| TM1637 DIO, hours display | GPIO 2x10, 2 | GPIO 5 |
+| TM1637 DIO, hours display | GPIO 2x10, 17 | GPIO 13 |
 | LM393 VCC | GPIO 2x10, 20 | 3V3 |
 | LM393 GND | GPIO 2x10, 18 | GND |
 | LM393 DO | GPIO 2x10, 10 | GPIO 34, input only, no internal pull-up |
