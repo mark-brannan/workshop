@@ -50,3 +50,19 @@ def test_screw_holes_and_opening(installed):
         assert all(h[2] < -P["boss_h"] for h in ray_hits(installed, [x, y, 5], down)), f"pilot blocked at {x}, {y}"
         assert ray_hits(installed, [x + P["hole_d"] / 2 + 1, y, 5], down)[0][2] == pytest.approx(0, abs=0.05)
     assert not ray_hits(installed, [0, 0, 5], down), "opening in the middle"
+
+
+def test_rivet_holes_through_skirts(installed):
+    a, sl = A, P["rivet_sl"]
+    n = [math.sin(a), 0, -math.cos(a)]  # out of the right skirt's face
+    for side in (1, -1):
+        for y in (-20, -11, 11, 36):
+            hw = P["w_aft"] / 2 + (P["w_fwd"] - P["w_aft"]) / 2 * (y / P["len"] + 0.5) - P["bond_gap"] / math.sin(a)
+            q = [side * (hw - sl * math.cos(a)), y, -sl * math.sin(a)]
+            start = [q[0] + side * 5 * n[0], y, q[2] + 5 * n[2]]
+            ray = [-side * n[0], 0, -n[2]]
+            first = ray_hits(installed, start, ray)
+            assert not first or math.dist(first[0], start) > 5 + P["skirt_t"] + 1, f"no hole at {side}, {y}"
+            start_b = [start[0], y + 4, start[2]]
+            beside = ray_hits(installed, start_b, ray)
+            assert beside and math.dist(beside[0], start_b) < 6, f"skirt missing beside the hole at {side}, {y}"

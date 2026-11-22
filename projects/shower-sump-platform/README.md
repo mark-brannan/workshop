@@ -27,7 +27,9 @@ fold at their root and the 15 mm end strips become stiff beams (owner, 2026-11-2
 of one skirt to the other, `arch_band` deep under the deck at its crown; printed deck down, each layer of it sits
 inside the one below, so it needs no support. Each bonding face carries `fin_n` ridges running fore-aft, standing
 `fin_h` into the epoxy (inside `bond_gap`): the face toward the skirt's foot is square to the skirt and bears the
-sump's weight down the hull; the flank toward the deck faces down in print at about 80 degrees. The skirts themselves
+sump's weight down the hull; the flank toward the deck faces down in print at about 80 degrees. Four Ø4 holes through each skirt
+(`rivet_y`, between the first two ridges, clear of the bosses) let the epoxy set through as rivets, since it grips
+PETG poorly; they are teardrops pointing at the skirt's foot, which is up in print. The skirts themselves
 lean 24 degrees off vertical in print and hold themselves up.
 
 The sump screws down through six Ø3 pilots into 12 mm bosses, at the Fusion deck's hole positions; only the
