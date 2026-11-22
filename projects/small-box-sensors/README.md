@@ -1,5 +1,7 @@
 # Small-box sensors: BME688 and ICM-20948 in the 63 x 58 x 35 box
 
+Symphony: [`reference/pypilot_containerization.md`](https://github.com/mark-brannan/symphony/tree/main/reference/pypilot_containerization.md), [`host/halos/README.md`](https://github.com/mark-brannan/symphony/tree/main/host/halos/README.md)
+
 Purpose: two sensor nodes on a Raspberry Pi's I2C (Signal K, pypilot), each in the small ABS box:
 an environment box (BME688, breather vent) and an IMU box (ICM-20948). Each carries an LTC4311
 I2C extender and one SP13 4-pin socket. One printed carrier and one spacer serve both.

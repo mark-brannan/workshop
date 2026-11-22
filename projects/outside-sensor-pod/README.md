@@ -1,5 +1,7 @@
 # Outside sensor pod
 
+Symphony: [`firmware`](https://github.com/mark-brannan/symphony/tree/main/firmware)
+
 Purpose: outside air temperature, humidity, light and a second barometer for the boat, published to Signal K.
 Only bare, coated sensor boards sit in the weather, inside a louvred shield. A four-wire lead runs to an
 ESP32 in the dry, which talks WiFi to Signal K. A drowned pod costs a sensor board, not the node.
@@ -63,7 +65,7 @@ Plain I2C at 100 kHz suits a lead under about 2 m (400 pF bus limit, cat5e near 
 LPS35HW address 0x5D (board silkscreen); the jumper on the back changes it.
 
 Dry side, not designed yet: 12 V, fuse, transient suppressor, 5 V buck, ESP32, LTC4311. Prototype on the
-ESP32 breakout on hand ([esp32-breakout-mount](../esp32-breakout-mount/)); a carrier board follows once the pinout has
+ESP32 breakout on hand ([esp32-breakout-mounts](../esp32-breakout-mounts/)); a carrier board follows once the pinout has
 survived on the boat.
 
 ## Conformal coat

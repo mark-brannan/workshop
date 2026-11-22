@@ -1,0 +1,25 @@
+# Sump box wing outline, plan view, mm. x = outward from the box centreline (right wing; mirror for the left),
+# y = fore-aft, +y toward the closed end of the box, y = 0 at the 5 mm hole. Traced by eye from the box drawing
+# (ref/sump-drawing-wing.png), scaled so the tip is 107.5 (215 overall). Slots (9 mm) at x=93, y=+25 and -34; 5 mm hole at x=100, y=0.
+x,y
+92.82,45.35
+96.59,45.07
+99.69,43.94
+101.84,41.60
+102.96,38.31
+103.03,31.74
+102.79,22.35
+103.26,16.71
+105.08,12.96
+106.83,7.79
+107.50,2.63
+106.85,-3.94
+105.11,-10.52
+102.92,-15.21
+102.98,-19.91
+103.28,-27.42
+103.13,-34.93
+102.25,-40.56
+100.30,-43.85
+96.61,-45.73
+93.00,-45.92

@@ -1,7 +1,7 @@
 """Build every model in a project dir, Python or OpenSCAD, the same way.
 
     uv run python -m shop.build                      # all projects/*
-    uv run python -m shop.build projects/demo-bracket  # one project
+    uv run python -m shop.build projects/esp32-breakout-mounts  # one project
 
 ``model.py`` runs as a script (it exports itself). ``model.scad`` builds via
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*`` (STL, 3MF, PNGs); a model with
@@ -14,8 +14,10 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
+from . import overhang
 from .scad import build_scad, find_openscad, has_mode_variable
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def build_project(proj: Path) -> int:
     rc = 0
+    started = time.time()
     name = proj.name.removeprefix("demo-")
     py = proj / "model.py"
     if py.exists():
@@ -42,6 +45,10 @@ def build_project(proj: Path) -> int:
             for k, v in paths.items():
                 print(f"   {k:12s} {v}")
             rc |= 1 if "render_error" in paths else 0
+    for stl in sorted((proj / "out").glob("*.stl")):
+        if stl.stat().st_mtime >= started - 1:
+            for w in overhang.warnings(stl):
+                print(f"   WARNING {stl.name}: {w}")
     return rc
 
 

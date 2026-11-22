@@ -6,7 +6,7 @@
 // Lidded: one M3 down through the board into a nut pressed into the boss; a clear acrylic lid
 // (part-lid.scad) on four corner columns, the photocell just under it.
 // The cable leaves through the -Y side wall near the header-end corner, clear of the end tabs,
-// and an outside tie block under the exit takes a cable tie.
+// the cable is held by the epoxy in the exit.
 
 /* [Module: LM393 photoresistor, on hand (owner, caliper)] */
 board_l = 31;
@@ -47,21 +47,18 @@ nut_t = 2.4;
 nut_fit = 0.15;       // per side; press fit, uncalibrated
 screw_d = 3.4;        // M3 clearance, through the floor
 top_clear = 1;        // photocell top to the lid's underside
-column_d = 5;         // lid-screw columns in the four inside corners
+column_d = 4.4;       // lid-screw columns near the four inside corners
+col_in = 1.9;         // column centre in from the inner wall faces: the lid hole sits 3.5 from the lid edge
 pilot_d = 2.2;        // M2.5 self-tapping; calibration pending
 pilot_h = 8;
 lid_t = 3;            // clear acrylic, laser cut
 lid_hole_d = 2.9;     // M2.5 clearance
 
-/* [Mounting tabs and cable tie] */
+/* [Mounting tabs] */
 tabs = true;
 tab_l = 8;            // past each end wall
 tab_t = 2.5;
 tab_hole = 3.5;       // M3 or #6 pan head
-tie_w = 4;            // tunnel under the tie block, along X; ties to 3.6 wide
-tie_h = 1.8;
-tie_side = 1.2;       // block either side of the tunnel
-tie_out = 3.5;        // block out from the side wall, the cable's run over it
 
 part = "tray";        // [tray, assembly, none]
 
@@ -81,7 +78,7 @@ board_top = board_z + board_t;
 pour_z = board_top + cell_h - cell_t;      // potted: epoxy line, the cell body's underside
 tray_h = potted ? pour_z + pour_rim : board_top + cell_h + top_clear;
 cable_z = board_top + pin_z;               // cable centre, level with the header pins
-cols = [for (x = [0, in_l], y = [-in_w/2, in_w/2]) [x, y]];
+cols = [for (x = [col_in, in_l - col_in], y = [-(in_w/2 - col_in), in_w/2 - col_in]) [x, y]];
 
 module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
 module outline() { translate([in_l/2, 0]) rrect(out_l, out_w, corner_r); }
@@ -94,15 +91,6 @@ module tab_2d() {
 }
 function tab_holes() = [for (s = [-1, 1]) [in_l/2 + s*(in_l/2 + wall + tab_l/2), 0]];
 
-// Outside the -Y wall, under the exit: the cable lies on top, a tie runs through the tunnel along X.
-module tie_block() {
-    bw = tie_w + 2*tie_side;
-    difference() {
-        translate([exit_x - bw/2, -out_w/2 - tie_out, 0]) cube([bw, tie_out + wall, cable_z - cable_d/2]);
-        translate([exit_x - bw/2 - 1, -out_w/2 - tie_out + (tie_out - tie_w)/2, -1]) cube([bw + 2, tie_w, tie_h + 1]);
-    }
-}
-
 module tray() {
     difference() {
         union() {
@@ -111,7 +99,6 @@ module tray() {
                 translate([0, -in_w/2, floor_t]) cube([in_l, in_w, tray_h]);
             }
             if (tabs) linear_extrude(tab_t) tab_2d();
-            tie_block();
             // edge ledges, one under each long edge of the board
             for (s = [-1, 1]) translate([bx0 + cell_bare, s > 0 ? in_w/2 - fit - ledge_lip : -in_w/2, floor_t - 0.01])
                 cube([board_l - cell_bare - hdr_bare, ledge_lip + fit, ledge + 0.01]);
@@ -154,7 +141,7 @@ module module_standin() {
     translate([bx0 + 1, 0, board_top + cell_h - cell_t]) cylinder(d = cell_d, h = cell_t);
     for (y = [-1.5, 1.5]) translate([bx0 + 1, y, board_top]) cylinder(d = 0.5, h = cell_h - cell_t, $fn = 8);
     translate([bx1 - 2.5, -3.8, board_top]) cube([2.5 + lead_l, 7.6, 2.54]);
-    translate([exit_x, 0, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d - 0.3, h = out_w/2 + tie_out + 6);
+    translate([exit_x, 0, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d - 0.3, h = out_w/2 + 0 + 6);
 }
 
 if (part == "tray") tray();

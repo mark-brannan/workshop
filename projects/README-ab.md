@@ -35,7 +35,7 @@ polygons `networkx`, neither in the venv, so `shop.testing.ray_hits` is a
 
 | | build123d (pyvista) | OpenSCAD (`--render`, Tomorrow) | pyvista on the OpenSCAD STL |
 |---|---|---|---|
-| bracket | `demo-bracket/out/bracket.png` | `demo-bracket/out/bracket_scad.png` | `demo-bracket/out/bracket_scad_pv.png`, `_pv_views.png` |
+| bracket | (project removed; images in git history before 2026-11-21) | | |
 
 The OpenSCAD PNG (camera `rot 55,0,25`, viewed from -Y) shows the wall-hole
 chamfers plainly and hides the base holes and the round; the pyvista iso

@@ -28,6 +28,7 @@ LISTS = lists(HERE / "model.scad")
 RECESS = max(0.0, P["boss_h"] - P["post_h"])  # underside pocket over each holed boss
 T, H = P["plate_t"], P["standoff_h"]  # T: full body thickness
 SPAN, PITCH, REACH = P["boss_span"], P["boss_pitch"], P["slot_reach"]
+IN = P["slot_in"]  # extra reach on the inner end
 DX, DY = P["board_dx"], P["board_dy"]
 SLOTS = [(-21.75 + DX, 22.5 + DY), (22.75 + DX, -22.5 + DY)]
 RESTS = [(36 + DX, 18 + DY), (-38.5 + DX, -19.5 + DY)]
@@ -67,7 +68,7 @@ def test_bounds_volume_watertight(frame):
     assert frame.is_watertight
     lo, hi = frame.bounds
     assert np.allclose([lo[0], hi[0]], [-SPAN / 2 - REACH - P["end_ext"], SPAN / 2 + REACH + P["end_ext"]], atol=0.05)
-    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0), atol=0.02)
+    assert np.isclose(lo[2], 0, atol=0.02) and np.isclose(hi[2], max(T + H, TIER_Z0, T + P["tie_rise"]), atol=0.02)
     back = max(P["plate_y_hi"], *(y + P["tier_boss_d"] / 2 for _, y in PADS))  # straight back edge, bulged by a pad
     assert np.allclose([lo[1], hi[1]], [-P["frame_w"] / 2, back], atol=0.05)
     assert hi[1] <= 83 / 2 - 1  # inside the box floor
@@ -108,9 +109,9 @@ def test_six_fork_slots_open_over_the_bosses(frame):
     for sx in (-1, 1):
         for k in (-1, 0, 1):
             y = k * PITCH
-            for off in (-REACH, 0, REACH):  # boss anywhere in the stated reach
+            for off in (-REACH - IN, 0, REACH):  # boss anywhere in the stated reach
                 assert top(frame, sx * (SPAN / 2 + off), y) is None
-            assert np.isclose(top(frame, sx * SPAN / 2, y + PITCH / 2 if k < 0 else y - 4), T, atol=0.02)
+            assert np.isclose(top(frame, sx * SPAN / 2, y + 4 if k < 0 else y - 4), T, atol=0.02)  # solid bar beside the boss, clear of the end tie loops
 
 
 def test_laser_profile_is_millimetres_on_cut_layer(built):
@@ -140,28 +141,29 @@ def test_underside_recessed_over_bosses_flat_on_posts(frame):
             assert np.isclose(bottom(frame, x, y), RECESS, atol=0.02)
 
 
-def test_tie_slots_chamfered_underneath_on_the_outer_edge(frame):
-    for x in LISTS["tie_bar_xs"]:
-        outer = x + P["tie_gap"] / 2 + P["tie_t"] / 2  # outer edge of the right-hand slot
-        assert np.isclose(bottom(frame, outer + P["tie_c"] / 2, P["tie_bar_y"]), P["tie_c"] / 2, atol=0.05)
-        web = x + P["tie_gap"] / 2 - P["tie_t"] / 2 - 0.2  # web side stays square
-        assert np.isclose(bottom(frame, web, P["tie_bar_y"]), 0, atol=0.02)
+TIE_TOP = T + P["tie_rise"]
+X_END = -(SPAN / 2 - REACH - IN - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
+LOOPS = [(x, P["tie_bar_y"], 1, 0) for x in LISTS["tie_bar_xs"]] + [(X_END, y, 0, 1) for y in LISTS["tie_end_ys"]] + [(-X_END, y, 0, 1) for y in LISTS["tie_right_ys"]] + [(x, y, 1, 0) for x, y in LISTS["tie_back"]]  # centre, run direction
 
 
-def test_zip_tie_slots_open(frame):
-    assert len(LISTS["tie_bar_xs"]) == 6  # six gland-side ties
-    pairs = [(x + s * P["tie_gap"] / 2, P["tie_bar_y"]) for x in LISTS["tie_bar_xs"] for s in (-1, 1)]
-    x_end = -(SPAN / 2 - REACH - P["screw_d"] / 2 - 3 + SPAN / 2 + REACH + P["end_ext"]) / 2
-    pairs += [(x_end, y + s * P["tie_gap"] / 2) for y in (-10.5, 10.5) for s in (-1, 1)]
-    for x, y in pairs:
-        assert top(frame, x, y) is None
-    for x in LISTS["tie_bar_xs"]:  # web between the two slots of a pair carries the tie
-        assert np.isclose(top(frame, x, P["tie_bar_y"]), T, atol=0.02)
+def test_tie_staples_worked_from_above(frame):
+    assert len(LOOPS) == 10  # six gland-side, two on the left end, one on the right, one on the back
+    assert P["tie_bar_y"] - (P["tie_w"] / 2 + P["tie_wall"]) - P["tie_foot"] > P["plate_y_lo"]  # foot chamfer stays on the plate, clear of the tab bevel
+    assert P["tie_rise"] - P["tie_t"] - P["tie_round"] - P["tie_mouth"] >= 0.4  # roof keeps a flat band between its top round and the mouth flare
+    for x, y, ux, uy in LOOPS:
+        hits = [h[2] for h in ray_hits(frame, (x, y, 50), (0, 0, -1))]
+        assert np.isclose(hits[0], TIE_TOP, atol=0.02)  # flat top
+        assert np.isclose(hits[1], T + P["tie_t"], atol=0.02)  # flat roof
+        assert np.isclose(hits[2], T, atol=0.02)  # slot floor is the plate top
+        z = T + P["tie_t"] / 2  # through the slot along the run: nothing in the way
+        through = ray_hits(frame, (x - ux * 10, y - uy * 10, z), (ux, uy, 0))
+        assert not any(abs((h[0] - x) * ux + (h[1] - y) * uy) < P["tie_len"] for h in through)
+        assert np.isclose(bottom(frame, x, y), 0, atol=0.02)  # underside untouched
 
 
 def test_board_clear_of_the_left_fork_slots():
     left_edge = -44.5 + DX
-    assert left_edge > -(SPAN / 2 - REACH) + P["slot_d"] / 2  # a driver reaches every left screw
+    assert left_edge > -(SPAN / 2 - REACH - IN) + P["slot_d"] / 2  # a driver reaches every left screw
 
 
 def test_plate_has_insert_pads_under_the_tier_and_mid_tier_standoffs(frame):
@@ -272,11 +274,10 @@ def keep_out():
     board = Polygon([(x + ox, y + oy) for x, y in HALMET])
     esp32 = box(60.5 + ox, 30 + oy, 86 + ox, 48 + oy)  # ESP32 module, overhanging the board's right edge
     usb = box(BOARD_RIGHT, -6, 75.5, 6)  # USB plug path to the right wall
-    heads = unary_union([LineString([(sx * (SPAN / 2 - REACH), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
+    heads = unary_union([LineString([(sx * (SPAN / 2 - REACH - IN), k * PITCH), (sx * (SPAN / 2 + REACH), k * PITCH)]).buffer(P["head_d"] / 2)
                          for sx in (-1, 1) for k in (-1, 0, 1)])  # floor-screw heads anywhere along their fork slots
-    ties = unary_union([box(x + s * P["tie_gap"] / 2 - P["tie_t"] / 2, P["tie_bar_y"] - P["tie_w"] / 2,
-                            x + s * P["tie_gap"] / 2 + P["tie_t"] / 2, P["tie_bar_y"] + P["tie_w"] / 2)
-                        for x in LISTS["tie_bar_xs"] for s in (-1, 1)])
+    ties = unary_union([box(x - P["tie_len"] / 2 - 2, P["tie_bar_y"] - P["tie_w"] / 2, x + P["tie_len"] / 2 + 2, P["tie_bar_y"] + P["tie_w"] / 2)
+                        for x in LISTS["tie_bar_xs"]])  # the tunnel and 2 mm either side, where the tie runs
     halmet_posts = unary_union([Point(p).buffer(P["standoff_d"] / 2) for p in SLOTS] + [Point(p).buffer(P["rest_d"] / 2) for p in RESTS])
     return {"board": unary_union([board, esp32]), "usb": usb, "floor heads": heads, "ties": ties, "halmet posts": halmet_posts}
 
@@ -321,7 +322,7 @@ def test_row_screws_are_the_frame_standoffs():
 def test_row_bounds_volume_and_plan_inside_the_box(row):
     assert row.is_watertight and row.body_count == 1
     lo, hi = row.bounds
-    assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["oled_boss_h"], abs=0.02)
+    assert lo[2] == pytest.approx(-RT, abs=0.02) and hi[2] == pytest.approx(R["ldr_ledge"] + R["pcb_t"], abs=0.02)  # the sensor cradle walls are the tallest thing
     assert hi[0] <= 75.5 - 1 and max(-lo[1], hi[1]) <= 41.5 - 1  # inner walls, 1 mm margin
     tm_edge = CX + R["tm_w"] / 2
     for x, y, _ in row.vertices:  # lid-screw columns: 1 mm clear, the lower-right TM post cut col_gap short instead
@@ -330,7 +331,7 @@ def test_row_bounds_volume_and_plan_inside_the_box(row):
     cut = [p for p in TM_POSTS if p[0] + R["tm_boss_d"] / 2 > P["lid_col_x"] - R["col_gap"]]
     for x, y in cut:  # the cut boss keeps two perimeters beside its hole
         assert P["lid_col_x"] - R["col_gap"] - x - R["tm_hole"] / 2 >= 0.8
-    assert 6000 < row.volume < 8000  # mm^3; lightened build 6951
+    assert 5000 < row.volume < 7000  # mm^3; no OLED posts, straight right edge: 5997
 
 
 def test_row_prints_flat_nothing_below_or_overhanging(row):
@@ -347,7 +348,7 @@ def test_row_three_screw_holes_in_solid_islands_clear_of_modules(row):
     from shapely.geometry import Point, box
     boards = [box(CX - R["tm_w"] / 2, y - R["tm_h"] / 2, CX + R["tm_w"] / 2, y + R["tm_h"] / 2) for y in RL["tm_y"]]
     boards.append(box(CX - R["oled_w"] / 2, R["oled_y"] - R["oled_h"] / 2, CX + R["oled_w"] / 2, R["oled_y"] + R["oled_h"] / 2))
-    posts = [Point(p).buffer(R["tm_boss_d"] / 2) for p in TM_POSTS] + [Point(p).buffer(R["oled_boss_d"] / 2) for p in OLED_POSTS]
+    posts = [Point(p).buffer(R["tm_boss_d"] / 2) for p in TM_POSTS] + [Point(p).buffer(R["oled_pad_d"] / 2) for p in OLED_POSTS]
     assert len(ROW_SCREWS) == 3
     for x, y in ROW_SCREWS:
         assert top(row, x, y) is None
@@ -359,33 +360,36 @@ def test_row_three_screw_holes_in_solid_islands_clear_of_modules(row):
         assert R["island_d"] >= 8
 
 
-def test_row_module_bosses_holed_at_their_heights(row):
+def test_row_module_holes_and_tm_bosses(row):
     assert len(TM_POSTS) == 8 and len(OLED_POSTS) == 4
-    for posts, h, d, hole in ((TM_POSTS, R["tm_boss_h"], R["tm_boss_d"], R["tm_hole"]),
-                              (OLED_POSTS, R["oled_boss_h"], R["oled_boss_d"], R["oled_hole"])):
-        for x, y in posts:
-            assert top(row, x, y) is None  # holed through
-            assert top(row, x - (d + hole) / 4, y) == pytest.approx(h, abs=0.02)  # boss wall, on the side away from the lid column
+    for x, y in TM_POSTS:
+        assert top(row, x, y) is None  # holed through
+        assert top(row, x - (R["tm_boss_d"] + R["tm_hole"]) / 4, y) == pytest.approx(R["tm_boss_h"], abs=0.02)  # boss wall, on the side away from the lid column
+    for x, y in OLED_POSTS:  # plain holes in flat plate, no boss: the OLED stands on standoffs
+        assert top(row, x, y) is None
+        assert top(row, x - R["oled_hole"] / 2 - 0.5, y) == pytest.approx(0, abs=0.02)
 
 
 def test_row_oled_clears_the_sensor_stack_and_cell_sees_past_it():
     stack = R["ldr_ledge"] + R["pcb_t"] + R["ldr_part_h"]
-    assert R["oled_boss_h"] >= stack + 2.5  # trimpot, pin stubs and clearance under the OLED
+    assert R["oled_standoff_h"] >= stack + 2  # trimpot, pin stubs and clearance under the OLED
     assert R["ldr_y"] == R["oled_y"]  # centred under it
-    assert R["ldr_x0"] < CX - R["oled_w"] / 2 - 4  # photocell end out past the OLED's left edge
+    assert R["ldr_x0"] < R["x0"]  # photocell end out past the plate's left edge
     outer = R["ldr_w"] / 2 + R["ldr_fit"] + R["ldr_wall"]  # cradle wall faces, between the OLED's post rows
-    assert R["oled_dy"] / 2 - R["oled_boss_d"] / 2 - outer > 0.5
+    assert R["oled_dy"] / 2 - R["oled_pad_d"] / 2 - outer > 0.5
 
 
 def test_row_sensor_cradle_on_top(row):
     w = R["ldr_w"] + 2 * R["ldr_fit"]
     x0, y = R["ldr_x0"], R["ldr_y"]
-    mid = x0 + 7
+    mid = x0 + 16  # past the screw head's clearance, over both ledges
     z_board = R["ldr_ledge"]
     for s in (-1, 1):
         assert top(row, mid, y + s * (w / 2 - 1)) == pytest.approx(z_board, abs=0.02)  # edge ledge
         assert top(row, x0 + R["ldr_l"] / 2, y + s * (w / 2 + R["ldr_wall"] / 2)) == pytest.approx(z_board + R["pcb_t"], abs=0.02)  # wall
-        assert top(row, x0 + R["ldr_cell_clear"] - 0.5, y + s * (R["ldr_w"] / 2 - R["ldr_lip"] / 2)) == pytest.approx(0, abs=0.02)  # cell end bare
+        assert top(row, R["x0"] - 0.5, y) is None  # the cell end hangs past the plate: nothing under it
+    assert top(row, R["x0"] + 0.5, y - (w / 2 - 1)) == pytest.approx(z_board, abs=0.02)  # the front ledge starts on the plate (the back one starts past the screw head)
+    assert x0 + R["ldr_cell_clear"] >= R["x0"] - 0.01  # no ledge starts off the plate (no supports)
     assert top(row, mid, y) is None  # window between the ledges
     assert top(row, *RLDR_HOLE) is None  # M3 up from underneath
     assert top(row, RLDR_HOLE[0] + R["tier_hole"] / 2 + 0.6, y) == pytest.approx(z_board, abs=0.02)  # pad round it
@@ -398,7 +402,7 @@ def test_row_clears_the_lid_and_the_gland_nuts():
     floor = -P["post_h"]  # z = 0 on the rest posts
     tier_top = TIER_TOP
     lid = P["rim_z"] + P["lid_depth"] + floor
-    assert tier_top + R["oled_boss_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
+    assert tier_top + R["oled_standoff_h"] + R["pcb_t"] + 1.5 < lid - 1  # OLED glass, 1.5 over its board (guess)
     assert tier_top + R["tm_boss_h"] + 7 < lid - 1  # TM1637 face, 7 above its board's underside
     assert tier_top - RT - floor > GLAND_TOP + 3  # tier underside over the gland nuts
 
