@@ -72,6 +72,7 @@ rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
 rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
 rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
+rd_hook = 0.9;       // bottom hooks over the board's lower edge
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
 rd_beam_t = 0.8;     // beam thickness: the rib thinned from outside so the lip can flex
 rd_slot = 1;         // cut either side of a beam
@@ -200,15 +201,24 @@ module ol_posts_2d() {
 // Both slopes are 45 deg, so the board pushes in (and gently out) and nothing needs support.
 module rd_lips() {
     zb = face_t + rd_t + rd_lip_gap;
-    for (sx = [-1, 1], dy = [-1, 1])
-        translate([sx*(rd_w/2 + rd_slack), rd_cy + dy*(rd_h/2 - rd_lip_len/2 - 1), 0])
+    for (sx = [-1, 1])
+        translate([sx*(rd_w/2 + rd_slack), rd_cy + (rd_h/2 - rd_lip_len/2 - 1), 0])
             rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true)
                 polygon([[sx*0.2, zb], [-sx*rd_lip, zb + rd_lip], [-sx*rd_lip, zb + rd_lip + 0.3],
                          [sx*0.2, zb + 2*rd_lip + 0.3]]);
 }
+// Radar bottom hooks: the board's lower edge tucks under them at an angle, then the board lies flat
+// and the upper snap lips click over it. 45 deg undersides, no supports.
+module rd_hooks() {
+    zb = face_t + rd_t + rd_lip_gap;
+    for (sx = [-1, 1])
+        translate([sx*(rd_w/2 - 1), rd_cy - (rd_h/2 + rd_slack), 0])
+            rotate([90, 0, 90]) linear_extrude(3, center = true)
+                polygon([[-0.2, zb], [rd_hook, zb + rd_hook], [rd_hook, zb + rd_hook + 0.3], [-0.2, zb + 2*rd_hook + 0.3]]);
+}
 // What the beams are cut free with.
 module rd_beam_cuts() {
-    for (sx = [-1, 1], dy = [-1, 1]) {
+    for (sx = [-1, 1]) { dy = 1;
         y0 = rd_h/2 - 1 - rd_lip_len;                      // beam spans y0 .. y0 + rd_lip_len from the radar centre
         x_in = rd_w/2 + rd_slack;
         for (y = [y0 - rd_slot, y0 + rd_lip_len])
@@ -257,6 +267,7 @@ module shell() {
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
             rd_lips();
+            rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
