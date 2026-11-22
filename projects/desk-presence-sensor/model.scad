@@ -56,7 +56,9 @@ ol_glass_dy = 0;     // guessed: glass centred between the hole rows
 ol_win_w = 24;       // active area 21.7 x 10.9 plus margin
 ol_win_h = 13;
 ol_win_dy = 1.5;     // guessed: active area above the board centre (header end)
-ol_gap = 0.3;        // glass face to the face interior
+ol_gap = 0.3;        // glass face to the face interior, before ol_fwd
+ol_fwd = 1.8;        // glass moved toward the outside; 1.8 is flush (the glass pocket runs through the face)
+ol_bevel = 0.5;      // 45 deg chamfer around the glass at the outside face, sloping in toward it
 ol_pilot_d = 1.6;    // M2 self-tapping, calibration pending
 ol_post_d = 3.6;
 
@@ -127,7 +129,8 @@ in_h = ol_cy + ol_h/2 + 0.5;
 out_h = in_h + 2*wall;
 cy0 = in_h/2;
 tm_board_z = tm_recess + tm_disp_h;
-ol_board_z = face_t + ol_gap + ol_glass_h;
+ol_glass_z = face_t + ol_gap - ol_fwd;   // glass front face
+ol_board_z = ol_glass_z + ol_glass_h;
 ol_back_z = ol_board_z + ol_t + ol_pins;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
 ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
@@ -218,6 +221,13 @@ module shell() {
             tm_disp_keepout();
             translate([0, ol_cy + ol_win_dy]) square([ol_win_w, ol_win_h], center = true);
         }
+        // glass pocket: through the face when flush, else from behind leaving a lip in front
+        translate([0, 0, ol_glass_z <= 0 ? -1 : ol_glass_z]) linear_extrude(face_t + 1) offset(delta = 0.05) ol_glass_keepout();
+        // chamfer: the pocket flares outward over its first ol_bevel mm at the outside face
+        translate([0, ol_cy + ol_glass_dy, 0]) hull() {
+            translate([0, 0, -0.01]) linear_extrude(0.01) square([ol_glass_w + 0.7 + 2*ol_bevel, ol_glass_l + 0.7 + 2*ol_bevel], center = true);
+            translate([0, 0, ol_bevel]) linear_extrude(0.01) square([ol_glass_w + 0.72, ol_glass_l + 0.72], center = true);  // 0.01 proud: no shared wall with the pocket
+        }
         for (h = tm_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = tm_pilot_d, h = tm_board_z);
         for (h = ol_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = ol_pilot_d, h = ol_board_z);
         // cable slot through the top wall, open to the rim: no roof to print
@@ -298,7 +308,7 @@ module si_tm(cut = false) {
 }
 module si_ol(cut = false) {
     paint("tomato", cut) translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
-    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, ol_glass_z]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
 }
 module si_d1(cut = false) {
     paint("royalblue", cut) translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
@@ -335,9 +345,9 @@ module screens() {
             square([tm_disp_l - 2, tm_disp_w - 2], center = true);
         color("red") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.3]) linear_extrude(0.2)
             text("1:42", size = 8, halign = "center", valign = "center", font = "DejaVu Sans Mono:style=Bold");
-        color("black") translate([0, ol_cy + ol_win_dy, face_t + ol_gap - 0.1]) linear_extrude(0.11)
+        color("black") translate([0, ol_cy + ol_win_dy, ol_glass_z - 0.1]) linear_extrude(0.11)
             square([21.7, 10.9], center = true);
-        color("white") for (i = [0:2]) translate([0, ol_cy + ol_win_dy + 3.3 - i*3.3, face_t + ol_gap - 0.3])
+        color("white") for (i = [0:2]) translate([0, ol_cy + ol_win_dy + 3.3 - i*3.3, ol_glass_z - 0.3])
             linear_extrude(0.2) text(["SITTING 1:42", "PRESENT 98%", "WIFI -61 dBm"][i], size = 1.9,
                 halign = "center", valign = "center", font = "DejaVu Sans Mono");
     }
