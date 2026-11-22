@@ -23,7 +23,6 @@ wall = 4;           // V arms and support wall
 front_t = 3;        // low lip on the wall side
 front_h = 15;       // front lip height above the point: the top stays open
 back_h = 65;        // support wall top above the point, past half the probe
-back_w = 50;        // support wall width above the V
 
 /* [Wall plate: screws into a vertical wood surface] */
 plate_x = 100;
@@ -45,12 +44,9 @@ w_front = -slot / 2 - front_t;
 // --- probe frame, 2D in (u, v) ---
 module diamond() polygon([[0, 0], [D / 2, D / 2], [0, D], [-D / 2, D / 2]]);
 module outer_v(h) polygon([[0, -k], [h + k, h], [-(h + k), h]]);
-module back_2d() intersection() {
+module back_2d() intersection() {   // quarter circle: 90 deg sector about the V point, arc top at back_h
     outer_v(back_h);
-    union() {
-        translate([-200, -50]) square([400, v_depth + 50]);
-        translate([-back_w / 2, -50]) square([back_w, back_h + 50]);
-    }
+    translate([0, -k]) circle(r = back_h + k, $fn = 96);
 }
 module cutter_2d() offset(delta = fit_v) hull() { diamond(); translate([0, 100]) diamond(); }
 
@@ -82,19 +78,6 @@ module plate() difference() {
     }
 }
 
-// The cradle's wall side carried straight back to the plate, 6 mm lower at the plate so the underside
-// is steeper than 45; cut to three vertical fins, open between them.
-module wall_side() placed() slab(w_front + 0.1, w_front + 1) outer_v(v_depth);
-fin_t = 4;
-fin_xs = [-28, 0, 28];
-module wedge() intersection() {
-    hull() {
-        wall_side();
-        translate([0, y_pf + 1, -6]) rotate([90, 0, 0]) linear_extrude(1) projection() rotate([-90, 0, 0]) wall_side();
-    }
-    for (x = fin_xs) translate([x - fin_t / 2, -100, 0]) cube([fin_t, 200, 200]);
-}
-
 module bottom(h) intersection() { placed() cradle_outer(); translate([-100, -100, 0]) cube([200, 200, h]); }
 
 module holder() {
@@ -102,7 +85,6 @@ module holder() {
         union() {
             plate();
             placed() cradle_outer();
-            wedge();
             hull() { bottom(12); linear_extrude(0.5) projection() bottom(12); }   // a flat foot on the bed
         }
         placed() cutter();
