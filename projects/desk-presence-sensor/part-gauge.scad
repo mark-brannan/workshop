@@ -1,17 +1,5 @@
-// Fit-check gauge, generated: shop gauge projects/desk-presence-sensor "shell()" 0.75 3.5
-// Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
-// a hand-written gauge replaces this file and drops this first line.
-use <model.scad>
-
-/* [Gauge] */
-z_plate = 0.75;   // slice height through the plate: its outline and through-holes
-z_wall = 3.5;    // slice height through the walls the object sits against; below 0 for none
-gauge_t = 1;       // gauge plate thickness
-gauge_rise = 2;    // gauge wall height above the plate
-
-module gauge_slice() {
-    linear_extrude(gauge_t) projection(cut = true) translate([0, 0, -z_plate]) children();
-    if (z_wall >= 0) translate([0, 0, gauge_t - 0.01]) linear_extrude(gauge_rise + 0.01) projection(cut = true) translate([0, 0, -z_wall]) children();
-}
-
-gauge_slice() shell();
+// Fit gauge, hand-written: the shell's face with every seat at full depth and no walls or tray.
+// Test the radar's whole clip (slot along the lower edge, two upper snap lips, ribs), the TM1637 and
+// OLED standoffs and seats, and the window and glass pocket, all at the depths of the real shell.
+include <model.scad>
+view = "gauge";

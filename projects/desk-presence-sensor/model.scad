@@ -56,7 +56,13 @@ ol_glass_dy = 0;     // guessed: glass centred between the hole rows
 ol_win_w = 24;       // active area 21.7 x 10.9 plus margin
 ol_win_h = 13;
 ol_win_dy = 1.5;     // guessed: active area above the board centre (header end)
-ol_gap = 0.3;        // glass face to the face interior
+ol_gap = 0.3;        // glass face to the face interior, before ol_fwd
+ol_fwd = 1.8;        // glass moved toward the outside; 1.8 is flush (the glass pocket runs through the face)
+ol_rev = 0.8;        // reverse chamfer at the bottom end: relief widening toward the inside, for the ribbon
+ol_rev_w = 14;       // its width in X, narrow enough to leave the screw posts whole
+ol_pin_rec = 1.0;    // header-end relief cut into the face from inside, for the solder nubs; leaves face_t - this as skin
+ol_pin_w = 14;       // its width in X (four pads at 2.54 pitch are about 10 wide)
+ol_bevel = 0.5;      // 45 deg chamfer around the glass at the outside face, sloping in toward it
 ol_pilot_d = 1.6;    // M2 self-tapping, calibration pending
 ol_post_d = 3.6;
 
@@ -64,10 +70,22 @@ ol_post_d = 3.6;
 rd_w = 22;           // X
 rd_h = 16;           // Y
 rd_t = 1;            // board, guessed
-rd_back = 3;         // clipped pins plus soldered wire behind the board
+rd_back = 8;         // pins behind the board: normal male header, owner 2026-11-22
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
+rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
+rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
+rd_hook = 0.9;       // bottom hooks over the board's lower edge
+rd_lip_gap = 0.1;    // board back to where the lip underside starts
+rd_beam_t = 0.8;     // beam thickness: the rib thinned from outside so the lip can flex
+rd_slot = 1;         // cut either side of a beam
+/* [TM1637 seat and tray seat] */
+tm_rib_t = 0.8;      // seating ribs along the board's top and bottom edges (the side walls seat its ends)
+tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
+/* [OLED frame] */
+ol_slack = 0.3;      // board edge to rib, per side
+ol_rib_t = 1.2;
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -87,7 +105,9 @@ cable_slot_w = 5.5;  // top wall slot, X; open to the back rim
 back_clr = 0.3;      // deepest part to the back plate
 
 /* [Tray] */
-tray_t = 4;          // TM1637 back to the D1's front face: joints, wires and the D1's underside parts
+tray_t = 4;          // tray plate: the D1's front face above its front plane; joints, wires and the D1's underside parts
+screw_head = 1.5;    // TM1637 screw heads standing off its back, guessed
+rd_pin_clr = 0.5;    // radar pin tips to the tray's front plane
 tray_side = 0.3;     // tray edge to the side wall
 tray_hole_d = 3.0;   // M2.5 clearance, generous (printed holes come undersize)
 rail_x = 13.4;       // windows run between the side rails: D1 edge plus room for its pad joints
@@ -127,12 +147,14 @@ in_h = ol_cy + ol_h/2 + 0.5;
 out_h = in_h + 2*wall;
 cy0 = in_h/2;
 tm_board_z = tm_recess + tm_disp_h;
-ol_board_z = face_t + ol_gap + ol_glass_h;
+ol_glass_z = face_t + ol_gap - ol_fwd;   // glass front face
+ol_board_z = ol_glass_z + ol_glass_h;
 ol_back_z = ol_board_z + ol_t + ol_pins;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
 ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
 // The depth stack, front to back.
-tray_z0 = tm_board_z + tm_t;                       // tray front face on the TM1637's back
+tm_back_z = tm_board_z + tm_t;                     // TM1637 board back
+tray_z0 = max(tm_back_z + screw_head, face_t + rd_t + rd_back + rd_pin_clr);   // tray front plane: rests on the wall seats, clear of the TM1637 and the radar pins
 d1_z0 = tray_z0 + tray_t;                          // D1 front face on the tray
 d1_y1 = d1_y0 + d1_l;
 usb_z = d1_z0 + d1_t + usb_h;                      // socket and plug axis
@@ -185,11 +207,65 @@ module ol_posts_2d() {
     }
 }
 
+// Radar snap: four lips, two per side rib, each on a beam freed by slots and thinned from outside.
+// Both slopes are 45 deg, so the board pushes in (and gently out) and nothing needs support.
+module rd_lips() {
+    zb = face_t + rd_t + rd_lip_gap;
+    for (sx = [-1, 1])
+        translate([sx*(rd_w/2 + rd_slack), rd_cy + (rd_h/2 - rd_lip_len/2 - 1), 0])
+            rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true)
+                polygon([[sx*0.2, zb], [-sx*rd_lip, zb + rd_lip], [-sx*rd_lip, zb + rd_lip + 0.3],
+                         [sx*0.2, zb + 2*rd_lip + 0.3]]);
+}
+// Radar bottom slot: one lip along the whole lower edge, over a whole bottom rib. The board's lower edge
+// tucks into the slot (floor = face, back = rib, roof = lip) at an angle, then the board lies flat and
+// the upper snap lips click over it. 45 deg underside, no supports.
+module rd_hooks() {
+    zb = face_t + rd_t + rd_lip_gap;
+    translate([0, rd_cy - (rd_h/2 + rd_slack), 0])
+        rotate([90, 0, 90]) linear_extrude(rd_w + 2*rd_slack + 0.4, center = true)
+            polygon([[-0.2, zb], [rd_hook, zb + rd_hook], [rd_hook, zb + rd_hook + 0.3], [-0.2, zb + 2*rd_hook + 0.3]]);
+}
+// What the beams are cut free with.
+module rd_beam_cuts() {
+    for (sx = [-1, 1]) { dy = 1;
+        y0 = rd_h/2 - 1 - rd_lip_len;                      // beam spans y0 .. y0 + rd_lip_len from the radar centre
+        x_in = rd_w/2 + rd_slack;
+        for (y = [y0 - rd_slot, y0 + rd_lip_len])
+            translate([sx*(x_in + rd_rib_t/2), rd_cy + dy*(y + rd_slot/2), face_t + 10])
+                cube([rd_rib_t + 1, rd_slot, 20], center = true);
+        translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), face_t + 10])
+            cube([(rd_rib_t - rd_beam_t) + 1, rd_lip_len, 20], center = true);
+    }
+}
+
+// TM1637 seat: ribs along the board's top and bottom edges, stopping short of the tray's front plane.
+module tm_seat_2d() {
+    for (sy = [-1, 1])
+        translate([-in_w/2 - 0.1, tm_cy + sy*(tm_w/2 + tm_clear + tm_rib_t/2) - tm_rib_t/2])
+            square([in_w + 0.2, tm_rib_t]);   // 0.1 into each wall: no shared face
+}
+// Tray seat: blocks along each wall, under the tray's side margins where it overhangs the radar zone.
+module tray_seats() {
+    y0 = tray_y0 + 0.3; y1 = tm_cy - tm_w/2 - tm_clear - tm_rib_t/2;   // ends inside the TM seat rib: no shared face
+    for (sx = [-1, 1])
+        translate([sx > 0 ? in_w/2 - tray_seat_w : -in_w/2 - 0.1, y0, 0]) cube([tray_seat_w + 0.1, y1 - y0, tray_z0 - 0.05]);
+}
+
+// OLED seat: ribs round the board's sides and bottom; the top edge meets the wall.
+module ol_frame_2d() {
+    translate([0, ol_cy]) difference() {
+        translate([0, (ol_h/2 + 0.5 - (ol_h/2 + ol_slack + ol_rib_t))/2])
+            square([ol_w + 2*(ol_slack + ol_rib_t), ol_h/2 + 0.5 + ol_h/2 + ol_slack + ol_rib_t], center = true);
+        square([ol_w + 2*ol_slack, ol_h + 2*ol_slack], center = true);
+    }
+}
+
 module rd_ribs_2d() {
     translate([0, rd_cy]) difference() {
         square([rd_w + 2*(rd_slack + rd_rib_t), rd_h + 2*(rd_slack + rd_rib_t)], center = true);
         square([rd_w + 2*rd_slack, rd_h + 2*rd_slack], center = true);
-        square([rd_w - 6, rd_h + 10], center = true);   // open top and bottom for the wires and a glue tool
+        translate([0, rd_h/2 + 5]) square([rd_w - 6, 10], center = true);   // open top only, for the wires; the bottom rib is whole and carries the hook
     }
 }
 
@@ -198,6 +274,21 @@ module snap_grooves() {
     for (sx = [-1, 1], y = tab_ys)
         translate([sx*in_w/2, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w + 2, center = true)
             polygon([[0, -bump - 0.1], [sx*(bump + 0.1), 0], [0, bump + 0.1]]);
+}
+
+// Fit gauge: the shell's face and everything standing on it at full height (radar ribs, lips and bottom slot;
+// TM1637 posts and seat ribs; OLED posts, frame and glass pocket), with the walls and the tray's wall seats left off.
+module gauge() {
+    difference() {
+        intersection() {
+            shell();
+            union() {
+                linear_extrude(face_t + 0.01) outline();
+                translate([0, cy0, 0]) linear_extrude(shell_d) square([in_w - 0.2, in_h - 0.2], center = true);   // just inside the walls: no sliver of them
+            }
+        }
+        translate([0, 0, face_t + 0.01]) tray_seats();   // cut from just above the face: it stays whole
+    }
 }
 
 module shell() {
@@ -213,16 +304,35 @@ module shell() {
             linear_extrude(tm_board_z) tm_posts_2d();
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
+            rd_lips();
+            rd_hooks();
+            linear_extrude(ol_board_z + ol_t) ol_frame_2d();
+            linear_extrude(tm_back_z - 0.2) tm_seat_2d();
+            tray_seats();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
             tm_disp_keepout();
             translate([0, ol_cy + ol_win_dy]) square([ol_win_w, ol_win_h], center = true);
+        }
+        // glass pocket: through the face when flush, else from behind leaving a lip in front
+        translate([0, 0, ol_glass_z <= 0 ? -1 : ol_glass_z]) linear_extrude(face_t + 1) offset(delta = 0.05) ol_glass_keepout();
+        // header relief: a pocket in the face behind the pin end, open toward the back, so no overhang
+        translate([-ol_pin_w/2, ol_cy + ol_glass_dy + ol_glass_l/2 + 0.3, face_t - ol_pin_rec])
+            cube([ol_pin_w, ol_h/2 + 0.2 - (ol_glass_dy + ol_glass_l/2 + 0.3), ol_pin_rec + 1]);
+        // reverse chamfer: below the glass's lower edge the face thins toward the inside, 45 deg (no supports)
+        translate([0, ol_cy + ol_glass_dy - (ol_glass_l/2 + 0.35), 0]) rotate([90, 0, 90]) linear_extrude(ol_rev_w, center = true)
+            polygon([[0.1, face_t - ol_rev], [-ol_rev, face_t + 0.01], [0.1, face_t + 0.01]]);
+        // chamfer: the pocket flares outward over its first ol_bevel mm at the outside face
+        translate([0, ol_cy + ol_glass_dy, 0]) hull() {
+            translate([0, 0, -0.01]) linear_extrude(0.01) square([ol_glass_w + 0.7 + 2*ol_bevel, ol_glass_l + 0.7 + 2*ol_bevel], center = true);
+            translate([0, 0, ol_bevel]) linear_extrude(0.01) square([ol_glass_w + 0.72, ol_glass_l + 0.72], center = true);  // 0.01 proud: no shared wall with the pocket
         }
         for (h = tm_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = tm_pilot_d, h = tm_board_z);
         for (h = ol_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = ol_pilot_d, h = ol_board_z);
         // cable slot through the top wall, open to the rim: no roof to print
         translate([-cable_slot_w/2, in_h - 1, cable_z0]) cube([cable_slot_w, wall + 2, shell_d]);
         snap_grooves();
+        rd_beam_cuts();
     }
 }
 
@@ -298,7 +408,7 @@ module si_tm(cut = false) {
 }
 module si_ol(cut = false) {
     paint("tomato", cut) translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
-    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, ol_glass_z]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
 }
 module si_d1(cut = false) {
     paint("royalblue", cut) translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
@@ -335,9 +445,9 @@ module screens() {
             square([tm_disp_l - 2, tm_disp_w - 2], center = true);
         color("red") translate([-tm_disp_dx, tm_cy + tm_disp_dy, tm_recess - 0.3]) linear_extrude(0.2)
             text("1:42", size = 8, halign = "center", valign = "center", font = "DejaVu Sans Mono:style=Bold");
-        color("black") translate([0, ol_cy + ol_win_dy, face_t + ol_gap - 0.1]) linear_extrude(0.11)
+        color("black") translate([0, ol_cy + ol_win_dy, ol_glass_z - 0.1]) linear_extrude(0.11)
             square([21.7, 10.9], center = true);
-        color("white") for (i = [0:2]) translate([0, ol_cy + ol_win_dy + 3.3 - i*3.3, face_t + ol_gap - 0.3])
+        color("white") for (i = [0:2]) translate([0, ol_cy + ol_win_dy + 3.3 - i*3.3, ol_glass_z - 0.3])
             linear_extrude(0.2) text(["SITTING 1:42", "PRESENT 98%", "WIFI -61 dBm"][i], size = 1.9,
                 halign = "center", valign = "center", font = "DejaVu Sans Mono");
     }
@@ -358,6 +468,7 @@ if (view == "front") orient("front") { shell(); back_placed(); screens(); }
 else if (view == "front_xray") orient("front") { ghost(0.15) shell(); color("orange", 0.6) tray_placed(); standins(); screens(); }
 else if (view == "side_xray") orient("side") { color("lightgray") cut_side() shell(); ghost(0.3) back_placed(); color("orange") cut_side() tray_placed(); standins(cut = true); }
 else if (view == "shell") shell();
+else if (view == "gauge") gauge();
 else if (view == "back") back();
 else if (view == "tray") tray();
 else if (view == "layers") exploded();

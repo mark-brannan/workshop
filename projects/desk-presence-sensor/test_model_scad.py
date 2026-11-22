@@ -19,9 +19,10 @@ TM_CY = RD_CY + P["rd_h"] / 2 + P["rd_slack"] + P["rd_rib_t"] + P["gap"] + P["tm
 OL_CY = TM_CY + P["tm_w"] / 2 + P["tm_clear"] + P["gap"] + P["ol_h"] / 2
 IN_H = OL_CY + P["ol_h"] / 2 + 0.5
 TM_BOARD_Z = P["tm_recess"] + P["tm_disp_h"]
-OL_BOARD_Z = P["face_t"] + P["ol_gap"] + P["ol_glass_h"]
+OL_BOARD_Z = P["face_t"] + P["ol_gap"] - P["ol_fwd"] + P["ol_glass_h"]
 OL_BACK_Z = OL_BOARD_Z + P["ol_t"] + P["ol_pins"]
-TRAY_Z0 = TM_BOARD_Z + P["tm_t"]
+TM_BACK_Z = TM_BOARD_Z + P["tm_t"]
+TRAY_Z0 = max(TM_BACK_Z + P["screw_head"], P["face_t"] + P["rd_t"] + P["rd_back"] + P["rd_pin_clr"])
 D1_Z0 = TRAY_Z0 + P["tray_t"]
 D1_Y1 = P["d1_y0"] + P["d1_l"]
 USB_Z = D1_Z0 + P["d1_t"] + P["usb_h"]
@@ -57,6 +58,11 @@ def back(tmp_path_factory):
 @pytest.fixture(scope="module")
 def tray(tmp_path_factory):
     return build(tmp_path_factory, "part-tray.scad")
+
+
+@pytest.fixture(scope="module")
+def gauge(tmp_path_factory):
+    return build(tmp_path_factory, "part-gauge.scad")
 
 
 def down(mesh, x, y, z=80):
@@ -102,10 +108,10 @@ def test_depth_stack_clearances():
     plug_front = USB_Z - P["plug_t"] / 2
     assert plug_front > OL_BACK_Z + 1                                    # plug and cable pass behind the OLED
     assert plug_front > TRAY_Z0                                          # and behind the TM1637's top edge
-    assert D1_Z0 - P["d1_under"] > TRAY_Z0 + P["tm_joint_h"]             # D1 underside parts clear the TM1637 joints
+    assert TRAY_Z0 > TM_BACK_Z + P["tm_joint_h"]                          # tray plane clears the TM1637 joints and screw heads
     assert TRAY_Z0 > P["face_t"] + P["rd_t"] + P["rd_back"]              # tray clear of the radar's wires
     assert PLUG_Y0 + P["plug_l"] < IN_H - P["cable_d"]                   # plug ends below the top wall
-    assert 20 < SHELL_D + P["back_t"] < 24                               # outside depth near the 23 asked
+    assert 20 < SHELL_D + P["back_t"] < 25                               # outside depth: 24.1 after the tray moved back 1.9, owner 2026-11-22
 
 
 def test_back_flat_tape_face_and_tabs(back):
@@ -159,3 +165,56 @@ def test_tray_stop_block_corner_hooks_and_pocket(tray):
             zs = [h[2] for h in down(tray, x, y)]
             assert np.isclose(sorted(zs)[1], P["hook_root"], atol=0.02)      # only the root layer below, then air (or the catch)
     assert len(down(tray, 0, POST_Y0 + 0.5)) == 0                        # no hook in the plug's path
+
+
+def test_radar_hooks_lips_and_oled_frame(shell):
+    rd_cy = 0.5 + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
+    y_lip = rd_cy + P["rd_h"] / 2 - 1 - P["rd_lip_len"] / 2
+    x_in = P["rd_w"] / 2 + P["rd_slack"] - 0.3          # inside the rib, under a lip
+    for sx in (-1, 1):
+        assert len(down(shell, sx * x_in, y_lip)) > len(down(shell, sx * x_in, rd_cy))   # upper lip over the board edge, none between
+        assert len(down(shell, sx * x_in, rd_cy - y_lip + rd_cy)) == len(down(shell, sx * x_in, rd_cy))  # none on the lower side ribs
+        assert len(down(shell, sx * (P["rd_w"] / 2 + P["rd_slack"] + P["rd_rib_t"] - 0.1), y_lip + 2.5)) == 2  # slot: face only
+    yh = rd_cy - P["rd_h"] / 2 - P["rd_slack"] + 0.4          # under the bottom lip, anywhere along it
+    for x in (-9, 0, 9):
+        assert len(down(shell, x, yh)) > len(down(shell, x, rd_cy))
+    y_frame = OL_CY - P["ol_h"] / 2 - P["ol_slack"] - P["ol_rib_t"] / 2
+    assert len(down(shell, 0, y_frame)) > 0 and max(h[2] for h in down(shell, 0, y_frame)) > OL_BOARD_Z
+
+
+def test_oled_reverse_chamfer_relief(shell):
+    yb = OL_CY + P["ol_glass_dy"] - (P["ol_glass_l"] / 2 + 0.35)
+    top = max(h[2] for h in down(shell, 0, yb - 0.6))
+    assert top < P["face_t"] - 0.05                                        # face thinned under the ribbon end
+    assert np.isclose(max(h[2] for h in down(shell, 9, yb - 0.6)), P["face_t"], atol=0.01)   # untouched beside it
+
+
+def test_oled_header_relief(shell):
+    y = OL_CY + P["ol_glass_dy"] + P["ol_glass_l"] / 2 + 2
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), P["face_t"] - P["ol_pin_rec"], atol=0.01)   # floor of the relief
+    assert max(h[2] for h in down(shell, 0, y)) > 0.3                                                   # skin left on the front
+    assert np.isclose(max(h[2] for h in down(shell, 9, y)), P["face_t"], atol=0.01)                      # untouched beside it
+
+
+def test_tm_seat_and_tray_seats(shell):
+    y = TM_CY + P["tm_w"] / 2 + P["tm_clear"] + 0.4
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TM_BACK_Z - 0.2, atol=0.01)            # TM seat rib stops at the board back
+    y = TM_CY - P["tm_w"] / 2 - P["tm_clear"] - 0.4
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TM_BACK_Z - 0.2, atol=0.01)
+    for sx in (-1, 1):
+        ys = (TRAY_Y0 + 0.3 + TM_CY - P["tm_w"] / 2 - P["tm_clear"] - P["tm_rib_t"] / 2) / 2
+        assert np.isclose(max(h[2] for h in down(shell, sx * (IN_W / 2 - 0.5), ys)), TRAY_Z0 - 0.05, atol=0.01)  # tray rests here
+
+
+def test_gauge_full_depth_seats_no_walls_no_tray_seats(gauge):
+    assert gauge.is_watertight
+    assert np.isclose(gauge.bounds[1][0] - gauge.bounds[0][0], P["box_w"], atol=0.05)
+    assert gauge.bounds[1][2] < TM_BACK_Z + 0.01                                       # nothing taller than the TM1637 seat
+    assert np.isclose(max(h[2] for h in down(gauge, IN_W / 2 + 0.5, TM_CY)), P["face_t"], atol=0.01)   # no side wall
+    ys = (TRAY_Y0 + 0.3 + TM_CY - P["tm_w"] / 2 - P["tm_clear"] - P["tm_rib_t"] / 2) / 2
+    assert np.isclose(max(h[2] for h in down(gauge, IN_W / 2 - 0.5, ys)), P["face_t"], atol=0.01)       # no tray seat
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
+                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2, P["ol_pilot_d"], OL_BOARD_Z)):
+                assert np.isclose(down(gauge, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)   # post at the shell's board height

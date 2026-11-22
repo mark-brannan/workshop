@@ -38,7 +38,7 @@ printed or checked against the real monitor.
 
 | Part | File | Orientation | Overhangs |
 |---|---|---|---|
-| Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the plate plus 2 mm of posts and ribs |
+| Fit gauge, **print first** | `part-gauge.scad` | flat, face down | none: the face with the radar's slot, lips and ribs, the TM1637 and OLED posts and seat ribs at full depth; no walls, no tray seats |
 | Shell | `model.scad` | front face down | none: posts and ribs rise from the face; windows and pilots run straight through; cable slot open to the rim |
 | Back plate | `part-back.scad` | tape face down | tab bumps are 45° both faces |
 | D1 tray | `part-tray.scad` | on its front (the face on the TM1637), D1 side up | corner-hook and top-hook catches have 45° undersides; the stop block has no overhang; windows run straight through; hook posts stand free over a 0.6 root layer |
@@ -81,8 +81,8 @@ The back plate's four tabs click 0.5 mm bumps into V grooves in the side walls; 
    header pins short. TM1637: clip the bent header pins off flush with the black plastic and solder
    four wires to the joints on the board's back. D1 mini (bare is fine): wires in from the underside,
    soldered on the can side.
-2. OLED: glass to the window, four M2 self-tappers from behind.
-3. Radar: antenna side to the face in its rib pocket, a dab of hot glue at two corners.
+2. OLED: glass flush in its pocket, the board between the frame ribs, four M2 self-tappers from behind.
+3. Radar: antenna side to the face. Tilt the board and tuck its whole lower edge into the slot under the bottom lip, then press the upper end flat until the two upper lips click over it. To remove, lift the upper end past the lips (press them apart) and tilt out. No glue.
 4. TM1637 and tray: display into its window, the tray's front on the board's back (header window at
    the -X end), four M2.5 x 10 self-tappers through tray and board into the posts.
 5. D1 mini: underside to the tray, USB end up. Tuck the lower edge under the lip, press the top end
@@ -118,7 +118,13 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | D1 stack: board, can, underside parts | 1.0, 3.2, 2 | vendor numbers |
 | USB plug overmold `plug_w` x `plug_t` x `plug_l`; socket axis `usb_h` | 11 x 7.5 x 18; 1.5 above the board | overmolds vary; **the plug sets the depth** |
 | TM1637 back: joints `tm_joint_h`, display pin rows `tm_pin_row` | 1.5; two rows 10.16 apart, within x -7.1 to 5.6 | typical 0.36" display; the tray's windows assume the rest of the back is bare |
-| Radar back `rd_back` | 3 behind its board | clipped pins plus wire |
+| Radar hooks `rd_hook`, snap lips `rd_lip`, `rd_beam_t`, `rd_slot`, `rd_lip_gap` | one lip 0.9 over the whole lower edge; two upper lips 0.7 over the side edges on 0.8 thick beams between 1 mm slots; 0.1 above the board; 45° slopes | guessed; 0.2 per side interference, flex by estimate about 10-30 N |
+| OLED reverse chamfer `ol_rev`, `ol_rev_w` | 0.8 deep at 45° below the glass's lower end, 14 wide | clears the ribbon end, whose height is not measured |
+| OLED header relief `ol_pin_rec`, `ol_pin_w` | 1.0 deep into the 1.5 face (0.5 skin left), 14 wide, from the glass's upper edge to the wall | for the solder nubs on the board front; trim them to under 1.9 above the board |
+| TM1637 seat `tm_rib_t`; tray seats `tray_seat_w` | 0.8 ribs along the board's top and bottom edges, stopping 0.2 under the board's back; 1.2 wide blocks along each wall, tops 0.05 under the tray's front plane | the tray rests on the TM1637's back and on these blocks where it overhangs the radar zone |
+| Tray front plane `tray_z0`, `screw_head`, `rd_pin_clr` | the larger of TM1637 back + 1.5 (screw heads) and radar pins + 0.5: 11.0 | the tray no longer rests on the TM1637; it rests on the wall seat blocks, box 1.9 deeper (owner, 2026-11-22) |
+| OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |
+| Radar back `rd_back` | 8 behind its board | normal male pin headers, owner 2026-11-22; they end 1.4 mm into the tray's window, 2.6 short of the D1 |
 | Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
 | Snap `bump` | 0.5 | calibration pending |
 | OLED holes, glass | 23.3 x 23.6; glass 26.7 x 19.3, 2.4 thick, centred | generic drawing |
