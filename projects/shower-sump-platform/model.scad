@@ -8,7 +8,7 @@ part = "print";      // [print, installed]
 
 /* [Sump base, which sets the deck (tape, aboard 2026-11-21)] */
 w_aft = 234.25;      // 8 3/4 in taped (222.25) + 12: widened 6 per side to cover the sump wing lobes (owner, 2026-11-22)
-w_fwd = 202.5;       // 7 1/2 in taped (190.5) + 12, same reason
+w_fwd = 208;         // 7 1/2 in taped (190.5) + 17.5: widened until the traced wing outline sits inside the deck (test_wing_fit.py)
 len = 88.9;          // 3 1/2 in: the tab length; owner's working spacing of the two widths, not a tape reading
 
 /* [Hull] */
