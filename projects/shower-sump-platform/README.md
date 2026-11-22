@@ -37,7 +37,7 @@ Aboard, 2026-11-21 (owner's tape and speed square; source
 | `w_aft`, hull to hull at tab height, aft | 8 3/4 in = 222.25 mm ("best guess") | 234.25 (+6 a side) |
 | `w_fwd`, same, forward | 7 1/2 in = 190.5 mm ("best guess") | 208 (+8.75 a side) |
 | `len`, fore-aft between the two widths | 3 1/2 in = 88.9 mm, the tab length (a working number) | 88.9 |
-| `hull_angle` | hull leans 23 stbd, 25 port from vertical, mean 24 (speed square, rough) | 66 deg |
+| `hull_angle` | hull leans 23 stbd, 25 port from vertical, mean 24 (speed square, rough) | 65 deg (25 from vertical, the safe side) |
 
 The sump's wings are D-shaped lobes, widest (215 mm tip to tip) at their middle, so the deck is widened over the taped
 widths to cover them (owner, 2026-11-22); `wing_overlay.py` checks it. The hull is fixed, so that puts the deck about

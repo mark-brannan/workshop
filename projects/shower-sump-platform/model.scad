@@ -12,7 +12,7 @@ w_fwd = 208;         // 7 1/2 in taped (190.5) + 17.5: widened until the traced 
 len = 88.9;          // 3 1/2 in: the tab length; owner's working spacing of the two widths, not a tape reading
 
 /* [Hull] */
-hull_angle = 66;     // degrees above horizontal: hull leans 23 stbd, 25 port from vertical (speed square, rough), mean 24 -> 66
+hull_angle = 65;     // degrees above horizontal: hull leans 23 stbd, 25 port from vertical (speed square, rough); 25 used, the safe side: a skirt steeper than the hull leaves an epoxy wedge, a shallower one binds
 
 /* [Sump screws and opening (from the Fusion v6 deck)] */
 holes = [[93, 25], [93, -34], [100, 0], [-93, 25], [-93, -34], [-100, 0]];   // the sump's wing holes
