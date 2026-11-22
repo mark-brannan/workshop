@@ -82,6 +82,21 @@ def test_box_pot_bushing_through_knob_face(box):
     assert ray_hits(box, (POCKET_X + P["pot_bushing"], y, -10), (0, 0, 1))[0][2] < 0.05
 
 
+def test_box_knob_centred_between_standoffs(box):
+    # measured on the printed mesh, not the parameters: the bushing's centre and the four pilots' centre share one X
+    y = -(P["floor_t"] + 3 + 1.6 + P["pot_z"])
+    xs = np.arange(POCKET_X - 20, POCKET_X + 20, 0.05)
+    open_x = [x for x in xs if ray_hits(box, (x, y, -10), (0, 0, 1)) == [] or ray_hits(box, (x, y, -10), (0, 0, 1))[0][2] > P["front"] - 0.05]
+    knob_x = (min(open_x) + max(open_x)) / 2
+    cz = P["front"] + P["board"] / 2 + 1 - P["board_holes"] / 2  # lower pilot row, box as printed
+    first = lambda x: (ray_hits(box, (x, -50, cz), (0, 1, 0)) or [(0, 0, 0)])[0][1]
+    tops = [x for x in np.arange(POCKET_X - P["pocket"] / 2, POCKET_X + P["pocket"] / 2, 0.05) if np.isclose(first(x), -P["floor_t"] - 3, atol=0.05)]
+    left = [x for x in tops if x < POCKET_X]  # standoff tops, each a ring round its pilot
+    right = [x for x in tops if x > POCKET_X]
+    pads_x = ((min(left) + max(left)) / 2 + (min(right) + max(right)) / 2) / 2
+    assert abs(knob_x - POCKET_X) < 0.1 and abs(pads_x - knob_x) < 0.1, (knob_x, pads_x)
+
+
 def test_box_gland_through_back_wall(box):
     y = -(P["floor_t"] + P["fan_t"] / 2)
     assert ray_hits(box, (POCKET_X, y, BOX_DEPTH + 10), (0, 0, -1)) == []  # PG9 hole open through the back wall
@@ -109,7 +124,7 @@ def test_box_four_board_standoffs(box):
     found = 0
     for x in (-1, 1):
         for zz in (-1, 1):
-            cx = POCKET_X + P["pot_dx"] + x * P["board_holes"] / 2
+            cx = POCKET_X + x * P["board_holes"] / 2
             cz = P["front"] - P["wall"] + P["wall"] + P["board"] / 2 + 1 + zz * P["board_holes"] / 2
             ring = ray_hits(box, (cx + 2, -50, cz), (0, 1, 0))
             pilot = ray_hits(box, (cx, -50, cz), (0, 1, 0))

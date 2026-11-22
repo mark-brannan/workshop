@@ -39,8 +39,7 @@ slots = 6;          // fingers the hose clamp pulls in
 board = 33;
 board_holes = 26;
 pot_z = 7;          // UNMEASURED: pot shaft centre above the board's top
-pot_bushing = 7.5;  // M7 bushing through the wall
-pot_dx = 8;         // ESTIMATE: pot shaft sits this far toward -X of the board's centre; the board shifts +X so the knob lands on the pocket centre
+pot_bushing = 7.5;  // M7 bushing through the wall; the pot is centred on the board (owner), so knob, board and pocket share one X
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
 /* [Shell] */
@@ -54,7 +53,7 @@ fin_pocket = [-13, 13]; // pocket fins, x from the pocket centre: either side of
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
-pocket = 52;        // controller pocket, inside, along +X beside the fan bay
+pocket = 40;        // controller pocket, inside, along +X beside the fan bay: board 33 plus 3.5 each side
 r = 6;              // vertical edge rounding; the two on the bed (knob face) end in a 45 deg chamfer
 fillet = 2;         // pocket floor and front corners
 pocket_chamfer = 6; // pocket's back corners: the back wall is the print's ceiling, this cuts its bridge 40 -> 28
@@ -114,7 +113,7 @@ module box() {
   for (i = [1:fins_fan]) yz_fin(-gap / 2 + i * gap / (fins_fan + 1), py1 - W / 2 + wall);
   for (dx = fin_pocket) yz_fin(pocket_x + dx, fan_t);
   // board standoffs: round, flared foot, point-up hex pilot
-  translate([pocket_x + pot_dx, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])
+  translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() {
       offset_sweep(circle(d = 6, $fn = 48), height = 3 + e, bottom = os_circle(r = -boss_fillet), steps = 6);
       translate([0, 0, -e]) linear_extrude(3 + 3 * e) hex_hole(2.5);
@@ -158,14 +157,14 @@ module board_dummy() {
   color("#2c8a3e") translate([-board / 2, -board / 2, 0]) cube([board, board, 1.6]);
   color("#3aa") translate([-14, -12, 1.6]) cube([12, 12, 10]);
   color("#36c") translate([4, -14, 1.6]) cube([10, 28, 10]);
-  color("#222") translate([-8, -board / 2, 1.6 + pot_z]) rotate([90, 0, 0]) cylinder(d = 14, h = 26);
+  color("#222") translate([0, -board / 2, 1.6 + pot_z]) rotate([90, 0, 0]) cylinder(d = 14, h = 26);
 }
 
 BOX = "#e0e0dc"; LID = "#e0e0dc";
 module stack(gap = 0) {
   color(BOX) box();
   translate([0, 0, floor_t + gap]) fan_dummy();
-  translate([pocket_x + pot_dx, -W / 2 + wall + board / 2 + 1, floor_t + 3 + gap * 0.6]) board_dummy();
+  translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t + 3 + gap * 0.6]) board_dummy();
   color(LID) translate([0, 0, H + 2 * gap]) lid();
   color(BOX) translate([0, 0, -gap]) mirror([0, 0, 1]) spigot();
 }
