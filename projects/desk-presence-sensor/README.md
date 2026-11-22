@@ -120,6 +120,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | TM1637 back: joints `tm_joint_h`, display pin rows `tm_pin_row` | 1.5; two rows 10.16 apart, within x -7.1 to 5.6 | typical 0.36" display; the tray's windows assume the rest of the back is bare |
 | Radar hooks `rd_hook`, snap lips `rd_lip`, `rd_beam_t`, `rd_slot`, `rd_lip_gap` | hooks 0.9 over the lower edge; two upper lips 0.7 over the side edges on 0.8 thick beams between 1 mm slots; 0.1 above the board; 45° slopes | guessed; 0.2 per side interference, flex by estimate about 10-30 N |
 | OLED reverse chamfer `ol_rev`, `ol_rev_w` | 0.8 deep at 45° below the glass's lower end, 14 wide | clears the ribbon end, whose height is not measured |
+| OLED header relief `ol_pin_rec`, `ol_pin_w` | 1.0 deep into the 1.5 face (0.5 skin left), 14 wide, from the glass's upper edge to the wall | for the solder nubs on the board front; trim them to under 1.9 above the board |
 | OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |
 | Radar back `rd_back` | 3 behind its board | clipped pins plus wire |
 | Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |

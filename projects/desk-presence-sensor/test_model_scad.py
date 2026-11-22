@@ -180,3 +180,10 @@ def test_oled_reverse_chamfer_relief(shell):
     top = max(h[2] for h in down(shell, 0, yb - 0.6))
     assert top < P["face_t"] - 0.05                                        # face thinned under the ribbon end
     assert np.isclose(max(h[2] for h in down(shell, 9, yb - 0.6)), P["face_t"], atol=0.01)   # untouched beside it
+
+
+def test_oled_header_relief(shell):
+    y = OL_CY + P["ol_glass_dy"] + P["ol_glass_l"] / 2 + 2
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), P["face_t"] - P["ol_pin_rec"], atol=0.01)   # floor of the relief
+    assert max(h[2] for h in down(shell, 0, y)) > 0.3                                                   # skin left on the front
+    assert np.isclose(max(h[2] for h in down(shell, 9, y)), P["face_t"], atol=0.01)                      # untouched beside it
