@@ -77,14 +77,16 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 
 Build, `uv run pytest -q`, read the PNG, then report with the picture.
 
-### Asymmetrical hole patterns
+### Asymmetric hole patterns
 
-Where parts mate through holes in a pattern that is not symmetric (a diagonal pair, an offset corner), two things come before the work is reported, never after a print:
+A hole pattern is asymmetric here when its mirror image is a different pattern: a diagonal pair, an offset corner, three corners of four. Test: flip it left to right; if the holes land somewhere new, this section applies.
 
-- **A 3D rendering of the assembly**, in the pose the user will assemble it, showing how the holes line up. It labels which side is front and which is back, and which way up each part goes (the user's word on orientation outranks the model's). The agent looks at it before sending it.
-- **A test of hole alignment** that reads the meshes that get printed, in the pose they are used, never the hole lists in `model.scad`. It fails on the mirrored layout.
+Two faces that mate see the same pattern from opposite sides, so one is the mirror of the other. A symmetric pattern forgives a model that forgets this; an asymmetric one mates one way round only. This burned several troubleshooting sessions on `din-rail-psu-mount` and `bme688-cabin-screen`.
 
-Why: a diagonal pair mates only one way round, and this was got wrong repeatedly on `bme688-cabin-screen` and once before on another model, each time costing a print.
+Where parts mate through such a pattern, printed to printed or printed to a measured object, the report carries both of these before any print:
+
+- **A 3D render of the assembly**, in the pose the user will assemble it, the mating holes visibly in line. It labels front and back, and which way up each part goes. The agent looks at it before sending it. Where the user's word on orientation and the model disagree, the user's word stands.
+- **A hole-alignment test** on the meshes that get printed, in the pose they are used, never on the hole lists in `model.scad`. It fails on the mirrored layout.
 
 ## Sibling repo: symphony (the boat)
 
