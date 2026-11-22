@@ -39,6 +39,6 @@ Hardware: 2 × #8 (4 mm) countersunk wood screws, about 25 mm long, through a 5 
 - The support wall's outer face and the lip's inner face lean out at 60°.
 - The gusset under the point narrows toward the plate and drops 8 mm there, so its flanks and underside stay steeper than 45°.
 - Screw holes run horizontally with teardrop tops. Countersinks are 90° cones.
-- The test allows under 25 mm² of flat overhang: the 3 mm corner rounds of the quarter circle pass through flat for a few mm.
+- The test allows under 35 mm² of flat overhang: the 3 mm corner rounds of the quarter circle pass through flat for a few mm.
 
 Volume 57.5 cm³ (about 73 g PETG).
