@@ -80,6 +80,9 @@ rd_hook = 0.9;       // bottom hooks over the board's lower edge
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
 rd_beam_t = 0.8;     // beam thickness: the rib thinned from outside so the lip can flex
 rd_slot = 1;         // cut either side of a beam
+/* [TM1637 seat and tray seat] */
+tm_rib_t = 0.8;      // seating ribs along the board's top and bottom edges (the side walls seat its ends)
+tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
 /* [OLED frame] */
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
@@ -233,6 +236,19 @@ module rd_beam_cuts() {
     }
 }
 
+// TM1637 seat: ribs along the board's top and bottom edges, stopping short of the tray's front plane.
+module tm_seat_2d() {
+    for (sy = [-1, 1])
+        translate([-in_w/2 - 0.1, tm_cy + sy*(tm_w/2 + tm_clear + tm_rib_t/2) - tm_rib_t/2])
+            square([in_w + 0.2, tm_rib_t]);   // 0.1 into each wall: no shared face
+}
+// Tray seat: blocks along each wall, under the tray's side margins where it overhangs the radar zone.
+module tray_seats() {
+    y0 = tray_y0 + 0.3; y1 = tm_cy - tm_w/2 - tm_clear - tm_rib_t/2;   // ends inside the TM seat rib: no shared face
+    for (sx = [-1, 1])
+        translate([sx > 0 ? in_w/2 - tray_seat_w : -in_w/2 - 0.1, y0, 0]) cube([tray_seat_w + 0.1, y1 - y0, tray_z0 - 0.05]);
+}
+
 // OLED seat: ribs round the board's sides and bottom; the top edge meets the wall.
 module ol_frame_2d() {
     translate([0, ol_cy]) difference() {
@@ -273,6 +289,8 @@ module shell() {
             rd_lips();
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
+            linear_extrude(tray_z0 - 0.2) tm_seat_2d();   // board back is tray_z0
+            tray_seats();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
             tm_disp_keepout();

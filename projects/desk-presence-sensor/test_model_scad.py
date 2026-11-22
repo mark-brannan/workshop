@@ -188,3 +188,13 @@ def test_oled_header_relief(shell):
     assert np.isclose(max(h[2] for h in down(shell, 0, y)), P["face_t"] - P["ol_pin_rec"], atol=0.01)   # floor of the relief
     assert max(h[2] for h in down(shell, 0, y)) > 0.3                                                   # skin left on the front
     assert np.isclose(max(h[2] for h in down(shell, 9, y)), P["face_t"], atol=0.01)                      # untouched beside it
+
+
+def test_tm_seat_and_tray_seats(shell):
+    y = TM_CY + P["tm_w"] / 2 + P["tm_clear"] + 0.4
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TRAY_Z0 - 0.2, atol=0.01)            # TM seat rib stops under the tray
+    y = TM_CY - P["tm_w"] / 2 - P["tm_clear"] - 0.4
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TRAY_Z0 - 0.2, atol=0.01)
+    for sx in (-1, 1):
+        ys = (TRAY_Y0 + 0.3 + TM_CY - P["tm_w"] / 2 - P["tm_clear"] - P["tm_rib_t"] / 2) / 2
+        assert np.isclose(max(h[2] for h in down(shell, sx * (IN_W / 2 - 0.5), ys)), TRAY_Z0 - 0.05, atol=0.01)  # tray rests here
