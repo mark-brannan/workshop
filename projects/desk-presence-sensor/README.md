@@ -81,8 +81,8 @@ The back plate's four tabs click 0.5 mm bumps into V grooves in the side walls; 
    header pins short. TM1637: clip the bent header pins off flush with the black plastic and solder
    four wires to the joints on the board's back. D1 mini (bare is fine): wires in from the underside,
    soldered on the can side.
-2. OLED: glass to the window, four M2 self-tappers from behind.
-3. Radar: antenna side to the face in its rib pocket, a dab of hot glue at two corners.
+2. OLED: glass flush in its pocket, the board between the frame ribs, four M2 self-tappers from behind.
+3. Radar: antenna side to the face in its rib pocket. Tuck the -X edge under the two taller hooks, drop the +X side in, slide the board +X until the two shorter tabs cover that edge. A dab of hot glue stays optional.
 4. TM1637 and tray: display into its window, the tray's front on the board's back (header window at
    the -X end), four M2.5 x 10 self-tappers through tray and board into the posts.
 5. D1 mini: underside to the tray, USB end up. Tuck the lower edge under the lip, press the top end
@@ -118,6 +118,8 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | D1 stack: board, can, underside parts | 1.0, 3.2, 2 | vendor numbers |
 | USB plug overmold `plug_w` x `plug_t` x `plug_l`; socket axis `usb_h` | 11 x 7.5 x 18; 1.5 above the board | overmolds vary; **the plug sets the depth** |
 | TM1637 back: joints `tm_joint_h`, display pin rows `tm_pin_row` | 1.5; two rows 10.16 apart, within x -7.1 to 5.6 | typical 0.36" display; the tray's windows assume the rest of the back is bare |
+| Radar slide-lock `rd_hook`, `rd_tab`, `rd_lip_gap` | 0.9 over the -X edge, 0.6 over the +X edge, 0.1 above the board; 45° undersides | guessed; 0.5 mm of slide travel either side of centre holds both edges |
+| OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |
 | Radar back `rd_back` | 3 behind its board | clipped pins plus wire |
 | Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
 | Snap `bump` | 0.5 | calibration pending |

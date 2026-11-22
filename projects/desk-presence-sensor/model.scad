@@ -70,6 +70,13 @@ rd_back = 3;         // clipped pins plus soldered wire behind the board
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
+rd_hook = 0.9;       // -X side: lip over the board edge, 45 deg underside (no supports)
+rd_tab = 0.6;        // +X side: same, shorter so the board tilts in clear of it, then slides +X to lock
+rd_lip_len = 4;      // along Y, two per side
+rd_lip_gap = 0.1;    // board back to where the lip underside starts
+/* [OLED frame] */
+ol_slack = 0.3;      // board edge to rib, per side
+ol_rib_t = 1.2;
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -188,6 +195,27 @@ module ol_posts_2d() {
     }
 }
 
+// Radar slide-lock: the board's -X edge tucks under the hooks, drops in, then slides +X until the
+// tabs cover its other edge. Lip undersides climb 45 deg from the rib wall, so no supports.
+module rd_lips() {
+    zb = face_t + rd_t + rd_lip_gap;
+    for (sx = [-1, 1], dy = [-1, 1]) {
+        o = sx < 0 ? rd_hook : rd_tab;
+        translate([sx*(rd_w/2 + rd_slack), rd_cy + dy*(rd_h/2 - rd_lip_len/2), 0])
+            rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true)
+                polygon([[-sx*(-0.2), zb], [-sx*o, zb + o], [-sx*o, zb + o + 0.8], [sx*0.2, zb + o + 0.8], [sx*0.2, zb]]);
+    }
+}
+
+// OLED seat: ribs round the board's sides and bottom; the top edge meets the wall.
+module ol_frame_2d() {
+    translate([0, ol_cy]) difference() {
+        translate([0, (ol_h/2 + 0.5 - (ol_h/2 + ol_slack + ol_rib_t))/2])
+            square([ol_w + 2*(ol_slack + ol_rib_t), ol_h/2 + 0.5 + ol_h/2 + ol_slack + ol_rib_t], center = true);
+        square([ol_w + 2*ol_slack, ol_h + 2*ol_slack], center = true);
+    }
+}
+
 module rd_ribs_2d() {
     translate([0, rd_cy]) difference() {
         square([rd_w + 2*(rd_slack + rd_rib_t), rd_h + 2*(rd_slack + rd_rib_t)], center = true);
@@ -216,6 +244,8 @@ module shell() {
             linear_extrude(tm_board_z) tm_posts_2d();
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
+            rd_lips();
+            linear_extrude(ol_board_z + ol_t) ol_frame_2d();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
             tm_disp_keepout();
