@@ -22,6 +22,14 @@ edges are skirts that lean in at `hull_angle` (the bilge V); `w_aft` against `w_
 bow. Each skirt is one flat face, the bonding face, held `bond_gap` inside the hull for the adhesive.
 Underneath is open; nothing reaches the keel. Prints deck down.
 
+At each end an arch (`arch_t` thick) ties the two skirts together under the deck's end strip, so the skirts can't
+fold at their root and the 15 mm end strips become stiff beams (owner, 2026-11-22). It is a half-ellipse from the foot
+of one skirt to the other, `arch_band` deep under the deck at its crown; printed deck down, each layer of it sits
+inside the one below, so it needs no support. Each bonding face carries `fin_n` ridges running fore-aft, standing
+`fin_h` into the epoxy (inside `bond_gap`): the face toward the skirt's foot is square to the skirt and bears the
+sump's weight down the hull; the flank toward the deck faces down in print at about 80 degrees. The skirts themselves
+lean 24 degrees off vertical in print and hold themselves up.
+
 The sump screws down through six Ø3 pilots into 12 mm bosses, at the Fusion deck's hole positions; only the
 platform is bonded, so the sump comes out for cleaning. The middle is cut through (`opening`, 176 x 59).
 Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it

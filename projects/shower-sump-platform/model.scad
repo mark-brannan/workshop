@@ -27,6 +27,13 @@ skirt_h = 20;        // vertical depth of the bonding face
 skirt_t = 4;         // measured square to the face
 bond_gap = 1.5;      // adhesive, each side: the skirt sits this far inside the hull line
 
+/* [Stiffening and bond key] */
+arch_t = 2;          // end arches: skirt to skirt under each end of the deck, thickness fore-aft
+arch_band = 4;       // depth of the arch under the deck at its crown (centre)
+fin_n = 3;           // ridges along each bonding face, running fore-aft
+fin_h = 1;           // how far a ridge stands off the face, inside the bond_gap of epoxy
+fin_w = 1.2;         // ridge width at its root (3 lines)
+
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
@@ -57,6 +64,33 @@ module frame() {
   for (s = [-1, 1]) hull() for (p = [[hw_a, -len / 2], [hw_f, len / 2]])
     translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(e, center = true)
       scale([s, 1]) polygon([[p[0], 0], [p[0] - run, -skirt_h], [p[0] - run - tn, -skirt_h], [p[0] - tn, 0]]);
+  // ridges on each bonding face, keyed into the epoxy. The face toward the skirt's foot is square to the
+  // skirt and takes the sump's weight; the flank toward the deck is the one that faces down in print (~70 deg)
+  for (s = [-1, 1]) for (i = [0 : fin_n - 1]) hull() for (p = [[hw_a, -len / 2], [hw_f, len / 2]])
+    translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(e, center = true)
+      scale([s, 1]) fin_profile(p[0], skirt_h / sin(hull_angle) * (i + 0.5) / fin_n);
+  // end arches: tie the skirts together across each end, under the deck's 15 mm end strips
+  for (p = [[hw_a, -len / 2 + arch_t / 2 + e], [hw_f, len / 2 - arch_t / 2 - e]])  // e: no face shared with the deck end
+    translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(arch_t, center = true) arch_profile(p[0]);
+}
+
+// one ridge, a slant distance sl down the outer face from its top edge at x = hw
+module fin_profile(hw, sl) {
+  d = [-cos(hull_angle), -sin(hull_angle)];  // down the face
+  n = [sin(hull_angle), -cos(hull_angle)];   // out of the face, toward the hull
+  q = [hw, 0] + sl * d;
+  polygon([q + 0.2 * n, q + fin_h * n, q - fin_w * d + 0.2 * n, q - fin_w * d - 0.2 * n, q - 0.2 * n]);
+}
+
+// a half-ellipse from the foot of one skirt's inner face to the other, crown arch_band under the deck
+module arch_profile(hw) {
+  a = hw - run - tn;
+  b = skirt_h - deck_t - arch_band;
+  mid = tn / 2;  // reach into the skirts, never past their outer face
+  polygon(concat(
+    [[-(hw - mid), -deck_t + e], [hw - mid, -deck_t + e], [hw - run - mid, -skirt_h]],
+    [for (t = [0 : 4 : 180]) [a * cos(t), -skirt_h + b * sin(t)]],
+    [[-(hw - run - mid), -skirt_h]]));
 }
 
 if (part == "installed") platform();

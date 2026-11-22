@@ -39,7 +39,7 @@ def test_open_underside_and_skirt(installed):
     # under the deck beside the opening, the first thing met is the deck's underside
     assert ray_hits(installed, [0, -37, -50], up)[0][2] == pytest.approx(-P["deck_t"], abs=0.05)
     # the skirt (both V's: plan taper and hull angle)'s outer face leans in at the hull angle: halfway down it sits run/2 inside the top edge
-    z = -P["skirt_h"] / 2
+    z = -P["skirt_h"] / P["fin_n"]  # between the first two ridges
     x = ray_hits(installed, [HW + 20, -15, z], [-1, 0, 0])[0][0]
     assert x == pytest.approx(HW0 + z / math.tan(A), abs=0.1)
 
