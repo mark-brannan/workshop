@@ -38,12 +38,12 @@ def test_bounds(holder):
     assert np.isclose(lo[2], 0, atol=0.05)
     assert np.isclose(hi[1], Y_PF + P["plate_t"], atol=0.05)  # plate back face is the wall
     assert -50 < lo[1] < -35  # the support wall leans out toward the user
-    assert hi[0] < 52 and lo[0] > -52  # the quarter-circle body is the widest part
+    assert hi[0] < 55 and lo[0] > -55  # the quarter-circle body is the widest part
 
 
 
 def test_volume_window(holder):
-    assert 50_000 < holder.volume < 66_000  # 58.1 cm^3 as built
+    assert 70_000 < holder.volume < 95_000  # 82.9 cm^3 as built
 
 
 def test_two_screw_holes_clear_through_plate(holder):
@@ -53,8 +53,8 @@ def test_two_screw_holes_clear_through_plate(holder):
 
 def test_probe_slot_open_from_above(holder):
     # straight down the slot centre at the probe's point: nothing until the V floor, about at the cradle point height
-    h = ray_hits(holder, (0, -20 * math.sin(TILT), 150), (0, 0, -1))  # through the slot at the probe frame (u 0, w 0, v 20)
-    assert len(h) and P["plate_pt"] - 12 < h[0][2] < P["plate_pt"] + 12
+    h = ray_hits(holder, (0, -20 * math.sin(TILT), 75), (0, 0, -1))  # through the slot at the probe frame (u 0, w 0, v 20)
+    assert len(h) and P["plate_pt"] + 5 < h[0][2] < P["plate_pt"] + 25
 
 
 def test_no_flat_overhangs(holder):

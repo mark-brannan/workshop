@@ -13,13 +13,17 @@ pocket_s = 54;      // machined pocket, square to the block, in the point corner
 pocket_d = 3.8;     // 18.8 - 15
 
 /* [Fit] */
-fit_t = 0.6;        // slot clearance, each face
-fit_v = 0.6;        // V clearance, each edge
+fit_t = 1.0;        // slot clearance, each face
+fit_v = 0.8;        // V clearance, each edge
+
+/* [Lead-in: the V opens out toward the top so the probe finds it by sliding] */
+flare = 4;          // extra clearance each side at the V's top
+flare_from = 12;    // the flare starts this far up the V
 
 /* [Cradle] */
 tilt = 30;          // lean from vertical, top out toward the user
 v_depth = 40;       // V sides: up to about half the probe (side corners at 45)
-wall = 4;           // V arms and support wall
+wall = 6;           // V arms and support wall
 front_t = 3;        // low lip on the wall side
 front_h = 15;       // front lip height above the point: the top stays open
 back_h = 65;        // support wall top above the point, past half the probe
@@ -33,7 +37,6 @@ plate_h = 66;       // bed to just above the gusset
 plate_t = 5;
 plate_r = 6;        // plate corner radius
 plate_pt = 28;      // height of the cradle's lowest point above the plate's bottom edge
-gusset_h = 28;      // gusset: the V profile up to this height, filled out to the plate
 gusset_taper = 0.8; // the gusset is this much narrower at the plate, so its flanks are steeper than 45
 gusset_drop = 8;    // the gusset's end on the plate sits this much lower, so its underside stays steep
 screw_d = 5;        // #8 / 4 mm wood screw, loose (printed holes run small); teardrop top
@@ -65,7 +68,11 @@ module round_base(h, r, n = 5) hull() {
     translate([0, 0, r]) linear_extrude(h - r) children();
     for (i = [0:n]) translate([0, 0, r * (1 - sin(90 * i / n))]) linear_extrude(0.01) offset(delta = -r * (1 - cos(90 * i / n))) children();
 }
-module cutter_2d() offset(delta = fit_v) hull() { diamond(); translate([0, 100]) diamond(); }
+module cutter_2d() union() {
+    offset(delta = fit_v) hull() { diamond(); translate([0, 100]) diamond(); }
+    f0 = fit_v * sqrt(2); v1 = v_depth + 30; sl = flare / (v_depth - flare_from);
+    polygon([[flare_from + f0, flare_from], [v1 + f0 + sl * (v1 - flare_from), v1], [-(v1 + f0 + sl * (v1 - flare_from)), v1], [-(flare_from + f0), flare_from]]);
+}
 
 // extrude a (u, v) shape over w0..w1
 module slab(w0, w1) translate([0, w1, 0]) rotate([90, 0, 0]) linear_extrude(w1 - w0) children();
@@ -99,12 +106,16 @@ module plate() difference() {
 
 // Gusset: the V profile at the lip's wall side carried straight back to the plate, dropped at the plate so the
 // underside is steeper than 45. It meets the plate at a point and blends into it.
-module wall_side() placed() slab(w_front + 0.1, -slot / 2 + e) polygon([[0, -k], [0.7 * (gusset_h + k), gusset_h], [-0.7 * (gusset_h + k), gusset_h]]);   // flanks steeper than the V's, so they print
+module wall_side() placed() slab(w_front + 0.1, -slot / 2 + e) outer_v(v_depth);   // flush with the V arms
+module shadow() intersection() {   // the gusset's outline seen from the plate, cut off under the plate's top
+    projection() rotate([-90, 0, 0]) wall_side();
+    translate([-100, -100]) square([200, 100 + plate_h - 2]);
+}
 module wedge() hull() {
     wall_side();
     translate([0, y_pf + 1, 0]) rotate([90, 0, 0]) linear_extrude(1) hull() {   // the shadow, narrowed, plus the shadow dropped
-        scale([gusset_taper, 1]) projection() rotate([-90, 0, 0]) wall_side();
-        translate([0, -gusset_drop]) scale([gusset_taper, 1]) projection() rotate([-90, 0, 0]) wall_side();
+        scale([gusset_taper, 1]) shadow();
+        translate([0, -gusset_drop]) scale([gusset_taper, 1]) shadow();
     }
 }
 
