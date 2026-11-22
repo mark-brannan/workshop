@@ -169,8 +169,9 @@ def test_radar_hooks_lips_and_oled_frame(shell):
         assert len(down(shell, sx * x_in, y_lip)) > len(down(shell, sx * x_in, rd_cy))   # upper lip over the board edge, none between
         assert len(down(shell, sx * x_in, rd_cy - y_lip + rd_cy)) == len(down(shell, sx * x_in, rd_cy))  # none on the lower side ribs
         assert len(down(shell, sx * (P["rd_w"] / 2 + P["rd_slack"] + P["rd_rib_t"] - 0.1), y_lip + 2.5)) == 2  # slot: face only
-        yh = rd_cy - P["rd_h"] / 2 - P["rd_slack"] + 0.4          # under a bottom hook
-        assert len(down(shell, sx * (P["rd_w"] / 2 - 1), yh)) > len(down(shell, 0, yh))
+    yh = rd_cy - P["rd_h"] / 2 - P["rd_slack"] + 0.4          # under the bottom lip, anywhere along it
+    for x in (-9, 0, 9):
+        assert len(down(shell, x, yh)) > len(down(shell, x, rd_cy))
     y_frame = OL_CY - P["ol_h"] / 2 - P["ol_slack"] - P["ol_rib_t"] / 2
     assert len(down(shell, 0, y_frame)) > 0 and max(h[2] for h in down(shell, 0, y_frame)) > OL_BOARD_Z
 

@@ -82,7 +82,7 @@ The back plate's four tabs click 0.5 mm bumps into V grooves in the side walls; 
    four wires to the joints on the board's back. D1 mini (bare is fine): wires in from the underside,
    soldered on the can side.
 2. OLED: glass flush in its pocket, the board between the frame ribs, four M2 self-tappers from behind.
-3. Radar: antenna side to the face. Tuck the lower edge under the two bottom hooks with the board tilted, then press the upper end flat until the two lips click over it. To remove, lift the upper end past the lips (press them apart) and tilt out. No glue.
+3. Radar: antenna side to the face. Tilt the board and tuck its whole lower edge into the slot under the bottom lip, then press the upper end flat until the two upper lips click over it. To remove, lift the upper end past the lips (press them apart) and tilt out. No glue.
 4. TM1637 and tray: display into its window, the tray's front on the board's back (header window at
    the -X end), four M2.5 x 10 self-tappers through tray and board into the posts.
 5. D1 mini: underside to the tray, USB end up. Tuck the lower edge under the lip, press the top end
@@ -118,7 +118,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | D1 stack: board, can, underside parts | 1.0, 3.2, 2 | vendor numbers |
 | USB plug overmold `plug_w` x `plug_t` x `plug_l`; socket axis `usb_h` | 11 x 7.5 x 18; 1.5 above the board | overmolds vary; **the plug sets the depth** |
 | TM1637 back: joints `tm_joint_h`, display pin rows `tm_pin_row` | 1.5; two rows 10.16 apart, within x -7.1 to 5.6 | typical 0.36" display; the tray's windows assume the rest of the back is bare |
-| Radar hooks `rd_hook`, snap lips `rd_lip`, `rd_beam_t`, `rd_slot`, `rd_lip_gap` | hooks 0.9 over the lower edge; two upper lips 0.7 over the side edges on 0.8 thick beams between 1 mm slots; 0.1 above the board; 45° slopes | guessed; 0.2 per side interference, flex by estimate about 10-30 N |
+| Radar hooks `rd_hook`, snap lips `rd_lip`, `rd_beam_t`, `rd_slot`, `rd_lip_gap` | one lip 0.9 over the whole lower edge; two upper lips 0.7 over the side edges on 0.8 thick beams between 1 mm slots; 0.1 above the board; 45° slopes | guessed; 0.2 per side interference, flex by estimate about 10-30 N |
 | OLED reverse chamfer `ol_rev`, `ol_rev_w` | 0.8 deep at 45° below the glass's lower end, 14 wide | clears the ribbon end, whose height is not measured |
 | OLED header relief `ol_pin_rec`, `ol_pin_w` | 1.0 deep into the 1.5 face (0.5 skin left), 14 wide, from the glass's upper edge to the wall | for the solder nubs on the board front; trim them to under 1.9 above the board |
 | OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |

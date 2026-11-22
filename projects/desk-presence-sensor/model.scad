@@ -211,14 +211,14 @@ module rd_lips() {
                 polygon([[sx*0.2, zb], [-sx*rd_lip, zb + rd_lip], [-sx*rd_lip, zb + rd_lip + 0.3],
                          [sx*0.2, zb + 2*rd_lip + 0.3]]);
 }
-// Radar bottom hooks: the board's lower edge tucks under them at an angle, then the board lies flat
-// and the upper snap lips click over it. 45 deg undersides, no supports.
+// Radar bottom slot: one lip along the whole lower edge, over a whole bottom rib. The board's lower edge
+// tucks into the slot (floor = face, back = rib, roof = lip) at an angle, then the board lies flat and
+// the upper snap lips click over it. 45 deg underside, no supports.
 module rd_hooks() {
     zb = face_t + rd_t + rd_lip_gap;
-    for (sx = [-1, 1])
-        translate([sx*(rd_w/2 - 1), rd_cy - (rd_h/2 + rd_slack), 0])
-            rotate([90, 0, 90]) linear_extrude(3, center = true)
-                polygon([[-0.2, zb], [rd_hook, zb + rd_hook], [rd_hook, zb + rd_hook + 0.3], [-0.2, zb + 2*rd_hook + 0.3]]);
+    translate([0, rd_cy - (rd_h/2 + rd_slack), 0])
+        rotate([90, 0, 90]) linear_extrude(rd_w + 2*rd_slack + 0.4, center = true)
+            polygon([[-0.2, zb], [rd_hook, zb + rd_hook], [rd_hook, zb + rd_hook + 0.3], [-0.2, zb + 2*rd_hook + 0.3]]);
 }
 // What the beams are cut free with.
 module rd_beam_cuts() {
@@ -246,7 +246,7 @@ module rd_ribs_2d() {
     translate([0, rd_cy]) difference() {
         square([rd_w + 2*(rd_slack + rd_rib_t), rd_h + 2*(rd_slack + rd_rib_t)], center = true);
         square([rd_w + 2*rd_slack, rd_h + 2*rd_slack], center = true);
-        square([rd_w - 6, rd_h + 10], center = true);   // open top and bottom for the wires and a glue tool
+        translate([0, rd_h/2 + 5]) square([rd_w - 6, 10], center = true);   // open top only, for the wires; the bottom rib is whole and carries the hook
     }
 }
 
