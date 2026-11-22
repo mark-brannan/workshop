@@ -38,7 +38,7 @@ printed or checked against the real monitor.
 
 | Part | File | Orientation | Overhangs |
 |---|---|---|---|
-| Fit gauge, **print first** | `part-gauge.scad` | flat | none: 1 mm slice of the plate plus 2 mm of posts and ribs |
+| Fit gauge, **print first** | `part-gauge.scad` | flat, face down | none: the face with the radar's slot, lips and ribs, the TM1637 and OLED posts and seat ribs at full depth; no walls, no tray seats |
 | Shell | `model.scad` | front face down | none: posts and ribs rise from the face; windows and pilots run straight through; cable slot open to the rim |
 | Back plate | `part-back.scad` | tape face down | tab bumps are 45° both faces |
 | D1 tray | `part-tray.scad` | on its front (the face on the TM1637), D1 side up | corner-hook and top-hook catches have 45° undersides; the stop block has no overhang; windows run straight through; hook posts stand free over a 0.6 root layer |

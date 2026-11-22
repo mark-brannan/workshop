@@ -276,6 +276,21 @@ module snap_grooves() {
             polygon([[0, -bump - 0.1], [sx*(bump + 0.1), 0], [0, bump + 0.1]]);
 }
 
+// Fit gauge: the shell's face and everything standing on it at full height (radar ribs, lips and bottom slot;
+// TM1637 posts and seat ribs; OLED posts, frame and glass pocket), with the walls and the tray's wall seats left off.
+module gauge() {
+    difference() {
+        intersection() {
+            shell();
+            union() {
+                linear_extrude(face_t + 0.01) outline();
+                translate([0, cy0, 0]) linear_extrude(shell_d) square([in_w - 0.2, in_h - 0.2], center = true);   // just inside the walls: no sliver of them
+            }
+        }
+        translate([0, 0, face_t + 0.01]) tray_seats();   // cut from just above the face: it stays whole
+    }
+}
+
 module shell() {
     difference() {
         union() {
@@ -453,6 +468,7 @@ if (view == "front") orient("front") { shell(); back_placed(); screens(); }
 else if (view == "front_xray") orient("front") { ghost(0.15) shell(); color("orange", 0.6) tray_placed(); standins(); screens(); }
 else if (view == "side_xray") orient("side") { color("lightgray") cut_side() shell(); ghost(0.3) back_placed(); color("orange") cut_side() tray_placed(); standins(cut = true); }
 else if (view == "shell") shell();
+else if (view == "gauge") gauge();
 else if (view == "back") back();
 else if (view == "tray") tray();
 else if (view == "layers") exploded();
