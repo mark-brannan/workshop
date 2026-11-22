@@ -28,6 +28,12 @@ drawing beats a photo. The project link shows the part fitted.
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM1637 (owner, caliper; 36 from rough calipers was 1.5 narrow). The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
 
+## Tools
+
+| Part | Where from | Dimensions, mm | Source | Used in |
+|---|---|---|---|---|
+| Onefinity touch probe | Onefinity CNC | 63.5 x 63.5 x 18.8 aluminium block; 54 x 54 pocket square to the block in one corner, open on two edges, leaving 15 thick (lip 9.5 on the two other edges); cords exit roughly centred on the two lipped edges | owner, caliper; photos | [onefinity-probe-holder](projects/onefinity-probe-holder/) |
+
 ## Enclosures
 
 | Part | Where from | Dimensions, mm | Source | Used in |
