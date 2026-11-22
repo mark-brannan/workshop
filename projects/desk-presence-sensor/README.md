@@ -123,7 +123,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | OLED header relief `ol_pin_rec`, `ol_pin_w` | 1.0 deep into the 1.5 face (0.5 skin left), 14 wide, from the glass's upper edge to the wall | for the solder nubs on the board front; trim them to under 1.9 above the board |
 | TM1637 seat `tm_rib_t`; tray seats `tray_seat_w` | 0.8 ribs along the board's top and bottom edges, stopping 0.2 under the tray; 1.2 wide blocks along each wall, tops 0.05 under the tray's front plane | the tray rests on the TM1637's back and on these blocks where it overhangs the radar zone |
 | OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |
-| Radar back `rd_back` | 3 behind its board | clipped pins plus wire |
+| Radar back `rd_back` | 8 behind its board | normal male pin headers, owner 2026-11-22; they end 1.4 mm into the tray's window, 2.6 short of the D1 |
 | Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
 | Snap `bump` | 0.5 | calibration pending |
 | OLED holes, glass | 23.3 x 23.6; glass 26.7 x 19.3, 2.4 thick, centred | generic drawing |
