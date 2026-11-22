@@ -105,7 +105,9 @@ cable_slot_w = 5.5;  // top wall slot, X; open to the back rim
 back_clr = 0.3;      // deepest part to the back plate
 
 /* [Tray] */
-tray_t = 4;          // TM1637 back to the D1's front face: joints, wires and the D1's underside parts
+tray_t = 4;          // tray plate: the D1's front face above its front plane; joints, wires and the D1's underside parts
+screw_head = 1.5;    // TM1637 screw heads standing off its back, guessed
+rd_pin_clr = 0.5;    // radar pin tips to the tray's front plane
 tray_side = 0.3;     // tray edge to the side wall
 tray_hole_d = 3.0;   // M2.5 clearance, generous (printed holes come undersize)
 rail_x = 13.4;       // windows run between the side rails: D1 edge plus room for its pad joints
@@ -151,7 +153,8 @@ ol_back_z = ol_board_z + ol_t + ol_pins;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
 ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
 // The depth stack, front to back.
-tray_z0 = tm_board_z + tm_t;                       // tray front face on the TM1637's back
+tm_back_z = tm_board_z + tm_t;                     // TM1637 board back
+tray_z0 = max(tm_back_z + screw_head, face_t + rd_t + rd_back + rd_pin_clr);   // tray front plane: rests on the wall seats, clear of the TM1637 and the radar pins
 d1_z0 = tray_z0 + tray_t;                          // D1 front face on the tray
 d1_y1 = d1_y0 + d1_l;
 usb_z = d1_z0 + d1_t + usb_h;                      // socket and plug axis
@@ -289,7 +292,7 @@ module shell() {
             rd_lips();
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
-            linear_extrude(tray_z0 - 0.2) tm_seat_2d();   // board back is tray_z0
+            linear_extrude(tm_back_z - 0.2) tm_seat_2d();
             tray_seats();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) {

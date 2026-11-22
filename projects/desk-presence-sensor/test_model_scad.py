@@ -21,7 +21,8 @@ IN_H = OL_CY + P["ol_h"] / 2 + 0.5
 TM_BOARD_Z = P["tm_recess"] + P["tm_disp_h"]
 OL_BOARD_Z = P["face_t"] + P["ol_gap"] - P["ol_fwd"] + P["ol_glass_h"]
 OL_BACK_Z = OL_BOARD_Z + P["ol_t"] + P["ol_pins"]
-TRAY_Z0 = TM_BOARD_Z + P["tm_t"]
+TM_BACK_Z = TM_BOARD_Z + P["tm_t"]
+TRAY_Z0 = max(TM_BACK_Z + P["screw_head"], P["face_t"] + P["rd_t"] + P["rd_back"] + P["rd_pin_clr"])
 D1_Z0 = TRAY_Z0 + P["tray_t"]
 D1_Y1 = P["d1_y0"] + P["d1_l"]
 USB_Z = D1_Z0 + P["d1_t"] + P["usb_h"]
@@ -102,10 +103,10 @@ def test_depth_stack_clearances():
     plug_front = USB_Z - P["plug_t"] / 2
     assert plug_front > OL_BACK_Z + 1                                    # plug and cable pass behind the OLED
     assert plug_front > TRAY_Z0                                          # and behind the TM1637's top edge
-    assert D1_Z0 - P["d1_under"] > TRAY_Z0 + P["tm_joint_h"]             # D1 underside parts clear the TM1637 joints
+    assert TRAY_Z0 > TM_BACK_Z + P["tm_joint_h"]                          # tray plane clears the TM1637 joints and screw heads
     assert TRAY_Z0 > P["face_t"] + P["rd_t"] + P["rd_back"]              # tray clear of the radar's wires
     assert PLUG_Y0 + P["plug_l"] < IN_H - P["cable_d"]                   # plug ends below the top wall
-    assert 20 < SHELL_D + P["back_t"] < 24                               # outside depth near the 23 asked
+    assert 20 < SHELL_D + P["back_t"] < 25                               # outside depth: 24.1 after the tray moved back 1.9, owner 2026-11-22
 
 
 def test_back_flat_tape_face_and_tabs(back):
@@ -192,9 +193,9 @@ def test_oled_header_relief(shell):
 
 def test_tm_seat_and_tray_seats(shell):
     y = TM_CY + P["tm_w"] / 2 + P["tm_clear"] + 0.4
-    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TRAY_Z0 - 0.2, atol=0.01)            # TM seat rib stops under the tray
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TM_BACK_Z - 0.2, atol=0.01)            # TM seat rib stops at the board back
     y = TM_CY - P["tm_w"] / 2 - P["tm_clear"] - 0.4
-    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TRAY_Z0 - 0.2, atol=0.01)
+    assert np.isclose(max(h[2] for h in down(shell, 0, y)), TM_BACK_Z - 0.2, atol=0.01)
     for sx in (-1, 1):
         ys = (TRAY_Y0 + 0.3 + TM_CY - P["tm_w"] / 2 - P["tm_clear"] - P["tm_rib_t"] / 2) / 2
         assert np.isclose(max(h[2] for h in down(shell, sx * (IN_W / 2 - 0.5), ys)), TRAY_Z0 - 0.05, atol=0.01)  # tray rests here
