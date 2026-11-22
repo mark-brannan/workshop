@@ -4,6 +4,7 @@ import re
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import pytest
 import trimesh
 from shop.scad import OpenSCAD, find_openscad
@@ -43,6 +44,11 @@ def oh_cover():
 
 
 @pytest.fixture(scope="module")
+def oh_airpath():
+    return run("overhead_airpath")
+
+
+@pytest.fixture(scope="module")
 def oh_assembly():
     return run("overhead_assembly")
 
@@ -59,7 +65,7 @@ def test_overhead_volume_windows(oh_body, oh_cover):
     assert 1800 < oh_cover.volume < 2500
 
 
-def test_overhead_holes(oh_body, oh_assembly):
+def test_overhead_holes(oh_body):
     for sy in (-1, 1):
         assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
     seat = P["plate_t"] + P["pad_h"]
@@ -70,8 +76,8 @@ def test_overhead_holes(oh_body, oh_assembly):
             assert hit[0][2] == pytest.approx(seat - bottom, abs=0.05)
     by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
     bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
-    for x, y in ((-bx, by), (bx, -by)):      # cover screws reach the bosses' pilot holes through the floor
-        assert ray_hits(oh_assembly, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
+    for x, y in ((-bx, by), (bx, -by)):      # the body's pilot holes
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
 
 
 def test_overhead_seat(oh_body):
@@ -89,17 +95,17 @@ OH_FIN_X = [i * P["oh_fin_pitch"] for i in (-1.5, -0.5, 0.5, 1.5)]
 OH_LANE_X = [0, P["oh_fin_pitch"], -P["oh_fin_pitch"]]       # the lanes between the fins
 
 
-def test_overhead_air_path_is_open(oh_assembly):
-    hole = ray_hits(oh_assembly, [0, 0, 30], [0, 0, -1])                       # in at the hole, up to the arch's crown
+def test_overhead_air_path_is_open(oh_airpath):
+    hole = ray_hits(oh_airpath, [0, 0, 30], [0, 0, -1])                       # in at the hole, up to the arch's crown
     assert hole[0][2] == pytest.approx(P["baffle_z"] + P["oh_arch_t"], abs=0.05)
     for x in OH_LANE_X:
         for sy in (-1, 1):
-            along = ray_hits(oh_assembly, [x, 0, CHANNEL_Z], [0, sy, 0])       # out along each lane, past the arch's end
+            along = ray_hits(oh_airpath, [x, 0, CHANNEL_Z], [0, sy, 0])       # out along each lane, past the arch's end
             assert abs(along[0][1]) > P["oh_baffle_l"] / 2 + 2
     for sy in (-1, 1):
-        across = ray_hits(oh_assembly, [-P["oh_fin_pitch"], sy * P["oh_fin_gap_y"], CHANNEL_Z + 0.5], [1, 0, 0])   # lane to lane through the fin gaps
+        across = ray_hits(oh_airpath, [-P["oh_fin_pitch"], sy * P["oh_fin_gap_y"], CHANNEL_Z + 0.5], [1, 0, 0])   # lane to lane through the fin gaps
         assert across[0][0] > P["oh_fin_pitch"] * 1.5
-        turn = ray_hits(oh_assembly, [0, sy * (P["oh_baffle_l"] / 2 + 2), CHANNEL_Z], [0, 0, -1])   # up past the arch's end
+        turn = ray_hits(oh_airpath, [0, sy * (P["oh_baffle_l"] / 2 + 2), CHANNEL_Z], [0, 0, -1])   # up past the arch's end
         assert turn[0][2] == pytest.approx(P["plate_t"], abs=0.05)
 
 
@@ -149,3 +155,16 @@ def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
     assert ray_hits(oh_body, [tx, ROOF_Y - cove + 0.3, 30], [0, 0, -1])[0][2] < P["plate_t"] + 0.2
     for x, yy in ((tx, y), (12, 15), (8, 16)):                                        # plate solid under the tie and the cable's run
         assert ray_hits(oh_body, [x, yy, -5], [0, 0, 1])[0][2] == pytest.approx(0, abs=0.05)
+
+
+def test_overhead_cover_screw_holes_meet_the_body(oh_body, oh_cover):
+    """The cover goes on as printed: floor on the walls, arch on top. Its holes must be open over the body's towers.
+
+    The two hole patterns are a diagonal pair, which mates only one way round, so this reads the printed mesh
+    (the part that gets sliced) and the body mesh, never the hole lists in model.scad.
+    """
+    by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
+    bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
+    for x, y in ((-bx, by), (bx, -by)):                      # the body's two cover-screw towers
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - P["oh_pilot_l"], abs=0.05), "no tower here"
+        assert not ray_hits(oh_cover, [x, y, 30], [0, 0, -1]), f"printed cover is solid over the tower at {x:.1f}, {y:.1f}"

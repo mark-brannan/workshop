@@ -61,7 +61,7 @@ oh_round_r = 1.5;    // every outside convex edge but the bed's; 2.5 or more wou
 oh_pad_d = 6;        // board seat: pads under the four holes
 oh_lip = 1.2;        // seat ledge reaches this far in under the board's edge
 oh_seat_wall = 1.2;  // seat walls round the board, flush with its face; stop it turning on two screws
-oh_qwiic_w = 8;      // gap in each short seat wall for the Qwiic plug, on the centre line
+oh_qwiic_w = 10;     // gap in each short seat wall for the Qwiic plug, on the centre line; 8 was a little tight
 
 /* [Hidden] */
 // Facet count comes from the radius ($fa/$fs), not a fixed $fn. The part-*.scad files `use` this file, which
@@ -87,6 +87,7 @@ module mount_holes() {
 oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
+oh_cover_holes = [for (b = oh_bosses) [b[0], -b[1]]];                // cover holes in the model's own pose, which is the cover upside down; printed, its holes are over the body's towers
 oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];   // board screws, all four holes
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
@@ -219,7 +220,7 @@ module overhead_cover() {
     difference() {
         translate([0, 0, face_z]) linear_extrude(oh_floor_t) rrect(plate_w, house_h, oh_round_r);    // floor, its corners the house's
         translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = oh_floor_t + 2);
-        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
+        for (b = oh_cover_holes) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
     }
     oh_extrude(-oh_baffle_l/2, oh_baffle_l/2) oh_arch_profile();
     for (s = oh_fin_segs) oh_extrude(s[0], s[1]) oh_fin_profile();
@@ -233,9 +234,10 @@ module overhead_cover_print() { $fa = fa; $fs = fs; translate([0, 0, face_z + oh
 
 module overhead_body_print() { $fa = fa; $fs = fs; overhead_body(); }
 
-module overhead_assembly() { overhead_body(); overhead_cover(); }
+module overhead_assembly() { overhead_body(); translate([0, 0, face_z]) overhead_cover_print(); }  // the cover as printed, arch on top, its floor on the walls' fronts
 
 if (part == "overhead_body") overhead_body_print();
 if (part == "overhead_cover") overhead_cover_print();
 if (part == "overhead_assembly") overhead_assembly();
+if (part == "overhead_airpath") { overhead_body(); overhead_cover(); }   // arch inside, as the air-path test was written; not how the cover is used
 if (part == "overhead_section") difference() { overhead_assembly(); translate([1, -50, -1]) cube([50, 100, 50]); }

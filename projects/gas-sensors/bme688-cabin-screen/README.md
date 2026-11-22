@@ -15,7 +15,7 @@ supports; no span is more than 5 mm (2.5 mm from its support). The cable leaves 
 two M2.5 self-tapping screws on a diagonal, into pilot holes in the body.
 
 The board sits in a seat: a 1.2 mm ledge under its edges, walls round it flush with its face, and an
-8 mm gap in each short wall for the Qwiic plug. Four M2.5 self-tapping screws, one per corner of the
+10 mm gap in each short wall for the Qwiic plug. Four M2.5 self-tapping screws, one per corner of the
 board, go into pilot holes in pads under it.
 
 | Hardware | Count | Size |
