@@ -53,10 +53,14 @@ def test_screw_holes_and_opening(installed):
 
 
 def test_rivet_holes_through_skirts(installed):
-    a, sl = A, P["rivet_sl"]
+    a, pitch, reach = A, P["rivet_pitch"], P["rivet_reach"]
     n = [math.sin(a), 0, -math.cos(a)]  # out of the right skirt's face
+    grid = [(6.5, -reach + i * pitch) for i in range(int(2 * reach / pitch) + 1)]
+    grid += [(14, -reach + pitch / 2 + i * pitch) for i in range(int(2 * reach / pitch))]
+    clear = [(sl, y) for sl, y in grid if all(abs(y - b) > 7 for b in (-34, 0, 25))]  # holes the bosses don't stop
+    assert len(clear) >= 8
     for side in (1, -1):
-        for y in (-20, -11, 11, 36):
+        for sl, y in clear:
             hw = P["w_aft"] / 2 + (P["w_fwd"] - P["w_aft"]) / 2 * (y / P["len"] + 0.5) - P["bond_gap"] / math.sin(a)
             q = [side * (hw - sl * math.cos(a)), y, -sl * math.sin(a)]
             start = [q[0] + side * 5 * n[0], y, q[2] + 5 * n[2]]

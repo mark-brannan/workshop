@@ -33,9 +33,10 @@ arch_band = 4;       // depth of the arch under the deck at its crown (centre)
 fin_n = 3;           // ridges along each bonding face, running fore-aft
 fin_h = 1;           // how far a ridge stands off the face, inside the bond_gap of epoxy
 fin_w = 1.2;         // ridge width at its root (3 lines)
-rivet_y = [-20, -11, 11, 36];  // through-holes in each skirt, epoxy sets through them; clear of the bosses and arches
-rivet_d = 4;
-rivet_sl = 6.5;      // slant distance down the face to the hole centre: between the first two ridges
+rivet_d = 4;         // through-holes in each skirt, epoxy sets through them
+rivet_pitch = 8;     // fore-aft, in two rows staggered by half a pitch
+rivet_rows = [6.5, 14];  // slant distance down the face to each row: between the ridges
+rivet_reach = 36;    // outermost hole centre, fore and aft, clear of the arches
 
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
@@ -46,13 +47,18 @@ module platform() difference() {
   frame();
   for (h = holes) translate([h[0], h[1], -boss_h - e]) cylinder(d = hole_d, h = boss_h + 2 * e, $fn = 24);
   translate([-opening[0] / 2, -opening[1] / 2, -deck_t - e]) cube([opening[0], opening[1], deck_t + 2 * e]);
-  for (s = [-1, 1]) scale([s, 1, 1]) for (y = rivet_y) rivet(y);
+  // a hole that meets a boss stops at it, so the pilot keeps its wall
+  difference() {
+    for (s = [-1, 1]) scale([s, 1, 1]) for (r = [0 : len(rivet_rows) - 1])
+      for (y = [-rivet_reach + r * rivet_pitch / 2 : rivet_pitch : rivet_reach]) rivet(y, rivet_rows[r]);
+    for (h = holes) translate([h[0], h[1], -boss_h - 1]) cylinder(d = boss_d + 1, h = boss_h + 1, $fn = 32);  // +1: no face shared with the boss
+  }
 }
 
 // a hole square through the skirt, pointed toward the skirt's foot, which is up in print
-module rivet(y) {
+module rivet(y, sl) {
   hw = (w_aft / 2 + (w_fwd - w_aft) / 2 * (y / len + 0.5)) - bond_gap / sin(hull_angle);
-  q = [hw - rivet_sl * cos(hull_angle), y, -rivet_sl * sin(hull_angle)];
+  q = [hw - sl * cos(hull_angle), y, -sl * sin(hull_angle)];
   // local x along the skirt, y down the face, z into the skirt
   multmatrix([[0, -cos(hull_angle), -sin(hull_angle), q[0]],
               [1, 0, 0, q[1]],
