@@ -105,7 +105,7 @@ def test_pill_cutout_is_closed_slot_long_along_Y(mount):
 
 
 def test_two_diagonal_screw_holes(mount):
-    for hx, hy in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7)]:
+    for hx, hy in [(-23.2, -36.7), (-23.55, 30.15), (-22.75, 38.7)]:
         assert first_z(mount, hx, hy) is None
     assert 3.3 <= P["hole_d"] <= 3.6  # M3, easy slip fit
 
@@ -163,13 +163,13 @@ def test_gauge_is_the_mount_sliced_thin_with_the_same_holes(gauge):
     assert first_z(gauge, 0, W / 2 + LIP_T / 2) == pytest.approx(GT + GR, abs=0.02)  # lip top
     assert first_z(gauge, TIE_XS[0], TIE_Y) == pytest.approx(GT + GR, abs=0.02)  # the shelf, between a slot pair
     assert first_z(gauge, TIE_XS[0] + P["tie_gap"] / 2, TIE_Y) is None  # a tie slot
-    for h in [(-23.2, -36.7), (-23.2, 29.8), (-22.75, 38.7), (25, -39)]:
+    for h in [(-23.2, -36.7), (-23.55, 30.15), (-22.75, 38.7), (25, -39)]:
         assert first_z(gauge, *h) is None
 
 
 CLIP_YS = [22.05, -28.95]  # the clip's insert holes, hook up (its model: x = 5 and 56, rail centre 27.05)
 CLIP_XS = [-20, 0, 20]  # one clip in the centre, or two spread wide
-PSU_HOLES = [(-23.2, -36.7), (-23.2, 29.8)]
+PSU_HOLES = [(-23.2, -36.7), (-23.55, 30.15)]
 
 
 def test_three_clip_positions_countersunk_from_the_psu_side(mount):

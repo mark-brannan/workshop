@@ -135,13 +135,23 @@ def test_tray_screw_holes_through_pads_bear(tray):
 def test_tray_windows(tray):
     assert len(down(tray, 0, TM_CY)) == 0                                # D1 underside and display pins
     assert len(down(tray, -TRAY_HW + 1, 34)) == 0                        # TM1637 header joints
-    assert len(down(tray, 0, TRAY_Y1 - 1)) == 0                          # plug passes the top band
-    assert np.isclose(down(tray, 0, P["d1_y0"] + 1)[0][2], P["tray_t"], atol=0.02)   # D1 seat, bottom
+    strap = down(tray, 0, TRAY_Y1 - 1)                                   # plug passes over the strap
+    assert np.isclose(strap[0][2], P["strap_t"], atol=0.02)
+    assert USB_Z - P["plug_t"] / 2 - TRAY_Z0 - P["strap_t"] >= 1.0        # room under a plug fatter than guessed
+    assert np.isclose(down(tray, 11, P["d1_y0"] + 1)[0][2], P["tray_t"], atol=0.02)   # D1 seat, bottom (corner)
 
 
-def test_tray_lip_and_two_hooks(tray):
-    lip = down(tray, 0, TRAY_Y0 + 0.5)
-    assert lip[0][2] > P["tray_t"] + P["d1_t"]                           # lip stands above the board
+def test_tray_stop_block_corner_hooks_and_pocket(tray):
+    stop = down(tray, 0, TRAY_Y0 + 0.5)
+    assert np.isclose(stop[0][2], P["tray_t"] + P["d1_t"], atol=0.02)    # stop block flush with the board's face: no overhang
+    wall_y = P["d1_y0"] - P["d1_clr"] - 0.5
+    assert np.isclose(down(tray, 0, wall_y)[0][2], P["tray_t"] + P["d1_t"], atol=0.02)   # board edge meets the block
+    for sx in (-1, 1):
+        zs = down(tray, sx * 11, TRAY_Y0 + 0.5)                          # corner hook wall stands over the board
+        assert zs[0][2] > P["tray_t"] + P["d1_t"] + 0.5
+        assert len(down(tray, sx * 11, P["d1_y0"] - P["d1_clr"] + P["lip_catch"])) > 0   # catch reaches over the board edge
+    assert np.isclose(down(tray, 0, P["d1_y0"] + 1)[0][2], P["tray_t"] - P["stop_rec"], atol=0.02)   # seat pocket by the block
+    assert np.isclose(down(tray, 11, P["d1_y0"] + 1)[0][2], P["tray_t"], atol=0.02)                   # corner seats full height
     for sx in (-1, 1):
         x = sx * (P["hook_x0"] + P["hook_w"] / 2)
         assert np.isclose(down(tray, x, POST_Y0 + P["hook_t"] / 2)[0][2], HOOK_TOP, atol=0.05)  # post

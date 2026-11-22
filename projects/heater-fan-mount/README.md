@@ -19,7 +19,7 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 
 The box is the one part not printed in its model orientation: `part-box.scad` rotates it.
 Four M4 screws through lid, fan, box floor and spigot flange; nuts sit in pockets in the flange.
-12 V enters through a PG7 gland on the back wall, against the bulkhead.
+12 V enters through a PG9 gland (16 mm hole) on the back wall, against the bulkhead.
 
 ## The gauge
 
@@ -40,4 +40,6 @@ Four M4 screws through lid, fan, box floor and spigot flange; nuts sit in pocket
 | Fan | 80 x 80 x 25, holes 71.5 square, bore 76 | GDA8025 IP68 vendor drawing; thickness ~24.5 owner; holes match an earlier test print |
 | Controller | 1803BK PWM board, 32 x 32 (35 with break-off edge), holes ~26 square | listing; not calipered |
 | Pot shaft above the board | 7 | **estimate** |
+| Pot shaft left of board centre | 8 | **estimate**; knob is centred on the pocket, the board sits 8 mm right of centre |
+| PG9 gland | thread 15.2, hole 16 | catalogue typical, **unmeasured** |
 | Walls | 2 shell, 3 knob face, 1.6 divider and gussets, 2.5 lid and flange | set by each wall's job; no structural load beyond the unit's own weight |

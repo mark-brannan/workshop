@@ -2,7 +2,7 @@
 
     uv run python projects/desk-presence-sensor/assembly.py   ->  out/desk-presence-sensor_assembly_views.png
 
-Panels: the front as seen at the desk, the front see-through (boards and tray behind the face),
+Panels: the front as seen at the desk, the parts exploded along the depth in assembly order,
 and a side section through a D1 hook, the tray and the D1 mini, with the USB plug behind it.
 """
 import shutil, subprocess, sys, tempfile
@@ -15,7 +15,7 @@ from shop.scad import OpenSCAD
 HERE = Path(__file__).parent
 PANELS = [
     ("FRONT: what you see at the desk (+X on the left)", "front", "0,0,300"),
-    ("FRONT, see-through: boards behind the face", "front_xray", "0,0,300"),
+    ("EXPLODED, from behind: shell, radar + OLED, TM1637, tray, D1 + plug, back", "layers", "-300,-340,150"),
     ("SIDE, cut through a D1 hook: arm and tape LEFT, you RIGHT", "side_xray", "0,0,300"),
 ]
 

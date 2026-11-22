@@ -6,20 +6,20 @@
 
 part = "print";      // [print, installed]
 
-/* [Sump base, which sets the deck (unmeasured; Fusion v6 numbers)] */
-w_aft = 280;         // across the boat at the aft edge, hull to hull at deck height
-w_fwd = 240;         // same at the forward edge: the V toward the bow (Fusion v6: 18 per 100 each side)
-len = 110;           // fore-aft
+/* [Sump base, which sets the deck (tape, aboard 2026-11-21)] */
+w_aft = 222.25;      // 8 3/4 in: across the boat at the aft edge, hull to hull at tab height (owner: "best guess")
+w_fwd = 190.5;       // 7 1/2 in: same at the forward edge, the V toward the bow
+len = 88.9;          // 3 1/2 in: the tab length; owner's working spacing of the two widths, not a tape reading
 
 /* [Hull] */
-hull_angle = 55;     // degrees above horizontal across the boat at the bond line: the bilge V (Fusion v6 legs)
+hull_angle = 66;     // degrees above horizontal: hull leans 23 stbd, 25 port from vertical (speed square, rough), mean 24 -> 66
 
 /* [Sump screws and opening (from the Fusion v6 deck)] */
 holes = [[93, 25], [93, -34], [100, 0], [-93, 25], [-93, -34], [-100, 0]];   // the sump's wing holes
 hole_d = 3;          // self-tapping pilot, as Fusion had it
 boss_d = 9;
 boss_h = 12;         // screw depth below the deck top
-opening = [176, 80]; // cut out of the deck's middle, under the sump
+opening = [176, 59]; // cut out of the deck middle, under the sump; leaves 15 mm strips at the 89 mm length (Fusion had 176 x 80 on 110)
 
 /* [Build] */
 deck_t = 4;

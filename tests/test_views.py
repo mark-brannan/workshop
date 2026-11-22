@@ -12,6 +12,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.mark.skipif(find_openscad() is None or shutil.which("montage") is None, reason="needs openscad and montage")
 def test_montage(tmp_path):
-    out = render_views(ROOT / "projects/demo-bracket/model.scad", "any", tmp_path / "v.png")
+    out = render_views(ROOT / "projects/esp32-breakout-mounts/model.scad", "any", tmp_path / "v.png")
     assert out.is_file() and out.stat().st_size > 10_000
     assert len(VIEWS) == 6

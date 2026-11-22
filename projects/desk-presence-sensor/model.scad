@@ -94,13 +94,16 @@ rail_x = 13.4;       // windows run between the side rails: D1 edge plus room fo
 seat = 3;            // D1 resting on the tray at each short end, Y
 seat_x = 9.8;        // top seats start here (corners only: the socket and CH340 sit between)
 lip_t = 1.6;         // lip wall, Y
-lip_hw = 8;          // lip half width, X
-catch = 0.6;         // lip and hook reach over the board
+lip_hw = 8;          // centre stop block half width, X; the corner hooks run outward from here
+catch = 0.6;         // top hook reach over the board
+lip_catch = 0.8;     // lower corner hook reach over the board (deeper: two short hooks hold the whole edge)
+stop_rec = 1.0;      // guessed (owner: under 1 mm): pocket in the seat by the stop block, clear of what sticks out of the wifi module under the board
 hook_x0 = 8;         // hook from here outward, clear of the plug
 hook_w = 4.3;
 hook_t = 1.0;        // post, Y; flexes away from the board
 hook_slot = 0.8;     // free gap either side of the post
 hook_root = 0.6;     // post joins the tray only in this bottom layer
+strap_t = 1.6;       // bed-side strap closing the plug gap; leaves room under a plug fatter than guessed
 hdr_win = [-17.3, 28.5, 40.3];   // TM1637 header joints, -X end: window x from the edge to [0], y [1] to [2]
 
 /* [Back plate and snaps] */
@@ -112,7 +115,7 @@ tab_clr = 0.2;       // tab to the wall
 bump = 0.5;          // 45 deg both faces: gentle
 bump_z = 3;          // bump centre in front of the shell rim
 
-view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded
+view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded | layers
 
 /* [Hidden] */
 $fn = 48;
@@ -226,12 +229,12 @@ module shell() {
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side
 // rails, a band above the display pins and the plate below the board, with the screw pads in
 // them. Windows clear the display pins, the header joints, the D1's underside and the plug.
-module tray_frame_2d() {
+module tray_frame_2d(strap = false) {   // strap: the plug pass stops at the top band, closing the frame
     difference() {
         translate([0, (tray_y0 + tray_y1)/2]) rrect(2*tray_hw, tray_y1 - tray_y0, 1);
         translate([-rail_x, d1_y0 + seat]) square([2*rail_x, tm_win_y1 - d1_y0 - seat]);   // D1 underside, display pins
         translate([-tray_hw - 1, hdr_win[1]]) square([hdr_win[0] + tray_hw + 1, hdr_win[2] - hdr_win[1]]);
-        translate([-plug_w/2 - 0.8, tm_win_y1 - 1]) square([plug_w + 1.6, tray_y1]);       // plug passes
+        translate([-plug_w/2 - 0.8, tm_win_y1 - 1]) square([plug_w + 1.6, strap ? 1 : tray_y1]);   // plug passes
         for (h = tm_holes) translate(h) circle(d = tray_hole_d);
     }
 }
@@ -243,20 +246,30 @@ module hook_profile() {   // (Y, Z): post, catch with a 45 deg underside and a 4
 }
 
 module lip_profile() {    // (Y, Z): wall with a 45 deg underside catch over the board's lower edge
-    w = d1_y0 - d1_clr; tip = w + catch + d1_clr;
-    polygon([[tray_y0, tray_z0], [w, tray_z0], [w, catch_z], [tip, catch_z + catch + d1_clr],
-             [tip, catch_z + catch + d1_clr + 0.4], [tray_y0, catch_z + catch + d1_clr + 0.4]]);
+    w = d1_y0 - d1_clr; tip = w + lip_catch + d1_clr;
+    polygon([[tray_y0, tray_z0], [w, tray_z0], [w, catch_z], [tip, catch_z + lip_catch + d1_clr],
+             [tip, catch_z + lip_catch + d1_clr + 0.4], [tray_y0, catch_z + lip_catch + d1_clr + 0.4]]);
 }
 
 module tray_placed() {
-    translate([0, 0, tray_z0]) linear_extrude(tray_t) tray_frame_2d();
+    difference() {
+        translate([0, 0, tray_z0]) linear_extrude(tray_t) tray_frame_2d();
+        translate([-lip_hw, d1_y0, tray_z0 + tray_t - stop_rec]) cube([2*lip_hw, seat, stop_rec + 1]);   // seat pocket by the stop block
+    }
     for (sx = [-1, 1]) {
         s = xs(sx, seat_x, rail_x + 0.01); r = xs(sx, hook_x0, rail_x + 0.01); p = xs(sx, hook_x0, hook_x0 + hook_w);
         translate([s[0], d1_y1 - seat, tray_z0]) cube([s[1] - s[0], seat_y1 - d1_y1 + seat, tray_t]);    // top seat
         translate([r[0], seat_y1 - 0.01, tray_z0]) cube([r[1] - r[0], tm_win_y1 - seat_y1 + 0.02, hook_root]);  // hook root
         yz(p[0], p[1]) hook_profile();
     }
-    yz(-lip_hw, lip_hw) lip_profile();
+    // lower edge: the lip profile across the full width, its catch cut away in the centre. What is left there is the stop
+    // block (the board's lower edge bears on it, flush with the board's face so the module's can clears it, no overhang);
+    // the two corner hooks stand outside it.
+    difference() {
+        yz(-rail_x, rail_x) lip_profile();
+        translate([-lip_hw, tray_y0 - 1, tray_z0 + tray_t + d1_t]) cube([2*lip_hw, lip_t + 3, 3]);
+    }
+    translate([0, 0, tray_z0]) linear_extrude(strap_t) tray_frame_2d(strap = true);   // strap under the plug
 }
 
 module back() { translate([0, 0, box_d]) rotate([0, 180, 0]) back_placed(); }
@@ -274,23 +287,45 @@ module back_placed() {
 }
 
 // Stand-ins for the review renders only. cut = true sections each at cut_x, keeping its colour on the cut face.
-module standins(cut = false) {
-    module paint(c) { if (cut) color(c) cut_side() children(); else color(c) children(); }
-    paint("seagreen") translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
-    paint("tomato") translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
-    paint("orchid") translate([0, rd_cy, face_t]) linear_extrude(rd_t) square([rd_w, rd_h], center = true);
-    paint("black") translate([0, rd_cy + rd_h/2 - 1.5, face_t + rd_t]) linear_extrude(rd_back) square([12.7, 2], center = true);
-    paint("royalblue") translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
-    paint("dimgray") {
-        translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
-        translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+module paint(c, cut) { if (cut) color(c) cut_side() children(); else color(c) children(); }
+module si_radar(cut = false) {
+    paint("orchid", cut) translate([0, rd_cy, face_t]) linear_extrude(rd_t) square([rd_w, rd_h], center = true);
+    paint("black", cut) translate([0, rd_cy + rd_h/2 - 1.5, face_t + rd_t]) linear_extrude(rd_back) square([12.7, 2], center = true);
+}
+module si_tm(cut = false) {
+    paint("seagreen", cut) translate([0, tm_cy, tm_board_z]) linear_extrude(tm_t) square([tm_l, tm_w], center = true);
+    paint("dimgray", cut) translate([tm_disp_dx, tm_cy + tm_disp_dy, tm_recess]) linear_extrude(tm_disp_h) square([tm_disp_l, tm_disp_w], center = true);
+}
+module si_ol(cut = false) {
+    paint("tomato", cut) translate([0, ol_cy, ol_board_z]) linear_extrude(ol_t) square([ol_w, ol_h], center = true);
+    paint("dimgray", cut) translate([0, ol_cy + ol_glass_dy, face_t + ol_gap]) linear_extrude(ol_glass_h) square([ol_glass_w, ol_glass_l], center = true);
+}
+module si_d1(cut = false) {
+    paint("royalblue", cut) translate([-d1_w/2, d1_y0, d1_z0]) cube([d1_w, d1_l, d1_t]);
+    paint("dimgray", cut) {
         translate([-6, d1_y0 + 7, d1_z0 + d1_t]) cube([12, 15, d1_shield_h]);             // ESP-12 can
         translate([-4, d1_y1 - 12, d1_z0 - d1_under]) cube([8, 8, d1_under]);             // CH340, underside
         translate([-4, d1_y1 - 5 + usb_lip, d1_z0 + d1_t]) cube([8, 5, 2*usb_h]);         // USB socket
     }
-    paint("silver") {
+}
+module si_plug(cut = false) {
+    paint("silver", cut) {
         translate([0, plug_y0, usb_z]) rotate([-90, 0, 0]) linear_extrude(plug_l) square([plug_w, plug_t], center = true);
         translate([0, plug_y0 + plug_l, usb_z]) rotate([-90, 0, 0]) cylinder(d = cable_d, h = in_h + wall - d1_y1 - plug_l + 6);
+    }
+}
+module standins(cut = false) { si_radar(cut); si_tm(cut); si_ol(cut); si_d1(cut); si_plug(cut); }
+
+// Exploded along the depth, layer by layer in assembly order, box upright, seen from behind.
+explode = 32;
+module exploded() {
+    rotate([90, 0, 0]) {
+        shell();
+        translate([0, 0, 1*explode]) { si_radar(); si_ol(); }
+        translate([0, 0, 2*explode]) si_tm();
+        translate([0, 0, 3*explode]) color("orange") tray_placed();
+        translate([0, 0, 4.3*explode]) { si_d1(); si_plug(); }
+        translate([0, 0, 6.2*explode]) back_placed();
     }
 }
 
@@ -325,5 +360,6 @@ else if (view == "side_xray") orient("side") { color("lightgray") cut_side() she
 else if (view == "shell") shell();
 else if (view == "back") back();
 else if (view == "tray") tray();
+else if (view == "layers") exploded();
 else if (view == "open") { shell(); standins(); color("orange") tray_placed(); }
 else { shell(); standins(); color("orange") tray_placed(); translate([0, 0, 25]) back_placed(); }

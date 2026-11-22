@@ -65,7 +65,7 @@ Plain I2C at 100 kHz suits a lead under about 2 m (400 pF bus limit, cat5e near 
 LPS35HW address 0x5D (board silkscreen); the jumper on the back changes it.
 
 Dry side, not designed yet: 12 V, fuse, transient suppressor, 5 V buck, ESP32, LTC4311. Prototype on the
-ESP32 breakout on hand ([esp32-breakout-mount](../esp32-breakout-mount/)); a carrier board follows once the pinout has
+ESP32 breakout on hand ([esp32-breakout-mounts](../esp32-breakout-mounts/)); a carrier board follows once the pinout has
 survived on the boat.
 
 ## Conformal coat

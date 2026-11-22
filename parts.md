@@ -13,7 +13,7 @@ drawing beats a photo. The project link shows the part fitted.
 | TM1637 4-digit module | generic | board 41.5 x 23.5; holes 37.5 x 19, ~2.8 dia, 0.5 from the edge; display body 30 x 14, face 7 above the board; header 5 above the board's back, 6.8 past its edge | owner, caliper | [segment-display-enclosure](projects/segment-display-enclosure/) |
 | LM393 photoresistor module | Amazon B0FS6866W3 | 32 x 14; one M3 hole between the trimpot and the header, centred across, ~7 from the header end; photocell at the far end; right-angle 3-pin header | vendor drawing; hole position from the photo | halmet-enclosure-mount |
 | LM393 photoresistor module, on hand | | 31 x 14; one M3 hole, ~4 across, centred, its rim 5 from one end and both long edges; header pins 6 past the edge; photocell bent up, its top ~11.5 above the board top | owner, caliper | [halmet-enclosure-mount](projects/halmet-enclosure-mount/), [photocell-flame-pod](projects/photocell-flame-pod/) |
-| ESP32 breakout board | | holes 80 x ~75.5, M2 | owner, caliper | [esp32-breakout-mount](projects/esp32-breakout-mount/) |
+| ESP32 breakout board | | holes 80 x ~75.5, M2 | owner, caliper | [esp32-breakout-mounts](projects/esp32-breakout-mounts/) |
 | AC-DC supply, 58 x 85 | Amazon B0DK3SPYNZ | 85 x 58; two base holes on a diagonal, ~75 x ~47, M3 screws | owner, caliper (approx) | [din-rail-psu-mount](projects/din-rail-psu-mount/) |
 | Adafruit STEMMA QT boards: BME688 (5046), ICM-20948 (4554), LTC4311 (4756) | Adafruit | 25.4 x 17.78; four 2.5 holes at 20.32 x 12.7; JST-SH socket at each short edge; ~4.6 overall height | Adafruit board files (BME688 inferred from the BME680 file); product pages | [small-box-sensors](projects/small-box-sensors/), [bme688-halpi2](projects/gas-sensors/bme688-halpi2/) |
 | Adafruit BME688 (5046), chip and sockets | Adafruit | chip at the board's exact centre (12.7, 8.89); both JST-SH sockets on the chip's face, on the centre line at each short edge; 10 k pull-ups; 0x77, or 0x76 with SDO to GND | Adafruit-BME680-PCB board file (shared with the BME688); Adafruit guide | [bme688-halpi2](projects/gas-sensors/bme688-halpi2/) |
@@ -27,6 +27,12 @@ drawing beats a photo. The project link shows the part fitted.
 | 1803BK PWM fan controller | generic | 32 x 32 (35 with the break-off edge); holes ~26 square; pot with M7 bushing, shaft height unmeasured | listing, not calipered | [heater-fan-mount](projects/heater-fan-mount/) |
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM1637 (owner, caliper; 36 from rough calipers was 1.5 narrow). The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
+
+## Tools
+
+| Part | Where from | Dimensions, mm | Source | Used in |
+|---|---|---|---|---|
+| Onefinity touch probe | Onefinity CNC | 63.5 x 63.5 x 18.8 aluminium block; 54 x 54 pocket square to the block in one corner, open on two edges, leaving 15 thick (lip 9.5 on the two other edges); cords exit roughly centred on the two lipped edges | owner, caliper; photos | [onefinity-probe-holder](projects/onefinity-probe-holder/) |
 
 ## Enclosures
 

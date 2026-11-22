@@ -77,14 +77,15 @@ def test_box_air_path_and_four_screw_holes(box):
 
 def test_box_pot_bushing_through_knob_face(box):
     y = -(P["floor_t"] + 3 + 1.6 + P["pot_z"])
-    first = ray_hits(box, (POCKET_X - 8, y, -10), (0, 0, 1))[0]
-    assert first[2] > BOX_DEPTH - P["wall"] - 0.05  # nothing until the back wall: the hole is open
-    assert ray_hits(box, (POCKET_X - 8 + P["pot_bushing"], y, -10), (0, 0, 1))[0][2] < 0.05
+    # knob centred on the pocket: open through the knob wall, and (gland on the same axis) through the back wall too
+    assert ray_hits(box, (POCKET_X, y, -10), (0, 0, 1)) == []
+    assert ray_hits(box, (POCKET_X + P["pot_bushing"], y, -10), (0, 0, 1))[0][2] < 0.05
 
 
 def test_box_gland_through_back_wall(box):
-    first = ray_hits(box, (POCKET_X, -H / 2, BOX_DEPTH + 10), (0, 0, -1))[0]
-    assert first[2] < P["front"] + 0.05  # straight through to the knob wall inside
+    y = -(P["floor_t"] + P["fan_t"] / 2)
+    assert ray_hits(box, (POCKET_X, y, BOX_DEPTH + 10), (0, 0, -1)) == []  # PG9 hole open through the back wall
+    assert ray_hits(box, (POCKET_X + P["gland"] / 2 + 1, y, BOX_DEPTH + 10), (0, 0, -1))[0][2] > BOX_DEPTH - P["wall"] - 0.05
 
 
 def test_box_gussets_hold_the_back_wall(box):
@@ -108,7 +109,7 @@ def test_box_four_board_standoffs(box):
     found = 0
     for x in (-1, 1):
         for zz in (-1, 1):
-            cx = POCKET_X + x * P["board_holes"] / 2
+            cx = POCKET_X + P["pot_dx"] + x * P["board_holes"] / 2
             cz = P["front"] - P["wall"] + P["wall"] + P["board"] / 2 + 1 + zz * P["board_holes"] / 2
             ring = ray_hits(box, (cx + 2, -50, cz), (0, 1, 0))
             pilot = ray_hits(box, (cx, -50, cz), (0, 1, 0))
