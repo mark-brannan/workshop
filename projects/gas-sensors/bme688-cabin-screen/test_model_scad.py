@@ -4,6 +4,7 @@ import re
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import pytest
 import trimesh
 from shop.scad import OpenSCAD, find_openscad
@@ -59,7 +60,7 @@ def test_overhead_volume_windows(oh_body, oh_cover):
     assert 1800 < oh_cover.volume < 2500
 
 
-def test_overhead_holes(oh_body, oh_cover):
+def test_overhead_holes(oh_body):
     for sy in (-1, 1):
         assert not ray_hits(oh_body, [0, sy * P["mount_pitch"] / 2, -5], [0, 0, 1])
     seat = P["plate_t"] + P["pad_h"]
@@ -72,10 +73,6 @@ def test_overhead_holes(oh_body, oh_cover):
     bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
     for x, y in ((-bx, by), (bx, -by)):      # the body's pilot holes
         assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - bottom, abs=0.05)
-    for x, y in ((-bx, by), (bx, -by)):      # the cover as printed is turned over (y mirrored): its holes sit on the other diagonal in the model, so they meet the pilot holes
-        assert not ray_hits(oh_cover, [x, y, 30], [0, 0, -1])
-    for x, y in ((-bx, -by), (bx, by)):
-        assert ray_hits(oh_cover, [x, y, 30], [0, 0, -1])
 
 
 def test_overhead_seat(oh_body):
@@ -153,3 +150,20 @@ def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
     assert ray_hits(oh_body, [tx, ROOF_Y - cove + 0.3, 30], [0, 0, -1])[0][2] < P["plate_t"] + 0.2
     for x, yy in ((tx, y), (12, 15), (8, 16)):                                        # plate solid under the tie and the cable's run
         assert ray_hits(oh_body, [x, yy, -5], [0, 0, 1])[0][2] == pytest.approx(0, abs=0.05)
+
+
+def test_overhead_cover_screw_holes_meet_the_body(oh_body, oh_cover):
+    """Turn the printed cover over, as the user does, and the body's screw towers must be open beneath its holes.
+
+    The print is a 180 degree turn about x of the seated cover, so this undoes it with no knowledge of the
+    model's hole list: only the printed mesh and the body mesh. A pattern that is not symmetric (a diagonal
+    pair) mates only one way round, and a hole list written for the seated pose misses once printed.
+    """
+    seated = oh_cover.copy()
+    seated.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))
+    seated.apply_translation([0, 0, FACE_Z + P["oh_floor_t"]])
+    by = P["house_h"] / 2 - P["wall"] - P["oh_cboss_d"] / 2 + 0.3
+    bx = IN_W / 2 - P["oh_cboss_d"] / 2 + 0.5
+    for x, y in ((-bx, by), (bx, -by)):                      # the body's two cover-screw towers
+        assert ray_hits(oh_body, [x, y, 30], [0, 0, -1])[0][2] == pytest.approx(FACE_Z - P["oh_pilot_l"], abs=0.05), "no tower here"
+        assert not ray_hits(seated, [x, y, 30], [0, 0, -1]), f"seated cover is solid over the tower at {x:.1f}, {y:.1f}"

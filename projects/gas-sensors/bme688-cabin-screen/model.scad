@@ -87,7 +87,6 @@ module mount_holes() {
 oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
-oh_cover_holes = [for (b = oh_bosses) [b[0], -b[1]]];                // the cover's screw holes, on the other diagonal: they line up with the body's once the cover is turned over
 oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];   // board screws, all four holes
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
@@ -220,7 +219,7 @@ module overhead_cover() {
     difference() {
         translate([0, 0, face_z]) linear_extrude(oh_floor_t) rrect(plate_w, house_h, oh_round_r);    // floor, its corners the house's
         translate([0, 0, face_z - 1]) cylinder(d = oh_hole_d, h = oh_floor_t + 2);
-        for (b = oh_cover_holes) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
+        for (b = oh_bosses) translate([b[0], b[1], face_z - 1]) cylinder(d = oh_screw_d, h = oh_floor_t + 2);
     }
     oh_extrude(-oh_baffle_l/2, oh_baffle_l/2) oh_arch_profile();
     for (s = oh_fin_segs) oh_extrude(s[0], s[1]) oh_fin_profile();
