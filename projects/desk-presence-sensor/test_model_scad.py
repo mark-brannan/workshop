@@ -173,3 +173,10 @@ def test_radar_hooks_lips_and_oled_frame(shell):
         assert len(down(shell, sx * (P["rd_w"] / 2 - 1), yh)) > len(down(shell, 0, yh))
     y_frame = OL_CY - P["ol_h"] / 2 - P["ol_slack"] - P["ol_rib_t"] / 2
     assert len(down(shell, 0, y_frame)) > 0 and max(h[2] for h in down(shell, 0, y_frame)) > OL_BOARD_Z
+
+
+def test_oled_reverse_chamfer_relief(shell):
+    yb = OL_CY + P["ol_glass_dy"] - (P["ol_glass_l"] / 2 + 0.35)
+    top = max(h[2] for h in down(shell, 0, yb - 0.6))
+    assert top < P["face_t"] - 0.05                                        # face thinned under the ribbon end
+    assert np.isclose(max(h[2] for h in down(shell, 9, yb - 0.6)), P["face_t"], atol=0.01)   # untouched beside it

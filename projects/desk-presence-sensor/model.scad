@@ -58,6 +58,8 @@ ol_win_h = 13;
 ol_win_dy = 1.5;     // guessed: active area above the board centre (header end)
 ol_gap = 0.3;        // glass face to the face interior, before ol_fwd
 ol_fwd = 1.8;        // glass moved toward the outside; 1.8 is flush (the glass pocket runs through the face)
+ol_rev = 0.8;        // reverse chamfer at the bottom end: relief widening toward the inside, for the ribbon
+ol_rev_w = 14;       // its width in X, narrow enough to leave the screw posts whole
 ol_bevel = 0.5;      // 45 deg chamfer around the glass at the outside face, sloping in toward it
 ol_pilot_d = 1.6;    // M2 self-tapping, calibration pending
 ol_post_d = 3.6;
@@ -276,6 +278,9 @@ module shell() {
         }
         // glass pocket: through the face when flush, else from behind leaving a lip in front
         translate([0, 0, ol_glass_z <= 0 ? -1 : ol_glass_z]) linear_extrude(face_t + 1) offset(delta = 0.05) ol_glass_keepout();
+        // reverse chamfer: below the glass's lower edge the face thins toward the inside, 45 deg (no supports)
+        translate([0, ol_cy + ol_glass_dy - (ol_glass_l/2 + 0.35), 0]) rotate([90, 0, 90]) linear_extrude(ol_rev_w, center = true)
+            polygon([[0.1, face_t - ol_rev], [-ol_rev, face_t + 0.01], [0.1, face_t + 0.01]]);
         // chamfer: the pocket flares outward over its first ol_bevel mm at the outside face
         translate([0, ol_cy + ol_glass_dy, 0]) hull() {
             translate([0, 0, -0.01]) linear_extrude(0.01) square([ol_glass_w + 0.7 + 2*ol_bevel, ol_glass_l + 0.7 + 2*ol_bevel], center = true);
