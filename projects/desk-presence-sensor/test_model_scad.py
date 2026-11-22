@@ -163,9 +163,10 @@ def test_tray_stop_block_corner_hooks_and_pocket(tray):
 
 def test_radar_lips_and_oled_frame(shell):
     rd_cy = 0.5 + P["rd_rib_t"] + P["rd_slack"] + P["rd_h"] / 2
-    y_lip = rd_cy + P["rd_h"] / 2 - P["rd_lip_len"] / 2
-    x_in = P["rd_w"] / 2 + P["rd_slack"] - 0.3          # inside the rib, under a lip of either side
+    y_lip = rd_cy + P["rd_h"] / 2 - 1 - P["rd_lip_len"] / 2
+    x_in = P["rd_w"] / 2 + P["rd_slack"] - 0.3          # inside the rib, under a lip
     for sx in (-1, 1):
         assert len(down(shell, sx * x_in, y_lip)) > len(down(shell, sx * x_in, rd_cy))   # lip over the board edge, none between
+        assert len(down(shell, sx * (P["rd_w"] / 2 + P["rd_slack"] + P["rd_rib_t"] - 0.1), y_lip + 2.5)) == 2  # slot: face only
     y_frame = OL_CY - P["ol_h"] / 2 - P["ol_slack"] - P["ol_rib_t"] / 2
     assert len(down(shell, 0, y_frame)) > 0 and max(h[2] for h in down(shell, 0, y_frame)) > OL_BOARD_Z

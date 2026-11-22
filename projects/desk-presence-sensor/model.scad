@@ -70,10 +70,11 @@ rd_back = 3;         // clipped pins plus soldered wire behind the board
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
-rd_hook = 0.9;       // -X side: lip over the board edge, 45 deg underside (no supports)
-rd_tab = 0.6;        // +X side: same, shorter so the board tilts in clear of it, then slides +X to lock
-rd_lip_len = 4;      // along Y, two per side
+rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
+rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
+rd_beam_t = 0.8;     // beam thickness: the rib thinned from outside so the lip can flex
+rd_slot = 1;         // cut either side of a beam
 /* [OLED frame] */
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
@@ -195,15 +196,26 @@ module ol_posts_2d() {
     }
 }
 
-// Radar slide-lock: the board's -X edge tucks under the hooks, drops in, then slides +X until the
-// tabs cover its other edge. Lip undersides climb 45 deg from the rib wall, so no supports.
+// Radar snap: four lips, two per side rib, each on a beam freed by slots and thinned from outside.
+// Both slopes are 45 deg, so the board pushes in (and gently out) and nothing needs support.
 module rd_lips() {
     zb = face_t + rd_t + rd_lip_gap;
-    for (sx = [-1, 1], dy = [-1, 1]) {
-        o = sx < 0 ? rd_hook : rd_tab;
-        translate([sx*(rd_w/2 + rd_slack), rd_cy + dy*(rd_h/2 - rd_lip_len/2), 0])
+    for (sx = [-1, 1], dy = [-1, 1])
+        translate([sx*(rd_w/2 + rd_slack), rd_cy + dy*(rd_h/2 - rd_lip_len/2 - 1), 0])
             rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true)
-                polygon([[-sx*(-0.2), zb], [-sx*o, zb + o], [-sx*o, zb + o + 0.8], [sx*0.2, zb + o + 0.8], [sx*0.2, zb]]);
+                polygon([[sx*0.2, zb], [-sx*rd_lip, zb + rd_lip], [-sx*rd_lip, zb + rd_lip + 0.3],
+                         [sx*0.2, zb + 2*rd_lip + 0.3]]);
+}
+// What the beams are cut free with.
+module rd_beam_cuts() {
+    for (sx = [-1, 1], dy = [-1, 1]) {
+        y0 = rd_h/2 - 1 - rd_lip_len;                      // beam spans y0 .. y0 + rd_lip_len from the radar centre
+        x_in = rd_w/2 + rd_slack;
+        for (y = [y0 - rd_slot, y0 + rd_lip_len])
+            translate([sx*(x_in + rd_rib_t/2), rd_cy + dy*(y + rd_slot/2), face_t + 10])
+                cube([rd_rib_t + 1, rd_slot, 20], center = true);
+        translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), face_t + 10])
+            cube([(rd_rib_t - rd_beam_t) + 1, rd_lip_len, 20], center = true);
     }
 }
 
@@ -263,6 +275,7 @@ module shell() {
         // cable slot through the top wall, open to the rim: no roof to print
         translate([-cable_slot_w/2, in_h - 1, cable_z0]) cube([cable_slot_w, wall + 2, shell_d]);
         snap_grooves();
+        rd_beam_cuts();
     }
 }
 
