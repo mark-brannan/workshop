@@ -77,6 +77,15 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 
 Build, `uv run pytest -q`, read the PNG, then report with the picture.
 
+### Asymmetrical hole patterns
+
+Where parts mate through holes in a pattern that is not symmetric (a diagonal pair, an offset corner), two things come before the work is reported, never after a print:
+
+- **A 3D rendering of the assembly**, in the pose the user will assemble it, showing how the holes line up. It labels which side is front and which is back, and which way up each part goes (the user's word on orientation outranks the model's). The agent looks at it before sending it.
+- **A test of hole alignment** that reads the meshes that get printed, in the pose they are used, never the hole lists in `model.scad`. It fails on the mirrored layout.
+
+Why: a diagonal pair mates only one way round, and this was got wrong repeatedly on `bme688-cabin-screen` and once before on another model, each time costing a print.
+
 ## Sibling repo: symphony (the boat)
 
 The boat's system docs live in symphony (public; local checkout `~/symphony`): what is installed, how it is wired, firmware, Signal K.
