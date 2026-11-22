@@ -7,8 +7,8 @@
 part = "print";      // [print, installed]
 
 /* [Sump base, which sets the deck (tape, aboard 2026-11-21)] */
-w_aft = 222.25;      // 8 3/4 in: across the boat at the aft edge, hull to hull at tab height (owner: "best guess")
-w_fwd = 190.5;       // 7 1/2 in: same at the forward edge, the V toward the bow
+w_aft = 234.25;      // 8 3/4 in taped (222.25) + 12: widened 6 per side to cover the sump wing lobes (owner, 2026-11-22)
+w_fwd = 202.5;       // 7 1/2 in taped (190.5) + 12, same reason
 len = 88.9;          // 3 1/2 in: the tab length; owner's working spacing of the two widths, not a tape reading
 
 /* [Hull] */
@@ -44,7 +44,16 @@ module frame() {
   // deck: a trapezoid in plan
   translate([0, 0, -deck_t]) linear_extrude(deck_t)
     polygon([[-hw_a, -len / 2], [hw_a, -len / 2], [hw_f, len / 2], [-hw_f, len / 2]]);
-  for (h = holes) translate([h[0], h[1], -boss_h]) cylinder(d = boss_d, h = boss_h, $fn = 32);
+  // bosses stop at the skirt's outer face (the hull), so none pokes past it into a flat overhang
+  intersection() {
+    for (h = holes) translate([h[0], h[1], -boss_h]) cylinder(d = boss_d, h = boss_h, $fn = 32);
+    hull() {
+      translate([0, 0, -e]) linear_extrude(e) polygon([[-hw_a, -len / 2], [hw_a, -len / 2], [hw_f, len / 2], [-hw_f, len / 2]]);
+      inset = boss_h / tan(hull_angle);
+      translate([0, 0, -boss_h]) linear_extrude(e)
+        polygon([[-hw_a + inset, -len / 2], [hw_a - inset, -len / 2], [hw_f - inset, len / 2], [-hw_f + inset, len / 2]]);
+    }
+  }
   for (s = [-1, 1]) hull() for (p = [[hw_a, -len / 2], [hw_f, len / 2]])
     translate([0, p[1], 0]) rotate([90, 0, 0]) linear_extrude(e, center = true)
       scale([s, 1]) polygon([[p[0], 0], [p[0] - run, -skirt_h], [p[0] - run - tn, -skirt_h], [p[0] - tn, 0]]);

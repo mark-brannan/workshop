@@ -23,10 +23,24 @@ bow. Each skirt is one flat face, the bonding face, held `bond_gap` inside the h
 Underneath is open; nothing reaches the keel. Prints deck down.
 
 The sump screws down through six Ø3 pilots into 12 mm bosses, at the Fusion deck's hole positions; only the
-platform is bonded, so the sump comes out for cleaning. The middle is cut through (`opening`, 176 x 80).
+platform is bonded, so the sump comes out for cleaning. The middle is cut through (`opening`, 176 x 59).
 Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it
 received is not recorded.
 
 ## Measured
 
-Nothing yet. The widths, length and angle are the Fusion v6 numbers, which were close but not right.
+Aboard, 2026-11-21 (owner's tape and speed square; source
+[`research/shower-sump`](https://github.com/mark-brannan/symphony/tree/main/research/shower-sump)):
+
+| Parameter | Taped | Used |
+|---|---|---|
+| `w_aft`, hull to hull at tab height, aft | 8 3/4 in = 222.25 mm ("best guess") | 234.25 (+6 a side) |
+| `w_fwd`, same, forward | 7 1/2 in = 190.5 mm ("best guess") | 202.5 (+6 a side) |
+| `len`, fore-aft between the two widths | 3 1/2 in = 88.9 mm, the tab length (a working number) | 88.9 |
+| `hull_angle` | hull leans 23 stbd, 25 port from vertical, mean 24 (speed square, rough) | 66 deg |
+
+The sump's wings are D-shaped lobes, widest (215 mm tip to tip) at their middle, so the deck is widened 6 mm a
+side over the taped widths to cover them (owner, 2026-11-22). The hull is fixed, so that puts the deck about
+12 mm higher on the hull than tab height; re-take the widths before printing. `opening` is 59 deep so the 89 mm
+deck keeps 15 mm end strips. Bosses stop at the skirt's outer face. Known: `shop build` warns of a 3 mm flat
+ceiling over the O3 pilots at x = +-100, where the skirt passes over the boss.

@@ -47,6 +47,6 @@ def test_open_underside_and_skirt(installed):
 def test_screw_holes_and_opening(installed):
     down = [0, 0, -1]
     for x, y in [(93, 25), (93, -34), (100, 0), (-93, 25), (-93, -34), (-100, 0)]:
-        assert not ray_hits(installed, [x, y, 5], down), f"pilot open at {x}, {y}"
+        assert all(h[2] < -P["boss_h"] for h in ray_hits(installed, [x, y, 5], down)), f"pilot blocked at {x}, {y}"
         assert ray_hits(installed, [x + P["hole_d"] / 2 + 1, y, 5], down)[0][2] == pytest.approx(0, abs=0.05)
     assert not ray_hits(installed, [0, 0, 5], down), "opening in the middle"
