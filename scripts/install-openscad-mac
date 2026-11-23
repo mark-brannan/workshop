@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# macOS OpenSCAD (dev snapshot, Manifold) + BOSL2, so `shop build` and the
+# scad tests run on this Mac instead of skipping.
+#
+#   /Applications/OpenSCAD.app           Homebrew cask openscad@snapshot; src/shop/scad.py
+#                                        finds it there, and the cask links `openscad` on PATH
+#   ~/Documents/OpenSCAD/libraries/BOSL2 OpenSCAD's user library path on macOS
+#
+# Idempotent: installs what is missing, updates BOSL2, prints both versions.
+set -euo pipefail
+
+command -v brew >/dev/null || { echo "Homebrew missing: https://brew.sh" >&2; exit 1; }
+
+if ! brew list --cask openscad@snapshot >/dev/null 2>&1; then
+  if [[ -d /Applications/OpenSCAD.app ]]; then
+    echo "An OpenSCAD.app not from the snapshot cask is in /Applications; leaving it." >&2
+  else
+    brew install --cask openscad@snapshot
+  fi
+fi
+
+LIB="$HOME/Documents/OpenSCAD/libraries"
+mkdir -p "$LIB"
+if [[ -d "$LIB/BOSL2/.git" ]]; then
+  git -C "$LIB/BOSL2" pull -q --ff-only
+else
+  git clone -q --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$LIB/BOSL2"
+fi
+
+/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD --version
+echo "BOSL2 $(git -C "$LIB/BOSL2" log -1 --format='%h %cs')"

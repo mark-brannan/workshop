@@ -11,7 +11,7 @@ Its dimensions, part number and their source go in [`parts.md`](parts.md) the da
 
 | Tool | Role | Here |
 |---|---|---|
-| OpenSCAD + BOSL2 | Default modeller, the happy path | Whatever install the box has, found by `src/shop/scad.py` (`shop build`). On Linux and WSL, a native `openscad` on PATH with BOSL2, installed once per box by `scripts/install-openscad-linux`, outside any worktree; never install a private copy in a scratch dir or worktree. The Windows install is the fallback only. On a Mac: `brew install uv` and `brew install --cask openscad@snapshot` (Manifold), BOSL2 cloned into `~/Documents/OpenSCAD/libraries/BOSL2`. A/B against build123d: `projects/README-ab.md` |
+| OpenSCAD + BOSL2 | Default modeller, the happy path | Whatever install the box has, found by `src/shop/scad.py` (`shop build`). On Linux and WSL, a native `openscad` on PATH with BOSL2, installed once per box by `scripts/install-openscad-linux`, outside any worktree; never install a private copy in a scratch dir or worktree. The Windows install is the fallback only. On a Mac: `brew install uv`, then `scripts/install-openscad-mac` once per box (cask `openscad@snapshot`, Manifold; BOSL2 in `~/Documents/OpenSCAD/libraries/BOSL2`); without it the scad tests skip. A/B against build123d: `projects/README-ab.md` |
 | build123d | True fillets on arbitrary edges, STEP export | `uv` project, headless |
 | Render helper | PNG of every build (`src/shop/render.py`) | pyvista off-screen |
 | OrcaSlicer | Front-end for print | user's machine |
