@@ -23,8 +23,9 @@ POCKET_X = W / 2 - P["wall"] + P["divider"] + P["pocket"] / 2
 SPIGOT_D = P["duct_id"] - 0.2 + 2 * P["rib_h"]
 SPIGOT_BORE = P["duct_id"] - 0.2 - 2 * P["spigot_wall"]
 HOLE = P["fan_holes"] / 2
-BOX_DEPTH = W + P["front"] - P["wall"] + P["gusset"]  # knob face to back wall, the box's print height
-AXIS_Z = W / 2 + P["front"] - P["wall"]  # fan axis above the bed, box as printed
+Y0 = -W / 2 - (P["front"] - P["wall"])  # knob face
+POT_Z = P["floor_t"] + 3 + 1.6 + P["pot_z"]
+BOARD_Y = -W / 2 + P["wall"] + P["board"] / 2 + 1
 
 
 def build(tmp_path_factory, name):
@@ -60,84 +61,59 @@ def test_collar_never_overhangs_and_spigot_core_slips_in_duct():
     assert HOLE * 2 < SOCK and math.hypot(HOLE, HOLE) * 2 > P["fan_bore"]  # screws clear the air path
 
 
-# box, as printed: knob face on the bed, open top (lid side) toward -Y, floor at y in [-floor_t, 0]
+# box, as printed and as modelled: floor on the bed, open top up
 def test_box_bounds_volume(box):
     assert box.is_watertight and len(box.split()) == 1
-    assert np.allclose(box.bounds, [[-W / 2, -H, 0], [L - W / 2, 0, BOX_DEPTH]], atol=0.05)
-    assert 40_000 < box.volume < 58_000
+    assert np.allclose(box.bounds, [[-W / 2, Y0, 0], [L - W / 2, W / 2, H]], atol=0.05)
+    assert 32_000 < box.volume < 46_000
 
 
 def test_box_air_path_and_four_screw_holes(box):
-    assert ray_hits(box, (0, -50, AXIS_Z), (0, 1, 0)) == []  # open bay, bore through the floor
+    assert ray_hits(box, (0, 0, -10), (0, 0, 1)) == []
     for x in (-HOLE, HOLE):
-        for z in (AXIS_Z - HOLE, AXIS_Z + HOLE):
-            assert ray_hits(box, (x, -50, z), (0, 1, 0)) == []
-            assert len(ray_hits(box, (x + 3.5, -50, z), (0, 1, 0))) == 2  # floor around the hole
+        for y in (-HOLE, HOLE):
+            assert ray_hits(box, (x, y, -10), (0, 0, 1)) == []
+            assert len(ray_hits(box, (x + 3.5, y, -10), (0, 0, 1))) == 2  # floor around the hole
 
 
-def test_box_pot_bushing_through_knob_face(box):
-    y = -(P["floor_t"] + 3 + 1.6 + P["pot_z"])
-    # knob centred on the pocket: open through the knob wall, and (gland on the same axis) through the back wall too
-    assert ray_hits(box, (POCKET_X, y, -10), (0, 0, 1)) == []
-    assert ray_hits(box, (POCKET_X + P["pot_bushing"], y, -10), (0, 0, 1))[0][2] < 0.05
+def test_box_no_ceiling_in_print(box):
+    # every face steeper than 45 deg downward sits on the bed
+    down = box.face_normals[:, 2] < -0.72
+    assert np.allclose(box.triangles_center[down][:, 2], 0, atol=0.01)
+
+
+def test_box_pot_and_gland_are_point_up_teardrops(box):
+    # knob on the pocket's centre line, gland behind it on nearly the same axis: one ray along Y passes both walls
+    assert ray_hits(box, (POCKET_X, -60, POT_Z), (0, 1, 0)) == []
+    assert ray_hits(box, (POCKET_X + P["pot_bushing"], -60, POT_Z), (0, 1, 0))[0][1] == pytest.approx(Y0, abs=0.05)
+    tip = ray_hits(box, (POCKET_X, -60, POT_Z + P["pot_bushing"] / 2 + 0.8), (0, 1, 0))
+    assert not tip or tip[0][1] > Y0 + P["front"] - 0.05  # tip open through the knob wall
+    gz = P["floor_t"] + P["fan_t"] / 2
+    assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 1.5), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05  # tip open
 
 
 def test_box_knob_centred_between_standoffs(box):
-    # measured on the printed mesh, not the parameters: the bushing's centre and the four pilots' centre share one X
-    y = -(P["floor_t"] + 3 + 1.6 + P["pot_z"])
+    # on the printed mesh: the bushing's centre and the four pilots' centre share one X
     xs = np.arange(POCKET_X - 20, POCKET_X + 20, 0.05)
-    open_x = [x for x in xs if ray_hits(box, (x, y, -10), (0, 0, 1)) == [] or ray_hits(box, (x, y, -10), (0, 0, 1))[0][2] > P["front"] - 0.05]
+    open_x = [x for x in xs if not ray_hits(box, (x, -60, POT_Z), (0, 1, 0)) or ray_hits(box, (x, -60, POT_Z), (0, 1, 0))[0][1] > Y0 + P["front"] - 0.05]
     knob_x = (min(open_x) + max(open_x)) / 2
-    cz = P["front"] + P["board"] / 2 + 1 - P["board_holes"] / 2  # lower pilot row, box as printed
-    first = lambda x: (ray_hits(box, (x, -50, cz), (0, 1, 0)) or [(0, 0, 0)])[0][1]
-    tops = [x for x in np.arange(POCKET_X - P["pocket"] / 2, POCKET_X + P["pocket"] / 2, 0.05) if np.isclose(first(x), -P["floor_t"] - 3, atol=0.05)]
-    left = [x for x in tops if x < POCKET_X]  # standoff tops, each a ring round its pilot
-    right = [x for x in tops if x > POCKET_X]
-    pads_x = ((min(left) + max(left)) / 2 + (min(right) + max(right)) / 2) / 2
-    assert abs(knob_x - POCKET_X) < 0.1 and abs(pads_x - knob_x) < 0.1, (knob_x, pads_x)
-
-
-def test_box_gland_through_back_wall(box):
-    y = -(P["floor_t"] + P["fan_t"] / 2)
-    assert ray_hits(box, (POCKET_X, y, BOX_DEPTH + 10), (0, 0, -1)) == []  # PG9 hole open through the back wall
-    assert ray_hits(box, (POCKET_X + P["gland"] / 2 + 1, y, BOX_DEPTH + 10), (0, 0, -1))[0][2] > BOX_DEPTH - P["wall"] - 0.05
-
-
-def test_box_gussets_hold_the_back_wall(box):
-    # a 45 deg plate behind each back corner of the fan: a vertical ray through it meets two faces
-    z = AXIS_Z + SOCK / 2 + P["gusset"] / 2
-    for x in (-SOCK / 2 + P["gusset"] / 2, SOCK / 2 - P["gusset"] / 2):
-        hits = [h for h in ray_hits(box, (x, -H / 2, -10), (0, 0, 1)) if P["front"] < h[2] < BOX_DEPTH - P["wall"]]
-        assert len(hits) == 2, (x, hits)
-    assert ray_hits(box, (0, -H / 2, z), (1, 0, 0)) != []
-
-
-def test_box_yz_fins_under_the_back_wall(box):
-    # just under the back wall, a ray along X crosses each fin as an entry and exit fin_t apart
-    z = BOX_DEPTH - P["wall"] - 0.5
-    xs = sorted(h[0] for h in ray_hits(box, (-W, -H / 2, z), (1, 0, 0)))
-    fins = [a for a, b in zip(xs, xs[1:]) if abs(b - a - P["fin_t"]) < 0.05]
-    assert len(fins) == P["fins_fan"] + 2, xs
-
-
-def test_box_four_board_standoffs(box):
-    found = 0
-    for x in (-1, 1):
-        for zz in (-1, 1):
-            cx = POCKET_X + x * P["board_holes"] / 2
-            cz = P["front"] - P["wall"] + P["wall"] + P["board"] / 2 + 1 + zz * P["board_holes"] / 2
-            ring = ray_hits(box, (cx + 2, -50, cz), (0, 1, 0))
-            pilot = ray_hits(box, (cx, -50, cz), (0, 1, 0))
-            if ring and np.isclose(ring[0][1], -P["floor_t"] - 3, atol=0.05) and np.isclose(pilot[0][1], -P["floor_t"], atol=0.05):
+    top = lambda x, y: (ray_hits(box, (x, y, 50), (0, 0, -1)) or [(0, 0, -1)])[0][2]
+    found, pads = 0, []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            cx, cy = POCKET_X + sx * P["board_holes"] / 2, BOARD_Y + sy * P["board_holes"] / 2
+            ring = [x for x in np.arange(cx - 4, cx + 4, 0.05) if np.isclose(top(x, cy), P["floor_t"] + 3, atol=0.05)]
+            if ring and np.isclose(top(cx, cy), P["floor_t"], atol=0.05):
                 found += 1
+                pads.append((min(ring) + max(ring)) / 2)
     assert found == 4
+    assert abs(knob_x - POCKET_X) < 0.1 and abs(np.mean(pads) - knob_x) < 0.1, (knob_x, pads)
 
 
 # lid: plate on the bed, collar up
 def test_lid_bounds_volume(lid):
     assert lid.is_watertight and len(lid.split()) == 1
-    y0 = -W / 2 - (P["front"] - P["wall"])
-    assert np.allclose(lid.bounds, [[-W / 2, y0, 0], [L - W / 2, y0 + BOX_DEPTH, P["plate_t"] + P["rim_grip"]]], atol=0.05)
+    assert np.allclose(lid.bounds, [[-W / 2, Y0, 0], [L - W / 2, W / 2, P["plate_t"] + P["rim_grip"]]], atol=0.05)
     assert 25_000 < lid.volume < 40_000
 
 
