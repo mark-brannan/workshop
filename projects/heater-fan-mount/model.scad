@@ -2,8 +2,8 @@
 // an 80 mm fan pushes the air up, and a slotted collar clamps over the heater's bottom rim with a hose clamp.
 // Three printed parts, every one a flat face on the bed:
 //   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints floor down, open
-//           top up. The knob hole bridges its own small crown; a single-line 45 deg web, cut out after, holds
-//           up the crown of the gland hole.
+//           top up. The knob hole bridges its own small crown; single-line 45 deg webs from both sides, cut out
+//           after, hold up the crown of the gland hole.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
@@ -41,7 +41,7 @@ board = 33;
 board_holes = 26;
 pot_z = 7;          // UNMEASURED: pot shaft centre above the board's top
 pot_bushing = 7.5;  // M7 bushing through the wall; the pot is centred on the board (owner), so knob, board and pocket share one X
-gland_web = 0.45;   // one extrusion line, 45 deg, from the gland hole's side to its crown; cut out after printing
+gland_web = 0.45;   // one extrusion line, 45 deg, from each side of the gland hole to its crown; cut out after printing
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
 /* [Shell] */
@@ -91,10 +91,10 @@ module box() {
     translate([pocket_x, -W / 2 + wall + e, floor_t + 3 + 1.6 + pot_z]) hole_y(pot_bushing, front + 2 * e);
     translate([pocket_x, W / 2 + e, floor_t + fan_t / 2]) hole_y(gland, wall + 2 * e);
   }
-  // gland hole's print support: one line rising at 45 deg from the hole's -X side to its crown, the full wall deep
+  // gland hole's print support: a line rising at 45 deg from each side of the hole to its crown, the full wall deep
   translate([pocket_x, W / 2 - e, floor_t + fan_t / 2]) rotate([90, 0, 0]) linear_extrude(wall - 2 * e) intersection() {
     circle(d = gland + 0.4);
-    translate([-gland / 4, gland / 4]) rotate(45) square([gland, gland_web], center = true);
+    for (m = [0, 1]) mirror([m, 0]) translate([-gland / 4, gland / 4]) rotate(45) square([gland, gland_web], center = true);
   }
   // board standoffs: round, flared foot, pilot hole
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])

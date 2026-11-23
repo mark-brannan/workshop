@@ -103,9 +103,10 @@ def test_box_round_holes_and_gland_web(box):
     for dz in (1, -1):  # round, not a teardrop: closed just past the radius, above and below
         assert ray_hits(box, (POCKET_X, -60, POT_Z + dz * (P["pot_bushing"] / 2 + 0.3)), (0, 1, 0))[0][1] == pytest.approx(Y0, abs=0.05)
     gz, q = P["floor_t"] + P["fan_t"] / 2, P["gland"] / 4
-    web = ray_hits(box, (POCKET_X - q, 60, gz + q), (0, -1, 0))  # on the web's line: it fills the hole
-    assert web and web[0][1] == pytest.approx(W / 2, abs=0.05)
-    assert ray_hits(box, (POCKET_X + q, 60, gz + q), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05  # mirror side open
+    for dx in (-q, q):  # on each web's line, both sides of the crown: the web fills the hole
+        web = ray_hits(box, (POCKET_X + dx, 60, gz + q), (0, -1, 0))
+        assert web and web[0][1] == pytest.approx(W / 2, abs=0.05)
+    assert ray_hits(box, (POCKET_X, 60, gz), (0, -1, 0)) == []  # below the webs: open, out through the knob hole
     assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 0.3), (0, -1, 0))[0][1] == pytest.approx(W / 2, abs=0.05)  # round
 
 
