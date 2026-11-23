@@ -39,17 +39,29 @@ def build_project(proj: Path) -> int:
             print("   skipped: openscad not found on this box")
         else:
             stem = "scad" if scad.name == "model.scad" else scad.stem.removeprefix("part-")
+            prev = proj / "out" / f"{name}_{stem}.stl"
+            before = prev.read_bytes() if prev.exists() else None     # a repeatable build writes the same bytes
             paths = build_scad(scad, proj / "out", f"{name}_{stem}", two_d=has_mode_variable(scad), threemf=True)
             times = paths.pop("times")
             print(f"   {paths.pop('version')}; " + ", ".join(f"{k} {v:.2f}s" for k, v in times.items()))
             for k, v in paths.items():
                 print(f"   {k:12s} {v}")
             rc |= 1 if "render_error" in paths else 0
+            stl = paths.get("stl")
+            if before is not None and stl is not None and Path(stl).read_bytes() != before and not _scad_edited(proj):
+                print(f"   WARNING {Path(stl).name}: mesh changed with no .scad edited since the last commit: the build may not repeat"
+                      " (or OpenSCAD or a library changed)")
     for stl in sorted((proj / "out").glob("*.stl")):
         if stl.stat().st_mtime >= started - 1:
             for w in solid.warnings(stl) + overhang.warnings(stl):
                 print(f"   WARNING {stl.name}: {w}")
     return rc
+
+
+def _scad_edited(proj: Path) -> bool:
+    """Any .scad in the project differs from git HEAD or is untracked. No git: assume edited, so no warning."""
+    r = subprocess.run(["git", "status", "--porcelain", "--", "."], cwd=proj, capture_output=True, text=True)
+    return r.returncode != 0 or any(line.rstrip().endswith(".scad") for line in r.stdout.splitlines())
 
 
 def main(argv: list[str]) -> int:

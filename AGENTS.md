@@ -45,6 +45,7 @@ SVG is an intermediate only; never the deliverable handed to the user.
   - a split into flat prints
 
   Where shape can't do it, model a breakaway support into the part. Flat overhangs and bridges tend to print badly even when short; avoid them where a shape will do, and raise any that remain with the user. The README says how each overhang is held. `shop build` warns on a flat overhang with its unsupported span; it never fails.
+- Prefer a method that builds the same mesh every time over one that doesn't, where either will do. `minkowski()` of non-convex shapes is one that doesn't: on Manifold its mesh changes from run to run and is often not a closed solid. `shop build` warns on a mesh that is not a closed solid, and on geometry that changed when no `.scad` did.
 - Parameters at the top of every model: a dataclass (Python) or Customizer-commented variables (OpenSCAD).
 - Every model has a test file asserting bounding box, a volume window and feature counts.
 - Every build writes a PNG; the agent looks at it before reporting.
