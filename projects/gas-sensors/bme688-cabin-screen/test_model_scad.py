@@ -16,7 +16,9 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*(-?[\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
 FACE_Z = P["depth"] - P["cover_t"]
 ROOF_Y = P["house_h"] / 2 - P["wall"]
-CHANNEL_Z = (P["baffle_z"] + P["baffle_t"] + FACE_Z) / 2      # middle of the rising channel
+FLOOR_TOP = FACE_Z + P["oh_floor_t"]                          # the cover fitted arch-out: its floor sits on the walls, the arch above it, outside
+ARCH_IN = FACE_Z + P["oh_floor_t"] + (FACE_Z - P["baffle_z"]) - P["oh_arch_t"]   # underside of the arch's crown
+CHANNEL_Z = FLOOR_TOP + 1                                     # under the arch, between floor and arch
 
 
 def run(part: str) -> trimesh.Trimesh:
@@ -41,11 +43,6 @@ def oh_body():
 @pytest.fixture(scope="module")
 def oh_cover():
     return run("overhead_cover")
-
-
-@pytest.fixture(scope="module")
-def oh_airpath():
-    return run("overhead_airpath")
 
 
 @pytest.fixture(scope="module")
@@ -95,18 +92,17 @@ OH_FIN_X = [i * P["oh_fin_pitch"] for i in (-1.5, -0.5, 0.5, 1.5)]
 OH_LANE_X = [0, P["oh_fin_pitch"], -P["oh_fin_pitch"]]       # the lanes between the fins
 
 
-def test_overhead_air_path_is_open(oh_airpath):
-    hole = ray_hits(oh_airpath, [0, 0, 30], [0, 0, -1])                       # in at the hole, up to the arch's crown
-    assert hole[0][2] == pytest.approx(P["baffle_z"] + P["oh_arch_t"], abs=0.05)
+def test_overhead_air_path_is_open(oh_assembly):
+    """As fitted, arch outside: in at the arch's open ends, along under it, up through the hole into the box."""
+    up = ray_hits(oh_assembly, [0, 0, P["plate_t"] + 0.5], [0, 0, 1])          # from the plate, out through the hole to the arch's crown
+    assert up[0][2] == pytest.approx(ARCH_IN, abs=0.05)
     for x in OH_LANE_X:
         for sy in (-1, 1):
-            along = ray_hits(oh_airpath, [x, 0, CHANNEL_Z], [0, sy, 0])       # out along each lane, past the arch's end
-            assert abs(along[0][1]) > P["oh_baffle_l"] / 2 + 2
+            along = ray_hits(oh_assembly, [x, 0, CHANNEL_Z], [0, sy, 0])      # along each lane and out the arch's open end
+            assert not along, f"lane at x={x} closed at {along[0]}"
     for sy in (-1, 1):
-        across = ray_hits(oh_airpath, [-P["oh_fin_pitch"], sy * P["oh_fin_gap_y"], CHANNEL_Z + 0.5], [1, 0, 0])   # lane to lane through the fin gaps
+        across = ray_hits(oh_assembly, [-P["oh_fin_pitch"], sy * P["oh_fin_gap_y"], CHANNEL_Z + 0.5], [1, 0, 0])   # lane to lane through the fin gaps
         assert across[0][0] > P["oh_fin_pitch"] * 1.5
-        turn = ray_hits(oh_airpath, [0, sy * (P["oh_baffle_l"] / 2 + 2), CHANNEL_Z], [0, 0, -1])   # up past the arch's end
-        assert turn[0][2] == pytest.approx(P["plate_t"], abs=0.05)
 
 
 def test_overhead_cover_spans_are_short(oh_cover):
@@ -158,7 +154,7 @@ def test_overhead_cable_exit_and_tie(oh_assembly, oh_body):
 
 
 def test_overhead_cover_screw_holes_meet_the_body(oh_body, oh_cover):
-    """The cover goes on as printed: floor on the walls, arch on top. Its holes must be open over the body's towers.
+    """The cover goes on straight off the bed: floor on the walls, arch outward. Its holes must be open over the body's towers.
 
     The two hole patterns are a diagonal pair, which mates only one way round, so this reads the printed mesh
     (the part that gets sliced) and the body mesh, never the hole lists in model.scad.

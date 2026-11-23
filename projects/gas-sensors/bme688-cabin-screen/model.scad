@@ -1,6 +1,7 @@
 // Overhead cabin screen for one Adafruit BME688 board (25.4 x 17.78, holes 20.32 x 12.7), open to the air.
-// Hangs under a horizontal panel, plate up. Two prints: a body and a cover with an arched baffle.
-// Print the body plate down (part-overhead-body.scad) and the cover floor down (part-overhead-cover.scad).
+// Hangs under a horizontal panel, plate up. Two prints: a body and a cover whose arch faces OUT, away from the board.
+// Print the body plate down (part-overhead-body.scad) and the cover floor down (part-overhead-cover.scad); the cover
+// goes onto the body just as it sits on the bed, arch outward. It never goes on arch-in: the arch doesn't fit inside.
 part = "overhead_assembly";   // overhead_body, overhead_cover, overhead_assembly, overhead_section
 
 /* [Back plate] */
@@ -27,17 +28,17 @@ board_t = 1.6;
 
 /* [Cover] */
 cover_t = 1.6;
-baffle_z = 10;       // baffle's back face; the chamber is plate_t to here
+baffle_z = 10;       // sets the arch's height: face_z - baffle_z = 4.4 (name left from the old inner baffle)
 baffle_t = 1.2;
-fit = 0.3;           // baffle to side wall, each side
+fit = 0.3;           // arch narrower than the inside by this, each side
 
 /* [Overhead] */
-// Hangs under a horizontal panel, plate up. The panel is the roof; the cover is a floor with one
-// centre hole under a shallow arch that meets the floor at both sides. Fins under the arch keep every
-// span short enough to print without support; gaps in the fins let air cross between them.
-// Air comes in the hole, runs out under the arch to its two open ends, up and in.
+// Hangs under a horizontal panel, plate up. The panel is the roof; the cover is the floor, with one
+// centre hole and a shallow arch over it on the OUTSIDE, meeting the floor at both sides: a drip shield.
+// Fins under the arch keep every span short enough to print without support; gaps in the fins let air
+// cross between them. Air comes in at the arch's open ends, runs under it to the hole, and up into the box.
 oh_hole_d = 10;      // the floor's one opening, under the arch's crown
-oh_baffle_l = 27;    // y; leaves 4.9 at each end for the air to turn
+oh_baffle_l = 27;    // y; the arch's length
 oh_floor_t = 1.2;   // six 0.2 layers
 oh_arch_t = 0.6;    // three 0.2 layers at the crown
 oh_fin_t = 0.8;     // two 0.4 lines
@@ -87,7 +88,7 @@ module mount_holes() {
 oh_boss_x = in_w/2 - oh_cboss_d/2 + 0.5;
 oh_boss_y = house_h/2 - wall - oh_cboss_d/2 + 0.3;
 oh_bosses = [[-oh_boss_x, oh_boss_y], [oh_boss_x, -oh_boss_y]];      // one diagonal; the other corner is free for the cable
-oh_cover_holes = [for (b = oh_bosses) [b[0], -b[1]]];                // cover holes in the model's own pose, which is the cover upside down; printed, its holes are over the body's towers
+oh_cover_holes = [for (b = oh_bosses) [b[0], -b[1]]];                // overhead_cover() draws the cover upside down (arch toward the plate), so its holes are on the other diagonal; overhead_cover_print() turns it over, arch out, holes over the towers
 oh_posts = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dy/2, sy*hole_dx/2]];   // board screws, all four holes
 oh_seat_z = plate_t + pad_h;                                   // board's back
 oh_tie_cx = in_w/2 - oh_tie_w/2 + 0.2;                         // tunnel centre: 0.2 into the long wall
@@ -195,7 +196,7 @@ module overhead_body() {
 }
 
 oh_arch_w = in_w - 2*fit;
-oh_arch_h = face_z - baffle_z;                                   // 4.4: the crown's outside sits where the old baffle's back did
+oh_arch_h = face_z - baffle_z;                                   // 4.4: the arch's crown, outside, above the floor's inner face
 oh_arch_r = (pow(oh_arch_w/2, 2) + pow(oh_arch_h, 2)) / (2*oh_arch_h);
 oh_arch_c = oh_arch_r - oh_arch_h;                               // circle centre, below the floor
 oh_fin_x = [for (i = [-1.5 : 1 : 1.5]) i*oh_fin_pitch];
@@ -216,6 +217,8 @@ module oh_fin_profile(h0 = -eps) {
 }
 module oh_extrude(y0, y1) { translate([0, y1, face_z]) rotate([90, 0, 0]) mirror([0, 1, 0]) linear_extrude(y1 - y0) children(); }
 
+// Drawn upside down, arch pointing at the plate: a construction pose, never the assembled one.
+// The cover as made and as fitted is overhead_cover_print(): floor down, arch up and outward.
 module overhead_cover() {
     difference() {
         translate([0, 0, face_z]) linear_extrude(oh_floor_t) rrect(plate_w, house_h, oh_round_r);    // floor, its corners the house's
@@ -234,10 +237,9 @@ module overhead_cover_print() { $fa = fa; $fs = fs; translate([0, 0, face_z + oh
 
 module overhead_body_print() { $fa = fa; $fs = fs; overhead_body(); }
 
-module overhead_assembly() { overhead_body(); translate([0, 0, face_z]) overhead_cover_print(); }  // the cover as printed, arch on top, its floor on the walls' fronts
+module overhead_assembly() { overhead_body(); translate([0, 0, face_z]) overhead_cover_print(); }  // the cover as fitted: straight off the bed onto the walls' fronts, arch outward
 
 if (part == "overhead_body") overhead_body_print();
 if (part == "overhead_cover") overhead_cover_print();
 if (part == "overhead_assembly") overhead_assembly();
-if (part == "overhead_airpath") { overhead_body(); overhead_cover(); }   // arch inside, as the air-path test was written; not how the cover is used
 if (part == "overhead_section") difference() { overhead_assembly(); translate([1, -50, -1]) cube([50, 100, 50]); }
