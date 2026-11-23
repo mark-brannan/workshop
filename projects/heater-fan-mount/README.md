@@ -12,7 +12,7 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 
 | Part | File | Prints | Volume |
 |---|---|---|---|
-| Box: fan socket and controller pocket | `part-box.scad` | floor down, open top up: no ceiling; knob and gland holes are point-up teardrops | 38.8 cm³ |
+| Box: fan socket and controller pocket | `part-box.scad` | floor down, open top up, 0.8 mm 45° chamfer round the bed edge; the round knob hole (7.5) bridges its own crown; a one-line 45° web holds up the gland hole's crown, cut it out after printing | 38.7 cm³ |
 | Lid with the 76 mm collar | `part-lid.scad` | plate down | 32.2 cm³ |
 | Spigot: flange and duct thread | `part-spigot.scad` | flange down | 20.2 cm³ |
 | **Gauge, prints first** | `part-gauge.scad` | ring faces down | 23.5 cm³ |

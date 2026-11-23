@@ -76,20 +76,37 @@ def test_box_air_path_and_four_screw_holes(box):
             assert len(ray_hits(box, (x + 3.5, y, -10), (0, 0, 1))) == 2  # floor around the hole
 
 
-def test_box_no_ceiling_in_print(box):
-    # every face steeper than 45 deg downward sits on the bed
+def test_box_ceilings_only_in_the_two_holes(box):
+    # every face steeper than 45 deg downward sits on the bed, or in the crown of the knob or gland hole
     down = box.face_normals[:, 2] < -0.72
-    assert np.allclose(box.triangles_center[down][:, 2], 0, atol=0.01)
+    c = box.triangles_center[down]
+    c = c[np.abs(c[:, 2]) > 0.01]
+    gz = P["floor_t"] + P["fan_t"] / 2
+    in_pot = (c[:, 1] < Y0 + P["front"] + 0.01) & (np.hypot(c[:, 0] - POCKET_X, c[:, 2] - POT_Z) < P["pot_bushing"] / 2 + 0.05)
+    in_gland = (c[:, 1] > W / 2 - P["wall"] - 0.01) & (np.hypot(c[:, 0] - POCKET_X, c[:, 2] - gz) < P["gland"] / 2 + 0.25)
+    assert (in_pot | in_gland).all(), c[~(in_pot | in_gland)][:5]
 
 
-def test_box_pot_and_gland_are_point_up_teardrops(box):
+def test_box_bed_edge_chamfered(box):
+    # the outline on the bed sits bed_chamfer inside the wall above it, all four sides
+    c = P["bed_chamfer"]
+    for z, inset in ((0.02, c - 0.02), (c + 0.5, 0)):
+        assert ray_hits(box, (-100, 20, z), (1, 0, 0))[0][0] == pytest.approx(-W / 2 + inset, abs=0.05)
+        assert ray_hits(box, (100 + L, 20, z), (-1, 0, 0))[0][0] == pytest.approx(L - W / 2 - inset, abs=0.05)
+        assert ray_hits(box, (10, -100, z), (0, 1, 0))[0][1] == pytest.approx(Y0 + inset, abs=0.05)
+        assert ray_hits(box, (10, 100, z), (0, -1, 0))[0][1] == pytest.approx(W / 2 - inset, abs=0.05)
+
+
+def test_box_round_holes_and_gland_web(box):
     # knob on the pocket's centre line, gland behind it on nearly the same axis: one ray along Y passes both walls
     assert ray_hits(box, (POCKET_X, -60, POT_Z), (0, 1, 0)) == []
-    assert ray_hits(box, (POCKET_X + P["pot_bushing"], -60, POT_Z), (0, 1, 0))[0][1] == pytest.approx(Y0, abs=0.05)
-    tip = ray_hits(box, (POCKET_X, -60, POT_Z + P["pot_bushing"] / 2 + 0.8), (0, 1, 0))
-    assert not tip or tip[0][1] > Y0 + P["front"] - 0.05  # tip open through the knob wall
-    gz = P["floor_t"] + P["fan_t"] / 2
-    assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 1.5), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05  # tip open
+    for dz in (1, -1):  # round, not a teardrop: closed just past the radius, above and below
+        assert ray_hits(box, (POCKET_X, -60, POT_Z + dz * (P["pot_bushing"] / 2 + 0.3)), (0, 1, 0))[0][1] == pytest.approx(Y0, abs=0.05)
+    gz, q = P["floor_t"] + P["fan_t"] / 2, P["gland"] / 4
+    web = ray_hits(box, (POCKET_X - q, 60, gz + q), (0, -1, 0))  # on the web's line: it fills the hole
+    assert web and web[0][1] == pytest.approx(W / 2, abs=0.05)
+    assert ray_hits(box, (POCKET_X + q, 60, gz + q), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05  # mirror side open
+    assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 0.3), (0, -1, 0))[0][1] == pytest.approx(W / 2, abs=0.05)  # round
 
 
 def test_box_knob_centred_between_standoffs(box):

@@ -2,7 +2,8 @@
 // an 80 mm fan pushes the air up, and a slotted collar clamps over the heater's bottom rim with a hose clamp.
 // Three printed parts, every one a flat face on the bed:
 //   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints floor down, open
-//           top up: no ceiling anywhere; the two holes through the side walls are point-up teardrops.
+//           top up. The knob hole bridges its own small crown; a single-line 45 deg web, cut out after, holds
+//           up the crown of the gland hole.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
@@ -40,6 +41,7 @@ board = 33;
 board_holes = 26;
 pot_z = 7;          // UNMEASURED: pot shaft centre above the board's top
 pot_bushing = 7.5;  // M7 bushing through the wall; the pot is centred on the board (owner), so knob, board and pocket share one X
+gland_web = 0.45;   // one extrusion line, 45 deg, from the gland hole's side to its crown; cut out after printing
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
 /* [Shell] */
@@ -50,6 +52,7 @@ floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
 pocket = 40;        // controller pocket, inside, along +X beside the fan bay: board 33 plus 3.5 each side
 r = 6;              // vertical edge rounding
+bed_chamfer = 0.8;  // 45 deg chamfer round the box's bed edge: takes up elephant's foot, a clean line at the spigot seam
 fillet = 2;         // pocket floor and front corners
 boss_fillet = 1.2;  // flare at the foot of each board standoff
 
@@ -68,15 +71,15 @@ module rrect(w, d, rr = r) offset(rr) offset(-rr) square([w, d]);
 sock = fan + 2 * fit;
 // box outline: knob wall (front, -Y) is thicker than the rest
 module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + front - wall);
-// a hole through a vertical wall, axis along Y: 45 deg point up, so no ceiling in print
-module teardrop_y(d, h) rotate([90, 0, 0]) linear_extrude(h) hull() { circle(d = d); translate([0, d / 2 * sqrt(2)]) circle(d = e, $fn = 4); }
+// a round hole through a vertical wall, axis along Y, cut from y = 0 toward -Y
+module hole_y(d, h) rotate([90, 0, 0]) linear_extrude(h) circle(d = d);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
 module box() {
   px0 = W / 2 - wall + divider; py0 = -W / 2 + wall; py1 = W / 2 - wall;
   difference() {
-    linear_extrude(H) footprint();
+    hull() { linear_extrude(e) offset(-bed_chamfer) footprint(); translate([0, 0, bed_chamfer]) linear_extrude(H - bed_chamfer) footprint(); }
     translate([-sock / 2, -sock / 2, floor_t]) cube([sock, sock, H]);
     // controller pocket: filleted floor and corners
     translate([0, 0, floor_t]) offset_sweep(round_corners([[px0, py0], [px0 + pocket, py0], [px0 + pocket, py1], [px0, py1]],
@@ -85,8 +88,13 @@ module box() {
     holes(4.4, floor_t + 2 * e);
     // fan wires into the pocket: a notch in the divider, open at the top
     translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
-    translate([pocket_x, -W / 2 + wall + e, floor_t + 3 + 1.6 + pot_z]) teardrop_y(pot_bushing, front + 2 * e);
-    translate([pocket_x, W / 2 + e, floor_t + fan_t / 2]) teardrop_y(gland, wall + 2 * e);
+    translate([pocket_x, -W / 2 + wall + e, floor_t + 3 + 1.6 + pot_z]) hole_y(pot_bushing, front + 2 * e);
+    translate([pocket_x, W / 2 + e, floor_t + fan_t / 2]) hole_y(gland, wall + 2 * e);
+  }
+  // gland hole's print support: one line rising at 45 deg from the hole's -X side to its crown, the full wall deep
+  translate([pocket_x, W / 2 - e, floor_t + fan_t / 2]) rotate([90, 0, 0]) linear_extrude(wall - 2 * e) intersection() {
+    circle(d = gland + 0.4);
+    translate([-gland / 4, gland / 4]) rotate(45) square([gland, gland_web], center = true);
   }
   // board standoffs: round, flared foot, pilot hole
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])
