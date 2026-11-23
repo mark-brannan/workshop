@@ -91,6 +91,36 @@ module standins() {
     }
 }
 
-show = "box";  // [box, assembly]
+// Fasteners, drawn only: M2.5 lid screws into the bosses, M3 bolts down through lid and ears, nuts under the ears.
+module lid_screw() { cylinder(d = 4.5, h = 1.6); translate([0, 0, -10]) cylinder(d = 2.5, h = 10); }
+module ear_bolt()  { cylinder(d = 5.5, h = 2);   translate([0, 0, -12]) cylinder(d = 3, h = 12); }
+module ear_nut()   { difference() { cylinder(d = 6.4, h = 2.4, $fn = 6); translate([0, 0, -1]) cylinder(d = 3, h = 5); } }
+
+explode = 22;  // gap between layers in the exploded drawing
+
+module exploded() {
+    g = explode;
+    color("orange") box();
+    translate([0, 0, g]) {
+        color("khaki") translate([-mod_w/2, -mod_l/2, floor_t]) cube([mod_w, mod_l, tape_t]);
+        color("seagreen") translate([-mod_w/2, -mod_l/2, floor_t + tape_t]) cube([mod_w, mod_l, mod_h]);
+    }
+    color("dimgray") for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, depth - ear_t - 2.4 + 1.6*g]) ear_nut();
+    translate([0, 0, 2*g]) color("white") translate([0, 0, depth - ear_t]) difference() {
+        union() {
+            cylinder(d = buzzer_d, h = buzzer_h);
+            linear_extrude(ear_t) hull() { circle(d = buzzer_d); for (sy = [-1, 1]) translate([0, sy*(ear_span/2 - 3.5)]) circle(r = 3.5); }
+        }
+        for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, -1]) cylinder(d = 3.2, h = ear_t + 2);
+    }
+    translate([0, 0, 3*g + buzzer_h - ear_t]) color("gold") lid_on();
+    translate([0, 0, 4*g + buzzer_h - ear_t + depth + lid_t]) color("silver") {
+        for (sx = [-1, 1], sy = [-1, 1]) translate([sx*boss_x, sy*boss_y, 0]) lid_screw();
+        for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, 0]) ear_bolt();
+    }
+}
+
+show = "box";  // [box, assembly, exploded]
 if (show == "assembly") { color("orange") box(); standins(); color("gold", 0.5) lid_on(); }
+else if (show == "exploded") exploded();
 else box();
