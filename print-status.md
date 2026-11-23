@@ -9,7 +9,7 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | din-rail-psu-mount | done after the hole tweaks in progress | tweaks, then reprint |
 | heater-fan-mount | reprint | first print had the pot hole in the wrong place; gauges not yet checked on the boat |
 | desk-presence-sensor | partly | gauge and tray printed; back and full assembly not |
-| bme688-cabin-screen | nearly done | reprint; done if the holes work |
+| bme688-cabin-screen | nearly done | reprint the cover only, from main (the 2026-11-22 03:37 cover came from the old file); fit it arch out; done if the holes work |
 | printer-chute-transition | done, functional | friction fit poor; attach with tape or similar, no cyanoacrylate |
 | calibration | printed, not reviewed | review card: what the prints show |
 | photocell-flame-pod | next, priority 1 | nothing sliced or printed; gauge prints first |
