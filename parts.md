@@ -28,6 +28,7 @@ drawing beats a photo. The project link shows the part fitted.
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM1637 (owner, caliper; 36 from rough calipers was 1.5 narrow). The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
 | XY-MOS dual-MOSFET trigger module (two D4184), on hand | generic | 33.8 x 16.7; two 2-way screw terminals at one end; unpopulated J1 pads (trigger) at the other, with a mounting hole in each corner of that end; R1-R3 and an LED on board, values unread | owner, caliper; layout from photo | [halmet-piezo-pod](projects/halmet-piezo-pod/) |
+| 12 V piezo buzzer, flanged, on hand | | round body ~29 dia, ~15 overall height; two triangular ears, 47.4 tip to tip, one hole each, ~40 apart | owner; ear span calipered, the rest approximate | [halmet-piezo-pod](projects/halmet-piezo-pod/) |
 
 ## Tools
 

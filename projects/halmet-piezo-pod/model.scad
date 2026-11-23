@@ -1,6 +1,6 @@
 // HALMET piezo pod: a plain box and a screwed lid on an engine-room bulkhead.
-// Holds the XY-MOS trigger module on the floor (foam tape) and the 12 V active buzzer in a collar
-// on the lid's inside, stacked over the module, port facing out through the lid.
+// Holds the XY-MOS trigger module on the floor (foam tape). The flanged 12 V buzzer screws to the
+// lid's outside by its two ears, stacked over the module, open to the air; its leads pass through the lid.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled: no overhangs.
 // The two cables (HALMET signal, boat 12 V) enter through a notch in the bottom wall, run out
@@ -11,9 +11,10 @@ mod_l = 33.8;         // XY-MOS module, owner caliper
 mod_w = 16.7;         // owner caliper
 mod_h = 12;           // seller listings; not calipered
 tape_t = 1;           // foam tape under the module
-buzzer_d = 12;        // 12 V active buzzer, 12 mm class
-buzzer_h = 9.5;
-buzzer_fit = 0.2;     // per side in the collar; push fit, a drop of glue if loose
+buzzer_d = 29;        // flanged buzzer on hand, round body; owner, approximate
+buzzer_h = 15;        // overall; owner, approximate
+ear_span = 47.4;      // ear tip to ear tip; owner, caliper
+ear_pitch = 40;       // ear hole to ear hole; owner, by eye
 
 /* [Box] */
 in_w = 30;            // across
@@ -21,7 +22,7 @@ in_l = 56;            // up the bulkhead: room past the module's ends for wires 
 wall = 2;
 floor_t = 2.4;
 corner_r = 3;         // outside vertical corners
-top_clear = 1.5;      // buzzer's back to the module's top
+top_clear = 5;        // module top to the lid: wires into the terminals
 
 /* [Lid screws: M2.5 self-tapping] */
 boss_d = 6.5;
@@ -29,10 +30,11 @@ pilot_d = 2.2;        // calibration pending
 lid_hole_d = 3.2;     // M2.5 clearance, generous: printed holes come out small
 lid_t = 2.4;
 
-/* [Buzzer collar] */
-collar_wall = 1.6;
-collar_h = 5;
-window_d = 9;         // sound window through the lid, smaller than the buzzer: it stops the buzzer
+/* [Buzzer on the lid: two M3 self-tapping screws through its ears] */
+ear_pilot_d = 2.5;    // M3 self-tapping; calibration pending
+ear_boss_d = 7;
+ear_boss_h = 3.5;     // under the lid, into the box; ends above the module top
+lead_d = 8;           // lead hole under the buzzer's centre
 
 /* [Cable notch, bottom wall] */
 notch_w = 12;         // two cables side by side
@@ -47,7 +49,7 @@ $fn = 64;
 eps = 0.01;
 out_w = in_w + 2*wall;
 out_l = in_l + 2*wall;
-depth = floor_t + tape_t + mod_h + top_clear + buzzer_h;  // floor to the lid's underside
+depth = floor_t + tape_t + mod_h + top_clear;  // floor to the lid's underside
 boss_x = in_w/2 - boss_d/2 + 0.5;
 boss_y = in_l/2 - boss_d/2 + 0.5;
 
@@ -72,10 +74,10 @@ module lid() {
     difference() {
         union() {
             linear_extrude(lid_t) rrect(out_w, out_l, corner_r);
-            translate([0, 0, lid_t - eps]) cylinder(d = buzzer_d + 2*buzzer_fit + 2*collar_wall, h = collar_h);
+            for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, lid_t - eps]) cylinder(d = ear_boss_d, h = ear_boss_h);
         }
-        translate([0, 0, -1]) cylinder(d = window_d, h = lid_t + 2);
-        translate([0, 0, lid_t]) cylinder(d = buzzer_d + 2*buzzer_fit, h = collar_h + 1);
+        translate([0, 0, -1]) cylinder(d = lead_d, h = lid_t + 2);
+        for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, -1]) cylinder(d = ear_pilot_d, h = lid_t + ear_boss_h + 2);
         for (sx = [-1, 1], sy = [-1, 1]) translate([sx*boss_x, sy*boss_y, -1]) cylinder(d = lid_hole_d, h = lid_t + 2);
     }
 }
@@ -85,7 +87,10 @@ module lid_on() { translate([0, 0, depth + lid_t]) mirror([0, 0, 1]) lid(); }
 
 module standins() {
     color("seagreen") translate([-mod_w/2, -mod_l/2, floor_t + tape_t]) cube([mod_w, mod_l, mod_h]);
-    color("dimgray") translate([0, 0, depth - buzzer_h]) cylinder(d = buzzer_d, h = buzzer_h);
+    color("dimgray") translate([0, 0, depth + lid_t]) {
+        cylinder(d = buzzer_d, h = buzzer_h);
+        linear_extrude(1.5) hull() for (sy = [-1, 1]) translate([0, sy*(ear_span/2 - 3.5)]) circle(r = 3.5);
+    }
 }
 
 show = "box";  // [box, assembly]

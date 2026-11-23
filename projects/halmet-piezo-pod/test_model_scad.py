@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not fo
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
 OUT_W = P["in_w"] + 2 * P["wall"]
 OUT_L = P["in_l"] + 2 * P["wall"]
-DEPTH = P["floor_t"] + P["tape_t"] + P["mod_h"] + P["top_clear"] + P["buzzer_h"]
+DEPTH = P["floor_t"] + P["tape_t"] + P["mod_h"] + P["top_clear"]
 BOSS_X = P["in_w"] / 2 - P["boss_d"] / 2 + 0.5
 BOSS_Y = P["in_l"] / 2 - P["boss_d"] / 2 + 0.5
 CORNERS = [(sx * BOSS_X, sy * BOSS_Y) for sx in (-1, 1) for sy in (-1, 1)]
@@ -41,20 +41,22 @@ def lid(tmp_path_factory):
 def test_box_bounds_volume(box):
     assert box.is_watertight
     assert np.allclose(box.bounds, [[-OUT_W / 2, -OUT_L / 2, 0], [OUT_W / 2, OUT_L / 2, DEPTH]], atol=0.05)
-    assert 15_000 < box.volume < 25_000
+    assert 10_000 < box.volume < 20_000
 
 
 def test_lid_bounds_volume(lid):
     assert lid.is_watertight
     assert np.allclose(lid.bounds[:, :2], [[-OUT_W / 2, -OUT_L / 2], [OUT_W / 2, OUT_L / 2]], atol=0.05)
-    assert np.isclose(lid.bounds[1][2], P["lid_t"] + P["collar_h"], atol=0.05)
-    assert 4_000 < lid.volume < 8_000
+    assert np.isclose(lid.bounds[1][2], P["lid_t"] + P["ear_boss_h"], atol=0.05)
+    assert 3_000 < lid.volume < 7_000
 
 
 def test_module_and_buzzer_stack_inside():
     assert P["mod_w"] < 2 * BOSS_X - P["boss_d"]  # module passes between the bosses
     assert P["mod_l"] / 2 < P["mount_y"] - P["mount_d"]  # bulkhead screws clear of the module
-    assert P["window_d"] < P["buzzer_d"]  # the lid stops the buzzer
+    assert P["ear_span"] < OUT_L and P["buzzer_d"] < OUT_W  # buzzer sits on the lid, ears along its length
+    mod_top = P["floor_t"] + P["tape_t"] + P["mod_h"]
+    assert DEPTH - P["ear_boss_h"] > mod_top + 1  # ear bosses end above the module
 
 
 def test_four_pilots_and_lid_holes_line_up(box, lid):
@@ -73,5 +75,7 @@ def test_cable_notch_open_at_rim(box):
     assert len(ray_hits(box, (0, -OUT_L, z), (0, 1, 0))) == 2  # only the top wall, the bottom one is notched
 
 
-def test_buzzer_window_through_lid(lid):
+def test_lead_hole_and_ear_pilots_through_lid(lid):
     assert len(ray_hits(lid, (0, 0, -1), (0, 0, 1))) == 0
+    for s in (-1, 1):
+        assert len(ray_hits(lid, (0, s * P["ear_pitch"] / 2, -1), (0, 0, 1))) == 0
