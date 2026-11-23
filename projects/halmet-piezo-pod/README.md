@@ -2,50 +2,46 @@
 
 Symphony: [`firmware/halmet`](https://github.com/mark-brannan/symphony/tree/main/firmware/halmet), [`reference/halmet_firmware.md`](https://github.com/mark-brannan/symphony/tree/main/reference/halmet_firmware.md), [`diagrams/electrical/chart-table-cabinet.drawio`](https://github.com/mark-brannan/symphony/tree/main/diagrams/electrical/chart-table-cabinet.drawio)
 
-Purpose: hold the HALMET's alarm buzzer, stacked on its FET carrier, high on a vertical
-engine-room bulkhead, open to the air. Out of the splash and the worst of the oil and dust, so no
-seal; the shape keeps drips and dust off the parts that mind them.
+Purpose: hold the HALMET's alarm buzzer and the XY-MOS trigger module that switches it, high on a
+vertical engine-room bulkhead, out of the splash and the worst of the oil and dust. A plain box and a
+screwed lid; no seal. The buzzer sits in the lid, stacked over the module, port facing out.
 
-![pod with carrier stand-in](out/assembly.png)
+![box with lid, module and buzzer stand-ins](out/assembly.png)
 
-![views](out/halmet-piezo-pod_scad_pv_views.png)
+![box](out/halmet-piezo-pod_scad_pv_views.png)
+
+![lid](out/halmet-piezo-pod_lid_pv_views.png)
 
 ## Status
 
 - [x] Schematic (`piezo-alarm.drawio`)
-- [x] `model.scad`, tests, render, 3MF
-- [ ] Buy the buzzer and AO3400A; build the carrier
-- [ ] Print in ASA; fit the carrier, tie the cable, screw it up
+- [x] Box and lid: `model.scad`, `part-lid.scad`, tests, renders, 3MFs
+- [ ] Photo of the XY-MOS board: terminal layout, input resistor, pull-down
+- [ ] Buy the 12 V buzzer
+- [ ] Print box and lid; fit, wire, screw up
 
 ## Known, and from what
 
-Nothing measured: the carrier and buzzer are not bought. The pod gives room instead.
+Nothing is measured. The box gives room instead.
 
 | Parameter | Now | Source |
 |---|---|---|
-| `carrier_w` x `carrier_h` | 25 x 30 | room: the widest carrier the grooves take |
-| `comp_h` | 11 | guess: a 5 mm screw terminal, the tallest part |
-| `buzzer_d`, `buzzer_h` | 12, 9.5 | 12 mm active buzzer class, typical |
-| `fit` | 0.3 a side | guess, uncalibrated |
-| `screw_d` | 4.5 | #8 or M4 pan head |
+| XY-MOS module | 34 x 17 x 12 | seller listings, on hand, not calipered |
+| `buzzer_d`, `buzzer_h` | 12, 9.5 | 12 mm active buzzer class, typical; unbought |
+| `buzzer_fit` | 0.2 a side | guess; push fit, glue if loose |
+| `pilot_d`, `lid_hole_d` | 2.2, 3.2 | M2.5 self-tapping; printed holes come out small |
+| `mount_d` | 4.5 | #8 or M4 pan head |
 
 ## Design
 
-- An open hood, 53 x 20 x 56, 10.7 cm3. Back plate against the bulkhead, two side walls, a 45-degree
-  gable roof. Open front: the buzzer's port faces out, horizontal, so dust can't settle in it.
-  Open bottom: drips drain, and the cable comes in from below so water doesn't run along it to the board.
-- The carrier slides up from below in a groove in each side wall until its top edge meets the groove's
-  end. Buzzer and terminal face out; the terminal sits at the carrier's bottom edge, screws reached from the front.
-- One zip tie through the two low wall slots goes round the cable and under the carrier: it is both the strain
-  relief and the keeper. Snip it and the carrier slides out.
-- Two screws through ears either side, into the bulkhead.
-- ASA, not PETG: high in an engine room may run 60-70 C (guess); PETG softens near 80 C.
-
-## Print
-
-As modelled: open bottom on the bed, roof up. Every overhang holds itself: the roof is 45 degrees inside and
-out, each groove ends in a 45-degree slope, the screw holes are teardrops, the tie slots have pointed tops.
-The footprint is narrow for its 56 mm height: use a brim.
+- Box 34 x 60 x 26.4, 15.7 cm3; lid 34 x 60 x 2.4 plus a 5 mm collar, 5.0 cm3. PETG.
+- The module lies on the floor on foam tape. The buzzer pushes into the collar on the lid's inside;
+  a 9 mm window, smaller than the buzzer, stops it and lets the sound out.
+- Four M2.5 self-tapping screws into corner bosses hold the lid.
+- Two screws through the floor, from inside, hold the box to the bulkhead, clear of the module's ends.
+- Two cables (HALMET signal, boat 12 V) enter through a 12 x 7 notch in the bottom wall, run out to the
+  rim; the lid closes it. Tie them to the bulkhead below the box for strain relief.
+- Print box floor down and lid outer face down. Nothing overhangs.
 
 ## Wiring
 
