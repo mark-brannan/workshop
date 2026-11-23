@@ -5,6 +5,7 @@
     shop views <file.scad> <view> [out.png] [-D k=v ...]   six labelled views of one model view, montaged
     shop doctor                        which shop tools this box has
     shop printer                       K2 Plus status (read-only)
+    shop watch preflight|soak|start <file>   K2 Plus job preflight, heat soak, start
     shop fusion                      the folder to add in Fusion's Scripts panel
     shop symphony                      boat-bound projects and the symphony paths they link
 """
@@ -53,6 +54,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import printer
 
         return printer.main()
+    if cmd == "watch":
+        from . import printwatch
+
+        return printwatch.main(rest)
     if cmd == "symphony":
         from . import symphony
 

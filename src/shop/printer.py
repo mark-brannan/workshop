@@ -44,11 +44,16 @@ def _key() -> str:
     raise RuntimeError(f"K2PLUS_API_KEY not in the environment or {KEY_FILE}")
 
 
-def fetch() -> dict:
-    query = "&".join(urllib.parse.quote(o) for o in OBJECTS)
-    req = urllib.request.Request(f"{URL}/printer/objects/query?{query}", headers={"X-Api-Key": _key()})
-    with urllib.request.urlopen(req, timeout=5) as r:
-        return json.load(r)["result"]["status"]
+def api(path: str, body: dict | None = None, timeout: float = 5) -> dict:
+    """GET (or POST with ``body``) a Moonraker endpoint; return its ``result``."""
+    data = json.dumps(body).encode() if body is not None else None
+    headers = {"X-Api-Key": _key(), **({"Content-Type": "application/json"} if data else {})}
+    with urllib.request.urlopen(urllib.request.Request(f"{URL}{path}", data=data, headers=headers), timeout=timeout) as r:
+        return json.load(r)["result"]
+
+
+def fetch(objects: list[str] = OBJECTS) -> dict:
+    return api("/printer/objects/query?" + "&".join(urllib.parse.quote(o) for o in objects))["status"]
 
 
 def _hm(seconds: float) -> str:
