@@ -97,15 +97,14 @@ def test_box_bed_edge_chamfered(box):
         assert ray_hits(box, (10, 100, z), (0, -1, 0))[0][1] == pytest.approx(W / 2 - inset, abs=0.05)
 
 
-def test_box_round_holes_and_gland_web(box):
+def test_box_round_holes_no_web(box):
     # knob on the pocket's centre line, gland behind it on nearly the same axis: one ray along Y passes both walls
     assert ray_hits(box, (POCKET_X, -60, POT_Z), (0, 1, 0)) == []
     for dz in (1, -1):  # round, not a teardrop: closed just past the radius, above and below
         assert ray_hits(box, (POCKET_X, -60, POT_Z + dz * (P["pot_bushing"] / 2 + 0.3)), (0, 1, 0))[0][1] == pytest.approx(Y0, abs=0.05)
     gz, q = P["floor_t"] + P["fan_t"] / 2, P["gland"] / 4
-    web = ray_hits(box, (POCKET_X - q, 60, gz + q), (0, -1, 0))  # on the web's line: it fills the hole
-    assert web and web[0][1] == pytest.approx(W / 2, abs=0.05)
-    assert ray_hits(box, (POCKET_X + q, 60, gz + q), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05  # mirror side open
+    for dx in (-q, q):  # no web: both sides of the gland hole open
+        assert ray_hits(box, (POCKET_X + dx, 60, gz + q), (0, -1, 0))[0][1] < W / 2 - P["wall"] + 0.05
     assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 0.3), (0, -1, 0))[0][1] == pytest.approx(W / 2, abs=0.05)  # round
 
 
