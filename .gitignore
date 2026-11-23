@@ -7,4 +7,5 @@ __pycache__/
 # the 3MF beside it is the print deliverable.
 projects/calibration/out/*.stl
 
-.claude
+.claude/*
+!.claude/skills/

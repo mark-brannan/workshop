@@ -24,6 +24,8 @@ Then `shop build`, `shop doctor` (which tools this box has), `shop fusion`
 
 ## Commands
 
+[`RUNBOOK.md`](RUNBOOK.md) is every `shop` command by task, printing included.
+
     uv sync
     uv run python -m shop.build                      # every project, .py and .scad alike
     uv run python -m shop.build projects/esp32-breakout-mounts  # one project

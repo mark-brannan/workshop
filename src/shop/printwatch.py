@@ -4,8 +4,13 @@
     shop watch soak <file.gcode> --plate ... [--over-rating] [--bed C] [--chamber C] [--bed-min 45] [--chamber-min 33]
     shop watch start <file.gcode> --plate ... --vents ... [--cfs]
     shop watch frame <layer> <out.jpg>   the camera frame after that layer, during or after a job
+    shop watch next <file.gcode> --plate ... --vents ... [--cfs] [--frames DIR] [--taper-from 60] [--taper-to 70] [--no-taper]
 
 Start re-runs preflight, re-sends the feed setting the screen undoes on idle, and starts the job.
+Next blocks until the next checkpoint frame (after layers 2, 10, 50, then every 100), the job's
+end or a fault, tapering speed (M220) on a tall part as it goes. Before layer 1 it restarts
+Klipper and the job on a known fault, at most twice; after layer 1 it never touches the job.
+Exit 0 frame ready, 3 job ended, 1 fault for the user. It never cancels a print.
 Preflight reads only, unless ``--fix`` sends the fixes it names. Soak sends one ``HEAT_HOLD``
 and never another, so the macro's own off-timer bounds an unattended soak. Exit 0 pass, 1 fail.
 Why each check exists: projects/k2-plus-mods/printer-notes.md.
@@ -20,6 +25,7 @@ import subprocess
 import sys
 import time
 import urllib.parse
+from pathlib import Path
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -268,16 +274,144 @@ def frame(a: argparse.Namespace) -> int:
     return 0
 
 
+CHECKPOINTS = (2, 10, 50)
+EVERY = 100
+RECOVERABLE = ("key22", "key798", "key559", "key852")  # printer notes, Stalls and Heating
+MAX_RECOVERIES = 2
+WATCH_OBJECTS = ["webhooks", "print_stats", "virtual_sdcard", "gcode_move"]
+KEY = re.compile(r"\bkey\d+\b")
+
+
+def checkpoint_due(layer: int, done: set[int], every: int = EVERY) -> int | None:
+    """The newest checkpoint whose frame exists at ``layer`` (frames trail by one), if newer than any done."""
+    passed = [c for c in CHECKPOINTS if c < layer] + list(range(every, layer, every))
+    latest = max(passed, default=None)
+    return latest if latest is not None and latest > max(done, default=0) else None
+
+
+def taper_pct(z: float, height: float, start: float = 60, end: int = 70) -> int:
+    """Speed factor for a tall part: 100% up to ``start`` mm, falling linearly to ``end``% at the top."""
+    if height <= start or z <= start:
+        return 100
+    return round(100 - (100 - end) * min(1.0, (z - start) / (height - start)))
+
+
+def fault_keys(st: dict, store: list[dict], since: float) -> list[str]:
+    """Creality fault codes in the state messages and the console since ``since`` (epoch)."""
+    text = [st["webhooks"].get("state_message", ""), st["print_stats"].get("message", "")]
+    text += [e.get("message", "") for e in store if e.get("time", 0) > since]
+    return sorted({k for t in text for k in KEY.findall(t)})
+
+
+def layer_of(st: dict) -> int:
+    sd, info = st.get("virtual_sdcard", {}), st["print_stats"].get("info") or {}
+    return int(sd.get("layer") or info.get("current_layer") or 0)
+
+
+def recoverable(keys: list[str], layer: int, recoveries: int) -> bool:
+    return bool(keys) and layer < 1 and recoveries < MAX_RECOVERIES and all(k in RECOVERABLE for k in keys)
+
+
+def restart_klipper() -> bool:
+    """Restart Klipper over ssh; True once it is ready and still ready a minute later (printer notes, key798)."""
+    subprocess.run([*SSH, "/etc/init.d/klipper restart"], capture_output=True, timeout=60)
+    for _ in range(2):
+        for _ in range(36):
+            time.sleep(5)
+            try:
+                if fetch(["webhooks"])["webhooks"]["state"] == "ready":
+                    break
+            except OSError:
+                pass
+        else:
+            return False
+        time.sleep(60)
+    return fetch(["webhooks"])["webhooks"]["state"] == "ready"
+
+
+def next_(a: argparse.Namespace) -> int:
+    frames = Path(a.frames or Path.home() / ".local/state/print-watch" / Path(a.file).stem)
+    frames.mkdir(parents=True, exist_ok=True)
+    done = {int(f.stem.split("-")[1]) for f in frames.glob("layer-*.jpg")}
+    rec_file = frames / "recoveries"
+    recoveries = int(rec_file.read_text()) if rec_file.exists() else 0
+    height = read_job(a.file).height
+    since, sent, stall, misses = None, None, (None, time.monotonic()), 0
+    while True:
+        try:
+            st = fetch(WATCH_OBJECTS)
+            store = api("/server/gcode_store?count=100")["gcode_store"]
+        except OSError as e:
+            misses += 1
+            if misses >= 10:
+                print(f"watch FAULT: printer unreachable for {misses} polls ({e})")
+                return 1
+            time.sleep(a.poll)
+            continue
+        misses = 0
+        if since is None:  # the printer's clock, not ours: only console lines after this call count
+            since = max((e.get("time", 0) for e in store), default=0)
+        ps, layer = st["print_stats"], layer_of(st)
+        if ps.get("filename") and ps["filename"] != a.file:
+            print(f"watch FAULT: the printer is on {ps['filename']}, not {a.file}")
+            return 1
+        keys = fault_keys(st, store, since)
+        dead = st["webhooks"]["state"] != "ready" or ps["state"] in ("error", "paused", "cancelled")
+        pos = st["virtual_sdcard"].get("file_position")
+        if pos != stall[0]:
+            stall = (pos, time.monotonic())
+        stalled = layer < 1 and ps["state"] == "printing" and time.monotonic() - stall[1] > a.stall_min * 60
+        if keys or dead or stalled:
+            why = ", ".join(keys) or (f"stalled {a.stall_min:.0f} min before layer 1" if stalled else f"Klipper {st['webhooks']['state']}, job {ps['state']}")
+            if not recoverable(keys, layer, recoveries):
+                print(f"watch FAULT at layer {layer}: {why}; {st['webhooks'].get('state_message', '').strip()[:160]}")
+                return 1
+            recoveries += 1
+            rec_file.write_text(str(recoveries))
+            print(f"watch RECOVER {recoveries}/{MAX_RECOVERIES}: {why} before layer 1; restarting Klipper and the job", flush=True)
+            if not restart_klipper():
+                print("watch FAULT: Klipper not ready after restart")
+                return 1
+            if start(a):
+                print("watch FAULT: job did not restart")
+                return 1
+            since, sent, stall = None, None, (None, time.monotonic())
+            continue
+        if ps["state"] == "complete" or (ps["state"] == "standby" and not ps.get("filename")):
+            print(f"watch DONE: job {ps['state']} at layer {layer}")
+            return 3
+        if a.taper and ps["state"] == "printing":
+            pct = taper_pct(st["gcode_move"]["gcode_position"][2], height, a.taper_from, a.taper_to)
+            if pct != round(st["gcode_move"]["speed_factor"] * 100) and pct != sent:
+                gcode(f"M220 S{pct}")
+                sent = pct
+                print(f"  taper  Z {st['gcode_move']['gcode_position'][2]:.1f} of {height:.1f}: speed {pct}%", flush=True)
+        c = checkpoint_due(layer, done)
+        if c is not None:
+            out = frames / f"layer-{c:04d}.jpg"
+            if frame(argparse.Namespace(layer=c, out=str(out))) == 0:
+                print(f"watch CHECKPOINT layer {c} of {st['virtual_sdcard'].get('layer_count', '?')}: {out}")
+                return 0
+        time.sleep(a.poll)
+
+
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(prog="shop watch")
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("preflight", "start"):
+    for name in ("preflight", "start", "next"):
         pf = sub.add_parser(name)
         pf.add_argument("file")
         pf.add_argument("--plate", required=True, choices=PLATES)
         pf.add_argument("--vents", required=True, choices=("closed", "open"))
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
+        if name == "next":
+            pf.add_argument("--frames", help="where frames go; default ~/.local/state/print-watch/<file stem>")
+            pf.add_argument("--no-taper", dest="taper", action="store_false")
+            pf.add_argument("--taper-from", type=float, default=60, help="mm where the speed taper starts")
+            pf.add_argument("--taper-to", type=int, default=70, help="speed %% at the part's top")
+            pf.add_argument("--poll", type=float, default=30)
+            pf.add_argument("--stall-min", type=float, default=20, help="minutes at one file position before layer 1")
     sk = sub.add_parser("soak")
     sk.add_argument("file")
     sk.add_argument("--plate", required=True, choices=PLATES)
@@ -291,7 +425,7 @@ def main(argv: list[str]) -> int:
     fr.add_argument("layer", type=int)
     fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "start": start, "soak": soak, "frame": frame}[a.cmd](a)
+    return {"preflight": preflight, "start": start, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
 
 
 if __name__ == "__main__":

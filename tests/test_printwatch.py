@@ -152,3 +152,51 @@ def test_soak_refuses_a_bed_over_the_plate_rating(monkeypatch):
     monkeypatch.setattr(pw, "gcode", lambda s: sent.append(s))
     a = argparse.Namespace(file="box.gcode", bed=90.0, plate="pattern", over_rating=False)
     assert pw.soak(a) == 1 and sent == []
+
+
+from shop.printwatch import checkpoint_due, fault_keys, recoverable, taper_pct  # noqa: E402
+
+
+def test_first_checkpoint_waits_for_layer_2s_frame():
+    assert checkpoint_due(2, set()) is None
+    assert checkpoint_due(3, set()) == 2
+
+
+def test_checkpoints_run_2_10_50_then_every_100():
+    seen, got = set(), []
+    for layer in range(1, 330):
+        c = checkpoint_due(layer, seen)
+        if c is not None:
+            seen.add(c)
+            got.append(c)
+    assert got == [2, 10, 50, 100, 200, 300]
+
+
+def test_a_late_start_takes_only_the_newest_checkpoint():
+    assert checkpoint_due(237, set()) == 200
+    assert checkpoint_due(237, {200}) is None
+
+
+def test_taper_is_flat_below_60_and_70_percent_at_the_top():
+    assert taper_pct(40, 102.4) == 100
+    assert taper_pct(60, 102.4) == 100
+    assert taper_pct(102.4, 102.4) == 70
+    assert taper_pct(81.2, 102.4) == 85
+
+
+def test_no_taper_on_a_short_part():
+    assert taper_pct(5, 5.6) == 100
+
+
+def test_fault_keys_read_messages_and_only_new_console_lines():
+    st = {"webhooks": {"state_message": "Printer is ready"}, "print_stats": {"message": ""}}
+    store = [{"message": '!! {"code":"key22","msg":"No trigger on y"}', "time": 100.0}, {"message": "key852 retrude_err", "time": 200.0}]
+    assert fault_keys(st, store, 150.0) == ["key852"]
+
+
+def test_recovery_only_known_faults_before_layer_1_and_at_most_twice():
+    assert recoverable(["key22"], 0, 0)
+    assert not recoverable(["key22"], 1, 0)  # never mid-print
+    assert not recoverable(["key836"], 0, 0)  # unknown fault: the user's call
+    assert not recoverable(["key22"], 0, 2)
+    assert not recoverable([], 0, 0)
