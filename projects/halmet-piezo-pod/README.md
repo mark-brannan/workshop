@@ -47,22 +47,22 @@ Nothing is measured. The box gives room instead.
 
 ![piezo alarm](out/piezo-alarm.png)
 
-Source: [`piezo-alarm.drawio`](piezo-alarm.drawio). GPIO 32 HIGH turns on a low-side N-FET that sinks the buzzer's negative lead off V+, as symphony's firmware has it.
-The gate resistor, the 100 k gate-to-source pull-down, the FET, the 1N4148 and the buzzer all sit in the pod in the engine room; with the pull-down there, a cut cable leaves the buzzer off.
-The diode, cathode to V+, is harmless on a piezo-type buzzer and needed only if the buzzer turns out to be magnetic.
-Intended parts, not yet bought: AO3400A FET (SOT-23, logic-level at 2.5 V), a 12 V active buzzer of the 12 mm class.
-V+ reaches the inside of the HALMET box only at the power/N2K terminal, pin 2, ahead of the HALMET's own fuse (F301); no header or other terminal pin carries it, so X1's V+ lead shares that terminal with the supply wire.
-Inside the HALMET box, F1, a 0.5 A inline fuse, protects the field cable's V+ lead, which the HALMET's own fuse does not cover; R3, 1 k inline in heatshrink at X1, limits current into GPIO 32 from a fault or ESD on the cable.
+Source: [`piezo-alarm.drawio`](piezo-alarm.drawio). GPIO 32 HIGH triggers the XY-MOS dual-MOSFET trigger module (on hand; trigger 3.3 to 20 V), which switches the buzzer low-side off boat 12 V, as symphony's firmware has it.
+Nothing is added inside the HALMET box: only GPIO 32 and GND leave it, through a 2-pin pluggable at the gland, on a 2-core cable to the engine room.
+The pod's 12 V comes from a boat 12 V feed near the pod, fused at the tap, on its own 2-core cable.
+The module's terminal names are the sellers' listing, and its input resistor and gate pull-down are unverified; a photo of the board settles both.
+D1, a 1N4148 across the buzzer, cathode to OUT+, sits in the OUT screw terminals with the buzzer leads, no solder. It is harmless on a piezo-type buzzer and needed only if the buzzer turns out to be magnetic.
+Trigger GND and VIN− meet inside the module. The HALMET's J201 GND is common with its supply ground: J201 pins 3, 12, 14, 16, 18 and power/N2K pin 1 are all one net, `GND`, in `HALMET.kicad_pcb` (the isolated `GND1` serves only the A and D inputs). So the HALMET's ground and the boat negative join in the module as well as at the HALMET's supply.
+Intended buzzer, not yet bought: 12 V active buzzer, 12 mm class.
 HALMET pin numbers are from `HALMET.kicad_pcb` (hatlabs/HALMET-hardware) pad nets, read 2026-11-23.
 
 | From | To | Net |
 |---|---|---|
-| HALMET power/N2K 4-pin, 2 (shared with the supply wire) | F1 0.5 A inline fuse, then X1 pin 1 | V+ |
-| HALMET GPIO 2x10, 8 | R3 1 k inline, in heatshrink at X1, then X1 pin 2 | GPIO 32 |
-| HALMET GPIO 2x10, 12 | X1 pin 3 | GND |
-| X1 pins 1, 2, 3 | field cable, 3 conductors, to engine room, length unknown | V+, GPIO 32, GND |
-| Field cable | pod P1 pins 1, 2, 3 | V+, GPIO 32, GND |
-| P1 pin 1 | buzzer +, D1 cathode | V+ |
-| P1 pin 2 | R1 100 Ω, then Q1 gate; R2 100 k gate to source | GATE |
-| P1 pin 3 | Q1 source, R2 | GND |
-| Q1 drain | buzzer −, D1 anode | BZ_NEG |
+| HALMET GPIO 2x10, 8 | X1 pin 1, at the gland | GPIO 32 |
+| HALMET GPIO 2x10, 12 | X1 pin 2 | GND |
+| X1 pins 1, 2 | cable A, 2-core, to engine room, length unknown | GPIO 32, GND |
+| Cable A | module TRIG/PWM, GND | GPIO 32, GND |
+| Boat 12 V +, fused at the tap | cable B, then module VIN+ | 12 V |
+| Boat 12 V − | cable B, then module VIN− | boat negative |
+| Module OUT+ | buzzer +, D1 cathode | 12 V |
+| Module OUT− | buzzer −, D1 anode | switched negative |
