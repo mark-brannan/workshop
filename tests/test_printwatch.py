@@ -140,3 +140,15 @@ def test_start_refuses_on_a_failed_preflight(monkeypatch):
 def test_start_refuses_when_the_screen_holds_cfs_on(monkeypatch):
     rc, sent = run_start(monkeypatch, box_after=1)
     assert rc == 1 and not any("print/start" in s for s in sent)
+
+
+def test_soak_refuses_a_bed_over_the_plate_rating(monkeypatch):
+    import argparse
+
+    from shop import printwatch as pw
+
+    sent = []
+    monkeypatch.setattr(pw, "fetch", lambda objs: state())
+    monkeypatch.setattr(pw, "gcode", lambda s: sent.append(s))
+    a = argparse.Namespace(file="box.gcode", bed=90.0, plate="pattern", over_rating=False)
+    assert pw.soak(a) == 1 and sent == []

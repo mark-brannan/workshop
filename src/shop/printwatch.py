@@ -1,8 +1,9 @@
 """Preflight and heat soak for a K2 Plus job (``shop watch``).
 
     shop watch preflight <file.gcode> --plate frosted|pattern|smooth|epoxy --vents closed|open [--cfs] [--fix]
-    shop watch soak <file.gcode> [--bed C] [--chamber C] [--bed-min 45] [--chamber-min 33]
+    shop watch soak <file.gcode> --plate ... [--over-rating] [--bed C] [--chamber C] [--bed-min 45] [--chamber-min 33]
     shop watch start <file.gcode> --plate ... --vents ... [--cfs]
+    shop watch frame <layer> <out.jpg>   the camera frame after that layer, during or after a job
 
 Start re-runs preflight, re-sends the feed setting the screen undoes on idle, and starts the job.
 Preflight reads only, unless ``--fix`` sends the fixes it names. Soak sends one ``HEAT_HOLD``
@@ -230,6 +231,10 @@ def soak(a: argparse.Namespace) -> int:
         print("soak FAIL: a job is running")
         return 1
     bed = a.bed if a.bed is not None else read_job(a.file).bed
+    rated = PLATES[a.plate]
+    if rated is not None and bed > rated and not a.over_rating:
+        print(f"soak FAIL: bed {bed:.0f} over the {a.plate} plate's {rated} C rating; --over-rating to accept")
+        return 1
     hold = int(st["gcode_macro _HEAT_HOLD_VARS"]["hold_min"])
     s = Soak(bed, a.chamber, (hold - 10) * 60, a.bed_min, a.chamber_min)
     print(f"soak  bed {bed:.0f}  chamber {a.chamber:.0f}  hold {hold} min  pass: bed {a.bed_min:.0f} min at target, chamber >= {a.chamber_min:.0f} C", flush=True)
@@ -249,6 +254,20 @@ def soak(a: argparse.Namespace) -> int:
             return 0 if verdict == "PASS" else 1
 
 
+def frame(a: argparse.Namespace) -> int:
+    # Frame n is the state after layer n-1 (printer notes, Camera); decoded on the printer, which has ffmpeg.
+    src = "/mnt/UDISK/timelapse/main_output.h264"
+    cmd = f"ffmpeg -v error -i {src} -vf 'select=eq(n\\,{a.layer + 1})' -frames:v 1 -y /tmp/watch.jpg && cat /tmp/watch.jpg"
+    r = subprocess.run([*SSH, cmd], capture_output=True, timeout=120)
+    if r.returncode or not r.stdout.startswith(b"\xff\xd8"):
+        print(f"frame FAIL: no frame after layer {a.layer} ({r.stderr.decode(errors='replace').strip()[-200:]})")
+        return 1
+    with open(a.out, "wb") as f:
+        f.write(r.stdout)
+    print(f"frame  after layer {a.layer} -> {a.out}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(prog="shop watch")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -261,13 +280,18 @@ def main(argv: list[str]) -> int:
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
     sk = sub.add_parser("soak")
     sk.add_argument("file")
+    sk.add_argument("--plate", required=True, choices=PLATES)
+    sk.add_argument("--over-rating", action="store_true", help="accept a bed above the plate's rating")
     sk.add_argument("--bed", type=float, help="default: the file's first-layer bed temperature")
     sk.add_argument("--chamber", type=float, default=50)
     sk.add_argument("--bed-min", type=float, default=45)
     sk.add_argument("--chamber-min", type=float, default=33)
     sk.add_argument("--poll", type=float, default=30)
+    fr = sub.add_parser("frame")
+    fr.add_argument("layer", type=int)
+    fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "start": start, "soak": soak}[a.cmd](a)
+    return {"preflight": preflight, "start": start, "soak": soak, "frame": frame}[a.cmd](a)
 
 
 if __name__ == "__main__":
