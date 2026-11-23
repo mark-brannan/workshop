@@ -8,7 +8,6 @@ part = "overhead_assembly";   // overhead_body, overhead_cover, overhead_assembl
 plate_w = 32;        // x
 plate_h = 62;        // y
 plate_t = 3;
-corner_r = 2;
 mount_pitch = 51;    // two holes on the centre line: the DIN clip's heat inserts, or wood screws
 mount_d = 3.4;       // M3 clearance
 csk_d = 6.5;         // countersink at the front face
@@ -116,39 +115,33 @@ module tie_tunnel2d() { hull() { translate([-oh_tie_w/2, 0]) square([oh_tie_w, o
 // A hole with a round top: straight sides, then a half circle, so it prints without support.
 module arch2d(w, h) { hull() { translate([-w/2, 0]) square([w, eps]); translate([0, h - w/2]) circle(d = w); translate([-w/2, 0]) square([w, h - w/2]); } }
 
-// Fillet along x for len, against a wall face at y = 0 (wall in -y), on a floor at z = 0.
-// A true quarter-round profile, 32 facets. Its centre sits 0.05 in from both tangents, so the arc
-// crosses into floor and wall at a shallow angle instead of touching them: smooth, and manifold.
-module fillet2d(r = oh_fillet_r, n = 32, d = 0.05) { polygon(concat([for (i = [0:n]) let(a = 270 - 90*i/n) [r - d + r*cos(a), r - d + r*sin(a)]], [[-d, -d]])); }
-module foot_fillet(len, r = oh_fillet_r) { rotate([90, 0, 90]) linear_extrude(len) fillet2d(r); }
+// The outside, its convex edges rolled by one ball of r: plate edge, house corners and foot fillets blend
+// tangent. The section in y-z (plate, house, foot fillets r oh_fillet_r, convex corners r) is swept along x
+// with r roundovers at both ends: one polyhedron, the same mesh every build. It replaced a double
+// minkowski() whose mesh changed from run to run and was rarely closed (1 build in 6 on 2026-11-23).
+// Runs past the bed and the cover's seat so those edges stay square. The plate's plan corners come out r.
+// The section in y-z offset s inward: straight sides move in by s, convex arcs (r) shrink about their
+// centres and the concave foot fillets (rf) grow about theirs, so every offset has the same points.
+function oh_sect(s, r, rf, n = 12) = let(
+    py = plate_h/2, hy = house_h/2, zb = -2, zt = face_z + 2, pt = plate_t, rc = max(r - s, 0.01), rv = rf + s,
+    arcs = [[[-py + r, zb + r], rc, 180, 270], [[py - r, zb + r], rc, 270, 360], [[py - r, pt - r], rc, 0, 90],
+            [[hy + rf, pt + rf], rv, 270, 180], [[hy - r, zt - r], rc, 0, 90], [[-hy + r, zt - r], rc, 90, 180],
+            [[-hy - rf, pt + rf], rv, 0, -90], [[-py + r, pt - r], rc, 90, 180]])
+    [for (a = arcs) for (i = [0:n]) let(t = a[2] + (a[3] - a[2])*i/n) a[0] + a[1]*[cos(t), sin(t)]];
 
-// The outside without its cavity: plate, house, and the foot fillets onto the end flanges, all sharp,
-// run past the bed and the cover's seat so those edges stay square.
-module oh_envelope() {
-    translate([0, 0, -2]) linear_extrude(plate_t + 2) rrect(plate_w, plate_h, corner_r);
-    translate([-plate_w/2, -house_h/2, -2]) cube([plate_w, house_h, face_z + 4]);
-    for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2, house_h/2, plate_t]) foot_fillet(plate_w);
-}
-
-// The envelope with every convex edge rounded by one rolling ball (a morphological opening:
-// erode by the ball, then grow by it), so plate edge, house corners and foot fillets blend tangent.
-module oh_rounded_envelope(r = oh_round_r) {
-    box = [plate_w + 10, plate_h + 10, face_z + 14];
-    minkowski() {
-        difference() {
-            translate([0, 0, face_z/2]) cube(box, center = true);
-            minkowski() {
-                difference() { translate([0, 0, face_z/2]) cube(box + [4, 4, 4], center = true); oh_envelope(); }
-                sphere(r = r, $fn = 48);
-            }
-        }
-        sphere(r = r, $fn = 48);
-    }
+module oh_rounded_envelope(r = oh_round_r, rf = oh_fillet_r, n = 12) {
+    ends = [for (j = [0:n]) let(a = 90*j/n) [r*(1 - cos(a)), r*(1 - sin(a))]];      // [distance in from the end, offset]
+    layers = concat([for (e = ends) [-plate_w/2 + e[0], e[1]]], [for (j = [n:-1:0]) [plate_w/2 - ends[j][0], ends[j][1]]]);
+    m = len(oh_sect(0, r, rf)); nl = len(layers);
+    pts = [for (l = layers) for (p = oh_sect(l[1], r, rf)) [l[0], p[0], p[1]]];
+    sides = [for (l = [0:nl - 2], i = [0:m - 1]) let(a = l*m + i, b = l*m + (i + 1)%m, c = (l + 1)*m + (i + 1)%m, d = (l + 1)*m + i)
+             each [[a, c, b], [a, d, c]]];
+    polyhedron(pts, concat(sides, [[for (i = [0:m - 1]) i], [for (i = [m - 1:-1:0]) (nl - 1)*m + i]]));
 }
 
 // The interior's fillet in one piece: the interior box less a box with its bottom and vertical
 // edges rounded r, so foot fillets meet at each corner in a sphere octant and the wall corners
-// above are rounded too. Centres 0.05 in from the faces, as foot_fillet's, keeps it manifold.
+// above are rounded too. Centres 0.05 in from the faces keep it manifold.
 module inner_fillet(r = oh_fillet_r, d = 0.05) {
     cx = in_w/2 - (r - d); cy = roof_y - (r - d); h = face_z - plate_t;
     difference() {
@@ -166,9 +159,11 @@ module overhead_body() {
     difference() {
         intersection() {
         union() {
-            linear_extrude(plate_t) rrect(plate_w, plate_h, corner_r);
+            // Plate and walls run 0.5 past the envelope, so every outside face is the envelope's alone:
+            // a face of each lying in one plane pinched the STL into edges shared by four faces.
+            linear_extrude(plate_t) rrect(plate_w + 1, plate_h + 1, oh_round_r + 0.5);
             linear_extrude(face_z) difference() {                                                     // four walls
-                square([plate_w, house_h], center = true);
+                square([plate_w + 1, house_h + 1], center = true);
                 square([in_w, house_h - 2*wall], center = true);
             }
             for (b = oh_bosses) translate([b[0], b[1], plate_t - eps]) cylinder(d = oh_cboss_d, h = face_z - plate_t + eps);
@@ -176,7 +171,8 @@ module overhead_body() {
             translate([in_w/2 - oh_tie_w - oh_tie_side, oh_exit_y - oh_tie_len/2, plate_t - eps])
                 cube([oh_tie_w + oh_tie_side + eps, oh_tie_len, oh_tie_h + oh_tie_roof + eps]);   // tie block, against the long wall
             inner_fillet();                                                                                   // every inside foot and corner rounded; the +y end's turns the tie back up
-            for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2, house_h/2, plate_t]) foot_fillet(plate_w, oh_fillet_r + 0.5);   // oversize: the envelope trims it to size; matching surfaces pinch the mesh
+            for (m = [0, 1]) mirror([0, m, 0]) translate([-plate_w/2 - 1, house_h/2 - wall/2, plate_t - eps])
+                cube([plate_w + 2, wall/2 + oh_fillet_r + 1, oh_fillet_r + 1]);   // a block over the outside foot fillets: the envelope cuts their surface. A second curved surface here, even an oversize one, left slivers at the corners that pinch the STL
         }
         oh_rounded_envelope();                                                                            // the outside's convex edges rounded
         }
