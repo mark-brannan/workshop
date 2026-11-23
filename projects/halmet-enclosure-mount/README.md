@@ -141,6 +141,7 @@ GPIO picks avoid the strapping pins (5, 12, 15) and GPIO 33, which symphony-halm
 
 The 1-Wire header order is G, V, D; the one-wire bus board's terminals are G, D, V, so the cable between them crosses V and D.
 The A and D input terminals sit on the isolated side (their own ground); none of these parts uses them.
+The piezo alarm leaves this box for an engine-room pod: [`halmet-piezo-pod`](../halmet-piezo-pod/README.md#wiring).
 
 ## Fit check
 
