@@ -17,7 +17,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import overhang
+from . import overhang, solid
 from .scad import build_scad, find_openscad, has_mode_variable
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,7 +47,7 @@ def build_project(proj: Path) -> int:
             rc |= 1 if "render_error" in paths else 0
     for stl in sorted((proj / "out").glob("*.stl")):
         if stl.stat().st_mtime >= started - 1:
-            for w in overhang.warnings(stl):
+            for w in solid.warnings(stl) + overhang.warnings(stl):
                 print(f"   WARNING {stl.name}: {w}")
     return rc
 
