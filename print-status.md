@@ -7,7 +7,7 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 |---|---|---|
 | halmet-enclosure-mount | done | |
 | din-rail-psu-mount | done after the hole tweaks in progress | tweaks, then reprint |
-| heater-fan-mount | reprint | first print had the pot hole in the wrong place; gauges not yet checked on the boat |
+| heater-fan-mount | reprint | first print had the pot hole in the wrong place; the 2026-11-22 ASA-CF reprint fell at layer 420 (k2-plus-mods printer notes, Camera); next try waits on a build plate choice; gauges not yet checked on the boat |
 | desk-presence-sensor | partly | gauge and tray printed; back and full assembly not |
 | bme688-cabin-screen | nearly done | reprint the cover only, from main (the 2026-11-22 03:37 cover came from the old file); fit it arch out; done if the holes work |
 | printer-chute-transition | done, functional | friction fit poor; attach with tape or similar, no cyanoacrylate |
