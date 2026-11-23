@@ -3,8 +3,9 @@
 Symphony: none yet
 
 Purpose: a desk "mini rack" for the bench: PSUs, buck/boost, a Pi or ESP32 on breakouts, a V/A meter, within reach.
-Several stands sit side by side. Each stand is two of these end brackets and three TS35 rails cut to length:
-two rails across the sloped face, one above the other, and one lying flat on the foot in front of them.
+Several stands sit side by side. Each stand is two of these end brackets and four TS35 rails cut to length:
+two across the sloped face, one flat on the foot in front, and one flat at the back under the face for AC gear
+(a small PSU, mains terminals, relays), out of reach from the front.
 
 The idea, a pair of A-frame end brackets with the rail screwed to the sloped edge, is Szmalu's
 [DIN Rail Stand KIT](https://www.thingiverse.com/thing:3609072) (CC BY-NC), which holds one rail. Nothing of its mesh is used.
@@ -13,8 +14,9 @@ Prototype, not printed. Nothing here is measured.
 
 ![side](out/din-rail-bench-stand_side.png)
 ![assembly](out/din-rail-bench-stand_assembly.png)
+![rear](out/din-rail-bench-stand_rear.png)
 
-`view="assembly"` stands two brackets up with 300 mm rails and orange module envelopes (90 tall, 70 deep).
+`view="assembly"` stands two brackets up with 300 mm rails and orange module envelopes (90 tall, 70 deep); the back rail's are red (65 deep).
 Front of the desk is +X (right in the side view).
 
 ## Sizes
@@ -24,10 +26,11 @@ Front of the desk is +X (right in the side view).
 | Rail | TS35, 35 × 7.5 | standard |
 | Face slope | 60° above the desk | guess |
 | Tier pitch, along the face | 125 | 90 module + wiring room; guess |
-| Module envelope | 90 tall, 70 deep from the rail face | 90 is standard; 70 is a guess |
+| Module envelope | 90 tall, 70 deep from the rail face; 65 on the back rail | 90 is standard; the depths are guesses |
+| Face set forward of the back post | 35, to fit the back rail's modules | the model; the test holds 5 mm to the frame |
 | Gap, tier 1 envelope to flat-rail envelope | ≥ 10 (test) | guess |
-| Footprint, side | 305 deep × 231 tall | the model |
-| Bracket volume | 95.5 cm³ each | the model |
+| Footprint, side | 340 deep × 231 tall | the model |
+| Bracket volume | 102.5 cm³ each | the model |
 | Pilot hole | 3.7, 18 deep, for an M4 × 16 self-tapping screw | guess; printed holes run small, gauge it |
 
 ## How a rail is held
@@ -37,10 +40,9 @@ square to that edge. Cut each rail so a base slot sits over each bracket.
 
 ## How it prints
 
-Flat, as modelled, 10 mm tall; no overhangs. The three pilot holes run sideways through the plate with a point-up
+Flat, as modelled, 10 mm tall; no overhangs. The four pilot holes run sideways through the plate with a point-up
 (teardrop) top.
 
 ## Open
 
-- Where the flat rail sits: on the front foot (now) or inside the V; a ruling card holds it.
 - Pilot hole fit for M4 in PETG: unmeasured.
