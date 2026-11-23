@@ -48,22 +48,31 @@ The module is calipered; the buzzer is not bought, so the box gives it room.
 
 ![piezo alarm](out/piezo-alarm.png)
 
-Source: [`piezo-alarm.drawio`](piezo-alarm.drawio). GPIO 32 HIGH triggers the XY-MOS dual-MOSFET trigger module (on hand; trigger 3.3 to 20 V), which switches the buzzer low-side off boat 12 V, as symphony's firmware has it.
-Nothing is added inside the HALMET box: only GPIO 32 and GND leave it, through a 2-pin pluggable at the gland, on a 2-core cable to the engine room.
-The pod's 12 V comes from a boat 12 V feed near the pod, fused at the tap, on its own 2-core cable.
-The module's terminal names are the sellers' listing, and its input resistor and gate pull-down are unverified; a photo of the board settles both.
+Source: [`piezo-alarm.drawio`](piezo-alarm.drawio). GPIO 32 HIGH triggers the XY-MOS dual-MOSFET trigger module (on hand), which switches the buzzer low-side off boat 12 V, as symphony's firmware has it.
+Only GPIO 32 leaves the HALMET, one conductor through a 1-pin pluggable at the gland; nothing is added inside the HALMET box.
+The pod's 12 V comes from a boat 12 V tap near the pod, fused at the tap. The trigger's ground is the module's VIN−, so the trigger current returns through the boat: HALMET GND → power/N2K pin 1 (NET-C) → the N2K backbone power tap, where NET-C is tied to the 12 V bus negative → boat negative bus → the pod tap's negative → VIN−.
+The HALMET's J201 GND and power/N2K pin 1 are one net, `GND`, in `HALMET.kicad_pcb`.
+The module's input is J1, unpopulated pads at the end opposite the screw terminals (owner photo); a 2-pin header gets soldered there on the bench. R1 to R3 and an LED are on the board, values unread, and J1's pin order is unread. The FETs are D4184: AOS AOD4184A, V<sub>GS(th)</sub> 1.7 / 2.1 / 2.6 V min / typ / max (aosmd.com datasheet).
 D1, a 1N4148 across the buzzer, cathode to OUT+, sits in the OUT screw terminals with the buzzer leads, no solder. It is harmless on a piezo-type buzzer and needed only if the buzzer turns out to be magnetic.
-Trigger GND and VIN− meet inside the module. The HALMET's J201 GND is common with its supply ground: J201 pins 3, 12, 14, 16, 18 and power/N2K pin 1 are all one net, `GND`, in `HALMET.kicad_pcb` (the isolated `GND1` serves only the A and D inputs). So the HALMET's ground and the boat negative join in the module as well as at the HALMET's supply.
 Intended buzzer, not yet bought: 12 V active buzzer, 12 mm class.
 HALMET pin numbers are from `HALMET.kicad_pcb` (hatlabs/HALMET-hardware) pad nets, read 2026-11-23.
 
 | From | To | Net |
 |---|---|---|
-| HALMET GPIO 2x10, 8 | X1 pin 1, at the gland | GPIO 32 |
-| HALMET GPIO 2x10, 12 | X1 pin 2 | GND |
-| X1 pins 1, 2 | cable A, 2-core, to engine room, length unknown | GPIO 32, GND |
-| Cable A | module TRIG/PWM, GND | GPIO 32, GND |
-| Boat 12 V +, fused at the tap | cable B, then module VIN+ | 12 V |
-| Boat 12 V − | cable B, then module VIN− | boat negative |
+| HALMET GPIO 2x10, 8 | X1, 1-pin at the gland | GPIO 32 |
+| X1 | cable A, 1 conductor, to engine room | GPIO 32 |
+| Cable A | module J1 signal pin | GPIO 32 |
+| HALMET power/N2K 4-pin, 2, 1 | N2K drop to the backbone power tap | NET-S, NET-C (GND) |
+| Boat 12 V tap +, fused at the tap | module VIN+ | 12 V |
+| Boat 12 V tap − | module VIN−; J1 GND joins it on the board | boat negative, trigger ground |
 | Module OUT+ | buzzer +, D1 cathode | 12 V |
 | Module OUT− | buzzer −, D1 anode | switched negative |
+
+### Margin
+
+3.3 V drive, minus the drop across the module's input divider, minus the ground offset between HALMET GND and VIN−, must clear the FET threshold at buzzer current.
+
+- Bench, before install: drive J1 from a bench supply at 2.5 V, standing in for 0.8 V of offset, with the buzzer on 12 V. Full tone passes.
+- Boat, once wired: meter HALMET GND to the pod's VIN− with the engine cranking and running. The 0.8 V budget comes from the bench check.
+
+If the bench check fails, the fallback is an NPN stage in the pod (for example a 2N3904, 0.6 V base turn-on). It still uses one wire and adds nothing to the HALMET box.
