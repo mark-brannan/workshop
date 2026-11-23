@@ -27,6 +27,7 @@ drawing beats a photo. The project link shows the part fitted.
 | 1803BK PWM fan controller | generic | 32 x 32 (35 with the break-off edge); holes ~26 square; pot with M7 bushing, shaft height unmeasured | listing, not calipered | [heater-fan-mount](projects/heater-fan-mount/) |
 
 The halmet-enclosure-mount model uses 41 x 23 with holes 37.5 x 19 for the TM1637 (owner, caliper; 36 from rough calipers was 1.5 narrow). The calipered numbers above come from segment-display-enclosure. Measure the one in hand.
+| XY-MOS dual-MOSFET trigger module (two D4184), on hand | generic | 33.8 x 16.7; two 2-way screw terminals at one end; unpopulated J1 pads (trigger) at the other, with a mounting hole in each corner of that end; R1-R3 and an LED on board, values unread | owner, caliper; layout from photo | [halmet-piezo-pod](projects/halmet-piezo-pod/) |
 
 ## Tools
 

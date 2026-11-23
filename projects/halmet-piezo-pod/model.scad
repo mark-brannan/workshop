@@ -6,10 +6,10 @@
 // The two cables (HALMET signal, boat 12 V) enter through a notch in the bottom wall, run out
 // to the rim; the lid closes it. The box screws to the bulkhead through its floor.
 
-/* [Parts: on hand or unbought, unmeasured, so room, not calipers] */
-mod_l = 34;           // XY-MOS module, seller listings: 34 x 17 x 12
-mod_w = 17;
-mod_h = 12;
+/* [Parts] */
+mod_l = 33.8;         // XY-MOS module, owner caliper
+mod_w = 16.7;         // owner caliper
+mod_h = 12;           // seller listings; not calipered
 tape_t = 1;           // foam tape under the module
 buzzer_d = 12;        // 12 V active buzzer, 12 mm class
 buzzer_h = 9.5;

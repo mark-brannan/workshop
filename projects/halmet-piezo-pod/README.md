@@ -16,17 +16,18 @@ screwed lid; no seal. The buzzer sits in the lid, stacked over the module, port 
 
 - [x] Schematic (`piezo-alarm.drawio`)
 - [x] Box and lid: `model.scad`, `part-lid.scad`, tests, renders, 3MFs
-- [ ] Photo of the XY-MOS board: terminal layout, input resistor, pull-down
+- [x] XY-MOS board calipered and photographed
+- [ ] Solder a 2-pin header to the module's J1 trigger pads, on the bench
 - [ ] Buy the 12 V buzzer
 - [ ] Print box and lid; fit, wire, screw up
 
 ## Known, and from what
 
-Nothing is measured. The box gives room instead.
+The module is calipered; the buzzer is not bought, so the box gives it room.
 
 | Parameter | Now | Source |
 |---|---|---|
-| XY-MOS module | 34 x 17 x 12 | seller listings, on hand, not calipered |
+| XY-MOS module | 33.8 x 16.7 x 12 | owner, caliper; height from seller listings |
 | `buzzer_d`, `buzzer_h` | 12, 9.5 | 12 mm active buzzer class, typical; unbought |
 | `buzzer_fit` | 0.2 a side | guess; push fit, glue if loose |
 | `pilot_d`, `lid_hole_d` | 2.2, 3.2 | M2.5 self-tapping; printed holes come out small |
