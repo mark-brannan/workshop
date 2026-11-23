@@ -12,6 +12,7 @@ The idea, a pair of A-frame end brackets with the rail screwed to the sloped edg
 
 Prototype, not printed. Nothing here is measured.
 
+![dimensions](out/din-rail-bench-stand_dims.png)
 ![side](out/din-rail-bench-stand_side.png)
 ![assembly](out/din-rail-bench-stand_assembly.png)
 ![rear](out/din-rail-bench-stand_rear.png)
