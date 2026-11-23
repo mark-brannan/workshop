@@ -108,3 +108,35 @@ def test_soak_fails_on_a_heater_fault():
 def test_soak_fails_at_the_deadline():
     s = Soak(bed=90, chamber=50, deadline_s=110 * 60)
     assert s.update(110 * 60, soaking(70)).startswith("FAIL: not soaked")
+
+
+def run_start(monkeypatch, preflight_rc=0, box_after=0, cfs=False):
+    import argparse
+
+    from shop import printwatch as pw
+
+    sent = []
+    monkeypatch.setattr(pw, "preflight", lambda a, fix=None: preflight_rc)
+    monkeypatch.setattr(pw, "gcode", lambda s: sent.append(s))
+    monkeypatch.setattr(pw.time, "sleep", lambda s: None)
+    monkeypatch.setattr(pw, "api", lambda path, body=None, timeout=5: sent.append(path) or {})
+    monkeypatch.setattr(pw, "fetch", lambda objs: {"box": {"enable": box_after}, "print_stats": {"state": "printing", "filename": "box.gcode"}})
+    a = argparse.Namespace(file="box.gcode", plate="frosted", vents="closed", cfs=cfs, fix=False)
+    return pw.start(a), sent
+
+
+def test_start_resends_cfs_off_then_starts_the_file(monkeypatch):
+    rc, sent = run_start(monkeypatch)
+    assert rc == 0
+    assert sent[0].startswith("BOX_ENABLE_CFS_PRINT ENABLE=0")
+    assert sent[1] == "/printer/print/start?filename=box.gcode"
+
+
+def test_start_refuses_on_a_failed_preflight(monkeypatch):
+    rc, sent = run_start(monkeypatch, preflight_rc=1)
+    assert rc == 1 and sent == []
+
+
+def test_start_refuses_when_the_screen_holds_cfs_on(monkeypatch):
+    rc, sent = run_start(monkeypatch, box_after=1)
+    assert rc == 1 and not any("print/start" in s for s in sent)

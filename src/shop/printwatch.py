@@ -2,7 +2,9 @@
 
     shop watch preflight <file.gcode> --plate frosted|pattern|smooth|epoxy --vents closed|open [--cfs] [--fix]
     shop watch soak <file.gcode> [--bed C] [--chamber C] [--bed-min 45] [--chamber-min 33]
+    shop watch start <file.gcode> --plate ... --vents ... [--cfs]
 
+Start re-runs preflight, re-sends the feed setting the screen undoes on idle, and starts the job.
 Preflight reads only, unless ``--fix`` sends the fixes it names. Soak sends one ``HEAT_HOLD``
 and never another, so the macro's own off-timer bounds an unattended soak. Exit 0 pass, 1 fail.
 Why each check exists: projects/k2-plus-mods/printer-notes.md.
@@ -94,10 +96,9 @@ def job_checks(st: dict, job: Job, plate: str, vents: str, cfs: bool, macros: se
 
     enable = int(st.get("box", {}).get("enable", -1))
     if cfs:
-        c.append(Check("ok" if enable == 1 else "FAIL", f"CFS printing {'on' if enable == 1 else 'off'}", "BOX_ENABLE_CFS_PRINT ENABLE=1"))
+        c.append(Check("ok" if enable == 1 else "FAIL", f"CFS printing {'on' if enable == 1 else 'off'}", feed_gcode(True)))
     else:
-        fix = "BOX_ENABLE_CFS_PRINT ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0"
-        c.append(Check("FAIL" if enable != 0 else "ok", f"spool job, CFS printing {'off' if enable == 0 else 'on'}", fix))
+        c.append(Check("FAIL" if enable != 0 else "ok", f"spool job, CFS printing {'off' if enable == 0 else 'on'}", feed_gcode(False)))
         if job.toolchanges:
             c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}"))
 
@@ -181,19 +182,46 @@ def report(checks: list[Check]) -> int:
     return 1 if fails else 0
 
 
-def preflight(a: argparse.Namespace) -> int:
+def feed_gcode(cfs: bool) -> str:
+    return "BOX_ENABLE_CFS_PRINT ENABLE=1" if cfs else "BOX_ENABLE_CFS_PRINT ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0"
+
+
+def preflight(a: argparse.Namespace, fix: bool | None = None) -> int:
     job = read_job(a.file)
     macros = {o.split(" ", 1)[1] for o in api("/printer/objects/list")["objects"] if o.startswith("gcode_macro ")}
     patches = read_patches()
     print(f"preflight  {a.file}")
     checks = job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches)
     fixes = [ch.fix for ch in checks if ch.level == "FAIL" and ch.fix]
-    if not (a.fix and fixes):
+    if not ((a.fix if fix is None else fix) and fixes):
         return report(checks)
     for f in fixes:
         print(f"  sent  {f.replace(chr(10), ' / ')}")
         gcode(f)
     return report(job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches))
+
+
+def started(st: dict, name: str) -> bool:
+    ps = st["print_stats"]
+    return ps["state"] == "printing" and ps.get("filename") == name
+
+
+def start(a: argparse.Namespace) -> int:
+    if preflight(a, fix=True):
+        print("start refused: preflight failed")
+        return 1
+    gcode(feed_gcode(a.cfs))  # the screen turns CFS printing back on when the printer goes idle
+    if int(fetch(["box"])["box"].get("enable", -1)) != int(a.cfs):
+        print("start refused: CFS setting did not hold; set the screen's CFS switch and retry")
+        return 1
+    api("/printer/print/start?filename=" + urllib.parse.quote(a.file), {})
+    for _ in range(12):
+        time.sleep(5)
+        if started(fetch(["print_stats"]), a.file):
+            print(f"start  {a.file} printing")
+            return 0
+    print(f"start FAIL: {a.file} not printing 60 s after start")
+    return 1
 
 
 def soak(a: argparse.Namespace) -> int:
@@ -224,12 +252,13 @@ def soak(a: argparse.Namespace) -> int:
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(prog="shop watch")
     sub = p.add_subparsers(dest="cmd", required=True)
-    pf = sub.add_parser("preflight")
-    pf.add_argument("file")
-    pf.add_argument("--plate", required=True, choices=PLATES)
-    pf.add_argument("--vents", required=True, choices=("closed", "open"))
-    pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
-    pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
+    for name in ("preflight", "start"):
+        pf = sub.add_parser(name)
+        pf.add_argument("file")
+        pf.add_argument("--plate", required=True, choices=PLATES)
+        pf.add_argument("--vents", required=True, choices=("closed", "open"))
+        pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
+        pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
     sk = sub.add_parser("soak")
     sk.add_argument("file")
     sk.add_argument("--bed", type=float, help="default: the file's first-layer bed temperature")
@@ -238,7 +267,7 @@ def main(argv: list[str]) -> int:
     sk.add_argument("--chamber-min", type=float, default=33)
     sk.add_argument("--poll", type=float, default=30)
     a = p.parse_args(argv)
-    return preflight(a) if a.cmd == "preflight" else soak(a)
+    return {"preflight": preflight, "start": start, "soak": soak}[a.cmd](a)
 
 
 if __name__ == "__main__":
