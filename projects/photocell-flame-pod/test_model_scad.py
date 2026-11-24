@@ -20,7 +20,7 @@ IN_W = P["board_w"] + 2 * P["fit"]
 OUT_L, OUT_W = IN_L + 2 * P["wall"], IN_W + 2 * P["wall"]
 BOARD_Z = P["floor_t"] + P["ledge"]
 BOARD_TOP = BOARD_Z + P["board_t"]
-POUR_Z = BOARD_TOP + P["cell_h"] - P["cell_t"]
+POUR_Z = BOARD_TOP + P["pour_above"]
 TRAY_H = POUR_Z + P["pour_rim"]
 CABLE_Z = BOARD_TOP + P["pin_z"]
 HOLE_X = P["cell_end"] + P["board_l"] - P["hole_from_hdr"]
@@ -52,12 +52,13 @@ def test_tray_bounds_volume(tray):
     x0, x1 = -P["wall"] - P["tab_l"], IN_L + P["wall"] + P["tab_l"]
     y0 = -OUT_W / 2
     assert np.allclose(tray.bounds, [[x0, y0, 0], [x1, OUT_W / 2, TRAY_H]], atol=0.05)
-    assert 4_000 < tray.volume < 7_500
+    assert 3_800 < tray.volume < 5_200
 
 
-def test_potting_covers_board_and_trimpot_leaves_cell_proud():
-    assert POUR_Z > BOARD_TOP + P["pot_h"] + 1
-    assert BOARD_TOP + P["cell_h"] > TRAY_H  # the cell's face stands above the rim
+def test_potting_covers_cable_leaves_trimpot_and_cell_proud():
+    assert POUR_Z > CABLE_Z + P["cable_d"] / 2 + 0.4  # the cable entry is sealed
+    assert BOARD_TOP + P["pot_h"] > POUR_Z + 0.4  # the trimpot top stays out of the epoxy, adjustable
+    assert BOARD_TOP + P["cell_h"] - P["cell_t"] > TRAY_H + 4  # the cell stands well above the rim
 
 
 def test_board_rests_on_ledges_and_boss(tray):

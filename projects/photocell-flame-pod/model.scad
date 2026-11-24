@@ -1,8 +1,8 @@
 // Photocell flame pod: a small PETG tray for one LM393 photoresistor module.
 // Origin: inside floor corner at the photocell end, centred across. X along the module, header end at +X.
 // Print floor down, as modelled. The module sits component side up on two edge ledges and a boss.
-// Potted (default): a pin on the boss locates the board; epoxy fills to the photocell's body, so
-// board, trimpot, leads and cable entry are sealed and the cell's face stands proud.
+// Potted (default): a pin on the boss locates the board; epoxy fills to just under the trimpot top, so
+// board, header, leads and cable entry are sealed, the trimpot stays adjustable and the cell stands proud on its leads.
 // Lidded: one M3 down through the board into a nut pressed into the boss; a clear acrylic lid
 // (part-lid.scad) on four corner columns, the photocell just under it.
 // The cable leaves through the -Y side wall near the header-end corner, clear of the end tabs,
@@ -13,7 +13,7 @@ board_l = 31;
 board_w = 14;
 board_t = 1.6;        // guessed, standard PCB
 hole_from_hdr = 7;    // hole centre from the header end, centred across: ~4 hole, rim 5 from the end
-pot_h = 4.6;          // trimpot top above the board top (owner)
+pot_h = 4.9;          // trimpot top above the board top (owner, caliper, 2026-11-24)
 cell_h = 11.5;        // photocell top above the board top, bent up on its leads (owner)
 cell_d = 5;           // guessed: common 5 mm CdS cell
 cell_t = 2.5;         // guessed: cell body thickness; potting stops at its underside
@@ -40,6 +40,7 @@ boss_d = 7.5;
 locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go in a printed PETG tray (owner, 2026-11-24)
 locate_tip = 0.6;     // 45° chamfer on the pin top, a lead-in for the hole
 cell_end = 4;         // board's photocell end to the inner end wall: the cell body overhangs here
+pour_above = 4;       // potted: epoxy line above the board top: over the cable, under the trimpot top (owner, 2026-11-24)
 pour_rim = 0.5;       // potted: wall above the epoxy line, a dam for the pour
 
 /* [Lidded only] */
@@ -76,7 +77,7 @@ out_w = in_w + 2*wall;
 hole_x = bx1 - hole_from_hdr;
 board_z = floor_t + ledge;           // board underside
 board_top = board_z + board_t;
-pour_z = board_top + cell_h - cell_t;      // potted: epoxy line, the cell body's underside
+pour_z = board_top + pour_above;           // potted: epoxy line
 tray_h = potted ? pour_z + pour_rim : board_top + cell_h + top_clear;
 cable_z = board_top + pin_z;               // cable centre, level with the header pins
 cols = [for (x = [col_in, in_l - col_in], y = [-(in_w/2 - col_in), in_w/2 - col_in]) [x, y]];
