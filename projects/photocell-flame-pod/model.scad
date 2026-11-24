@@ -3,6 +3,7 @@
 // Print floor down, as modelled. The module sits component side up on two edge ledges and a boss.
 // Potted (default): a pin on the boss locates the board; epoxy fills to just under the trimpot top, so
 // board, header, leads and cable entry are sealed, the trimpot stays adjustable and the cell stands proud on its leads.
+// The rim stands just over the trimpot; a snap cover (part-cover.scad) closes over it, the cell up through a hole.
 // Lidded: one M3 down through the board into a nut pressed into the boss; a clear acrylic lid
 // (part-lid.scad) on four corner columns, the photocell just under it.
 // The cable leaves through the -Y side wall near the header-end corner, clear of the end tabs,
@@ -41,7 +42,18 @@ locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go
 locate_tip = 0.6;     // 45° chamfer on the pin top, a lead-in for the hole
 cell_end = 4;         // board's photocell end to the inner end wall: the cell body overhangs here
 pour_above = 4;       // potted: epoxy line above the board top: over the cable, under the trimpot top (owner, 2026-11-24)
-pour_rim = 0.5;       // potted: wall above the epoxy line, a dam for the pour
+pot_clear = 0.3;      // potted: rim above the trimpot top, so the cover closes over it (owner, 2026-11-24)
+
+/* [Snap cover, potted only] */
+cover_t = 1.6;        // plate on the rim
+skirt_t = 1.2;        // skirt round the outside of the walls
+skirt_h = 4;          // skirt below the rim; clears the end tabs
+cover_gap = 0.25;     // per side, skirt to wall; guessed, PETG uncalibrated
+catch = 0.4;          // lip engagement in the wall groove; guessed, the first print says tighter or looser
+catch_x = [6, 38];    // lip and groove run along both long walls; stop short of the cable exit
+cell_x_on = 1;        // photocell centre in from the board's photocell end; guessed, from the photo
+cell_hole_d = 8;      // generous: the cell is bent up by hand, its position is guessed
+notch_clear = 0.5;    // per side, round the cable where it passes the skirt
 
 /* [Lidded only] */
 nut_af = 5.5;         // M3 hex nut across flats
@@ -62,7 +74,7 @@ tab_l = 8;            // past each end wall
 tab_t = 2.5;
 tab_hole = 3.5;       // M3 or #6 pan head
 
-part = "tray";        // [tray, assembly, none]
+part = "tray";        // [tray, cover, assembly, none]
 
 /* [Hidden] */
 $fn = 48;
@@ -78,7 +90,7 @@ hole_x = bx1 - hole_from_hdr;
 board_z = floor_t + ledge;           // board underside
 board_top = board_z + board_t;
 pour_z = board_top + pour_above;           // potted: epoxy line
-tray_h = potted ? pour_z + pour_rim : board_top + cell_h + top_clear;
+tray_h = potted ? board_top + pot_h + pot_clear : board_top + cell_h + top_clear;
 cable_z = board_top + pin_z;               // cable centre, level with the header pins
 cols = [for (x = [col_in, in_l - col_in], y = [-(in_w/2 - col_in), in_w/2 - col_in]) [x, y]];
 
@@ -124,6 +136,39 @@ module tray() {
         translate([exit_x - cable_d/2, -in_w/2 - wall - 1, cable_z]) cube([cable_d, wall + 2, tray_h]);
         translate([exit_x, -in_w/2 + 1, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d, h = wall + 2);
         if (tabs) for (h = tab_holes()) translate([h[0], h[1], -1]) cylinder(d = tab_hole, h = tab_t + 2);
+        if (potted) for (s = [-1, 1]) catch_profile(s, groove = true);
+    }
+}
+
+// Snap catch: a 45° V lip on the cover skirt's inside, into a 45° V groove round the wall's outside.
+// Both faces at 45°: the cover pops off to reach the trimpot, and neither needs support printed either way up.
+lip_z = tray_h - skirt_h + 0.3 + cover_gap + catch;   // the V's apex height
+module catch_profile(s, groove) {
+    yw = out_w/2;                      // wall's outside face
+    d = groove ? catch + 0.1 : cover_gap + catch;   // groove depth into the wall; lip reach in from the skirt
+    y0 = groove ? yw + 0.01 : yw + cover_gap + 0.01;
+    tip = groove ? yw - catch - 0.1 : yw - catch;
+    h = abs(y0 - tip);
+    translate([catch_x[0], 0, 0]) rotate([90, 0, 90]) linear_extrude(catch_x[1] - catch_x[0])
+        polygon([[s*y0, lip_z - h], [s*tip, lip_z], [s*y0, lip_z + h]]);
+}
+
+cell_x = bx0 + cell_x_on;
+module cover() {
+    z0 = tray_h;
+    difference() {
+        union() {
+            translate([0, 0, z0]) linear_extrude(cover_t) offset(r = cover_gap + skirt_t) outline();
+            translate([0, 0, z0 - skirt_h]) linear_extrude(skirt_h + 0.01) difference() {
+                offset(r = cover_gap + skirt_t) outline();
+                offset(r = cover_gap) outline();
+            }
+            for (s = [-1, 1]) catch_profile(s, groove = false);
+        }
+        translate([cell_x, 0, z0 - 1]) cylinder(d = cell_hole_d, h = cover_t + 2);
+        // the cable passes the skirt in a notch open at the skirt's foot
+        translate([exit_x - cable_d/2 - notch_clear, -out_w/2 - cover_gap - skirt_t - 1, z0 - skirt_h - 1])
+            cube([cable_d + 2*notch_clear, cover_gap + skirt_t + 2, skirt_h + 1]);
     }
 }
 
@@ -150,8 +195,10 @@ module module_standin() {
 }
 
 if (part == "tray") tray();
+else if (part == "cover") cover();
 else if (part == "assembly") {
     tray();
     color("tan") module_standin();
+    if (potted) color("lightsteelblue") translate([0, 0, 8]) cover();   // lifted 8 to show both
     if (!potted) color("lightblue", 0.5) translate([0, 0, tray_h + 8]) linear_extrude(lid_t) lid_2d();
 }

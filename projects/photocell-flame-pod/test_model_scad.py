@@ -21,14 +21,14 @@ OUT_L, OUT_W = IN_L + 2 * P["wall"], IN_W + 2 * P["wall"]
 BOARD_Z = P["floor_t"] + P["ledge"]
 BOARD_TOP = BOARD_Z + P["board_t"]
 POUR_Z = BOARD_TOP + P["pour_above"]
-TRAY_H = POUR_Z + P["pour_rim"]
+TRAY_H = BOARD_TOP + P["pot_h"] + P["pot_clear"]
 CABLE_Z = BOARD_TOP + P["pin_z"]
 HOLE_X = P["cell_end"] + P["board_l"] - P["hole_from_hdr"]
 
 
 def build(tmp_path_factory, src, name, two_d=False):
     d = tmp_path_factory.mktemp(name)
-    for f in ("model.scad", "part-lid.scad"):
+    for f in ("model.scad", "part-lid.scad", "part-cover.scad"):
         (d / f).write_text((HERE / f).read_text())
     return trimesh.load(build_scad(d / src, d, name, two_d=two_d, render=False)["stl"])
 
@@ -41,6 +41,15 @@ def tray(tmp_path_factory):
 @pytest.fixture(scope="module")
 def lid(tmp_path_factory):
     return build(tmp_path_factory, "part-lid.scad", "lid", two_d=True)
+
+
+@pytest.fixture(scope="module")
+def cover(tmp_path_factory):
+    """The cover mesh as printed, turned back into its use pose on the tray (x, -y, Z - z)."""
+    m = build(tmp_path_factory, "part-cover.scad", "cover")
+    T = np.diag([1.0, -1.0, -1.0, 1.0])
+    T[2, 3] = TRAY_H + P["cover_t"]
+    return m.apply_transform(T)
 
 
 def down(mesh, x, y):
@@ -58,7 +67,9 @@ def test_tray_bounds_volume(tray):
 def test_potting_covers_cable_leaves_trimpot_and_cell_proud():
     assert POUR_Z > CABLE_Z + P["cable_d"] / 2 + 0.4  # the cable entry is sealed
     assert BOARD_TOP + P["pot_h"] > POUR_Z + 0.4  # the trimpot top stays out of the epoxy, adjustable
-    assert BOARD_TOP + P["cell_h"] - P["cell_t"] > TRAY_H + 4  # the cell stands well above the rim
+    assert TRAY_H - (BOARD_TOP + P["pot_h"]) >= 0.2  # the rim stands over the trimpot: the cover closes
+    assert TRAY_H - POUR_Z >= 0.5  # a dam for the pour
+    assert BOARD_TOP + P["cell_h"] - P["cell_t"] > TRAY_H + P["cover_t"] + 2  # the cell body clears the cover
 
 
 def test_board_rests_on_ledges_and_boss(tray):
@@ -97,3 +108,24 @@ def test_lid_outline_and_two_holes(lid):
     assert len(down(lid, ci, IN_W / 2 - ci)) > 0  # the other diagonal is solid
     # hole edge at least 2 mm from the lid's edge
     assert ci + P["wall"] - P["lid_hole_d"] / 2 >= 2
+
+
+def test_cover_printed_mesh_fits_tray(cover, tray):
+    """On the printed mesh in its use pose: hole over the cell, notch over the cable, lip in the groove."""
+    assert cover.is_watertight
+    z_top = TRAY_H + P["cover_t"]
+    assert np.isclose(cover.bounds[1][2], z_top, atol=0.02)
+    assert np.isclose(cover.bounds[0][2], TRAY_H - P["skirt_h"], atol=0.02)
+    cell_x = P["cell_end"] + P["cell_x_on"]
+    for dx in (0, P["cell_d"] / 2 + 0.5):  # nothing over the cell, with room round it
+        assert len(down(cover, cell_x + dx, 0)) == 0
+    assert len(down(cover, P["cell_end"] + 20, 0)) == 2  # closed over the board and trimpot
+    z = TRAY_H - 1
+    assert ray_hits(cover, (EXIT_X, -OUT_W, z), (0, 1, 0))[0][1] > 0  # notch at the cable, -Y side
+    assert ray_hits(cover, (EXIT_X, OUT_W, z), (0, -1, 0))[0][1] > 0  # the +Y skirt is whole: one way round only
+    assert ray_hits(cover, (20, -OUT_W, z), (0, 1, 0))[0][1] < -OUT_W / 2  # skirt elsewhere
+    lip_z = TRAY_H - P["skirt_h"] + 0.3 + P["cover_gap"] + P["catch"]
+    for s in (-1, 1):
+        lip_tip = min(abs(h[1]) for h in ray_hits(cover, (20, s * OUT_W, lip_z), (0, -s, 0)) if abs(h[1]) < OUT_W / 2 + 0.1)
+        groove_tip = abs(ray_hits(tray, (20, s * OUT_W, lip_z), (0, -s, 0))[0][1])
+        assert groove_tip < lip_tip < OUT_W / 2 - 0.3  # the lip reaches into the groove, short of its root
