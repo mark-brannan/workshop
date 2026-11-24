@@ -5,10 +5,10 @@
 // beside the module; the buzzer is turned in plan (ear_angle) so the columns clear the module's sides.
 // Two M3 screws hold the ears down into heat-set inserts in the columns, inside the box, under the lid.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
-// The lid snaps on. The buzzer's leads stay inside.
+// The lid snaps on with four fingers, one near each corner, into pockets in the long walls. The buzzer's leads stay inside.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled.
-// Ledges stand on 45° gussets; snap ridge and groove are 45° both faces.
+// Ledges stand on 45° gussets; snap ridge and pocket are 45° both faces.
 // The two cables (HALMET signal, boat 12 V) enter through a mousehole at the foot of the end wall at the
 // module's terminal end, its roof a semicircle. Two rounded-triangle tabs at the ends screw to the bulkhead.
 // Outside edges square, box and lid flush at the seam; only the lid's top edge is rounded. Inside: the floor
@@ -24,7 +24,8 @@ pocket_w = 11.2;      // pin pocket, across the board; owner
 pocket_l = 6.1;       // along the board; owner
 pocket_gap = 3;       // owner caliper: board's terminal end to the pin block's near edge
 pocket_r = pocket_gap + pocket_l/2;  // pocket centre to the terminal end
-hole_pitch = 12.5;    // module holes, across the board at the far end; owner, unsure
+pin_relief = 0.25;    // pocket grown this much each side past the owner's numbers
+hole_pitch = 13.2;    // module holes, across the board at the far end; scaled off the owner's photo by the board's 16.7 width (12.5 printed too narrow)
 hole_gap = 0.1;       // owner caliper: board's far end to the near edge of a screw hole
 hole_d = 2.6;         // module screw hole; owner caliper
 hole_e = hole_gap + hole_d/2;        // hole centre to the far end
@@ -41,7 +42,7 @@ wall = 2;
 floor_t = 2.4;
 corner_r = 3;         // outside vertical corners
 buzz_clear = 1;       // module top to the buzzer's back; mod_h is from listings
-proud = 0.5;          // buzzer top above the lid's top; 0 = flush
+proud = 3;            // buzzer top above the lid's top; 0 = flush; owner wants ~3 showing
 in_r = 1.5;           // inside vertical corners
 floor_fillet = 2;     // floor to wall, inside
 chamfer_b = 0;        // back edge, against the bulkhead: square
@@ -66,13 +67,15 @@ col_flare = 1.5;      // 45° flare at the column's foot
 /* [Snap lid] */
 lid_t = 2.4;
 body_hole_d = 29.8;   // printed holes come out small
-skirt_t = 1.2;
-skirt_h = 4;          // down from the lid's underside, along the long walls
-skirt_l = 40;
-skirt_gap = 0.2;      // skirt to wall
-snap_z = 2.5;         // ridge centre, below the lid's underside
-snap_d = 0.6;         // ridge height off the skirt
-groove_d = 0.8;       // groove depth into the wall
+skirt_t = 1.2;        // snap finger thickness
+skirt_h = 8.5;        // finger length down from the lid's underside; long so it bends, not the wall
+finger_w = 8;         // one finger near each corner, on the long walls
+finger_end = 1;       // finger's end to the inside corner's round
+skirt_gap = 0.2;      // finger to wall
+snap_z = 7;           // ridge centre, below the lid's underside
+snap_d = 0.8;         // ridge height off the finger; the knob if it is too stiff or too loose
+groove_d = 0.9;       // pocket depth into the wall
+groove_play = 0.5;    // pocket longer than the finger, each end
 lid_round = 0.8;      // outer face's edge, the top in use; the inner face's edge is square
 
 /* [Cable mousehole, terminal end wall] */
@@ -104,6 +107,7 @@ depth = ledge_z + buzzer_h - proud - lid_t;          // floor to the lid's under
 function ear_xy(s) = s*ear_pitch/2*ear_dir;
 seat_w = mod_w + 2*fit + 2*rim_t;
 seat_l = mod_l + 2*fit + 2*rim_t;
+finger_y = in_l/2 - in_r - finger_end - finger_w/2;  // finger centres at ±finger_y
 
 module rrect(w, l, r) { offset(r = r) square([w - 2*r, l - 2*r], center = true); }
 
@@ -121,10 +125,15 @@ module slab(w, l, r, h, cb, rt, n = 6) {
 // The box's inside: filleted to the floor, lead-in chamfer at the rim, open above.
 module cavity(n = 6) {
     f = floor_fillet;
+    // Two hulls: one hull over all would slope the walls out the whole height (the rim's lead-in
+    // spread down to the floor), which left the old snap ridges nothing to catch on.
     hull() {
         for (i = [0:n]) let(a = 90*i/n, k = f - f*sin(a))
             translate([0, 0, floor_t + f - f*cos(a)]) linear_extrude(eps) rrect(in_w - 2*k, in_l - 2*k, max(in_r - k, 0.1));
         translate([0, 0, depth - lead_in]) linear_extrude(eps) rrect(in_w, in_l, in_r);
+    }
+    hull() {
+        translate([0, 0, depth - lead_in - eps]) linear_extrude(eps) rrect(in_w, in_l, in_r);
         translate([0, 0, depth]) linear_extrude(1) rrect(in_w + 2*lead_in, in_l + 2*lead_in, in_r + lead_in);
     }
 }
@@ -145,7 +154,7 @@ module seat() {
     difference() {
         translate([-seat_w/2, -seat_l/2, floor_t - eps]) cube([seat_w, seat_l, plinth_h + rim_h + eps]);
         translate([-mod_w/2 - fit, -mod_l/2 - fit, seat_z]) cube([mod_w + 2*fit, mod_l + 2*fit, rim_h + 1]);
-        translate([-pocket_w/2, -mod_l/2 + pocket_r - pocket_l/2, floor_t]) cube([pocket_w, pocket_l, plinth_h + 1]);
+        translate([-pocket_w/2 - pin_relief, -mod_l/2 + pocket_r - pocket_l/2 - pin_relief, floor_t]) cube([pocket_w + 2*pin_relief, pocket_l + 2*pin_relief, plinth_h + 1]);
     }
 }
 
@@ -202,7 +211,7 @@ module box() {
         insert_holes();
         for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
         translate([hole_x, -in_l/2, floor_t]) mousehole(hole_w, hole_side, 2*wall + 2*floor_fillet + 2);
-        for (sx = [-1, 1]) translate([sx*in_w/2, 0, depth - snap_z]) mirror([sx < 0 ? 1 : 0, 0, 0]) ridge(groove_d, skirt_l + 2);
+        for (sx = [-1, 1], sy = [-1, 1]) translate([sx*in_w/2, sy*finger_y, depth - snap_z]) mirror([sx < 0 ? 1 : 0, 0, 0]) ridge(groove_d, finger_w + 2*groove_play);
     }
 }
 
@@ -211,9 +220,9 @@ module lid() {
     difference() {
         union() {
             translate([0, 0, lid_t]) mirror([0, 0, 1]) slab(out_w, out_l, corner_r, lid_t, 0, lid_round);
-            for (sx = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) {
-                translate([sk_x - skirt_t, -skirt_l/2, lid_t - eps]) cube([skirt_t, skirt_l, skirt_h + eps]);
-                translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, skirt_l);
+            for (sx = [-1, 1], sy = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) translate([0, sy*finger_y, 0]) {
+                translate([sk_x - skirt_t, -finger_w/2, lid_t - eps]) cube([skirt_t, finger_w, skirt_h + eps]);
+                translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, finger_w);
             }
         }
         translate([0, 0, -1]) cylinder(d = body_hole_d, h = lid_t + 2);

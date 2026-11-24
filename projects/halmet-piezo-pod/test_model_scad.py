@@ -60,7 +60,8 @@ def test_stack_fits():
     tip = P["ear_span"] / 2 * np.array([np.sin(EAR_A), np.cos(EAR_A)]) + 3.5 * np.array([np.cos(EAR_A), np.sin(EAR_A)])
     assert tip[0] < P["in_w"] / 2 and tip[1] < P["in_l"] / 2  # ear tips clear the walls
     assert LEDGE_Z + P["ear_t"] + 2.5 < DEPTH  # M3 heads inside, under the lid
-    assert 0 <= P["proud"] < 2  # buzzer top flush or just proud of the lid
+    assert 2 <= P["proud"] <= 4  # ~3 of the buzzer's housing shows above the lid (owner)
+    assert P["hole_pitch"] / 2 + P["hole_d"] / 2 < P["mod_w"] / 2  # screw holes inside the board's edges
     assert P["ear_span"] < P["in_l"]
     assert P["in_w"] - P["buzzer_d"] >= 6  # room for the leads leaving the buzzer's side
     assert P["body_hole_d"] > P["buzzer_d"]
@@ -103,11 +104,35 @@ def test_mousehole_at_floor_terminal_end(box):
     assert ray_hits(box, (P["hole_x"], -OUT_L, above), (0, 1, 0))[0][1] < -P["in_l"] / 2  # wall above the roof
 
 
-def test_snap_ridge_engages_groove(box, lid):
-    assert P["snap_d"] < P["groove_d"] < P["wall"] - 1
+FINGER_Y = P["in_l"] / 2 - P["in_r"] - P["finger_end"] - P["finger_w"] / 2
+
+
+def test_finger_strain():
+    # cantilever: strain = 1.5 t y / L^2, y = how far the ridge must push the finger in
+    y = P["snap_d"] - P["skirt_gap"]
+    assert 1.5 * P["skirt_t"] * y / P["snap_z"] ** 2 < 0.035  # PETG, repeated snaps
+    assert P["snap_d"] + 0.1 < P["groove_d"] + P["skirt_gap"]  # finger springs fully back in the pocket
+    assert P["groove_d"] <= P["wall"] - 1
+
+
+def test_four_fingers_with_ridges(lid):
     x = P["in_w"] / 2 - P["skirt_gap"] + P["snap_d"] / 2
-    assert len(ray_hits(lid, (x, -50, P["lid_t"] + P["snap_z"]), (0, 1, 0))) == 2  # ridge on the skirt
-    assert len(ray_hits(box, (P["in_w"] / 2 + P["groove_d"] / 2, -50, DEPTH - P["snap_z"]), (0, 1, 0))) == 4  # groove breaks the wall
+    z = P["lid_t"] + P["snap_z"]
+    for sx in (-1, 1):
+        hits = ray_hits(lid, (sx * x, -50, z), (0, 1, 0))
+        assert len(hits) == 4  # two ridges along each long side
+        for sy in (-1, 1):  # and nothing between them
+            assert len(ray_hits(lid, (sx * x, sy * FINGER_Y, z), (0, 0, 1))) % 2 == 1
+
+
+def test_four_pockets_line_up_with_ridges(box):
+    z = DEPTH - P["snap_z"]
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            hit = ray_hits(box, (0, sy * FINGER_Y, z), (sx, 0, 0))[0]
+            assert np.isclose(abs(hit[0]), P["in_w"] / 2 + P["groove_d"], atol=0.05)
+        plain = ray_hits(box, (0, 0, z), (sx, 0, 0))[0]
+        assert np.isclose(abs(plain[0]), P["in_w"] / 2, atol=0.05)  # no groove mid-wall
 
 
 def test_body_hole_through_lid(lid):

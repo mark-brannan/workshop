@@ -31,6 +31,8 @@ Module calipered; buzzer measured by the owner, partly by eye.
 | Parameter | Now | Source |
 |---|---|---|
 | XY-MOS module | 33.8 x 16.7 x 12; board ~1.1 thick | owner, caliper; height from seller listings |
+| `hole_pitch` | 13.2 | scaled off the owner's photo of the board in the first print, by its 16.7 width; 12.5 printed too narrow |
+| `pin_relief` | 0.25 each side | owner: pin pocket a little bigger than the calipered block |
 | `pocket_gap`, `hole_gap` | 3, 0.1 | owner, caliper: board's terminal end to the pin block's near edge; board's far end to a screw hole's near edge |
 | `hole_d` | 2.6 | owner, caliper; sets where the screw-hole centre sits |
 | Buzzer, on hand | body 29.0 dia, ~15 high; ear flange 4.5 thick at the back; ears 47.4 tip to tip, holes ~40 apart; leads leave the side at the back | owner, caliper; height and hole pitch by eye |
@@ -41,19 +43,20 @@ Module calipered; buzzer measured by the owner, partly by eye.
 
 ## Design
 
-- Box 40 x 85 x 30.5 over the tabs, 19.4 cm3; lid 40 x 60 x 6.4 with its skirts, 4.5 cm3. PETG.
+- Box 40 x 85 x 28 over the tabs, 19.4 cm3; lid 40 x 60 x 10.9 with its fingers, 4.4 cm3. PETG.
 - The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2.5
   self-tapping screws at the far end.
 - The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
   the box is 36 wide inside so they have room toward a long wall. If the ear holes are not 40 apart, `ear_pitch` moves them.
-- The lid snaps on: a skirt down each long wall carries a 45° ridge that clicks into a groove in the wall.
+- The lid snaps on with four fingers, one near each corner on the long walls, 8 wide, 1.2 thick, 8.5 long. Each carries a 0.8 ridge, 45° both faces, 7 below the lid, that clicks into a pocket 0.9 deep in the wall; the pockets also stop the lid sliding. Bending strain at the ridge about 3 % (1.5 t y / L²). Too stiff or too loose: `snap_d` is the knob.
+- The inside walls are vertical to the rim's 0.4 lead-in. On the first print they sloped out 0.4 over their height, which left the old 0.6 ridge about 0.04 to catch on: why it never snapped.
 - Two rounded tabs at the ends screw to the bulkhead (#8 or M4).
 - Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
   the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
 - Walls 2.0, floor 2.4, lid 2.4. Outside edges square, box and lid flush at the seam; only the lid's top edge rounded;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
-- Buzzer as low as the module allows: its back 1 mm over the module's top, its top 0.5 mm proud of the lid
-  (`proud`; 0 is flush). Turned 39° in plan so its ears land on two columns standing on the floor beside
+- Buzzer as low as the module allows: its back 1 mm over the module's top, its top 3 mm proud of the lid
+  (`proud`; 0 is flush; owner, after the first print). Turned 39° in plan so its ears land on two columns standing on the floor beside
   the module. Two M3 screws hold the ears into M3 x 4 heat-set inserts in the column tops, inside the box,
   under the lid (inserts not bought; `insert_hole_d` follows the maker's hole).
 - Print box floor down and lid outer face down. Nothing overhangs.
