@@ -2,6 +2,7 @@
 
     shop watch preflight <file.gcode> --plate frosted|pattern|smooth|epoxy --vents closed|open [--cfs] [--fix]
     shop watch soak <file.gcode> --plate ... [--over-rating] [--bed C] [--chamber C] [--bed-min 45] [--chamber-min 33]
+    shop watch upload <local.gcode> [--cfs]   send a sliced file; a spool job loses its tool changes
     shop watch start <file.gcode> --plate ... --vents ... [--cfs]
     shop watch frame <layer> <out.jpg>   the camera frame after that layer, during or after a job
     shop watch next <file.gcode> --plate ... --vents ... [--cfs] [--frames DIR] [--taper-from 60] [--taper-to 70] [--no-taper]
@@ -107,7 +108,7 @@ def job_checks(st: dict, job: Job, plate: str, vents: str, cfs: bool, macros: se
     else:
         c.append(Check("FAIL" if enable != 0 else "ok", f"spool job, CFS printing {'off' if enable == 0 else 'on'}", feed_gcode(False)))
         if job.toolchanges:
-            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}"))
+            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}; re-send it with shop watch upload"))
 
     for m in MACROS:
         c.append(Check("ok" if m in macros else "FAIL", f"macro {m}" + ("" if m in macros else " missing: re-copy its .cfg")))
@@ -221,7 +222,10 @@ def start(a: argparse.Namespace) -> int:
     if int(fetch(["box"])["box"].get("enable", -1)) != int(a.cfs):
         print("start refused: CFS setting did not hold; set the screen's CFS switch and retry")
         return 1
-    api("/printer/print/start?filename=" + urllib.parse.quote(a.file), {})
+    try:
+        api("/printer/print/start?filename=" + urllib.parse.quote(a.file), {})
+    except TimeoutError:  # Moonraker answers late while the start mesh runs; the poll below decides
+        print("  start request timed out; checking whether it is printing")
     for _ in range(12):
         time.sleep(5)
         if started(fetch(["print_stats"]), a.file):
@@ -229,6 +233,30 @@ def start(a: argparse.Namespace) -> int:
             return 0
     print(f"start FAIL: {a.file} not printing 60 s after start")
     return 1
+
+
+TOOLCHANGE = re.compile(rb"^T\d+\b")
+
+
+def spool_gcode(data: bytes) -> bytes:
+    """The file without its tool-change lines: on a spool job a ``T0`` sends the feed to the CFS."""
+    return b"".join(ln for ln in data.splitlines(keepends=True) if not TOOLCHANGE.match(ln))
+
+
+def upload(a: argparse.Namespace) -> int:
+    src = Path(a.file)
+    data = src.read_bytes()
+    if not a.cfs:
+        data = spool_gcode(data)
+    boundary = "shopwatch" + str(time.time_ns())
+    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{src.name}"\r\n'
+            f"Content-Type: application/octet-stream\r\n\r\n").encode() + data + f"\r\n--{boundary}--\r\n".encode()
+    req = urllib.request.Request(f"{URL}/server/files/upload", data=body, headers={
+        "X-Api-Key": _key(), "Content-Type": f"multipart/form-data; boundary={boundary}"})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        r.read()
+    print(f"upload {src.name}: {len(data)} bytes" + ("" if a.cfs else ", tool changes stripped for the spool"))
+    return 0
 
 
 def soak(a: argparse.Namespace) -> int:
@@ -436,11 +464,14 @@ def main(argv: list[str]) -> int:
     sk.add_argument("--bed-min", type=float, default=45)
     sk.add_argument("--chamber-min", type=float, default=33)
     sk.add_argument("--poll", type=float, default=30)
+    up = sub.add_parser("upload")
+    up.add_argument("file")
+    up.add_argument("--cfs", action="store_true", help="keep tool changes for a CFS job")
     fr = sub.add_parser("frame")
     fr.add_argument("layer", type=int)
     fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "start": start, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
+    return {"preflight": preflight, "upload": upload, "start": start, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
 
 
 if __name__ == "__main__":

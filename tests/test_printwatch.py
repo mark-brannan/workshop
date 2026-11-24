@@ -243,3 +243,23 @@ def test_next_takes_no_file_argument():
 
     with pytest.raises(SystemExit):
         pw.main(["next", "lid.gcode"])
+
+
+def test_start_carries_on_when_the_start_request_times_out(monkeypatch):
+    # 2026-11-23: Moonraker held the start reply past 5 s while the job's start mesh ran.
+    from shop import printwatch as pw
+
+    def slow(path, body=None, timeout=5):
+        raise TimeoutError
+
+    rc, sent = run_start(monkeypatch)
+    monkeypatch.setattr(pw, "api", slow)
+    a = __import__("argparse").Namespace(file="box.gcode", plate="frosted", vents="closed", cfs=False, fix=False)
+    assert pw.start(a) == 0
+
+
+def test_a_spool_upload_drops_only_tool_change_lines():
+    from shop.printwatch import spool_gcode
+
+    src = b"START_PRINT EXTRUDER_TEMP=250\nT0\nM109 S250\n;T0 in a comment\nTIMELAPSE_TAKE_FRAME\nT12\n"
+    assert spool_gcode(src) == b"START_PRINT EXTRUDER_TEMP=250\nM109 S250\n;T0 in a comment\nTIMELAPSE_TAKE_FRAME\n"
