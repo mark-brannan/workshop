@@ -10,6 +10,11 @@ import trimesh
 from shop.scad import OpenSCAD, find_openscad
 from shop.testing import ray_hits
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+from wing_overlay import wing  # noqa: E402
+
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
 P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*(-?[\d.]+)\s*;", (HERE / "model.scad").read_text(), re.M)}
@@ -50,6 +55,27 @@ def test_screw_holes_and_opening(installed):
         assert all(h[2] < -P["boss_h"] for h in ray_hits(installed, [x, y, 5], down)), f"pilot blocked at {x}, {y}"
         assert ray_hits(installed, [x + P["hole_d"] / 2 + 1, y, 5], down)[0][2] == pytest.approx(0, abs=0.05)
     assert not ray_hits(installed, [0, 0, 5], down), "opening in the middle"
+
+
+def test_cable_tie_slits_clear_wing_and_skirt(installed):
+    down = [0, 0, -1]
+    ys = [float(v) for v in re.search(r"^tie_slit_y\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text(), re.M).group(1).split(",")]
+    x0, t, w = P["tie_slit_x"], P["tie_slit_t"], P["tie_slit_w"]
+    wing_pts = wing()
+    for side in (1, -1):
+        for y in ys:
+            xm = side * (x0 + t / 2)
+            # open through the deck; the skirt below, leaning in, is not the tie's path (it turns inboard under the deck)
+            for dy in (0, -w / 2 + 0.3, w / 2 - 0.3):  # the slit is the full width along y
+                assert ray_hits(installed, [xm, y + dy, 5], down)[0][2] < -P["deck_t"], f"slit not through the deck at {side}, {y + dy}"
+            assert ray_hits(installed, [side * (x0 - 1), y, 5], down)[0][2] == pytest.approx(0, abs=0.05)  # deck beside it
+            assert ray_hits(installed, [xm, y + w / 2 + 0.5, 5], down)[0][2] == pytest.approx(0, abs=0.05)
+            # the skirt's inner face, at the deck underside, stays outboard of the slit
+            hit = ray_hits(installed, [side * (x0 - 1), y + 0.13, -P["deck_t"] - 0.2], [side, 0, 0])
+            assert hit and abs(hit[0][0]) > x0 + t, f"skirt meets the slit's under-deck exit at {side}, {y}"
+            # outside the traced wing, with the wing's own edge near the slit run
+            edge = max(x for x, py in wing_pts if abs(py - y) <= w / 2 + 1)
+            assert edge < x0, f"wing edge {edge} reaches the slit at y={y}"
 
 
 def test_rivet_holes_through_skirts(installed):

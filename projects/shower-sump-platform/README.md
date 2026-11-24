@@ -42,6 +42,10 @@ across or more, spans each 9 mm wing slot. Screw length: wing thickness + washer
 Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it
 received is not recorded.
 
+Cable-tie slits back up the screws against a wing sliding: two 6 x 2 slots per wing in the deck, just outboard of
+the wing's straight edge at the aft end (`tie_slit_y`). A tie goes up a slot, over the wing, down the opening and
+back under the deck: a loop round the deck strip and the wing. Sized for a 4.8 mm tie. The forward end has no room.
+
 ## Measured
 
 Aboard, 2026-11-21 (owner's tape and speed square; source
