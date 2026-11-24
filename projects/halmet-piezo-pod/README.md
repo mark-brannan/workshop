@@ -8,7 +8,7 @@ screwed lid; no seal. The flanged buzzer sits under the lid, stacked over the mo
 
 ![box with lid, module and buzzer stand-ins](out/assembly.png)
 
-![half section on the centreline: inserts, M3 screws, buzzer ears, module under the ledges](out/cutaway.png)
+![half section on the centreline: inserts in the columns, M3 screws, buzzer ears, module](out/cutaway.png)
 
 `show = "cutaway"` in `model.scad` renders the section; `"exploded"` the exploded view.
 
@@ -50,9 +50,10 @@ Module calipered; buzzer measured by the owner, partly by eye.
   the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
 - Walls 2.0, floor 2.4, lid 2.4. Outside edges chamfered 45° where they face down in print, rounded where up;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
-- Buzzer ears: two M3 screws through the lid and the ears into M3 x 4 heat-set inserts in the end ledges
-  (inserts not bought; `insert_hole_d` follows the maker's hole). The ledges overhang the module's ends by
-  0.5 mm, so the module goes in tipped and slid 0.5 mm; the side rims let it.
+- Buzzer as low as the module allows: its back 1 mm over the module's top, its top 0.5 mm proud of the lid
+  (`proud`; 0 is flush). Turned 39° in plan so its ears land on two columns standing on the floor beside
+  the module. Two M3 screws hold the ears into M3 x 4 heat-set inserts in the column tops, inside the box,
+  under the lid (inserts not bought; `insert_hole_d` follows the maker's hole).
 - Print box floor down and lid outer face down. Nothing overhangs.
 
 ## Wiring

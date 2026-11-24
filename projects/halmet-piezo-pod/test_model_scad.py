@@ -17,10 +17,11 @@ OUT_W = P["in_w"] + 2 * P["wall"]
 OUT_L = P["in_l"] + 2 * P["wall"]
 SEAT_Z = P["floor_t"] + P["plinth_h"]
 INSERT_DEPTH = P["insert_l"] + 0.8
-LEDGE_T = INSERT_DEPTH + P["ledge_skin"]
-LEDGE_FRONT = P["ear_pitch"] / 2 - P["insert_hole_d"] / 2 - P["insert_wall"]
-LEDGE_Z = SEAT_Z + P["mod_h"] + P["slide_clear"] + LEDGE_T
-DEPTH = LEDGE_Z + P["ear_t"]
+COL_R = P["insert_hole_d"] / 2 + P["insert_wall"]
+EAR_A = np.arcsin((P["mod_w"] / 2 + P["fit"] + P["col_gap"] + COL_R) / (P["ear_pitch"] / 2))
+EAR_XY = [(s * -np.sin(EAR_A) * P["ear_pitch"] / 2, s * np.cos(EAR_A) * P["ear_pitch"] / 2) for s in (-1, 1)]
+LEDGE_Z = SEAT_Z + P["mod_h"] + P["buzz_clear"]
+DEPTH = LEDGE_Z + P["buzzer_h"] - P["proud"] - P["lid_t"]
 TAB_Y = OUT_L / 2 + P["tab_reach"]
 def build(tmp_path_factory, src, name):
     d = tmp_path_factory.mktemp(name)
@@ -54,13 +55,15 @@ def test_lid_bounds_volume(lid):
 
 def test_stack_fits():
     assert P["plinth_h"] > P["pin_out"]  # pins clear of the pocket floor
-    assert LEDGE_Z - LEDGE_T > SEAT_Z + P["mod_h"]  # ledges clear the module's top: it slides under one
-    assert P["mod_l"] / 2 - LEDGE_FRONT < P["pocket_slack"]  # ...far enough to pass the other
-    assert P["ledge_w"] >= P["insert_hole_d"] + 2 * P["insert_wall"]
+    for x, y in EAR_XY:
+        assert abs(x) - COL_R > P["mod_w"] / 2 + P["fit"]  # columns clear the module's sides
+    tip = P["ear_span"] / 2 * np.array([np.sin(EAR_A), np.cos(EAR_A)]) + 3.5 * np.array([np.cos(EAR_A), np.sin(EAR_A)])
+    assert tip[0] < P["in_w"] / 2 and tip[1] < P["in_l"] / 2  # ear tips clear the walls
+    assert LEDGE_Z + P["ear_t"] + 2.5 < DEPTH  # M3 heads inside, under the lid
+    assert 0 <= P["proud"] < 2  # buzzer top flush or just proud of the lid
     assert P["ear_span"] < P["in_l"]
     assert P["in_w"] - P["buzzer_d"] >= 6  # room for the leads leaving the buzzer's side
     assert P["body_hole_d"] > P["buzzer_d"]
-    assert abs(P["hole_x"]) - P["hole_w"] / 2 > P["ledge_w"] / 2  # mousehole clear of the gusset
     assert abs(P["hole_x"]) - P["hole_w"] / 2 > P["tab_base"] - 0.5  # ...and of the tab
 
 
@@ -73,16 +76,17 @@ def test_seat_pocket_and_pilots(box):
         assert np.isclose(hit, SEAT_Z - P["m2_depth"], atol=0.05)  # blind, deep enough for a longer M2
 
 
-def test_insert_holes_at_ear_pitch(box):
-    for s in (-1, 1):
-        hits = ray_hits(box, (0, s * P["ear_pitch"] / 2, DEPTH + 5), (0, 0, -1))
-        assert np.isclose(hits[0][2], LEDGE_Z - INSERT_DEPTH, atol=0.05)  # blind, from the ledge top
-        assert hits[0][2] - hits[1][2] >= P["ledge_skin"] - 0.05
+def test_insert_columns_at_ear_holes(box):
+    for x, y in EAR_XY:
+        hits = ray_hits(box, (x, y, DEPTH + 5), (0, 0, -1))
+        assert np.isclose(hits[0][2], LEDGE_Z - INSERT_DEPTH, atol=0.05)  # blind insert hole in the column top
+        rim = ray_hits(box, (x + COL_R - 0.5, y, DEPTH + 5), (0, 0, -1))[0][2]
+        assert np.isclose(rim, LEDGE_Z, atol=0.05)
 
 
-def test_lid_screw_holes_over_inserts(lid):
-    for s in (-1, 1):
-        assert len(ray_hits(lid, (0, s * P["ear_pitch"] / 2, -1), (0, 0, 1))) == 0
+def test_lid_has_only_the_body_hole(lid):
+    for x, y in EAR_XY:
+        assert len(ray_hits(lid, (x, y, -1), (0, 0, 1))) == 2  # no screw holes: the buzzer screws are inside
 
 
 def test_two_tab_holes_through(box):

@@ -1,9 +1,11 @@
 // HALMET piezo pod: a box with a snap-on lid on an engine-room bulkhead or deckhead.
 // The XY-MOS trigger module sits in a seat on a plinth, its terminal pins in a blind pocket, two M2 screws at
 // the far end.
-// The flanged 12 V buzzer sits under the lid, its ears on two ledges at the end walls, its round body up
-// through a hole in the lid. Two M3 screws go down through the lid and the ears into heat-set inserts in the
-// ledges, clamping lid and ears together; the lid also snaps on. Its leads stay inside.
+// The flanged 12 V buzzer sits as low as the module allows, its ears on two columns that stand on the floor
+// beside the module; the buzzer is turned in plan (ear_angle) so the columns clear the module's sides.
+// Two M3 screws hold the ears down into heat-set inserts in the columns, inside the box, under the lid.
+// The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
+// The lid snaps on. The buzzer's leads stay inside.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled.
 // Ledges stand on 45° gussets; snap ridge and groove are 45° both faces.
@@ -21,7 +23,6 @@ pin_out = 2.6;        // terminal pins below the board; owner caliper
 pocket_w = 11.2;      // pin pocket, across the board; owner
 pocket_l = 6.1;       // along the board; owner
 pocket_r = 4;         // GUESS: pocket centre to the terminal end
-pocket_slack = 0.6;   // pocket longer each way: the module slides this far to pass under a ledge
 hole_pitch = 12.5;    // module holes, across the board at the far end; owner, unsure
 hole_e = 2.5;         // GUESS: hole centre to the far end
 buzzer_d = 29;        // flanged buzzer on hand, round body; owner, caliper
@@ -36,7 +37,8 @@ in_l = 56;            // up the bulkhead
 wall = 2;
 floor_t = 2.4;
 corner_r = 3;         // outside vertical corners
-slide_clear = 0.3;    // module top to the ledges' underside
+buzz_clear = 1;       // module top to the buzzer's back; mod_h is from listings
+proud = 0.5;          // buzzer top above the lid's top; 0 = flush
 in_r = 1.5;           // inside vertical corners
 floor_fillet = 2;     // floor to wall, inside
 chamfer_b = 0.6;      // back edge, against the bulkhead (faces down in print)
@@ -51,13 +53,12 @@ rim_h = 1.5;          // above the board's seat
 m2_pilot = 1.7;       // M2 self-tapping; calibration pending
 m2_depth = 5;         // plinth and most of the floor: room for a longer screw
 
-/* [Buzzer ledges and heat-set inserts] */
+/* [Buzzer columns and heat-set inserts] */
 insert_hole_d = 4.0;  // M3 heat-set insert, short (M3 x 4); the hole its maker gives. Not bought
 insert_l = 4;         // insert length
 insert_wall = 1.6;    // plastic round the insert's hole
-ledge_w = 8;          // across; at least the boss, insert_hole_d + 2*insert_wall
-ledge_skin = 1;       // below the insert hole's bottom
-lid_screw_d = 3.6;    // M3 clearance through the lid; printed holes come out small
+col_gap = 0.4;        // column to the module's side
+col_flare = 1.5;      // 45° flare at the column's foot
 
 /* [Snap lid] */
 lid_t = 2.4;
@@ -93,10 +94,12 @@ out_w = in_w + 2*wall;
 out_l = in_l + 2*wall;
 seat_z = floor_t + plinth_h;                         // board underside
 insert_depth = insert_l + 0.8;                       // blind hole, room for melt
-ledge_t = insert_depth + ledge_skin;                 // ledge's front face, before the gusset
-ledge_front = ear_pitch/2 - insert_hole_d/2 - insert_wall;  // over the module's end, by design
-ledge_z = seat_z + mod_h + slide_clear + ledge_t;    // ledge top, ears' underside
-depth = ledge_z + ear_t;                             // floor to the lid's underside
+col_r = insert_hole_d/2 + insert_wall;
+ear_angle = asin((mod_w/2 + fit + col_gap + col_r) / (ear_pitch/2));  // buzzer turn, so columns clear the module
+ear_dir = [-sin(ear_angle), cos(ear_angle)];         // ear axis in plan; ear holes at ±ear_pitch/2 along it
+ledge_z = seat_z + mod_h + buzz_clear;               // column tops, the ears' underside
+depth = ledge_z + buzzer_h - proud - lid_t;          // floor to the lid's underside
+function ear_xy(s) = s*ear_pitch/2*ear_dir;
 seat_w = mod_w + 2*fit + 2*rim_t;
 seat_l = mod_l + 2*fit + 2*rim_t;
 
@@ -138,22 +141,20 @@ module ridge(d, l) { rotate([90, 0, 0]) linear_extrude(l, center = true) polygon
 module seat() {
     difference() {
         translate([-seat_w/2, -seat_l/2, floor_t - eps]) cube([seat_w, seat_l, plinth_h + rim_h + eps]);
-        // rims along the long sides only: the module slides along its length to pass under a ledge
-        translate([-mod_w/2 - fit, -seat_l/2 - 1, seat_z]) cube([mod_w + 2*fit, seat_l + 2, rim_h + 1]);
-        translate([-pocket_w/2, -mod_l/2 + pocket_r - pocket_l/2 - pocket_slack, floor_t]) cube([pocket_w, pocket_l + 2*pocket_slack, plinth_h + 1]);
+        translate([-mod_w/2 - fit, -mod_l/2 - fit, seat_z]) cube([mod_w + 2*fit, mod_l + 2*fit, rim_h + 1]);
+        translate([-pocket_w/2, -mod_l/2 + pocket_r - pocket_l/2, floor_t]) cube([pocket_w, pocket_l, plinth_h + 1]);
     }
 }
 
-module ledge(sy) {
-    mirror([0, sy < 0 ? 1 : 0, 0]) {
-        rotate([90, 0, 90]) linear_extrude(ledge_w, center = true)
-            polygon([[in_l/2 + 1, ledge_z], [ledge_front, ledge_z], [ledge_front, ledge_z - ledge_t],
-                     [in_l/2 + 1, ledge_z - ledge_t - (in_l/2 + 1 - ledge_front)]]);
+module column(sy) {
+    translate([each ear_xy(sy), floor_t - eps]) {
+        cylinder(r = col_r, h = ledge_z - floor_t + eps);
+        cylinder(r1 = col_r + col_flare, r2 = col_r, h = col_flare);
     }
 }
 
 module insert_holes() {
-    for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, ledge_z - insert_depth]) {
+    for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_depth]) {
         cylinder(d = insert_hole_d, h = insert_depth + 1);
         translate([0, 0, insert_depth - 0.5]) cylinder(d1 = insert_hole_d, d2 = insert_hole_d + 1.2, h = 0.6);  // lead-in
     }
@@ -191,10 +192,7 @@ module box() {
                 slab(out_w, out_l, corner_r, depth, chamfer_b, round_t);
                 cavity();
             }
-            intersection() {
-                for (sy = [-1, 1]) ledge(sy);
-                cavity();
-            }
+            for (sy = [-1, 1]) column(sy);
             for (sy = [-1, 1]) tab(sy);
             seat();
         }
@@ -216,7 +214,6 @@ module lid() {
             }
         }
         translate([0, 0, -1]) cylinder(d = body_hole_d, h = lid_t + 2);
-        for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, -1]) cylinder(d = lid_screw_d, h = lid_t + 2);
     }
 }
 
@@ -230,7 +227,7 @@ module module_standin() {
 }
 
 module buzzer_standin() {
-    translate([0, 0, ledge_z]) difference() {
+    translate([0, 0, ledge_z]) rotate([0, 0, ear_angle]) difference() {
         union() {
             cylinder(d = buzzer_d, h = buzzer_h);
             linear_extrude(ear_t) hull() { circle(d = buzzer_d); for (sy = [-1, 1]) translate([0, sy*(ear_span/2 - 3.5)]) circle(r = 3.5); }
@@ -243,19 +240,19 @@ module m2_screw() { cylinder(d = 3.8, h = 1.4); translate([0, 0, -8]) cylinder(d
 module m3_screw(l = 10) { cylinder(d = 5.5, h = 2); translate([0, 0, -l]) cylinder(d = 3, h = l); }
 module insert_standin() { color("goldenrod") difference() { cylinder(d = insert_hole_d + 0.6, h = insert_l); translate([0, 0, -1]) cylinder(d = 2.5, h = insert_l + 2); } }
 
-// Half section on X = 0 when show is "cutaway", through the inserts, screws and buzzer; the -X half
-// (mousehole side) is kept. Each part is cut on its own so it keeps its colour.
-module cut() { if (show == "cutaway") intersection() { children(); translate([-100, -100, -10]) cube([100, 200, 100]); } else children(); }
+// Half section through the ear axis when show is "cutaway": through the inserts, screws and buzzer.
+// Each part is cut on its own so it keeps its colour.
+module cut() { if (show == "cutaway") intersection() { children(); rotate([0, 0, ear_angle]) translate([-100, -100, -10]) cube([100, 200, 100]); } else children(); }
 
 // Everything in place: box, module and its M2 screws, inserts, buzzer, lid, M3 screws.
 module assembled() {
     color("orange") cut() box();
     cut() module_standin();
     color("silver") cut() for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t]) m2_screw();
-    color("goldenrod") cut() for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, ledge_z - insert_l]) insert_standin();
+    color("goldenrod") cut() for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l]) insert_standin();
     color("white") cut() buzzer_standin();
     color("gold") cut() lid_on();
-    color("silver") cut() for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, depth + lid_t]) m3_screw();
+    color("silver") cut() for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z + ear_t]) m3_screw(8);
 }
 
 explode = 22;  // gap between layers in the exploded drawing
@@ -265,10 +262,10 @@ module exploded() {
     color("orange") box();
     translate([0, 0, g]) module_standin();
     color("silver") for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t + 1.6*g]) m2_screw();
-    for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, ledge_z - insert_l + 1.6*g]) insert_standin();
+    for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l + 1.6*g]) insert_standin();
     translate([0, 0, 2.2*g]) color("white") buzzer_standin();
     translate([0, 0, 3.2*g]) color("gold") lid_on();
-    color("silver") for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, depth + lid_t + 4*g]) m3_screw();
+    color("silver") for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z + ear_t + 2.8*g]) m3_screw(8);
 }
 
 show = "box";  // [box, assembly, exploded, cutaway]
