@@ -200,3 +200,43 @@ def test_recovery_only_known_faults_before_layer_1_and_at_most_twice():
     assert not recoverable(["key836"], 0, 0)  # unknown fault: the user's call
     assert not recoverable(["key22"], 0, 2)
     assert not recoverable([], 0, 0)
+
+
+def watch_args(**kw):
+    import argparse
+
+    base = dict(file=None, plate=None, vents=None, cfs=False, frames=None, taper=False, taper_from=60, taper_to=70, poll=0, stall_min=20)
+    return argparse.Namespace(**{**base, **kw})
+
+
+def fake_printer(monkeypatch, tmp_path, state, filename):
+    from shop import printwatch as pw
+
+    st = {"webhooks": {"state": "ready"}, "print_stats": {"state": state, "filename": filename, "info": {"current_layer": 3}},
+          "virtual_sdcard": {"file_position": 1}, "gcode_move": {}}
+    monkeypatch.setattr(pw, "fetch", lambda objs: st)
+    monkeypatch.setattr(pw, "api", lambda path, body=None, timeout=5: {"gcode_store": []})
+    monkeypatch.setattr(pw, "read_job", lambda name: Job(name, "ASA", 90, 50, []))
+    monkeypatch.setattr(pw.Path, "home", lambda: tmp_path)
+    return pw
+
+
+def test_next_without_a_file_watches_the_printing_one(monkeypatch, tmp_path, capsys):
+    pw = fake_printer(monkeypatch, tmp_path, "printing", "lid.gcode")
+    monkeypatch.setattr(pw, "frame", lambda a: 0)
+    a = watch_args()
+    assert pw.next_(a) == 0
+    assert a.file == "lid.gcode"
+    assert "CHECKPOINT" in capsys.readouterr().out
+
+
+def test_next_without_a_file_and_no_job_refuses(monkeypatch, tmp_path, capsys):
+    pw = fake_printer(monkeypatch, tmp_path, "standby", "")
+    assert pw.next_(watch_args()) == 1
+    assert "no job is printing" in capsys.readouterr().out
+
+
+def test_next_with_a_file_that_is_not_the_printing_one_faults(monkeypatch, tmp_path, capsys):
+    pw = fake_printer(monkeypatch, tmp_path, "printing", "lid.gcode")
+    assert pw.next_(watch_args(file="box.gcode")) == 1
+    assert "printer is on lid.gcode, not box.gcode" in capsys.readouterr().out

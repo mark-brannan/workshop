@@ -329,7 +329,18 @@ def restart_klipper() -> bool:
     return fetch(["webhooks"])["webhooks"]["state"] == "ready"
 
 
+def running_file() -> str | None:
+    ps = fetch(["print_stats"])["print_stats"]
+    return ps.get("filename") if ps["state"] in ("printing", "paused") and ps.get("filename") else None
+
+
 def next_(a: argparse.Namespace) -> int:
+    if a.file is None:
+        a.file = running_file()
+        if a.file is None:
+            print("watch FAULT: no job is printing; name the file")
+            return 1
+        print(f"watching {a.file}")
     frames = Path(a.frames or Path.home() / ".local/state/print-watch" / Path(a.file).stem)
     frames.mkdir(parents=True, exist_ok=True)
     done = {int(f.stem.split("-")[1]) for f in frames.glob("layer-*.jpg")}
@@ -366,6 +377,9 @@ def next_(a: argparse.Namespace) -> int:
             if not recoverable(keys, layer, recoveries):
                 print(f"watch FAULT at layer {layer}: {why}; {st['webhooks'].get('state_message', '').strip()[:160]}")
                 return 1
+            if a.plate is None or a.vents is None:
+                print(f"watch FAULT at layer {layer}: {why}; a restart needs --plate and --vents, none given; touching nothing")
+                return 1
             recoveries += 1
             rec_file.write_text(str(recoveries))
             print(f"watch RECOVER {recoveries}/{MAX_RECOVERIES}: {why} before layer 1; restarting Klipper and the job", flush=True)
@@ -400,9 +414,10 @@ def main(argv: list[str]) -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("preflight", "start", "next"):
         pf = sub.add_parser(name)
-        pf.add_argument("file")
-        pf.add_argument("--plate", required=True, choices=PLATES)
-        pf.add_argument("--vents", required=True, choices=("closed", "open"))
+        watching = name == "next"  # a running job needs them only for a pre-layer-1 restart
+        pf.add_argument("file", nargs="?" if watching else None, help="default (next only): the file now printing")
+        pf.add_argument("--plate", required=not watching, choices=PLATES)
+        pf.add_argument("--vents", required=not watching, choices=("closed", "open"))
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
         if name == "next":
