@@ -18,7 +18,9 @@ SOCK = P["fan"] + 2 * P["fit"]
 COLLAR_BORE = P["rim_d"] + 2 * P["collar_fit"]
 W = max(SOCK, COLLAR_BORE) + 2 * P["wall"]
 L = W + P["divider"] + P["pocket"]
-H = P["floor_t"] + P["fan_t"]
+FAN_Z = P["floor_t"] + P["flange_t"]  # the fan sits on the spigot's flange
+H = FAN_Z + P["fan_t"]
+FLANGE = SOCK - 2 * P["flange_fit"]
 POCKET_X = W / 2 - P["wall"] + P["divider"] + P["pocket"] / 2
 SPIGOT_D = P["duct_id"] - 0.2 + 2 * P["rib_h"]
 SPIGOT_BORE = P["duct_id"] - 0.2 - 2 * P["spigot_wall"]
@@ -73,7 +75,9 @@ def test_box_air_path_and_four_screw_holes(box):
     for x in (-HOLE, HOLE):
         for y in (-HOLE, HOLE):
             assert ray_hits(box, (x, y, -10), (0, 0, 1)) == []
-            assert len(ray_hits(box, (x + 3.5, y, -10), (0, 0, 1))) == 2  # floor around the hole
+            assert len(ray_hits(box, (x + P["head_d"] / 2 + 0.5, y, -10), (0, 0, 1))) == 2  # floor around the countersink
+            rim = ray_hits(box, (x + P["head_d"] / 2 - 0.3, y, -10), (0, 0, 1))[0][2]
+            assert 0.2 < rim < 0.4  # 45 deg countersink for the flush head, opening onto the bed
 
 
 def test_box_ceilings_only_in_the_two_holes(box):
@@ -177,15 +181,28 @@ def test_lid_air_path_and_four_screw_holes(lid):
 # spigot: flange on the bed, spigot up
 def test_spigot_bounds_volume(spigot):
     assert spigot.is_watertight and len(spigot.split()) == 1
-    assert np.allclose(spigot.bounds[:, :2], [[-W / 2, -W / 2], [W / 2, W / 2]], atol=0.05)
-    assert np.isclose(spigot.bounds[1][2], P["plate_t"] + P["spigot_h"], atol=0.1)
-    assert 15_000 < spigot.volume < 26_000
+    assert np.allclose(spigot.bounds[:, :2], [[-FLANGE / 2, -FLANGE / 2], [FLANGE / 2, FLANGE / 2]], atol=0.05)
+    assert np.isclose(spigot.bounds[1][2], P["flange_t"] + P["floor_t"] + P["spigot_h"], atol=0.1)
+    assert 12_000 < spigot.volume < 22_000
+
+
+def test_flange_drops_in_the_socket_and_the_floor_corners_stop_it():
+    hole = SPIGOT_D + 2 * P["thread_gap"]
+    assert FLANGE < SOCK  # into the fan socket
+    assert hole > SPIGOT_D  # the thread passes down through the floor
+    assert math.hypot(FLANGE, FLANGE) / 2 - hole / 2 > 10  # the flange's corners land on floor
+    assert math.hypot(HOLE, HOLE) - P["head_d"] / 2 > hole / 2 + 2  # screws and countersinks in that floor
+
+
+def test_the_fans_own_screws_reach_through_the_nut():
+    # heads flush in the floor, then flange, fan and lid; the nut on top of the lid has all its threads on
+    assert P["screw_l"] >= FAN_Z + P["fan_t"] + P["plate_t"] + P["nut_h"]
 
 
 def test_spigot_bore_and_rib(spigot):
     assert ray_hits(spigot, (0, 0, 50), (0, 0, -1)) == []
-    assert np.isclose(ray_hits(spigot, (0, 0, P["plate_t"] + 5), (1, 0, 0))[0][0], SPIGOT_BORE / 2, atol=0.1)
-    zs = np.arange(P["plate_t"] + 1.5, P["plate_t"] + P["spigot_h"] - 1.5, 0.25)
+    assert np.isclose(ray_hits(spigot, (0, 0, P["flange_t"] + 5), (1, 0, 0))[0][0], SPIGOT_BORE / 2, atol=0.1)
+    zs = np.arange(P["flange_t"] + 1.5, P["flange_t"] + P["spigot_h"] - 1.5, 0.25)
     r = np.array([ray_hits(spigot, (60, 0, z), (-1, 0, 0))[0][0] for z in zs])  # outer radius at each height
     assert np.isclose(r.max(), SPIGOT_D / 2, atol=0.15)
     assert np.isclose(r.min(), SPIGOT_D / 2 - P["rib_h"], atol=0.15)
@@ -195,7 +212,7 @@ def test_spigot_rib_is_right_handed(spigot):
     # follow the crest a quarter turn counter-clockwise (seen from the duct end, +Z): a right-hand helix climbs
     def crest_z(angle):
         c, s = math.cos(angle), math.sin(angle)
-        zs = np.arange(P["plate_t"] + 2, P["plate_t"] + P["pitch"] + 2, 0.1)
+        zs = np.arange(P["flange_t"] + 2, P["flange_t"] + P["pitch"] + 2, 0.1)
         r = [math.hypot(*ray_hits(spigot, (60 * c, 60 * s, z), (-c, -s, 0))[0][:2]) for z in zs]
         return zs[int(np.argmax(r))]  # crest: the largest outer radius
 
@@ -204,12 +221,10 @@ def test_spigot_rib_is_right_handed(spigot):
     assert np.isclose(rise, P["pitch"] / 4, atol=1.0), (z0, z90)
 
 
-def test_spigot_four_nut_pockets(spigot):
+def test_spigot_four_screw_holes(spigot):
     for x in (-HOLE, HOLE):
         for y in (-HOLE, HOLE):
             assert ray_hits(spigot, (x, y, 50), (0, 0, -1)) == []
-            top = ray_hits(spigot, (x + np.sign(x) * 3, y, 50), (0, 0, -1))[0][2]
-            assert np.isclose(top, P["plate_t"] - 1.9, atol=0.05)
 
 
 def test_gauge_two_rings_small(gauge):
@@ -220,8 +235,13 @@ def test_gauge_two_rings_small(gauge):
 
 
 def test_printed_lid_and_spigot_seat_on_printed_box(box, lid, spigot, tmp_path):
-    # the printed meshes in the pose they are used: the lid set on the rim, the spigot turned over under the floor.
-    # Every mating face here is flat with a square hole pattern, so this cannot tell a part from its mirror
-    # image; the spigot's thread is right-hand as printed and meets the duct, not the box.
-    assert seated_overlap(tmp_path, box, lid, f'translate([0, 0, {P["floor_t"] + P["fan_t"]}])') < 0.01
-    assert seated_overlap(tmp_path, box, spigot, "rotate([180, 0, 0])") < 0.01
+    # the printed meshes in the pose they are used: the lid set on the rim; the spigot turned over and dropped
+    # into the fan socket, flange on the floor's corners, thread out through the floor. The flange and its holes
+    # are square and symmetric, so this cannot tell a part from its mirror image; the thread meets the duct.
+    assert seated_overlap(tmp_path, box, lid, f"translate([0, 0, {H}])") < 0.01
+    assert seated_overlap(tmp_path, box, spigot, f"translate([0, 0, {FAN_Z}]) rotate([180, 0, 0])") < 0.01
+    low = spigot.copy()
+    low.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))
+    low.apply_translation([0, 0, FAN_Z])
+    assert np.isclose(low.bounds[0][2], -P["spigot_h"], atol=0.1)  # the duct thread hangs clear below the flat bottom
+    assert np.isclose(ray_hits(low, (HOLE - 6, HOLE - 6, 20), (0, 0, -1))[-1][2], P["floor_t"], atol=0.05)  # flange on the floor

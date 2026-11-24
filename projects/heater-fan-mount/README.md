@@ -14,11 +14,11 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 |---|---|---|---|
 | Box: fan socket and controller pocket | `part-box.scad` | floor down, open top up, 0.8 mm 45° chamfer round the bed edge; the round knob hole (7.5) bridges its own crown; one-line 45° webs from both sides hold up the gland hole's crown, cut it out after printing; a 3 mm square LED window right of the knob, filled with clear epoxy or CA from inside against tape on the cabin face (its 3 mm top bridges; the fill covers it) | 38.7 cm³ |
 | Lid with the 76 mm collar | `part-lid.scad` | plate down | 32.2 cm³ |
-| Spigot: flange and duct thread | `part-spigot.scad` | flange down | 20.2 cm³ |
+| Spigot: flange and duct thread | `part-spigot.scad` | flange down | 18.8 cm³ |
 | **Gauge, prints first** | `part-gauge.scad` | ring faces down | 23.5 cm³ |
 
 Every part prints in its model orientation. The knob face prints as a vertical wall, so it shows layer lines, not the plate's texture.
-Four M4 screws through lid, fan, box floor and spigot flange; nuts sit in pockets in the flange.
+The spigot's 80.4 mm square flange drops into the fan socket and sits on the floor's corners, under the fan; its thread hangs out through the floor, so the box's underside is flat (owner, 2026-11-24). The fan's own four M4 countersunk screws (35 overall, 32.5 threaded, owner) come up through floor, flange, fan and lid: heads flush in the floor, nuts on top of the lid. The countersink's `head_d` is an estimate until the head is measured.
 12 V enters through a PG9 gland (16 mm hole) on the back wall, against the bulkhead.
 
 ## The gauge

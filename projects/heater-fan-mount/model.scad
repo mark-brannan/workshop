@@ -5,8 +5,10 @@
 //           top up. The knob hole bridges its own small crown; single-line 45 deg webs from both sides, cut out
 //           after, hold up the crown of the gland hole.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
-//   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
-// Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
+//   spigot  a square flange that drops into the fan socket, under the fan, with the threaded duct spigot hanging
+//           out through the floor: the box's underside stays flat. Prints flange down.
+// The fan's own four M4 countersunk screws come up through box floor, spigot flange, fan and lid; heads flush in
+// the floor, nuts on top of the lid.
 // Origin: fan axis on Z, z = 0 on the box's underside, Z up as installed. Knob faces -Y (the cabin);
 // the 12 V gland is on the back (+Y), against the bulkhead, out of sight.
 
@@ -49,12 +51,20 @@ led_chamfer = 1;    // 45 deg chamfer round the window's inside edge: funnels th
 gland_web = 0.45;   // one extrusion line, 45 deg, from each side of the gland hole to its crown; cut out after printing
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
+/* [Screws: the fan's own M4 countersunk; owner: 35 overall, 32.5 threaded] */
+screw_l = 35;
+head_d = 8.4;       // ESTIMATE: 90 deg head on a 4 mm shank, plus 0.4; owner to measure across the head
+nut_h = 3.2;        // M4 hex nut, on top of the lid
+flange_t = 2;       // spigot flange, clamped flat between fan and floor
+flange_fit = 0.2;   // flange to fan socket, each side
+thread_gap = 0.6;   // floor hole to the spigot's rib crest, each side
+
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
-plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
+plate_t = 2.5;      // lid: the whole unit hangs from it via the collar
 pocket = 40;        // controller pocket, inside, along +X beside the fan bay: board 33 plus 3.5 each side
 r = 6;              // vertical edge rounding
 bed_chamfer = 0.8;  // 45 deg chamfer round the box's bed edge: takes up elephant's foot, a clean line at the spigot seam
@@ -65,7 +75,8 @@ $fn = 96;
 e = 0.01;
 W = max(fan + 2 * fit, rim_d + 2 * collar_fit) + 2 * wall;   // box width (X) and fan-bay depth: the collar never overhangs
 L = W + divider + pocket;                   // box length (X): fan bay, divider, pocket
-H = floor_t + fan_t;                     // box height
+fan_z = floor_t + flange_t;              // the fan sits on the spigot's flange
+H = fan_z + fan_t;                       // box height
 pocket_x = W / 2 - wall + divider + pocket / 2;           // pocket centre
 board_top = floor_t + 3 + 1.6;
 led_win_x = pocket_x + board / 2 - led_x + led_shift;
@@ -82,6 +93,9 @@ module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + fro
 // a round hole through a vertical wall, axis along Y, cut from y = 0 toward -Y
 module hole_y(d, h) rotate([90, 0, 0]) linear_extrude(h) circle(d = d);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
+// 90 deg countersinks for the screw heads, flush with the box's underside (z = 0), 45 deg walls opening onto the bed
+csk_h = (head_d - 4.4) / 2;
+module countersinks() for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, -e]) cylinder(d1 = head_d + 2 * e, d2 = 4.4, h = csk_h + e);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
 module box() {
@@ -92,8 +106,10 @@ module box() {
     // controller pocket: filleted floor and corners
     translate([0, 0, floor_t]) offset_sweep(round_corners([[px0, py0], [px0 + pocket, py0], [px0 + pocket, py1], [px0, py1]],
       method = "circle", radius = fillet, $fn = 32), height = H, bottom = os_circle(r = fillet), steps = 8);
-    translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
+    // the threaded spigot passes down through; the floor's corners stop its flange. Kept inside the socket's walls.
+    translate([0, 0, -e]) linear_extrude(floor_t + 2 * e) intersection() { circle(d = spigot_d + 2 * thread_gap); square(sock, center = true); }
     holes(4.4, floor_t + 2 * e);
+    countersinks();
     // fan wires into the pocket: a notch in the divider, open at the top
     translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
     translate([pocket_x, -W / 2 + wall + e, board_top + pot_z]) hole_y(pot_bushing, front + 2 * e);
@@ -134,16 +150,18 @@ module lid() {
   }
 }
 
+module flange_square() { w = sock - 2 * flange_fit; translate([-w / 2, -w / 2]) rrect(w, w, 1); }
 module spigot() {
-  // z = 0 on the flange face that meets the box (the bed when printed); spigot grows up (down, installed)
+  // z = 0 on the flange face under the fan (the bed when printed); the spigot grows up (down, installed), through the floor
   difference() {
     union() {
-      linear_extrude(plate_t) fan_square();
-      translate([0, 0, plate_t - e]) generic_threaded_rod(d = spigot_d, l = spigot_h, pitch = pitch, profile = rib, left_handed = false, end_len = 1, anchor = BOTTOM);
+      linear_extrude(flange_t) flange_square();
+      translate([0, 0, flange_t - e]) generic_threaded_rod(d = spigot_d, l = floor_t + spigot_h, pitch = pitch, profile = rib, left_handed = false, end_len = 1, anchor = BOTTOM);
     }
-    translate([0, 0, -e]) cylinder(d = spigot_bore, h = plate_t + spigot_h + 2 * e);
-    holes(4.4, plate_t + 2 * e);
-    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - 1.9]) cylinder(d = 8.1, h = 1.9 + e, $fn = 6);   // M4 nuts, 1.3 proud, under the stack
+    translate([0, 0, -e]) cylinder(d = spigot_bore, h = flange_t + floor_t + spigot_h + 2 * e);
+    holes(4.4, flange_t + 2 * e);
+    // a head taller than the floor is thick runs on into the flange's floor face
+    if (csk_h > floor_t) translate([0, 0, fan_z]) rotate([180, 0, 0]) countersinks();
   }
 }
 
@@ -162,10 +180,10 @@ module board_dummy() {
 BOX = "#e0e0dc"; LID = "#e0e0dc";
 module stack(gap = 0) {
   color(BOX) box();
-  translate([0, 0, floor_t + gap]) fan_dummy();
+  translate([0, 0, fan_z + gap]) fan_dummy();
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t + 3 + gap * 0.6]) board_dummy();
   color(LID) translate([0, 0, H + 2 * gap]) lid();
-  color(BOX) translate([0, 0, -gap]) rotate([180, 0, 0]) spigot();   // turned over, as a hand does it: a mirror would draw the thread left-hand
+  color(BOX) translate([0, 0, fan_z + gap / 2]) rotate([180, 0, 0]) spigot();   // turned over, as a hand does it: a mirror would draw the thread left-hand
 }
 
 module plate() {
