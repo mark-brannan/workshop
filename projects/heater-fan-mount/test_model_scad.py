@@ -84,7 +84,9 @@ def test_box_ceilings_only_in_the_two_holes(box):
     gz = P["floor_t"] + P["fan_t"] / 2
     in_pot = (c[:, 1] < Y0 + P["front"] + 0.01) & (np.hypot(c[:, 0] - POCKET_X, c[:, 2] - POT_Z) < P["pot_bushing"] / 2 + 0.05)
     in_gland = (c[:, 1] > W / 2 - P["wall"] - 0.01) & (np.hypot(c[:, 0] - POCKET_X, c[:, 2] - gz) < P["gland"] / 2 + 0.25)
-    assert (in_pot | in_gland).all(), c[~(in_pot | in_gland)][:5]
+    win_z = P["floor_t"] + 3 + 1.6 + 1  # the LED window's 3 mm top: accepted, the clear fill covers it
+    in_win = (c[:, 1] < Y0 + P["front"] + 0.01) & (abs(c[:, 2] - win_z - P["led_win"] / 2) < 0.05) & (abs(c[:, 0] - (POCKET_X + P["board"] / 2 - P["led_x"] + P["led_shift"])) < P["led_win"] / 2 + 0.05)
+    assert (in_pot | in_gland | in_win).all(), c[~(in_pot | in_gland | in_win)][:5]
 
 
 def test_box_bed_edge_chamfered(box):
@@ -108,6 +110,23 @@ def test_box_round_holes_and_gland_web(box):
         assert web and web[0][1] == pytest.approx(W / 2, abs=0.05)
     assert ray_hits(box, (POCKET_X, 60, gz), (0, -1, 0)) == []  # below the webs: open, out through the knob hole
     assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 0.3), (0, -1, 0))[0][1] == pytest.approx(W / 2, abs=0.05)  # round
+
+
+LED_X = POCKET_X + P["board"] / 2 - P["led_x"]
+WIN_X, WIN_Z = LED_X + P["led_shift"], P["floor_t"] + 3 + 1.6 + 1
+
+
+def test_box_led_window(box):
+    half = P["led_win"] / 2  # square aperture
+    assert abs(WIN_X - LED_X) < half - 0.5  # the LED is inside the aperture
+    assert ray_hits(box, (WIN_X, -60, WIN_Z), (0, 1, 0))[0][1] > -W / 2 + P["wall"]  # open through the knob wall
+    seat = ray_hits(box, (WIN_X - half - 0.4, -60, WIN_Z), (0, 1, 0))  # past the aperture, inside the seat
+    assert seat[0][1] == pytest.approx(Y0, abs=0.05)
+    assert seat[1][1] == pytest.approx(-W / 2 + P["wall"] - P["pane_t"], abs=0.05)  # the cabin-side lip, then the seat
+    # every aperture corner clears the knob skirt by at least 0.5
+    for dx in (-half, half):
+        for dz in (-half, half):
+            assert np.hypot(WIN_X + dx - POCKET_X, WIN_Z + dz - POT_Z) >= P["knob_d"] / 2 + 0.5
 
 
 def test_box_knob_centred_between_standoffs(box):

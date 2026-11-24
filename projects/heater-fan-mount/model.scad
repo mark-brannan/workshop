@@ -41,6 +41,12 @@ board = 33;
 board_holes = 26;
 pot_z = 7;          // UNMEASURED: pot shaft centre above the board's top
 pot_bushing = 7.5;  // M7 bushing through the wall; the pot is centred on the board (owner), so knob, board and pocket share one X
+knob_d = 15.5;      // knob skirt, owner: the LED window stays clear of it
+led_x = 8.5;        // indicator LED from the module's right edge, seen from the cabin (owner)
+led_win = 3;        // LED window aperture, square to the face; its 3 mm top bridges, then the fill covers it
+led_shift = 0.5;    // window centre from the LED along X: outboard, clear of the knob
+pane = 5;           // diamond seat on the wall's inside (45 deg roof): keys a clear epoxy or UV-resin plug
+pane_t = 1.5;       // seat depth from the inside; 1.5 mm of wall stays on the cabin face
 gland_web = 0.45;   // one extrusion line, 45 deg, from each side of the gland hole to its crown; cut out after printing
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
@@ -62,6 +68,9 @@ W = max(fan + 2 * fit, rim_d + 2 * collar_fit) + 2 * wall;   // box width (X) an
 L = W + divider + pocket;                   // box length (X): fan bay, divider, pocket
 H = floor_t + fan_t;                     // box height
 pocket_x = W / 2 - wall + divider + pocket / 2;           // pocket centre
+board_top = floor_t + 3 + 1.6;
+led_win_x = pocket_x + board / 2 - led_x + led_shift;
+led_win_z = board_top + 1;
 
 include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
@@ -88,7 +97,12 @@ module box() {
     holes(4.4, floor_t + 2 * e);
     // fan wires into the pocket: a notch in the divider, open at the top
     translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
-    translate([pocket_x, -W / 2 + wall + e, floor_t + 3 + 1.6 + pot_z]) hole_y(pot_bushing, front + 2 * e);
+    translate([pocket_x, -W / 2 + wall + e, board_top + pot_z]) hole_y(pot_bushing, front + 2 * e);
+    // LED window: square aperture through the knob wall, a diamond seat on its inside
+    translate([led_win_x, -W / 2 + wall + e, led_win_z]) rotate([90, 0, 0]) {
+      linear_extrude(front + 2 * e) square(led_win, center = true);
+      linear_extrude(pane_t + e) rotate(45) square(pane + 0.3, center = true);
+    }
     translate([pocket_x, W / 2 + e, floor_t + fan_t / 2]) hole_y(gland, wall + 2 * e);
   }
   // gland hole's print support: a line rising at 45 deg from each side of the hole to its crown, the full wall deep
