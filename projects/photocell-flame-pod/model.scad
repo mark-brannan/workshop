@@ -35,7 +35,9 @@ floor_t = 2;
 corner_r = 2;         // outside vertical corners
 ledge = 2;            // board underside above the floor: clears solder stubs
 ledge_lip = 1.2;      // ledge reach in under the board edge: solder pads sit 1.4 in (halmet-enclosure-mount)
-cell_bare = 4;        // no ledge under the photocell end this far in: its leads' solder
+cell_bare = 4;        // no side ledge under the photocell end this far in: its leads' solder
+seat_l = 2;           // corner seats under the photocell end's two corners, this far in; the leads' solder is mid-board, clear (owner's ask, 2026-11-24)
+stop_h = 1;           // end stop over the corner seats, above the board top: the board can't slide or tip toward the cell
 hdr_bare = 3;         // nor under the header end's solder row
 boss_d = 7.5;
 locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go in a printed PETG tray (owner, 2026-11-24)
@@ -50,7 +52,9 @@ skirt_t = 1.2;        // skirt round the outside of the walls
 skirt_h = 4;          // skirt below the rim; clears the end tabs
 cover_gap = 0.2;      // per side, skirt to wall; the piezo lid at 0.2 fitted snug across (owner, 2026-11-24)
 catch = 0.7;          // lip reach into the wall groove; the piezo lid at ~0.6 grazed and fell off (owner, 2026-11-24); the knob
-catch_x = [18, 32];   // lips mid-wall, where the skirt bows most; clear of the cable exit
+catch_x = [18, 32];   // long-wall lips mid-wall, where the skirt bows most; clear of the cable exit
+catch_y = 8;          // end-wall lips, centred across; the header end's is clear of the cable notch at the -Y corner
+end_catch = 0.7;      // end-wall lip reach: the short skirt is stiff near its corners; the first cover says if it wants less
 cell_x_on = 1;        // photocell centre in from the board's photocell end; guessed, from the photo
 cell_hole_d = 8;      // generous: the cell is bent up by hand, its position is guessed
 notch_clear = 0.5;    // per side, round the cable where it passes the skirt
@@ -116,6 +120,11 @@ module tray() {
             // edge ledges, one under each long edge of the board
             for (s = [-1, 1]) translate([bx0 + cell_bare, s > 0 ? in_w/2 - fit - ledge_lip : -in_w/2, floor_t - 0.01])
                 cube([board_l - cell_bare - hdr_bare, ledge_lip + fit, ledge + 0.01]);
+            // corner seats under the photocell end, each with an end stop rising from the end wall to past the board top
+            for (s = [-1, 1]) translate([0, s > 0 ? in_w/2 - fit - ledge_lip : -in_w/2, floor_t - 0.01]) {
+                cube([bx0 + seat_l, ledge_lip + fit, ledge + 0.01]);
+                cube([bx0 - fit, ledge_lip + fit, ledge + board_t + stop_h + 0.01]);
+            }
             translate([hole_x, 0, floor_t - 0.01]) cylinder(d = boss_d, h = ledge + 0.01);
             if (potted) translate([hole_x, 0, board_z - 0.01]) {
                 cylinder(d = locate_d, h = board_t - locate_tip + 0.01);
@@ -136,21 +145,23 @@ module tray() {
         translate([exit_x - cable_d/2, -in_w/2 - wall - 1, cable_z]) cube([cable_d, wall + 2, tray_h]);
         translate([exit_x, -in_w/2 + 1, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d, h = wall + 2);
         if (tabs) for (h = tab_holes()) translate([h[0], h[1], -1]) cylinder(d = tab_hole, h = tab_t + 2);
-        if (potted) for (s = [-1, 1]) catch_profile(s, groove = true);
+        if (potted) for (s = [-1, 1], e = [false, true]) catch_profile(s, groove = true, end = e);
     }
 }
 
-// Snap catch: a 45° V lip on the cover skirt's inside, into a 45° V groove round the wall's outside.
-// Both faces at 45°: the cover pops off to reach the trimpot, and neither needs support printed either way up.
+// Snap catch: a 45° V lip on the cover skirt's inside, into a 45° V groove round the wall's outside,
+// one mid-wall on each of the four walls. Both faces at 45°: the cover pops off to reach the trimpot,
+// and neither needs support printed either way up.
 lip_z = tray_h - skirt_h + 0.3 + cover_gap + catch;   // the V's apex height
-module catch_profile(s, groove) {
-    yw = out_w/2;                      // wall's outside face
-    d = groove ? catch + 0.1 : cover_gap + catch;   // groove depth into the wall; lip reach in from the skirt
-    y0 = groove ? yw + 0.01 : yw + cover_gap + 0.01;
-    tip = groove ? yw - catch - 0.1 : yw - catch;
+module catch_profile(s, groove, end = false) {
+    c = end ? end_catch : catch;
+    w = end ? out_l/2 : out_w/2;       // wall's outside face, from the tray's centre
+    y0 = groove ? w + 0.01 : w + cover_gap + 0.01;
+    tip = groove ? w - c - 0.1 : w - c;
     h = abs(y0 - tip);
-    translate([catch_x[0], 0, 0]) rotate([90, 0, 90]) linear_extrude(catch_x[1] - catch_x[0])
-        polygon([[s*y0, lip_z - h], [s*tip, lip_z], [s*y0, lip_z + h]]);
+    pts = [[s*y0, lip_z - h], [s*tip, lip_z], [s*y0, lip_z + h]];
+    if (end) translate([in_l/2, catch_y/2, 0]) rotate([90, 0, 0]) linear_extrude(catch_y) polygon(pts);
+    else translate([catch_x[0], 0, 0]) rotate([90, 0, 90]) linear_extrude(catch_x[1] - catch_x[0]) polygon(pts);
 }
 
 cell_x = bx0 + cell_x_on;
@@ -163,7 +174,7 @@ module cover() {
                 offset(r = cover_gap + skirt_t) outline();
                 offset(r = cover_gap) outline();
             }
-            for (s = [-1, 1]) catch_profile(s, groove = false);
+            for (s = [-1, 1], e = [false, true]) catch_profile(s, groove = false, end = e);
         }
         translate([cell_x, 0, z0 - 1]) cylinder(d = cell_hole_d, h = cover_t + 2);
         // the cable passes the skirt in a notch open at the skirt's foot

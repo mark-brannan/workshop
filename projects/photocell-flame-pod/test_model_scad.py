@@ -76,7 +76,20 @@ def test_board_rests_on_ledges_and_boss(tray):
     y_ledge = IN_W / 2 - P["fit"] - P["ledge_lip"] / 2
     for y in (-y_ledge, y_ledge):
         assert np.isclose(down(tray, P["cell_end"] + P["board_l"] / 2, y)[0][2], BOARD_Z, atol=0.02)
-    assert np.isclose(down(tray, P["cell_end"] + 1, y_ledge)[0][2], P["floor_t"], atol=0.02)  # bare under the cell end
+    x_bare = P["cell_end"] + P["seat_l"] + 1
+    assert np.isclose(down(tray, x_bare, y_ledge)[0][2], P["floor_t"], atol=0.02)  # bare past the corner seats
+    assert np.isclose(down(tray, x_bare, 0)[0][2], P["floor_t"], atol=0.02)  # and mid-board under the cell leads
+
+
+def test_photocell_end_seats_and_stops(tray):
+    """Both photocell-end corners: a seat under the board, a stop past its end standing over the board top."""
+    y_ledge = IN_W / 2 - P["fit"] - P["ledge_lip"] / 2
+    for y in (-y_ledge, y_ledge):
+        assert np.isclose(down(tray, P["cell_end"] + P["seat_l"] / 2, y)[0][2], BOARD_Z, atol=0.02)
+        assert np.isclose(down(tray, P["cell_end"] - P["fit"] - 0.5, y)[0][2], BOARD_TOP + P["stop_h"], atol=0.02)
+    assert np.isclose(down(tray, P["cell_end"] - 1, 0)[0][2], P["floor_t"], atol=0.02)  # clear under the cell body
+    stop_face = ray_hits(tray, (P["cell_end"] + 1, y_ledge, BOARD_Z + P["board_t"] / 2), (-1, 0, 0))[0][0]
+    assert np.isclose(stop_face, P["cell_end"] - P["fit"], atol=0.02)  # the board end stops 'fit' short of it
     assert np.isclose(down(tray, HOLE_X + P["boss_d"] / 2 - 0.3, 0)[0][2], BOARD_Z, atol=0.02)
 
 
@@ -129,3 +142,10 @@ def test_cover_printed_mesh_fits_tray(cover, tray):
         lip_tip = min(abs(h[1]) for h in ray_hits(cover, (20, s * OUT_W, lip_z), (0, -s, 0)) if abs(h[1]) < OUT_W / 2 + 0.1)
         groove_tip = abs(ray_hits(tray, (20, s * OUT_W, lip_z), (0, -s, 0))[0][1])
         assert groove_tip < lip_tip < OUT_W / 2 - 0.3  # the lip reaches into the groove, short of its root
+    for s, x_mid in ((-1, -P["wall"]), (1, IN_L + P["wall"])):  # both end walls, the header end beside the cable notch
+        x_c = IN_L / 2
+        out = abs(x_mid - x_c)
+        lip_tip = min(abs(h[0] - x_c) for h in ray_hits(cover, (x_c + s * 2 * OUT_L, 0, lip_z), (-s, 0, 0)) if abs(h[0] - x_c) < out + 0.1)
+        groove_tip = abs(ray_hits(tray, (x_c + s * 2 * OUT_L, 0, lip_z), (-s, 0, 0))[0][0] - x_c)
+        assert groove_tip < lip_tip < out - 0.3
+        assert abs(ray_hits(cover, (x_c + s * 2 * OUT_L, P["catch_y"] / 2 + 1, lip_z), (-s, 0, 0))[0][0] - x_c) > out  # lip ends mid-wall
