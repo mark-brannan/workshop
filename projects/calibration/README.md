@@ -53,3 +53,15 @@ Moonraker without the slicer. Each tile has a front tab with its flow x100 raise
 The smoothest top with no gaps between lines is the filament profile's flow ratio.
 
 ![flow ratio map](out/flow_ratio_ASA-CF.png)
+
+## Part 4: melt rate (max volumetric speed), per filament
+
+`max_flow.py` writes `out/max_flow_<material>.gcode`: one single-wall loop 200 x 60 mm, 26 mm tall, started over
+Moonraker without the slicer. Every 1.5 mm of height the hot end is asked for 2 mm³/s more, 8 at the bottom to 40 at
+the top (the K2 Plus's rated figure, for ABS at 280 °C). The front wall's columns each stop at the top of one band,
+shortest on the left; the back wall is plain. The last band whose wall is still glossy, full width and unbroken is
+the limit; the filament profile's max volumetric speed goes a little under it.
+
+![melt-rate bands](out/max_flow_PETG.png)
+
+Overhangs: none; the columns grow from the bed.

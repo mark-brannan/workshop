@@ -141,6 +141,31 @@ def label(g: G, x0: float, y0: float, text: str, flow: float):
             g.extrude(ox + bx * u, ys + by * u, 0.6, flow, 20.0)  # one wide line per stroke
 
 
+def start_gcode(p) -> list[str]:
+    """Heat, the printer's own start macro, then a purge line along the front-left edges. Shared by the
+    calibration jobs here; p needs tool, nozzle and bed."""
+    return [
+        "M140 S0",
+        "M104 S0",
+        *(["BOX_ENABLE_CFS_PRINT ENABLE=0"] if p.tool is None else []),  # spool holder: CFS out of the print
+        f"START_PRINT EXTRUDER_TEMP={p.nozzle} BED_TEMP={p.bed}",
+        *([f"T{p.tool}"] if p.tool is not None else []),
+        f"M109 S{p.nozzle}",
+        "M204 S2000",
+        "G1 Z3 F600",
+        "M83",
+        "G1 Y150 F12000",
+        "G1 X0 F12000",
+        "G1 Z0.2 F600",
+        "G1 X0 Y150 F6000",
+        "G1 X0 Y0 E15 F6000",
+        "G1 X150 Y0 E15 F6000",
+        "G92 E0",
+        "G1 Z1 F600",
+        "M106 S0",
+    ]
+
+
 def build(p: P) -> str:
     g = G(p)
     orgs = tile_origins(p)
@@ -177,24 +202,7 @@ def build(p: P) -> str:
         "; HEADER_BLOCK_END",
         f"; flow ratios (x100 raised on each tile's front tab): {', '.join(f'{r:.2f}' for r in p.ratios)}",
         f"; MINX = {minx:.1f}", f"; MINY = {miny:.1f}", f"; MAXX = {maxx:.1f}", f"; MAXY = {maxy:.1f}",
-        "M140 S0",
-        "M104 S0",
-        *(["BOX_ENABLE_CFS_PRINT ENABLE=0"] if p.tool is None else []),  # spool holder: CFS out of the print
-        f"START_PRINT EXTRUDER_TEMP={p.nozzle} BED_TEMP={p.bed}",
-        *([f"T{p.tool}"] if p.tool is not None else []),
-        f"M109 S{p.nozzle}",
-        "M204 S2000",
-        "G1 Z3 F600",
-        "M83",
-        "G1 Y150 F12000",
-        "G1 X0 F12000",
-        "G1 Z0.2 F600",
-        "G1 X0 Y150 F6000",
-        "G1 X0 Y0 E15 F6000",
-        "G1 X150 Y0 E15 F6000",
-        "G92 E0",
-        "G1 Z1 F600",
-        "M106 S0",
+        *start_gcode(p),
     ]
     tail = [
         "M106 S0",
