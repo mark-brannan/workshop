@@ -375,7 +375,7 @@ def next_(a: argparse.Namespace) -> int:
     rec_file = frames / "recoveries"
     recoveries = int(rec_file.read_text()) if rec_file.exists() else 0
     height = read_job(a.file).height
-    since, sent, stall, misses = None, None, (None, time.monotonic()), 0
+    since, sent, stall, misses, last = None, None, (None, time.monotonic()), 0, 0
     while True:
         try:
             st = fetch(WATCH_OBJECTS)
@@ -391,6 +391,7 @@ def next_(a: argparse.Namespace) -> int:
         if since is None:  # the printer's clock, not ours: only console lines after this call count
             since = max((e.get("time", 0) for e in store), default=0)
         ps, layer = st["print_stats"], layer_of(st)
+        last = max(layer, last)  # the printer zeroes the layer on completion
         if ps.get("filename") and ps["filename"] != a.file:
             print(f"watch FAULT: the printer is on {ps['filename']}, not {a.file}")
             return 1
@@ -420,7 +421,7 @@ def next_(a: argparse.Namespace) -> int:
             since, sent, stall = None, None, (None, time.monotonic())
             continue
         if ps["state"] == "complete" or (ps["state"] == "standby" and not ps.get("filename")):
-            print(f"watch DONE: job {ps['state']} at layer {layer}")
+            print(f"watch DONE: job {ps['state']} at layer {last}")
             return 3
         if a.taper and ps["state"] == "printing":
             pct = taper_pct(st["gcode_move"]["gcode_position"][2], height, a.taper_from, a.taper_to)
