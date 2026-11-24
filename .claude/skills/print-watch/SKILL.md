@@ -25,7 +25,7 @@ are read off the printer, not guessed; one question, all three.
    by the macro's own timer. Never extend it or send a second one, and never
    pass `--over-rating` without the user's word.
 3. `shop watch start <file> --plate … --vents …` once the soak passes.
-4. `shop watch next <file> --plate … --vents …`, in the background. On each
+4. `shop watch next`, in the background (it watches whatever is printing). On each
    `CHECKPOINT`, look at the frame and send it to the user with one line on
    what it shows (brim down or lifting, part on the bed or moved). Then run
    `next` again. `DONE` ends the watch.

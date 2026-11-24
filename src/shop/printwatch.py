@@ -335,12 +335,11 @@ def running_file() -> str | None:
 
 
 def next_(a: argparse.Namespace) -> int:
+    a.file = running_file()
     if a.file is None:
-        a.file = running_file()
-        if a.file is None:
-            print("watch FAULT: no job is printing; name the file")
-            return 1
-        print(f"watching {a.file}")
+        print("watch FAULT: no job is printing")
+        return 1
+    print(f"watching {a.file}")
     frames = Path(a.frames or Path.home() / ".local/state/print-watch" / Path(a.file).stem)
     frames.mkdir(parents=True, exist_ok=True)
     done = {int(f.stem.split("-")[1]) for f in frames.glob("layer-*.jpg")}
@@ -415,7 +414,8 @@ def main(argv: list[str]) -> int:
     for name in ("preflight", "start", "next"):
         pf = sub.add_parser(name)
         watching = name == "next"  # a running job needs them only for a pre-layer-1 restart
-        pf.add_argument("file", nargs="?" if watching else None, help="default (next only): the file now printing")
+        if not watching:  # next watches whatever is printing
+            pf.add_argument("file")
         pf.add_argument("--plate", required=not watching, choices=PLATES)
         pf.add_argument("--vents", required=not watching, choices=("closed", "open"))
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
