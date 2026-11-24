@@ -94,6 +94,8 @@ def build(plate: Path) -> Path:
     out = plate.parent / "out"
     out.mkdir(exist_ok=True)
     tmf = out / f"{plate.stem}.3mf"
+    if tmf.exists() and "Metadata/project_settings.config" in zipfile.ZipFile(tmf).namelist():
+        raise SystemExit(f"{tmf.relative_to(ROOT)} holds your slicer settings; move it aside to rebuild")
     write_3mf(placed, tmf)
     stl = out / f"{plate.stem}.stl"
     trimesh.util.concatenate([p.mesh for p in placed]).export(stl)
