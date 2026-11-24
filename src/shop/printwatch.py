@@ -291,7 +291,8 @@ def soak(a: argparse.Namespace) -> int:
 def frame(a: argparse.Namespace) -> int:
     # Frame n is the state after layer n-1 (printer notes, Camera); decoded on the printer, which has ffmpeg.
     src = "/mnt/UDISK/timelapse/main_output.h264"
-    cmd = f"ffmpeg -v error -i {src} -vf 'select=eq(n\\,{a.layer + 1})' -frames:v 1 -y /tmp/watch.jpg && cat /tmp/watch.jpg"
+    # rm first: a frame not yet encoded writes nothing and exits 0, and cat would send the last job's frame.
+    cmd = f"rm -f /tmp/watch.jpg && ffmpeg -v error -i {src} -vf 'select=eq(n\\,{a.layer + 1})' -frames:v 1 -y /tmp/watch.jpg && cat /tmp/watch.jpg"
     r = subprocess.run([*SSH, cmd], capture_output=True, timeout=120)
     if r.returncode or not r.stdout.startswith(b"\xff\xd8"):
         print(f"frame FAIL: no frame after layer {a.layer} ({r.stderr.decode(errors='replace').strip()[-200:]})")
