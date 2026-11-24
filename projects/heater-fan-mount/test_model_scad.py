@@ -120,9 +120,13 @@ def test_box_led_window(box):
     half = P["led_win"] / 2  # square aperture
     assert abs(WIN_X - LED_X) < half - 0.5  # the LED is inside the aperture
     assert ray_hits(box, (WIN_X, -60, WIN_Z), (0, 1, 0))[0][1] > -W / 2 + P["wall"]  # open through the knob wall
-    seat = ray_hits(box, (WIN_X - half - 0.4, -60, WIN_Z), (0, 1, 0))  # past the aperture, inside the seat
-    assert seat[0][1] == pytest.approx(Y0, abs=0.05)
-    assert seat[1][1] == pytest.approx(-W / 2 + P["wall"] - P["pane_t"], abs=0.05)  # the cabin-side lip, then the seat
+    # 0.4 past the aperture's edge the 45 deg chamfer opens 0.4 short of its full depth, square on every side
+    for dx, dz in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        hits = ray_hits(box, (WIN_X + dx * (half + 0.4), -60, WIN_Z + dz * (half + 0.4)), (0, 1, 0))
+        assert hits[0][1] == pytest.approx(Y0, abs=0.05)
+        assert hits[1][1] == pytest.approx(-W / 2 + P["wall"] - (P["led_chamfer"] - 0.4), abs=0.05)
+    # just past the chamfer: solid wall right through
+    assert ray_hits(box, (WIN_X + half + P["led_chamfer"] + 0.2, -60, WIN_Z), (0, 1, 0))[1][1] == pytest.approx(-W / 2 + P["wall"], abs=0.05)
     # every aperture corner clears the knob skirt by at least 0.5
     for dx in (-half, half):
         for dz in (-half, half):
