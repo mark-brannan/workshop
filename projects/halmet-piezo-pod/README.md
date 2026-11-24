@@ -49,7 +49,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
 - Two rounded tabs at the ends screw to the bulkhead (#8 or M4).
 - Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
   the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
-- Walls 2.0, floor 2.4, lid 2.4. Outside edges rounded on top, square at the bottom;
+- Walls 2.0, floor 2.4, lid 2.4. Outside edges square, box and lid flush at the seam; only the lid's top edge rounded;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
 - Buzzer as low as the module allows: its back 1 mm over the module's top, its top 0.5 mm proud of the lid
   (`proud`; 0 is flush). Turned 39° in plan so its ears land on two columns standing on the floor beside

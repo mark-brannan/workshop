@@ -11,7 +11,7 @@
 // Ledges stand on 45° gussets; snap ridge and groove are 45° both faces.
 // The two cables (HALMET signal, boat 12 V) enter through a mousehole at the foot of the end wall at the
 // module's terminal end, its roof a semicircle. Two rounded-triangle tabs at the ends screw to the bulkhead.
-// Outside edges: rounded on top, square at the bottom. Inside: the floor
+// Outside edges square, box and lid flush at the seam; only the lid's top edge is rounded. Inside: the floor
 // meets the walls on a fillet, the inside corners are rounded, the rim has a lead-in for the lid's skirt.
 
 /* [Parts] */
@@ -42,7 +42,7 @@ proud = 0.5;          // buzzer top above the lid's top; 0 = flush
 in_r = 1.5;           // inside vertical corners
 floor_fillet = 2;     // floor to wall, inside
 chamfer_b = 0;        // back edge, against the bulkhead: square
-round_t = 0.6;        // rim's outer edge
+round_t = 0;          // rim's outer edge: square, flush with the lid at the seam
 lead_in = 0.4;        // rim's inner edge, for the lid's skirt
 
 /* [Module seat] */
