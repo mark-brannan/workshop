@@ -165,3 +165,19 @@ def test_four_pockets_line_up_with_ridges(box):
 
 def test_body_hole_through_lid(lid):
     assert len(ray_hits(lid, (0, 0, -1), (0, 0, 1))) == 0
+
+
+def test_four_corner_keys_stop_lengthwise_slide(lid):
+    # a stiff key in each corner, 0.2 off the end wall: the lid can't slide along the box (owner)
+    z = P["lid_t"] + P["key_h"] / 2
+    x = P["in_w"] / 2 - P["in_r"] - P["key_l"] / 2
+    face = P["in_l"] / 2 - P["key_gap"]
+    for sx in (-1, 1):
+        hits = ray_hits(lid, (sx * x, -50, z), (0, 1, 0))
+        assert len(hits) == 4
+        assert np.isclose(hits[0][1], -face, atol=0.05) and np.isclose(hits[-1][1], face, atol=0.05)
+        assert len(ray_hits(lid, (0, -50, z), (0, 1, 0))) == 0  # mid-end clear
+    # keys don't join the fingers, so the fingers still bend from the lid alone
+    finger_end_y = FINGER_Y + P["finger_w"] / 2
+    assert face - P["key_t"] > finger_end_y + 0.5
+    assert P["key_h"] < DEPTH - (LEDGE_Z + P["ear_t"] + 2)  # clear of the M3 heads' height band

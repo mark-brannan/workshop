@@ -7,7 +7,8 @@
 // Two M3 screws hold the ears down into heat-set inserts in the bosses, inside the box, under the lid.
 // Two cable-tie bridges on the floor along the mousehole-side wall tie the cables down against vibration.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
-// The lid snaps on with four fingers, one near each corner, into pockets in the long walls. The buzzer's leads stay inside.
+// The lid snaps on with four fingers, one near each corner, into pockets in the long walls. Four stiff keys,
+// one in each corner against the end walls, stop it sliding lengthwise. The buzzer's leads stay inside.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled.
 // Ledges stand on 45° gussets; snap ridge and pocket are 45° both faces.
@@ -91,6 +92,11 @@ snap_d = 0.8;         // ridge height off the finger; the knob if it is too stif
 groove_d = 0.9;       // pocket depth into the wall
 groove_play = 0.5;    // pocket longer than the finger, each end
 lid_round = 0.8;      // outer face's edge, the top in use; the inner face's edge is square
+key_l = 6;            // corner key along the end wall, from the inside corner's round; stops the lid sliding lengthwise (owner)
+key_t = 1.6;          // thick, so it stays stiff: it locates, the fingers hold
+key_h = 3;            // down from the lid's underside
+key_gap = 0.2;        // key to end wall
+key_c = 0.6;          // 45° lead-in on the key's tip, wall side
 
 /* [Cable mousehole, terminal end wall] */
 hole_w = 9;           // two cables side by side
@@ -256,6 +262,13 @@ module box() {
     }
 }
 
+// Corner key: a short stiff block against the end wall at a corner, 45° lead-in at its tip; drawn at +X +Y.
+module corner_key() {
+    y0 = in_l/2 - key_gap - key_t;
+    translate([in_w/2 - in_r - key_l, 0, lid_t - eps]) rotate([90, 0, 90]) linear_extrude(key_l)
+        polygon([[y0, 0], [y0 + key_t, 0], [y0 + key_t, key_h - key_c], [y0 + key_t - key_c, key_h], [y0, key_h]]);
+}
+
 module lid() {
     sk_x = in_w/2 - skirt_gap;
     difference() {
@@ -265,6 +278,7 @@ module lid() {
                 translate([sk_x - skirt_t, -finger_w/2, lid_t - eps]) cube([skirt_t, finger_w, skirt_h + eps]);
                 translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, finger_w);
             }
+            for (sx = [-1, 1], sy = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) mirror([0, sy < 0 ? 1 : 0, 0]) corner_key();
         }
         translate([0, 0, -1]) cylinder(d = body_hole_d, h = lid_t + 2);
     }
