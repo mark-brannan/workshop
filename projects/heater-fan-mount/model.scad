@@ -53,7 +53,7 @@ gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed h
 
 /* [Screws: the fan's own M4 countersunk; owner: 35 overall, 32.5 threaded] */
 screw_l = 35;
-head_d = 8.4;       // ESTIMATE: 90 deg head on a 4 mm shank, plus 0.4; owner to measure across the head
+head_d = 7.3;       // countersink at the bed: the head is 6.7 across (owner), plus 0.6 since printed holes come undersize
 nut_h = 3.2;        // M4 hex nut, on top of the lid
 flange_t = 2;       // spigot flange, clamped flat between fan and floor
 flange_fit = 0.2;   // flange to fan socket, each side
