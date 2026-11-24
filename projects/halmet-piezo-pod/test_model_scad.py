@@ -99,19 +99,26 @@ def test_seat_ledges_mid_wall(box):
         assert ray_hits(box, (s * (P["in_w"] / 2 - P["ledge_reach"] - 0.5), 0, DEPTH + 5), (0, 0, -1))[0][2] < LEDGE_Z - 5
 
 
-TIES = [(-12.5, -22.5), (-12.9, -9)]
+TIES = [(-7, -23, 90), (-12.9, -9, 0), (7, -23, 90)]  # A 12 V pair, B signal, C buzzer leads
 
 
-def test_tie_bridges(box):
+def test_tie_points_closed_with_pointed_roof(box):
+    peak = P["floor_t"] + P["tie_gap"] + P["tie_span"] / 2
     zt = P["floor_t"] + P["tie_gap"] / 2
-    for x, y in TIES:
+    for x, y, a in TIES:
         hits = ray_hits(box, (x, y, DEPTH + 5), (0, 0, -1))[:3]
-        assert np.isclose(hits[0][2], P["floor_t"] + P["tie_gap"] + P["tie_deck_t"], atol=0.05)
-        assert np.isclose(hits[1][2], P["floor_t"] + P["tie_gap"], atol=0.05)
+        assert np.isclose(hits[0][2], peak + P["tie_deck_t"], atol=0.05)
+        assert np.isclose(hits[1][2], peak, atol=0.05)  # roof's point
         assert np.isclose(hits[2][2], P["floor_t"], atol=0.05)
-        for dy in (-P["tie_span"] / 2 + 0.3, P["tie_span"] / 2 - 0.3):  # tunnel open across X
-            through = ray_hits(box, (x - P["tie_deck_w"] / 2 - 0.5, y + dy, zt), (1, 0, 0))
-            assert through[0][0] > x + P["tie_deck_w"] / 2 + 0.5
+        u = np.array([np.cos(np.radians(a)), np.sin(np.radians(a)), 0])  # the way the tie runs
+        v = np.array([-u[1], u[0], 0])
+        for dv in (-P["tie_span"] / 2 + 0.3, P["tie_span"] / 2 - 0.3):  # tunnel open end to end
+            start = np.array([x, y, zt]) + dv * v - (P["tie_deck_w"] / 2 + 0.5) * u
+            through = ray_hits(box, tuple(start), tuple(u))
+            assert np.dot(through[0] - start, u) > P["tie_deck_w"] + 1
+        for sv in (-1, 1):  # closed: a pier each side of the tunnel
+            side = np.array([x, y, zt]) + sv * (P["tie_span"] / 2 + P["tie_pier"] / 2) * v + (P["tie_deck_w"] / 2 + 0.5) * u
+            assert np.dot(ray_hits(box, tuple(side), tuple(-u))[0] - side, -u) < 0.6
 
 
 def test_lid_has_only_the_body_hole(lid):

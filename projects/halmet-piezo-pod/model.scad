@@ -5,7 +5,7 @@
 // walls on 45° corbels, leaving the floor beside the module clear for wires; the buzzer is turned in plan
 // (ear_angle) so its ears reach the walls. Two ledges mid-wall seat the flange's edge, so it sits on four points.
 // Two M3 screws hold the ears down into heat-set inserts in the bosses, inside the box, under the lid.
-// Two cable-tie bridges on the floor along the mousehole-side wall tie the cables down against vibration.
+// Three cable-tie points on the floor: the 12 V pair and the buzzer leads in front of their terminals, the signal wire beside the module.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
 // The lid snaps on with one long finger down each long wall, its ridge clicking into a pocket in the wall; a stiff
 // stop across each end wall keys it lengthwise, so it sits located on all four walls (owner). The fingers stop
@@ -73,13 +73,15 @@ ledge_reach = 5.5;    // seat ledge out from the long wall; the flange's edge ov
 ledge_l = 12;         // along the wall
 ledge_t = 1.2;        // flat top before the 45° corbel
 
-/* [Cable-tie bridges] */
+/* [Cable-tie points] */
 tie_span = 5;         // tunnel across, for a tie up to 4.8 wide
-tie_gap = 1.8;        // tunnel height under the deck
-tie_deck_t = 2.2;     // deck thickness; its ends are fully round so the tie bends round them
-tie_deck_w = 3;       // deck width, the way the tie runs
-tie_pier = 1.6;       // pier thickness each end
-tie_xy = [[-12.5, -22.5], [-12.9, -9]];  // inside the mousehole; beside the module on the signal wire's way to J1, clear of the ledge above
+tie_gap = 1.2;        // tunnel's straight sides; its roof rises from there at 45° to a point
+tie_deck_t = 2.2;     // over the roof's point; the top's ends are fully round so the tie bends round them
+tie_deck_w = 3;       // block's length the way the tie runs
+tie_pier = 1.6;       // pier thickness each side of the tunnel
+// [x, y, a]: a = 0, the tie runs along X and the cable along Y; a = 90, the other way.
+// A: 12 V pair in front of VIN (mousehole side); B: signal wire beside the module on its way to J1; C: buzzer leads in front of OUT
+tie_pts = [[-7, -23, 90], [-12.9, -9, 0], [7, -23, 90]];
 
 /* [Snap lid] */
 lid_t = 2.4;
@@ -203,15 +205,18 @@ module seat_ledge(sx) {
     }
 }
 
-// Cable-tie bridge: a deck on two piers, the tie runs under it across X; the cable lies on top along Y.
-// The deck's ends are fully round, so the tie bends round them. The tunnel's roof is a short flat span (owner accepts).
-module tie_bridge(p) {
-    h = tie_gap + tie_deck_t;
-    translate([p[0], p[1], floor_t - eps]) rotate([90, 0, 0]) {
-        linear_extrude(tie_span + 2*tie_pier, center = true)
-            translate([0, tie_gap + tie_deck_t/2]) hull() for (s = [-1, 1]) translate([s*(tie_deck_w - tie_deck_t)/2, 0]) circle(d = tie_deck_t);
-        for (s = [-1, 1]) translate([0, 0, s*(tie_span/2 + tie_pier/2)]) linear_extrude(tie_pier, center = true)
-            translate([-tie_deck_w/2, 0]) square([tie_deck_w, tie_gap + tie_deck_t/2 + eps]);
+// Cable-tie point: a block with a tunnel through it the way the tie runs; the cable lies on top across it.
+// The tunnel's roof is pointed, 45° each side, so nothing prints flat over air.
+module tie_point(t) {
+    peak = tie_gap + tie_span/2;
+    h = peak + tie_deck_t;
+    translate([t[0], t[1], floor_t - eps]) rotate([0, 0, t[2]]) difference() {
+        rotate([90, 0, 0]) linear_extrude(tie_span + 2*tie_pier, center = true) hull() {
+            translate([-tie_deck_w/2, 0]) square([tie_deck_w, eps]);
+            for (s = [-1, 1]) translate([s*(tie_deck_w - tie_deck_t)/2, h - tie_deck_t/2]) circle(d = tie_deck_t);
+        }
+        rotate([90, 0, 90]) linear_extrude(tie_deck_w + 2, center = true)
+            polygon([[-tie_span/2, -1], [tie_span/2, -1], [tie_span/2, tie_gap], [0, peak], [-tie_span/2, tie_gap]]);
     }
 }
 
@@ -256,13 +261,13 @@ module box() {
             }
             for (sy = [-1, 1]) boss(sy);
             for (sx = [-1, 1]) seat_ledge(sx);
-            for (p = tie_xy) tie_bridge(p);
+            for (t = tie_pts) tie_point(t);
             for (sy = [-1, 1]) tab(sy);
             seat();
         }
         insert_holes();
         for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
-        translate([hole_x, -in_l/2, floor_t]) mousehole(hole_w, hole_side, 2*wall + 2*floor_fillet + 2);
+        translate([hole_x, -in_l/2 + (floor_fillet + 0.4 - wall - 1)/2, floor_t]) mousehole(hole_w, hole_side, floor_fillet + 0.4 + wall + 1);  // inside, just past the fillet: clear of tie A
         for (a = [0, 180]) rotate([0, 0, a]) translate([in_w/2, finger_y, depth - snap_z]) ridge(groove_d, finger_w + 2*groove_play);
     }
 }
