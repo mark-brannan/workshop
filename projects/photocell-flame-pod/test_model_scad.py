@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import trimesh
 from shop.scad import build_scad, find_openscad
-from shop.testing import ray_hits
+from shop.testing import ray_hits, seated_overlap
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
@@ -149,3 +149,10 @@ def test_cover_printed_mesh_fits_tray(cover, tray):
         groove_tip = abs(ray_hits(tray, (x_c + s * 2 * OUT_L, 0, lip_z), (-s, 0, 0))[0][0] - x_c)
         assert groove_tip < lip_tip < out - 0.3
         assert abs(ray_hits(cover, (x_c + s * 2 * OUT_L, P["catch_y"] / 2 + 1, lip_z), (-s, 0, 0))[0][0] - x_c) > out  # lip ends mid-wall
+
+
+def test_printed_cover_turned_over_fits_printed_tray(tray, cover, tmp_path):
+    # the printed meshes in the pose they are used; the cover fixture has already turned the print over about X
+    place = "translate([0, 0, 0])"
+    assert seated_overlap(tmp_path, tray, cover, place) < 0.01
+    assert seated_overlap(tmp_path, tray, cover, place, mirror="[1, 0, 0]") > 1  # the test sees a cover put on wrong

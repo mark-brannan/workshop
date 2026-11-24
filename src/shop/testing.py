@@ -46,3 +46,40 @@ def ray_hits(mesh, origin, direction) -> list[list[float]]:
     hit = ok & (u >= -1e-9) & (v >= -1e-9) & (u + v <= 1 + 1e-9) & (t > 1e-9)
     ts = np.unique(np.round(t[hit], 6))  # shared edges/vertices count once
     return [(o + ti * d).tolist() for ti in ts]
+
+
+# A hand turns a printed part over; it cannot mirror it. These are the two turns, as OpenSCAD transforms.
+TURNS = {"about X": "rotate([180, 0, 0])", "about Y": "rotate([0, 180, 0])"}
+
+
+def seated_overlap(tmp_path, mate, part, place: str, mirror: str | None = None) -> float:
+    """Volume in mm3 that a printed part shares with its mate once it is seated: 0 when it fits.
+
+    ``mate`` and ``part`` are the meshes that get printed, each in its print pose. ``place`` is the
+    OpenSCAD move that carries the part from its print pose to where it is used, built from
+    ``rotate()`` and ``translate()`` only, never ``mirror()``: the move a hand makes.
+
+    ``mirror`` (an axis such as ``"[1, 0, 0]"``) seats the part's mirror image instead. A fit test
+    worth having finds an overlap there for a part that differs from its mirror image; one that
+    reads 0 both ways cannot tell the part from its mirror, and needs a check of what engages.
+    """
+    import trimesh
+
+    from shop.scad import build_scad
+
+    if "mirror" in place:
+        raise ValueError(f"place is a hand's move, rotate() and translate() only: {place}")
+    tmp_path = Path(tmp_path)
+    tag = f"fit{len(list(tmp_path.glob('fit*.scad')))}"
+    mate.export(tmp_path / f"{tag}-mate.stl")
+    part.export(tmp_path / f"{tag}-part.stl")
+    flip = f"mirror({mirror}) " if mirror else ""
+    (tmp_path / f"{tag}.scad").write_text(
+        f'intersection() {{ import("{tmp_path}/{tag}-mate.stl"); {place} {flip}import("{tmp_path}/{tag}-part.stl"); }}\n')
+    try:
+        out = build_scad(tmp_path / f"{tag}.scad", tmp_path, tag, render=False)
+    except RuntimeError as e:
+        if "top level object is empty" in str(e):  # nothing shared: openscad refuses to export nothing
+            return 0.0
+        raise
+    return abs(trimesh.load(out["stl"]).volume)

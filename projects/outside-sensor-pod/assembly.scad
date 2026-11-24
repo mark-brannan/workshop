@@ -5,8 +5,8 @@ cut = true;          // quarter cut-away to show the cavity
 
 module stack() {
     color("gainsboro") base();
-    for (k = [1 : n_louvres]) color("white") translate([0, 0, base_t + boss_h + pitch*k]) mirror([0, 0, 1]) louvre();
-    color("white") translate([0, 0, base_t + boss_h + pitch*(n_louvres + 1)]) mirror([0, 0, 1]) cap();
+    for (k = [1 : n_louvres]) color("white") translate([0, 0, base_t + boss_h + pitch*k]) rotate([0, 180, 0]) louvre();
+    color("white") translate([0, 0, base_t + boss_h + pitch*(n_louvres + 1)]) rotate([0, 180, 0]) cap();
 }
 module board(sx) {   // 25.4 x 17.78 stand-in, long axis up, parts facing away from the fin
     translate([sx*(fin_t/2 + standoff), 0, board_z]) {

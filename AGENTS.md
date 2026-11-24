@@ -78,16 +78,18 @@ All unmeasured. `projects/calibration/` fills this table. **Nothing ships on a g
 
 Build, `uv run pytest -q`, read the PNG, then report with the picture.
 
-### Asymmetric hole patterns
+### Asymmetric mating features
 
-A hole pattern is asymmetric here when its mirror image is a different pattern: a diagonal pair, an offset corner, three corners of four. Test: flip it left to right; if the holes land somewhere new, this section applies.
+A set of mating features is asymmetric here when its mirror image is a different set: a diagonal pair of holes, an offset corner, three corners of four, a snap finger or key toward one end, a pocket on one side. Holes, fingers, ridges, keys and pockets all count. Test: flip it left to right; if a feature lands somewhere new, this section applies.
 
-Two faces that mate see the same pattern from opposite sides, so one is the mirror of the other. A symmetric pattern forgives a model that forgets this; an asymmetric one mates one way round only. This burned several troubleshooting sessions on `din-rail-psu-mount` and `bme688-cabin-screen`.
+Two faces that mate see the same features from opposite sides, so one is the mirror of the other. A symmetric set forgives a model that forgets this; an asymmetric one mates one way round only. This burned several troubleshooting sessions on `din-rail-psu-mount`, `bme688-cabin-screen` and `halmet-piezo-pod`.
 
-Where parts mate through such a pattern, printed to printed or printed to a measured object, the report carries both of these before any print:
+A hand can turn a part over; it cannot mirror it. A part's print pose and the pose it is used in differ by `rotate()` and `translate()` only, never `mirror()`, in either direction: the assembly places the printed part by a turn, and a print pose is the designed part turned. `mirror()` builds symmetric shape inside a part; it never places one. A test fails on `mirror()` applied to a printed part (`tests/test_turned_not_mirrored.py`).
 
-- **A 3D render of the assembly**, in the pose the user will assemble it, the mating holes visibly in line. It labels front and back, and which way up each part goes. The agent looks at it before sending it. Where the user's word on orientation and the model disagree, the user's word stands.
-- **A hole-alignment test** on the meshes that get printed, in the pose they are used, never on the hole lists in `model.scad`. It fails on the mirrored layout.
+Where parts mate through such features, printed to printed or printed to a measured object, the report carries both of these before any print:
+
+- **A 3D render of the assembly**, in the pose the user will assemble it, the mating features visibly in line. It labels front and back, and which way up each part goes. The agent looks at it before sending it. Where the user's word on orientation and the model disagree, the user's word stands.
+- **A fit test** on the meshes that get printed, in the pose they are used, never on the hole or feature lists in `model.scad`. It fails on the mirrored layout. `shop.testing.seated_overlap` seats one printed mesh on another and, asked, seats the mirror image too; where the mirror image seats as cleanly, the test also checks what engages. A project that prints more than one part has one; the same test file lists the older projects that get theirs when next changed.
 
 ## Sibling repo: symphony (the boat)
 

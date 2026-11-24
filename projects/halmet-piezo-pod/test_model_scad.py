@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import trimesh
 from shop.scad import build_scad, find_openscad
-from shop.testing import ray_hits
+from shop.testing import TURNS, ray_hits, seated_overlap
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
@@ -200,21 +200,13 @@ def test_end_stops_key_the_lid_lengthwise(lid):
 
 
 # A hand turns the printed lid over; it cannot mirror it. Both turns (about Y and about X) give the same pose here.
-FLIPS = {"about Y": "rotate([0, 180, 0])", "about X": "rotate([180, 0, 0])"}
-
-
-@pytest.mark.parametrize("flip", FLIPS)
+@pytest.mark.parametrize("flip", TURNS)
 def test_printed_lid_turned_over_fits_printed_box(box, lid, flip, tmp_path):
     # on the meshes that get printed, in the pose they are used: no lid material inside the box, and the
     # fingers clear the buzzer's ear tips. A lid that only fits as its mirror image fails here.
-    box.export(tmp_path / "box.stl")
-    lid.export(tmp_path / "lid.stl")
-    (tmp_path / "fit.scad").write_text(
-        f'intersection() {{ import("{tmp_path}/box.stl"); '
-        f'translate([0, 0, {DEPTH + P["lid_t"]}]) {FLIPS[flip]} import("{tmp_path}/lid.stl"); }}\n')
-    out = build_scad(tmp_path / "fit.scad", tmp_path, "fit", render=False)
-    overlap = trimesh.load(out["stl"]) if out.get("stl") else None
-    assert overlap is None or abs(overlap.volume) < 0.01
+    place = f'translate([0, 0, {DEPTH + P["lid_t"]}]) {TURNS[flip]}'
+    assert seated_overlap(tmp_path, box, lid, place) < 0.01
+    assert seated_overlap(tmp_path, box, lid, place, mirror="[1, 0, 0]") > 1  # the test sees the mirror image
     seated = lid.copy()
     seated.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [0, 1, 0] if flip == "about Y" else [1, 0, 0]))
     seated.apply_translation([0, 0, DEPTH + P["lid_t"]])

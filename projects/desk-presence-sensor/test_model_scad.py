@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import trimesh
 from shop.scad import build_scad, find_openscad
-from shop.testing import ray_hits
+from shop.testing import ray_hits, seated_overlap
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
@@ -218,3 +218,10 @@ def test_gauge_full_depth_seats_no_walls_no_tray_seats(gauge):
             for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
                                (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2, P["ol_pilot_d"], OL_BOARD_Z)):
                 assert np.isclose(down(gauge, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)   # post at the shell's board height
+
+
+def test_printed_back_turned_over_fits_printed_shell(shell, back, tmp_path):
+    # the printed meshes in the pose they are used: the back turned over about Y onto the shell's open side
+    place = f'translate([0, 0, {shell.bounds[1][2] + P["back_t"]}]) rotate([0, 180, 0])'
+    # The back's mirror image seats as cleanly (0 overlap both ways), so this cannot tell the two apart.
+    assert seated_overlap(tmp_path, shell, back, place) < 0.01

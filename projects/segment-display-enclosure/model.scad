@@ -136,5 +136,5 @@ else if (part == "back") back();
 else {
     shell();
     module_standin();
-    translate([0, 0, shell_h + cover_t + 10]) mirror([0, 0, 1]) back();  // exploded 10 mm
+    translate([0, 0, shell_h + cover_t + 10]) rotate([180, 0, 0]) back();  // turned over, exploded 10 mm
 }

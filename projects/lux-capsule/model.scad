@@ -59,6 +59,6 @@ module parts() {
 module tube() color("silver", 0.3) translate([-40, 0, -R_t]) rotate([0, 90, 0]) difference() { cylinder(r = R_t, h = 80); translate([0, 0, -1]) cylinder(r = R_t - 3, h = 82); }
 if (view == "cap_print") translate([0, 0, -cap_z]) cap();
 if (view == "riser_print") translate([0, 0, -cap_z]) riser();
-if (view == "base_print") translate([0, 0, plate_t]) mirror([0, 0, 1]) base();   // saddle top on the bed, the tube trench up
+if (view == "base_print") translate([0, 0, plate_t]) rotate([180, 0, 0]) base();   // saddle top on the bed, the tube trench up
 if (view == "closed") { parts(); tube(); }
 if (view == "section") intersection() { union() { parts(); tube(); } translate([-100, -100, -100]) cube([100, 200, 300]); }
