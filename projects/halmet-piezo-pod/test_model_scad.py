@@ -68,11 +68,12 @@ def test_stack_fits():
 
 
 def test_seat_pocket_and_pilots(box):
-    pocket_y = -P["mod_l"] / 2 + P["pocket_r"]
+    pocket_y = -P["mod_l"] / 2 + P["pocket_gap"] + P["pocket_l"] / 2
+    hole_e = P["hole_gap"] + P["hole_d"] / 2
     assert np.isclose(ray_hits(box, (0, pocket_y, DEPTH + 5), (0, 0, -1))[0][2], P["floor_t"], atol=0.05)
     assert np.isclose(ray_hits(box, (0, 0, DEPTH + 5), (0, 0, -1))[0][2], SEAT_Z, atol=0.05)
     for s in (-1, 1):
-        hit = ray_hits(box, (s * P["hole_pitch"] / 2, P["mod_l"] / 2 - P["hole_e"], DEPTH + 5), (0, 0, -1))[0][2]
+        hit = ray_hits(box, (s * P["hole_pitch"] / 2, P["mod_l"] / 2 - hole_e, DEPTH + 5), (0, 0, -1))[0][2]
         assert np.isclose(hit, SEAT_Z - P["m2_depth"], atol=0.05)  # blind, deep enough for a longer M2
 
 
