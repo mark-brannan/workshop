@@ -18,7 +18,7 @@ OUT_L = P["in_l"] + 2 * P["wall"]
 SEAT_Z = P["floor_t"] + P["plinth_h"]
 INSERT_DEPTH = P["insert_l"] + 0.8
 COL_R = P["insert_hole_d"] / 2 + P["insert_wall"]
-EAR_A = np.arcsin((P["mod_w"] / 2 + P["fit"] + P["col_gap"] + COL_R) / (P["ear_pitch"] / 2))
+EAR_A = np.arcsin((P["in_w"] / 2 - P["ear_tip_gap"] - P["ear_r"]) / (P["ear_span"] / 2 - P["ear_r"]))
 EAR_XY = [(s * -np.sin(EAR_A) * P["ear_pitch"] / 2, s * np.cos(EAR_A) * P["ear_pitch"] / 2) for s in (-1, 1)]
 LEDGE_Z = SEAT_Z + P["mod_h"] + P["buzz_clear"]
 DEPTH = LEDGE_Z + P["buzzer_h"] - P["proud"] - P["lid_t"]
@@ -56,9 +56,11 @@ def test_lid_bounds_volume(lid):
 def test_stack_fits():
     assert P["plinth_h"] > P["pin_out"]  # pins clear of the pocket floor
     for x, y in EAR_XY:
-        assert abs(x) - COL_R > P["mod_w"] / 2 + P["fit"]  # columns clear the module's sides
-    tip = P["ear_span"] / 2 * np.array([np.sin(EAR_A), np.cos(EAR_A)]) + 3.5 * np.array([np.cos(EAR_A), np.sin(EAR_A)])
-    assert tip[0] < P["in_w"] / 2 and tip[1] < P["in_l"] / 2  # ear tips clear the walls
+        assert abs(x) - COL_R > P["mod_w"] / 2 + 1  # bosses clear the module's sides
+    c = P["ear_span"] / 2 - P["ear_r"]
+    assert c * np.sin(EAR_A) + P["ear_r"] <= P["in_w"] / 2 - 1  # ear tips clear the long walls
+    assert c * np.cos(EAR_A) + P["ear_r"] < P["in_l"] / 2 - 1
+    assert P["ledge_reach"] - (P["in_w"] / 2 - P["buzzer_d"] / 2) >= 1.5  # flange edge overlaps the ledges
     assert LEDGE_Z + P["ear_t"] + 2.5 < DEPTH  # M3 heads inside, under the lid
     assert 2 <= P["proud"] <= 4  # ~3 of the buzzer's housing shows above the lid (owner)
     assert P["hole_pitch"] / 2 + P["hole_d"] / 2 < P["mod_w"] / 2  # screw holes inside the board's edges
@@ -84,6 +86,32 @@ def test_insert_columns_at_ear_holes(box):
         assert np.isclose(hits[0][2], LEDGE_Z - INSERT_DEPTH, atol=0.05)  # blind insert hole in the column top
         rim = ray_hits(box, (x + COL_R - 0.5, y, DEPTH + 5), (0, 0, -1))[0][2]
         assert np.isclose(rim, LEDGE_Z, atol=0.05)
+        inner = x - np.sign(x) * (COL_R - 0.5)  # the boss edge toward the module
+        hits = ray_hits(box, (inner, y, DEPTH + 5), (0, 0, -1))
+        assert np.isclose(hits[0][2], LEDGE_Z, atol=0.05)
+        assert hits[1][2] > LEDGE_Z - INSERT_DEPTH - P["insert_floor"] - 0.6  # boss hangs off the wall
+        assert np.isclose(hits[2][2], P["floor_t"], atol=0.05)  # floor clear under it, room for ferrules
+
+
+def test_seat_ledges_mid_wall(box):
+    for s in (-1, 1):
+        assert np.isclose(ray_hits(box, (s * (P["in_w"] / 2 - 1), 0, DEPTH + 5), (0, 0, -1))[0][2], LEDGE_Z, atol=0.05)
+        assert ray_hits(box, (s * (P["in_w"] / 2 - P["ledge_reach"] - 0.5), 0, DEPTH + 5), (0, 0, -1))[0][2] < LEDGE_Z - 5
+
+
+TIES = [(-12.5, -22.5), (-12.9, -9)]
+
+
+def test_tie_bridges(box):
+    zt = P["floor_t"] + P["tie_gap"] / 2
+    for x, y in TIES:
+        hits = ray_hits(box, (x, y, DEPTH + 5), (0, 0, -1))[:3]
+        assert np.isclose(hits[0][2], P["floor_t"] + P["tie_gap"] + P["tie_deck_t"], atol=0.05)
+        assert np.isclose(hits[1][2], P["floor_t"] + P["tie_gap"], atol=0.05)
+        assert np.isclose(hits[2][2], P["floor_t"], atol=0.05)
+        for dy in (-P["tie_span"] / 2 + 0.3, P["tie_span"] / 2 - 0.3):  # tunnel open across X
+            through = ray_hits(box, (x - P["tie_deck_w"] / 2 - 0.5, y + dy, zt), (1, 0, 0))
+            assert through[0][0] > x + P["tie_deck_w"] / 2 + 0.5
 
 
 def test_lid_has_only_the_body_hole(lid):

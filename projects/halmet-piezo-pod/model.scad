@@ -1,9 +1,11 @@
 // HALMET piezo pod: a box with a snap-on lid on an engine-room bulkhead or deckhead.
 // The XY-MOS trigger module sits in a seat on a plinth, its terminal pins in a blind pocket, two M2.5 screws at
 // the far end.
-// The flanged 12 V buzzer sits as low as the module allows, its ears on two columns that stand on the floor
-// beside the module; the buzzer is turned in plan (ear_angle) so the columns clear the module's sides.
-// Two M3 screws hold the ears down into heat-set inserts in the columns, inside the box, under the lid.
+// The flanged 12 V buzzer sits as low as the module allows, its ears on two bosses that grow out of the long
+// walls on 45° corbels, leaving the floor beside the module clear for wires; the buzzer is turned in plan
+// (ear_angle) so its ears reach the walls. Two ledges mid-wall seat the flange's edge, so it sits on four points.
+// Two M3 screws hold the ears down into heat-set inserts in the bosses, inside the box, under the lid.
+// Two cable-tie bridges on the floor along the mousehole-side wall tie the cables down against vibration.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
 // The lid snaps on with four fingers, one near each corner, into pockets in the long walls. The buzzer's leads stay inside.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
@@ -34,6 +36,7 @@ buzzer_h = 15;        // overall; owner, approximate
 ear_t = 4.5;          // ear flange at the buzzer's back; owner, caliper
 ear_span = 47.4;      // ear tip to ear tip; owner, caliper
 ear_pitch = 40;       // ear hole to ear hole; owner, by eye
+ear_r = 3.5;          // ear tip radius; by eye
 
 /* [Box] */
 in_w = 36;            // across: the buzzer's leads leave its side, toward a long wall
@@ -57,12 +60,23 @@ rim_h = 1.5;          // above the board's seat
 m25_pilot = 2.2;      // M2.5 self-tapping; printed holes come out small; calibration pending
 m25_depth = 5;        // plinth and most of the floor: room for a longer screw
 
-/* [Buzzer columns and heat-set inserts] */
+/* [Buzzer bosses, ledges and heat-set inserts] */
 insert_hole_d = 4.0;  // M3 heat-set insert, short (M3 x 4); the hole its maker gives. Not bought
 insert_l = 4;         // insert length
 insert_wall = 1.6;    // plastic round the insert's hole
-col_gap = 0.4;        // column to the module's side
-col_flare = 1.5;      // 45° flare at the column's foot
+insert_floor = 1.2;   // solid under the insert's hole, then the corbel
+ear_tip_gap = 1.2;    // ear tip to the long wall; sets the buzzer's turn
+ledge_reach = 5.5;    // seat ledge out from the long wall; the flange's edge overlaps it ~2
+ledge_l = 12;         // along the wall
+ledge_t = 1.2;        // flat top before the 45° corbel
+
+/* [Cable-tie bridges] */
+tie_span = 5;         // tunnel across, for a tie up to 4.8 wide
+tie_gap = 1.8;        // tunnel height under the deck
+tie_deck_t = 2.2;     // deck thickness; its ends are fully round so the tie bends round them
+tie_deck_w = 3;       // deck width, the way the tie runs
+tie_pier = 1.6;       // pier thickness each end
+tie_xy = [[-12.5, -22.5], [-12.9, -9]];  // inside the mousehole; beside the module on the signal wire's way to J1, clear of the ledge above
 
 /* [Snap lid] */
 lid_t = 2.4;
@@ -100,9 +114,9 @@ out_l = in_l + 2*wall;
 seat_z = floor_t + plinth_h;                         // board underside
 insert_depth = insert_l + 0.8;                       // blind hole, room for melt
 col_r = insert_hole_d/2 + insert_wall;
-ear_angle = asin((mod_w/2 + fit + col_gap + col_r) / (ear_pitch/2));  // buzzer turn, so columns clear the module
+ear_angle = asin((in_w/2 - ear_tip_gap - ear_r) / (ear_span/2 - ear_r));  // buzzer turn: ear tips ear_tip_gap off the long walls
 ear_dir = [-sin(ear_angle), cos(ear_angle)];         // ear axis in plan; ear holes at ±ear_pitch/2 along it
-ledge_z = seat_z + mod_h + buzz_clear;               // column tops, the ears' underside
+ledge_z = seat_z + mod_h + buzz_clear;               // boss and ledge tops, the ears' underside
 depth = ledge_z + buzzer_h - proud - lid_t;          // floor to the lid's underside
 function ear_xy(s) = s*ear_pitch/2*ear_dir;
 seat_w = mod_w + 2*fit + 2*rim_t;
@@ -158,10 +172,35 @@ module seat() {
     }
 }
 
-module column(sy) {
-    translate([each ear_xy(sy), floor_t - eps]) {
-        cylinder(r = col_r, h = ledge_z - floor_t + eps);
-        cylinder(r1 = col_r + col_flare, r2 = col_r, h = col_flare);
+// Insert boss: a round top at the ear hole, joined into the long wall, carried on a 45° corbel.
+boss_bot = ledge_z - insert_l - 0.8 - insert_floor;
+module boss(sy) {
+    p = ear_xy(sy);
+    sx = p[0] < 0 ? -1 : 1;
+    reach = in_w/2 - (abs(p[0]) - col_r);   // inner edge of the boss to the wall
+    mirror([sx < 0 ? 1 : 0, 0, 0]) hull() {
+        translate([abs(p[0]), p[1], boss_bot]) cylinder(r = col_r, h = ledge_z - boss_bot);
+        translate([in_w/2 - eps, p[1] - col_r, boss_bot - reach]) cube([wall/2, 2*col_r, ledge_z - boss_bot + reach]);
+    }
+}
+
+// Seat ledge mid-wall: flat top at ledge_z under the flange's edge, 45° corbel below.
+module seat_ledge(sx) {
+    mirror([sx < 0 ? 1 : 0, 0, 0]) hull() {
+        translate([in_w/2 - ledge_reach, -ledge_l/2, ledge_z - ledge_t]) cube([ledge_reach + wall/2, ledge_l, ledge_t]);
+        translate([in_w/2 - eps, -ledge_l/2, ledge_z - ledge_t - ledge_reach]) cube([wall/2, ledge_l, eps]);
+    }
+}
+
+// Cable-tie bridge: a deck on two piers, the tie runs under it across X; the cable lies on top along Y.
+// The deck's ends are fully round, so the tie bends round them. The tunnel's roof is a short flat span (owner accepts).
+module tie_bridge(p) {
+    h = tie_gap + tie_deck_t;
+    translate([p[0], p[1], floor_t - eps]) rotate([90, 0, 0]) {
+        linear_extrude(tie_span + 2*tie_pier, center = true)
+            translate([0, tie_gap + tie_deck_t/2]) hull() for (s = [-1, 1]) translate([s*(tie_deck_w - tie_deck_t)/2, 0]) circle(d = tie_deck_t);
+        for (s = [-1, 1]) translate([0, 0, s*(tie_span/2 + tie_pier/2)]) linear_extrude(tie_pier, center = true)
+            translate([-tie_deck_w/2, 0]) square([tie_deck_w, tie_gap + tie_deck_t/2 + eps]);
     }
 }
 
@@ -204,7 +243,9 @@ module box() {
                 slab(out_w, out_l, corner_r, depth, chamfer_b, round_t);
                 cavity();
             }
-            for (sy = [-1, 1]) column(sy);
+            for (sy = [-1, 1]) boss(sy);
+            for (sx = [-1, 1]) seat_ledge(sx);
+            for (p = tie_xy) tie_bridge(p);
             for (sy = [-1, 1]) tab(sy);
             seat();
         }
@@ -242,7 +283,7 @@ module buzzer_standin() {
     translate([0, 0, ledge_z]) rotate([0, 0, ear_angle]) difference() {
         union() {
             cylinder(d = buzzer_d, h = buzzer_h);
-            linear_extrude(ear_t) hull() { circle(d = buzzer_d); for (sy = [-1, 1]) translate([0, sy*(ear_span/2 - 3.5)]) circle(r = 3.5); }
+            linear_extrude(ear_t) hull() { circle(d = buzzer_d); for (sy = [-1, 1]) translate([0, sy*(ear_span/2 - ear_r)]) circle(r = ear_r); }
         }
         for (sy = [-1, 1]) translate([0, sy*ear_pitch/2, -1]) cylinder(d = 3.2, h = ear_t + 2);
     }
