@@ -51,4 +51,4 @@ Read the pin order off the module's silkscreen; the bus board is G, D, V.
 | `solder_out` | 9 | board edge to the end of the heatshrink over the pins |
 | `cable_d` | 4.5 | exit for a 3-core cable; caliper the cable |
 | `pin_z` | 1.27 | right-angle header pin row above the board top |
-| `fit`, `locate_d` | 0.3, 3.4 | PETG fits uncalibrated |
+| `fit`, `locate_d` | 0.3, 2.6 | PETG fits uncalibrated; a 3.4 pin did not go in the board hole, so the hole is likely ~3.2 drilled and the ~4 its pad |

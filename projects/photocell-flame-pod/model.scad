@@ -37,7 +37,8 @@ ledge_lip = 1.2;      // ledge reach in under the board edge: solder pads sit 1.
 cell_bare = 4;        // no ledge under the photocell end this far in: its leads' solder
 hdr_bare = 3;         // nor under the header end's solder row
 boss_d = 7.5;
-locate_d = 3.4;       // potted: pin up through the ~4 board hole
+locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go in a printed PETG tray (owner, 2026-11-24)
+locate_tip = 0.6;     // 45° chamfer on the pin top, a lead-in for the hole
 cell_end = 4;         // board's photocell end to the inner end wall: the cell body overhangs here
 pour_rim = 0.5;       // potted: wall above the epoxy line, a dam for the pour
 
@@ -103,7 +104,10 @@ module tray() {
             for (s = [-1, 1]) translate([bx0 + cell_bare, s > 0 ? in_w/2 - fit - ledge_lip : -in_w/2, floor_t - 0.01])
                 cube([board_l - cell_bare - hdr_bare, ledge_lip + fit, ledge + 0.01]);
             translate([hole_x, 0, floor_t - 0.01]) cylinder(d = boss_d, h = ledge + 0.01);
-            if (potted) translate([hole_x, 0, board_z - 0.01]) cylinder(d = locate_d, h = board_t + 0.01);
+            if (potted) translate([hole_x, 0, board_z - 0.01]) {
+                cylinder(d = locate_d, h = board_t - locate_tip + 0.01);
+                translate([0, 0, board_t - locate_tip]) cylinder(d1 = locate_d, d2 = locate_d - 2*locate_tip, h = locate_tip + 0.01);
+            }
             else intersection() {   // lid-screw columns in the inside corners
                 for (c = cols) translate([c[0], c[1], 0]) cylinder(d = column_d, h = tray_h);
                 translate([0, -in_w/2, 0]) cube([in_l, in_w, tray_h]);
