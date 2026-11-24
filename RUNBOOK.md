@@ -18,7 +18,7 @@ prints the list; `shop watch <cmd> --help` prints each one's flags.
 | check a job before starting it | `shop watch preflight <file.gcode> --plate frosted --vents closed` |
 | heat-soak for an ASA or ABS job | `shop watch soak <file.gcode> --plate frosted` |
 | start a job safely | `shop watch start <file.gcode> --plate frosted --vents closed` |
-| watch a running job, frame by frame | `shop watch next <file.gcode> --plate frosted --vents closed` |
+| watch a running job, frame by frame | `shop watch next` |
 | grab the camera frame after a layer | `shop watch frame <layer> out.jpg` |
 | find the Fusion scripts folder | `shop fusion` |
 | see which parts plug into the boat | `shop symphony` |
@@ -77,7 +77,7 @@ The order the printer notes earned the hard way
    ```
 4. **Watch.** Run it again after each frame until it says `DONE`:
    ```
-   shop watch next box.gcode --plate frosted --vents closed
+   shop watch next [--plate frosted --vents closed [--cfs]]
    ```
    | It prints | Exit | Means |
    |---|---|---|
@@ -86,6 +86,7 @@ The order the printer notes earned the hard way
    | `watch FAULT at layer 212: key836; …` | 1 | your call: the printer is left as it is |
    | `watch DONE: job complete at layer 529` | 3 | finished |
 
+   Without `--plate` and `--vents`, a fault before layer 1 is reported, not restarted.
    Frames come after layers 2, 10, 50, then every 100. A part taller than
    60 mm slows linearly to 70% speed at its top (`M220`); `--no-taper` turns
    that off, `--taper-from` and `--taper-to` move it. The taper only runs while

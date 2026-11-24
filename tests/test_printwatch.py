@@ -221,7 +221,7 @@ def fake_printer(monkeypatch, tmp_path, state, filename):
     return pw
 
 
-def test_next_without_a_file_watches_the_printing_one(monkeypatch, tmp_path, capsys):
+def test_next_watches_the_printing_job(monkeypatch, tmp_path, capsys):
     pw = fake_printer(monkeypatch, tmp_path, "printing", "lid.gcode")
     monkeypatch.setattr(pw, "frame", lambda a: 0)
     a = watch_args()
@@ -230,13 +230,16 @@ def test_next_without_a_file_watches_the_printing_one(monkeypatch, tmp_path, cap
     assert "CHECKPOINT" in capsys.readouterr().out
 
 
-def test_next_without_a_file_and_no_job_refuses(monkeypatch, tmp_path, capsys):
+def test_next_with_no_job_printing_refuses(monkeypatch, tmp_path, capsys):
     pw = fake_printer(monkeypatch, tmp_path, "standby", "")
     assert pw.next_(watch_args()) == 1
     assert "no job is printing" in capsys.readouterr().out
 
 
-def test_next_with_a_file_that_is_not_the_printing_one_faults(monkeypatch, tmp_path, capsys):
-    pw = fake_printer(monkeypatch, tmp_path, "printing", "lid.gcode")
-    assert pw.next_(watch_args(file="box.gcode")) == 1
-    assert "printer is on lid.gcode, not box.gcode" in capsys.readouterr().out
+def test_next_takes_no_file_argument():
+    import pytest
+
+    from shop import printwatch as pw
+
+    with pytest.raises(SystemExit):
+        pw.main(["next", "lid.gcode"])
