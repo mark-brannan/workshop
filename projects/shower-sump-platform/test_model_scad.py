@@ -96,3 +96,9 @@ def test_rivet_holes_through_skirts(installed):
             start_b = [start[0], y + 4, start[2]]
             beside = ray_hits(installed, start_b, ray)
             assert beside and math.dist(beside[0], start_b) < 6, f"skirt missing beside the hole at {side}, {y}"
+
+
+def test_pilot_takes_a_nylon_m4_tap():
+    """Printed Ø3 is drilled to 3.3 and tapped M4 (README, 2026-11-24): the pilot must be under 3.3, the boss wall after drilling at least 2.8."""
+    assert P["hole_d"] < 3.3
+    assert (P["boss_d"] - 3.3) / 2 >= 2.8

@@ -16,7 +16,7 @@ hull_angle = 66;     // degrees above horizontal: hull leans 23 stbd, 25 port fr
 
 /* [Sump screws and opening (from the Fusion v6 deck)] */
 holes = [[93, 25], [93, -34], [100, 0], [-93, 25], [-93, -34], [-100, 0]];   // the sump's wing holes
-hole_d = 3;          // self-tapping pilot, as Fusion had it
+hole_d = 3;          // undersize pilot: drill to 3.3 and tap M4 for a nylon screw after printing (owner, 2026-11-24)
 boss_d = 9;
 boss_h = 12;         // screw depth below the deck top
 opening = [176, 59]; // cut out of the deck middle, under the sump; leaves 15 mm strips at the 89 mm length (Fusion had 176 x 80 on 110)
