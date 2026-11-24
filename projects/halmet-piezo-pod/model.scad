@@ -279,7 +279,9 @@ module lid() {
     difference() {
         union() {
             translate([0, 0, lid_t]) mirror([0, 0, 1]) slab(out_w, out_l, corner_r, lid_t, 0, lid_round);
-            for (a = [0, 180]) rotate([0, 0, a]) translate([0, finger_y, 0]) {
+            // Laid out mirrored in X: the print pose is the installed pose turned over about Y (lid_on), and the
+            // fingers are not mirror-symmetric, so drawing them as installed would print the mirror image.
+            mirror([1, 0, 0]) for (a = [0, 180]) rotate([0, 0, a]) translate([0, finger_y, 0]) {
                 translate([sk_x - skirt_t, -finger_w/2, lid_t - eps]) cube([skirt_t, finger_w, skirt_h + eps]);
                 translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, finger_w);
             }
@@ -289,8 +291,9 @@ module lid() {
     }
 }
 
-// Lid in place, flipped onto the box, for the assembly drawing.
-module lid_on() { translate([0, 0, depth + lid_t]) mirror([0, 0, 1]) lid(); }
+// Lid in place: the printed lid turned over about Y, as a hand does it. Never mirror(): a mirror is no move a
+// hand can make, and it hides a lid that only fits as its own mirror image.
+module lid_on() { translate([0, 0, depth + lid_t]) rotate([0, 180, 0]) lid(); }
 
 module module_standin() {
     color("darkgreen") translate([-mod_w/2, -mod_l/2, seat_z]) cube([mod_w, mod_l, board_t]);

@@ -152,7 +152,7 @@ def test_one_long_finger_each_long_wall(lid):
     for sx in (-1, 1):
         hits = ray_hits(lid, (sx * x, -50, z), (0, 1, 0))
         assert len(hits) == 2  # one continuous ridge
-        lo, hi = sorted((sx * FINGER_LO, sx * FINGER_HI))
+        lo, hi = sorted((-sx * FINGER_LO, -sx * FINGER_HI))  # print pose: the installed layout mirrored in X
         assert np.isclose(hits[0][1], lo, atol=0.05) and np.isclose(hits[1][1], hi, atol=0.05)
     assert FINGER_HI - FINGER_LO > 30  # long: holds along most of the wall
 
@@ -190,3 +190,27 @@ def test_end_stops_key_the_lid_lengthwise(lid):
         assert np.isclose(hits[0][1], -face, atol=0.05) and np.isclose(hits[-1][1], face, atol=0.05)
     assert face - P["stop_t"] > FINGER_HI + 0.5  # stops don't join the fingers, which still bend from the lid alone
     assert P["stop_h"] < DEPTH - (LEDGE_Z + P["ear_t"] + 2)
+
+
+# A hand turns the printed lid over; it cannot mirror it. Both turns (about Y and about X) give the same pose here.
+FLIPS = {"about Y": "rotate([0, 180, 0])", "about X": "rotate([180, 0, 0])"}
+
+
+@pytest.mark.parametrize("flip", FLIPS)
+def test_printed_lid_turned_over_fits_printed_box(box, lid, flip, tmp_path):
+    # on the meshes that get printed, in the pose they are used: no lid material inside the box, and the
+    # fingers clear the buzzer's ear tips. A lid that only fits as its mirror image fails here.
+    box.export(tmp_path / "box.stl")
+    lid.export(tmp_path / "lid.stl")
+    (tmp_path / "fit.scad").write_text(
+        f'intersection() {{ import("{tmp_path}/box.stl"); '
+        f'translate([0, 0, {DEPTH + P["lid_t"]}]) {FLIPS[flip]} import("{tmp_path}/lid.stl"); }}\n')
+    out = build_scad(tmp_path / "fit.scad", tmp_path, "fit", render=False)
+    overlap = trimesh.load(out["stl"]) if out.get("stl") else None
+    assert overlap is None or abs(overlap.volume) < 0.01
+    seated = lid.copy()
+    seated.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [0, 1, 0] if flip == "about Y" else [1, 0, 0]))
+    seated.apply_translation([0, 0, DEPTH + P["lid_t"]])
+    for ex, ey in EAR_XY:  # nothing hangs down at the ear tip, by the wall
+        x = np.sign(ex) * (P["in_w"] / 2 - P["skirt_gap"] - P["skirt_t"] / 2)
+        assert len(ray_hits(seated, (x, ey, 0), (0, 0, 1))) == 2  # the lid plate only

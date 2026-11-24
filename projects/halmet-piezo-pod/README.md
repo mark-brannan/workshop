@@ -50,6 +50,9 @@ Module calipered; buzzer measured by the owner, partly by eye.
   the box is 36 wide inside so they have room toward a long wall. If the ear holes are not 40 apart, `ear_pitch` moves them.
 - The lid snaps on with one long finger down each long wall, 36 long, 1.2 thick, 8.5 deep. Each carries a 0.8 ridge, 45° both faces, 7 below the lid, that clicks into a pocket 0.9 deep in the wall, so it holds along most of the wall, not at points, against engine vibration. Each finger stops 1.2 short of the buzzer's ear tip; the ears are point-symmetric, so the lid fits either way round. Bending strain at the ridge about 3 % (1.5 t y / L²); force grows with length, so expect a firmer click than the old corner fingers. Too stiff or too loose: `snap_d` is the knob.
 - A stiff end stop across each end wall, 33 long, 1.6 thick, 3 deep, 0.2 off the wall, 45° lead-in at the tip: with the fingers, the lid is located on all four walls and can't slide lengthwise even before it snaps (owner, 2026-11-24). The stops stand clear of the fingers, so the fingers still bend from the lid alone.
+- The fingers are not mirror-symmetric, so the lid is printed with them laid out mirrored: turned over about Y (or X) by hand, they land on the pockets and clear the ear tips. `lid_on()` turns the lid over, never mirrors it, and a test seats the printed lid mesh on the printed box mesh both ways round. The first long-finger lid (67d7673) only fitted as its mirror image.
+
+  ![printed lid turned over onto the box: exploded, plan, section](out/lid-fit.png)
 - The inside walls are vertical to the rim's 0.4 lead-in. On the first print they sloped out 0.4 over their height, which left the old 0.6 ridge about 0.04 to catch on: why it never snapped.
 - Two rounded tabs at the ends screw to the bulkhead (#8 or M4).
 - Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
