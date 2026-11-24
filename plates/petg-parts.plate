@@ -1,0 +1,9 @@
+# PETG, no gauge pending. Rebuild with: shop plate plates/petg-parts.plate
+projects/esp32-breakout-mounts/out/esp32-breakout-mounts_scad.stl
+projects/segment-display-enclosure/out/segment-display-enclosure_scad.stl
+projects/segment-display-enclosure/out/segment-display-enclosure_back.stl
+projects/onefinity-probe-holder/out/onefinity-probe-holder_scad.stl
+projects/shower-sump-platform/out/shower-sump-platform_scad.stl
+projects/printer-chute-transition/out/printer-chute-transition_cover.stl
+projects/halmet-piezo-pod/out/halmet-piezo-pod_scad.stl
+projects/halmet-piezo-pod/out/halmet-piezo-pod_lid.stl
