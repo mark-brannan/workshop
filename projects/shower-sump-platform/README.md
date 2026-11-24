@@ -33,7 +33,12 @@ meets a boss stops at it; they are teardrops pointing at the skirt's foot, which
 lean 24 degrees off vertical in print and hold themselves up.
 
 The sump screws down through six Ø3 pilots into 12 mm bosses, at the Fusion deck's hole positions; only the
-platform is bonded, so the sump comes out for cleaning. The middle is cut through (`opening`, 176 x 59).
+platform is bonded, so the sump comes out for cleaning.
+
+Fasteners (owner, 2026-11-24): nylon M4 pan heads, no metal. The boat is ocean-going, and in a salt bilge
+stainless pits in the crevice of a screw hole (304 badly, 316 too) and brass inserts dezincify. Drill each Ø3
+pilot to 3.3 and tap M4 after printing; the Ø9 boss leaves about 2.8 mm of wall. A nylon penny washer, 12 mm
+across or more, spans each 9 mm wing slot. Screw length: wing thickness + washer + about 8. The middle is cut through (`opening`, 176 x 59).
 Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it
 received is not recorded.
 
