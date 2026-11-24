@@ -74,7 +74,7 @@ def test_seat_pocket_and_pilots(box):
     assert np.isclose(ray_hits(box, (0, 0, DEPTH + 5), (0, 0, -1))[0][2], SEAT_Z, atol=0.05)
     for s in (-1, 1):
         hit = ray_hits(box, (s * P["hole_pitch"] / 2, P["mod_l"] / 2 - hole_e, DEPTH + 5), (0, 0, -1))[0][2]
-        assert np.isclose(hit, SEAT_Z - P["m2_depth"], atol=0.05)  # blind, deep enough for a longer M2
+        assert np.isclose(hit, SEAT_Z - P["m25_depth"], atol=0.05)  # blind, deep enough for a longer M2.5
 
 
 def test_insert_columns_at_ear_holes(box):

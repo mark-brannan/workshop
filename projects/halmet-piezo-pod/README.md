@@ -35,14 +35,14 @@ Module calipered; buzzer measured by the owner, partly by eye.
 | `hole_d` | 2.6 | owner, caliper; sets where the screw-hole centre sits |
 | Buzzer, on hand | body 29.0 dia, ~15 high; ear flange 4.5 thick at the back; ears 47.4 tip to tip, holes ~40 apart; leads leave the side at the back | owner, caliper; height and hole pitch by eye |
 | `body_hole_d`, `ear_hole_d` | 29.8, 3.6 | clearance; printed holes come out small |
-| `m2_pilot` | 1.7 | M2 self-tapping into the plinth; calibration pending |
+| `m25_pilot` | 2.2 | M2.5 self-tapping into the plinth; printed holes come out small; calibration pending |
 | `insert_hole_d` | 4.0 | M3 x 4 heat-set insert, maker's hole; inserts not bought |
 | `mount_d` | 4.5 | #8 or M4 pan head |
 
 ## Design
 
 - Box 40 x 85 x 30.5 over the tabs, 19.4 cm3; lid 40 x 60 x 6.4 with its skirts, 4.5 cm3. PETG.
-- The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2
+- The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2.5
   self-tapping screws at the far end.
 - The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
   the box is 36 wide inside so they have room toward a long wall. If the ear holes are not 40 apart, `ear_pitch` moves them.

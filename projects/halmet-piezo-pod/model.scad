@@ -1,5 +1,5 @@
 // HALMET piezo pod: a box with a snap-on lid on an engine-room bulkhead or deckhead.
-// The XY-MOS trigger module sits in a seat on a plinth, its terminal pins in a blind pocket, two M2 screws at
+// The XY-MOS trigger module sits in a seat on a plinth, its terminal pins in a blind pocket, two M2.5 screws at
 // the far end.
 // The flanged 12 V buzzer sits as low as the module allows, its ears on two columns that stand on the floor
 // beside the module; the buzzer is turned in plan (ear_angle) so the columns clear the module's sides.
@@ -53,8 +53,8 @@ plinth_h = 3;         // board raised clear of its pins (pin_out) with margin
 fit = 0.3;            // board to rim, each side
 rim_t = 1.2;
 rim_h = 1.5;          // above the board's seat
-m2_pilot = 1.7;       // M2 self-tapping; calibration pending
-m2_depth = 5;         // plinth and most of the floor: room for a longer screw
+m25_pilot = 2.2;      // M2.5 self-tapping; printed holes come out small; calibration pending
+m25_depth = 5;        // plinth and most of the floor: room for a longer screw
 
 /* [Buzzer columns and heat-set inserts] */
 insert_hole_d = 4.0;  // M3 heat-set insert, short (M3 x 4); the hole its maker gives. Not bought
@@ -200,7 +200,7 @@ module box() {
             seat();
         }
         insert_holes();
-        for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m2_depth]) cylinder(d = m2_pilot, h = m2_depth + 1);
+        for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
         translate([hole_x, -in_l/2, floor_t]) mousehole(hole_w, hole_side, 2*wall + 2*floor_fillet + 2);
         for (sx = [-1, 1]) translate([sx*in_w/2, 0, depth - snap_z]) mirror([sx < 0 ? 1 : 0, 0, 0]) ridge(groove_d, skirt_l + 2);
     }
@@ -239,7 +239,7 @@ module buzzer_standin() {
     }
 }
 
-module m2_screw() { cylinder(d = 3.8, h = 1.4); translate([0, 0, -8]) cylinder(d = 2, h = 8); }
+module m25_screw() { cylinder(d = 4.5, h = 1.7); translate([0, 0, -8]) cylinder(d = 2.5, h = 8); }
 module m3_screw(l = 10) { cylinder(d = 5.5, h = 2); translate([0, 0, -l]) cylinder(d = 3, h = l); }
 module insert_standin() { color("goldenrod") difference() { cylinder(d = insert_hole_d + 0.6, h = insert_l); translate([0, 0, -1]) cylinder(d = 2.5, h = insert_l + 2); } }
 
@@ -247,11 +247,11 @@ module insert_standin() { color("goldenrod") difference() { cylinder(d = insert_
 // Each part is cut on its own so it keeps its colour.
 module cut() { if (show == "cutaway") intersection() { children(); rotate([0, 0, ear_angle]) translate([-100, -100, -10]) cube([100, 200, 100]); } else children(); }
 
-// Everything in place: box, module and its M2 screws, inserts, buzzer, lid, M3 screws.
+// Everything in place: box, module and its M2.5 screws, inserts, buzzer, lid, M3 screws.
 module assembled() {
     color("orange") cut() box();
     cut() module_standin();
-    color("silver") cut() for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t]) m2_screw();
+    color("silver") cut() for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t]) m25_screw();
     color("goldenrod") cut() for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l]) insert_standin();
     color("white") cut() buzzer_standin();
     color("gold") cut() lid_on();
@@ -264,7 +264,7 @@ module exploded() {
     g = explode;
     color("orange") box();
     translate([0, 0, g]) module_standin();
-    color("silver") for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t + 1.6*g]) m2_screw();
+    color("silver") for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t + 1.6*g]) m25_screw();
     for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l + 1.6*g]) insert_standin();
     translate([0, 0, 2.2*g]) color("white") buzzer_standin();
     translate([0, 0, 3.2*g]) color("gold") lid_on();
