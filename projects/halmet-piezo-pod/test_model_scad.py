@@ -132,7 +132,10 @@ def test_mousehole_at_floor_terminal_end(box):
     assert ray_hits(box, (P["hole_x"], -OUT_L, above), (0, 1, 0))[0][1] < -P["in_l"] / 2  # wall above the roof
 
 
-FINGER_Y = P["in_l"] / 2 - P["in_r"] - P["finger_end"] - P["finger_w"] / 2
+TIP_Y = (P["ear_span"] / 2 - P["ear_r"]) * np.cos(EAR_A) - P["ear_r"]  # ear tip's near edge along Y
+FINGER_HI = P["in_l"] / 2 - P["in_r"] - P["finger_end"]
+FINGER_LO = -(TIP_Y - P["ear_clear"])
+# +X wall: finger over [FINGER_LO, FINGER_HI]; -X wall: the same turned 180°
 
 
 def test_finger_strain():
@@ -143,41 +146,47 @@ def test_finger_strain():
     assert P["groove_d"] <= P["wall"] - 1
 
 
-def test_four_fingers_with_ridges(lid):
+def test_one_long_finger_each_long_wall(lid):
     x = P["in_w"] / 2 - P["skirt_gap"] + P["snap_d"] / 2
     z = P["lid_t"] + P["snap_z"]
     for sx in (-1, 1):
         hits = ray_hits(lid, (sx * x, -50, z), (0, 1, 0))
-        assert len(hits) == 4  # two ridges along each long side
-        for sy in (-1, 1):  # and nothing between them
-            assert len(ray_hits(lid, (sx * x, sy * FINGER_Y, z), (0, 0, 1))) % 2 == 1
+        assert len(hits) == 2  # one continuous ridge
+        lo, hi = sorted((sx * FINGER_LO, sx * FINGER_HI))
+        assert np.isclose(hits[0][1], lo, atol=0.05) and np.isclose(hits[1][1], hi, atol=0.05)
+    assert FINGER_HI - FINGER_LO > 30  # long: holds along most of the wall
 
 
-def test_four_pockets_line_up_with_ridges(box):
+def test_fingers_clear_the_ear_tips():
+    # the ear on the +X wall sits at -Y; its tip spans |y| >= TIP_Y and reaches within ear_tip_gap of the wall
+    for ex, ey in EAR_XY:
+        sx = 1 if ex > 0 else -1
+        lo, hi = sorted((sx * FINGER_LO, sx * FINGER_HI))
+        assert not (lo - P["ear_clear"] + 0.01 < ey < hi + P["ear_clear"] - 0.01)
+        tip_cy = abs(ey) / (P["ear_pitch"] / 2) * (P["ear_span"] / 2 - P["ear_r"])  # tip centre lies further out than the hole
+        assert tip_cy - P["ear_r"] - P["ear_clear"] >= -FINGER_LO - 0.01
+
+
+def test_pockets_line_up_with_ridges(box):
     z = DEPTH - P["snap_z"]
     for sx in (-1, 1):
-        for sy in (-1, 1):
-            hit = ray_hits(box, (0, sy * FINGER_Y, z), (sx, 0, 0))[0]
-            assert np.isclose(abs(hit[0]), P["in_w"] / 2 + P["groove_d"], atol=0.05)
-        plain = ray_hits(box, (0, 0, z), (sx, 0, 0))[0]
-        assert np.isclose(abs(plain[0]), P["in_w"] / 2, atol=0.05)  # no groove mid-wall
+        mid = sx * (FINGER_LO + FINGER_HI) / 2
+        hit = ray_hits(box, (0, mid, z), (sx, 0, 0))[0]
+        assert np.isclose(abs(hit[0]), P["in_w"] / 2 + P["groove_d"], atol=0.05)
+        plain = ray_hits(box, (0, -sx * 20, z), (sx, 0, 0))[0]
+        assert np.isclose(abs(plain[0]), P["in_w"] / 2, atol=0.05)  # no groove by the ear
 
 
 def test_body_hole_through_lid(lid):
     assert len(ray_hits(lid, (0, 0, -1), (0, 0, 1))) == 0
 
 
-def test_four_corner_keys_stop_lengthwise_slide(lid):
-    # a stiff key in each corner, 0.2 off the end wall: the lid can't slide along the box (owner)
-    z = P["lid_t"] + P["key_h"] / 2
-    x = P["in_w"] / 2 - P["in_r"] - P["key_l"] / 2
-    face = P["in_l"] / 2 - P["key_gap"]
-    for sx in (-1, 1):
-        hits = ray_hits(lid, (sx * x, -50, z), (0, 1, 0))
-        assert len(hits) == 4
+def test_end_stops_key_the_lid_lengthwise(lid):
+    # a stiff rib across each end wall, 0.2 off it: the lid can't slide along the box (owner)
+    z = P["lid_t"] + P["stop_h"] / 2
+    face = P["in_l"] / 2 - P["stop_gap"]
+    for x in (-P["in_w"] / 2 + P["in_r"] + 0.5, 0, P["in_w"] / 2 - P["in_r"] - 0.5):
+        hits = ray_hits(lid, (x, -50, z), (0, 1, 0))
         assert np.isclose(hits[0][1], -face, atol=0.05) and np.isclose(hits[-1][1], face, atol=0.05)
-        assert len(ray_hits(lid, (0, -50, z), (0, 1, 0))) == 0  # mid-end clear
-    # keys don't join the fingers, so the fingers still bend from the lid alone
-    finger_end_y = FINGER_Y + P["finger_w"] / 2
-    assert face - P["key_t"] > finger_end_y + 0.5
-    assert P["key_h"] < DEPTH - (LEDGE_Z + P["ear_t"] + 2)  # clear of the M3 heads' height band
+    assert face - P["stop_t"] > FINGER_HI + 0.5  # stops don't join the fingers, which still bend from the lid alone
+    assert P["stop_h"] < DEPTH - (LEDGE_Z + P["ear_t"] + 2)

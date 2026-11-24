@@ -7,8 +7,10 @@
 // Two M3 screws hold the ears down into heat-set inserts in the bosses, inside the box, under the lid.
 // Two cable-tie bridges on the floor along the mousehole-side wall tie the cables down against vibration.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
-// The lid snaps on with four fingers, one near each corner, into pockets in the long walls. Four stiff keys,
-// one in each corner against the end walls, stop it sliding lengthwise. The buzzer's leads stay inside.
+// The lid snaps on with one long finger down each long wall, its ridge clicking into a pocket in the wall; a stiff
+// stop across each end wall keys it lengthwise, so it sits located on all four walls (owner). The fingers stop
+// short of the buzzer's ear tips; the ears are point-symmetric, so the lid fits either way round.
+// The buzzer's leads stay inside.
 // Origin: back face (against the bulkhead), centred. X across, Y up the bulkhead, Z out from it.
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled.
 // Ledges stand on 45° gussets; snap ridge and pocket are 45° both faces.
@@ -84,19 +86,18 @@ lid_t = 2.4;
 body_hole_d = 29.8;   // printed holes come out small
 skirt_t = 1.2;        // snap finger thickness
 skirt_h = 8.5;        // finger length down from the lid's underside; long so it bends, not the wall
-finger_w = 8;         // one finger near each corner, on the long walls
-finger_end = 1;       // finger's end to the inside corner's round
+finger_end = 1;       // finger's corner end to the inside corner's round
+ear_clear = 1.2;      // finger's other end to the buzzer's ear tip, in plan
 skirt_gap = 0.2;      // finger to wall
 snap_z = 7;           // ridge centre, below the lid's underside
 snap_d = 0.8;         // ridge height off the finger; the knob if it is too stiff or too loose
 groove_d = 0.9;       // pocket depth into the wall
 groove_play = 0.5;    // pocket longer than the finger, each end
 lid_round = 0.8;      // outer face's edge, the top in use; the inner face's edge is square
-key_l = 6;            // corner key along the end wall, from the inside corner's round; stops the lid sliding lengthwise (owner)
-key_t = 1.6;          // thick, so it stays stiff: it locates, the fingers hold
-key_h = 3;            // down from the lid's underside
-key_gap = 0.2;        // key to end wall
-key_c = 0.6;          // 45° lead-in on the key's tip, wall side
+stop_t = 1.6;         // end stop, across each end wall between the inside corners' rounds; stiff: it locates, the fingers hold
+stop_h = 3;           // down from the lid's underside
+stop_gap = 0.2;       // stop to end wall
+stop_c = 0.6;         // 45° lead-in on the stop's tip, wall side
 
 /* [Cable mousehole, terminal end wall] */
 hole_w = 9;           // two cables side by side
@@ -127,7 +128,11 @@ depth = ledge_z + buzzer_h - proud - lid_t;          // floor to the lid's under
 function ear_xy(s) = s*ear_pitch/2*ear_dir;
 seat_w = mod_w + 2*fit + 2*rim_t;
 seat_l = mod_l + 2*fit + 2*rim_t;
-finger_y = in_l/2 - in_r - finger_end - finger_w/2;  // finger centres at ±finger_y
+tip_y = (ear_span/2 - ear_r)*cos(ear_angle) - ear_r;  // ear tip's near edge, along Y from the centre
+finger_hi = in_l/2 - in_r - finger_end;              // on the +X wall the finger runs from -(tip_y - ear_clear) to here;
+finger_lo = -(tip_y - ear_clear);                    // the -X wall's is the same turned 180°, its ear at the other end
+finger_w = finger_hi - finger_lo;
+finger_y = (finger_hi + finger_lo)/2;
 
 module rrect(w, l, r) { offset(r = r) square([w - 2*r, l - 2*r], center = true); }
 
@@ -258,15 +263,15 @@ module box() {
         insert_holes();
         for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
         translate([hole_x, -in_l/2, floor_t]) mousehole(hole_w, hole_side, 2*wall + 2*floor_fillet + 2);
-        for (sx = [-1, 1], sy = [-1, 1]) translate([sx*in_w/2, sy*finger_y, depth - snap_z]) mirror([sx < 0 ? 1 : 0, 0, 0]) ridge(groove_d, finger_w + 2*groove_play);
+        for (a = [0, 180]) rotate([0, 0, a]) translate([in_w/2, finger_y, depth - snap_z]) ridge(groove_d, finger_w + 2*groove_play);
     }
 }
 
-// Corner key: a short stiff block against the end wall at a corner, 45° lead-in at its tip; drawn at +X +Y.
-module corner_key() {
-    y0 = in_l/2 - key_gap - key_t;
-    translate([in_w/2 - in_r - key_l, 0, lid_t - eps]) rotate([90, 0, 90]) linear_extrude(key_l)
-        polygon([[y0, 0], [y0 + key_t, 0], [y0 + key_t, key_h - key_c], [y0 + key_t - key_c, key_h], [y0, key_h]]);
+// End stop: a stiff rib across the +Y end wall between the corner rounds, 45° lead-in at its tip.
+module end_stop() {
+    y0 = in_l/2 - stop_gap - stop_t;
+    translate([-(in_w/2 - in_r), 0, lid_t - eps]) rotate([90, 0, 90]) linear_extrude(in_w - 2*in_r)
+        polygon([[y0, 0], [y0 + stop_t, 0], [y0 + stop_t, stop_h - stop_c], [y0 + stop_t - stop_c, stop_h], [y0, stop_h]]);
 }
 
 module lid() {
@@ -274,11 +279,11 @@ module lid() {
     difference() {
         union() {
             translate([0, 0, lid_t]) mirror([0, 0, 1]) slab(out_w, out_l, corner_r, lid_t, 0, lid_round);
-            for (sx = [-1, 1], sy = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) translate([0, sy*finger_y, 0]) {
+            for (a = [0, 180]) rotate([0, 0, a]) translate([0, finger_y, 0]) {
                 translate([sk_x - skirt_t, -finger_w/2, lid_t - eps]) cube([skirt_t, finger_w, skirt_h + eps]);
                 translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, finger_w);
             }
-            for (sx = [-1, 1], sy = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) mirror([0, sy < 0 ? 1 : 0, 0]) corner_key();
+            for (a = [0, 180]) rotate([0, 0, a]) end_stop();
         }
         translate([0, 0, -1]) cylinder(d = body_hole_d, h = lid_t + 2);
     }

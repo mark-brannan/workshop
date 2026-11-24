@@ -43,13 +43,13 @@ Module calipered; buzzer measured by the owner, partly by eye.
 
 ## Design
 
-- Box 40 x 85 x 28 over the tabs, 19.8 cm3; lid 40 x 60 x 10.9 with its fingers, 4.5 cm3. PETG.
+- Box 40 x 85 x 28 over the tabs, 19.8 cm3; lid 40 x 60 x 10.9 with its fingers, 5.1 cm3. PETG.
 - The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2.5
   self-tapping screws at the far end.
 - The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
   the box is 36 wide inside so they have room toward a long wall. If the ear holes are not 40 apart, `ear_pitch` moves them.
-- The lid snaps on with four fingers, one near each corner on the long walls, 8 wide, 1.2 thick, 8.5 long. Each carries a 0.8 ridge, 45° both faces, 7 below the lid, that clicks into a pocket 0.9 deep in the wall; the pockets also stop the lid sliding. Bending strain at the ridge about 3 % (1.5 t y / L²). Too stiff or too loose: `snap_d` is the knob.
-- Four corner keys on the lid's underside, one against each end wall at a corner, 6 long, 1.6 thick, 3 deep, 0.2 off the wall, 45° lead-in at the tip: the lid can't slide lengthwise even before it snaps (owner, 2026-11-24). They stand clear of the fingers, so the fingers still bend from the lid alone.
+- The lid snaps on with one long finger down each long wall, 36 long, 1.2 thick, 8.5 deep. Each carries a 0.8 ridge, 45° both faces, 7 below the lid, that clicks into a pocket 0.9 deep in the wall, so it holds along most of the wall, not at points, against engine vibration. Each finger stops 1.2 short of the buzzer's ear tip; the ears are point-symmetric, so the lid fits either way round. Bending strain at the ridge about 3 % (1.5 t y / L²); force grows with length, so expect a firmer click than the old corner fingers. Too stiff or too loose: `snap_d` is the knob.
+- A stiff end stop across each end wall, 33 long, 1.6 thick, 3 deep, 0.2 off the wall, 45° lead-in at the tip: with the fingers, the lid is located on all four walls and can't slide lengthwise even before it snaps (owner, 2026-11-24). The stops stand clear of the fingers, so the fingers still bend from the lid alone.
 - The inside walls are vertical to the rim's 0.4 lead-in. On the first print they sloped out 0.4 over their height, which left the old 0.6 ridge about 0.04 to catch on: why it never snapped.
 - Two rounded tabs at the ends screw to the bulkhead (#8 or M4).
 - Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
