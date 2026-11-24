@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 import trimesh
 from shop.scad import build_scad, find_openscad
-from shop.testing import ray_hits
+from shop.testing import ray_hits, seated_overlap
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
@@ -217,3 +217,11 @@ def test_gauge_two_rings_small(gauge):
     assert len(gauge.split()) == 2
     assert gauge.bounds[0][2] == pytest.approx(0, abs=0.01)
     assert 15_000 < gauge.volume < 28_000  # about a quarter of the three parts
+
+
+def test_printed_lid_and_spigot_seat_on_printed_box(box, lid, spigot, tmp_path):
+    # the printed meshes in the pose they are used: the lid set on the rim, the spigot turned over under the floor.
+    # Every mating face here is flat with a square hole pattern, so this cannot tell a part from its mirror
+    # image; the spigot's thread is right-hand as printed and meets the duct, not the box.
+    assert seated_overlap(tmp_path, box, lid, f'translate([0, 0, {P["floor_t"] + P["fan_t"]}])') < 0.01
+    assert seated_overlap(tmp_path, box, spigot, "rotate([180, 0, 0])") < 0.01

@@ -165,7 +165,7 @@ module stack(gap = 0) {
   translate([0, 0, floor_t + gap]) fan_dummy();
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t + 3 + gap * 0.6]) board_dummy();
   color(LID) translate([0, 0, H + 2 * gap]) lid();
-  color(BOX) translate([0, 0, -gap]) mirror([0, 0, 1]) spigot();
+  color(BOX) translate([0, 0, -gap]) rotate([180, 0, 0]) spigot();   // turned over, as a hand does it: a mirror would draw the thread left-hand
 }
 
 module plate() {
