@@ -46,7 +46,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
   If the ear holes are not 40 apart, `ear_pitch` moves them.
 - Four M2.5 self-tapping screws into corner bosses hold the lid.
 - Two screws through the floor, from inside, hold the box to the bulkhead, clear of the module's ends.
-- Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a 45° pointed roof at the foot of
+- Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
   the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
 - Walls 2.0, floor 2.4, lid 2.4. Outside edges chamfered 45° where they face down in print, rounded where up;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.

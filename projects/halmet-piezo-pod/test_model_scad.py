@@ -98,7 +98,7 @@ def test_mousehole_at_floor_terminal_end(box):
     z = P["floor_t"] + 1
     hits = ray_hits(box, (P["hole_x"], -OUT_L, z), (0, 1, 0))
     assert hits[0][1] > -P["in_l"] / 2 + 1  # passes the terminal-end wall at its foot
-    above = P["floor_t"] + P["hole_side"] + P["hole_w"] / 2 * 2**0.5 + 0.5
+    above = P["floor_t"] + P["hole_side"] + P["hole_w"] / 2 + 0.5
     assert ray_hits(box, (P["hole_x"], -OUT_L, above), (0, 1, 0))[0][1] < -P["in_l"] / 2  # wall above the roof
 
 

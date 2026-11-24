@@ -10,7 +10,7 @@
 // Print the box floor down and the lid (part-lid.scad) outer face down, as modelled.
 // Ledges stand on 45° gussets; snap ridge and groove are 45° both faces.
 // The two cables (HALMET signal, boat 12 V) enter through a mousehole at the foot of the end wall at the
-// module's terminal end, its roof a 45° point. Two rounded-triangle tabs at the ends screw to the bulkhead.
+// module's terminal end, its roof a semicircle. Two rounded-triangle tabs at the ends screw to the bulkhead.
 // Outside edges: 45° chamfer where they face down in print, rounded where they face up. Inside: the floor
 // meets the walls on a fillet, the inside corners are rounded, the rim has a lead-in for the lid's skirt.
 
@@ -127,11 +127,12 @@ module cavity(n = 6) {
     }
 }
 
-// Mousehole: straight sides from z = 0, round roof with a 45° point; drawn in XZ, through Y.
+// Mousehole: straight sides from z = 0, semicircular roof; drawn in XZ, through Y.
+// The roof's crown is a short flat-ish span in print (owner's choice over a pointed roof).
 module mousehole(w, side, through) {
     rotate([90, 0, 0]) linear_extrude(through, center = true) {
         translate([-w/2, -1]) square([w, side + 1]);
-        translate([0, side]) hull() { circle(d = w); polygon([[-w/2*cos(45), w/2*sin(45)], [w/2*cos(45), w/2*sin(45)], [0, w/2*sqrt(2)]]); }
+        translate([0, side]) circle(d = w);
     }
 }
 
