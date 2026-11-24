@@ -43,7 +43,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
 
 ## Design
 
-- Box 40 x 85 x 28 over the tabs, 20.0 cm3; lid 40 x 60 x 10.9 with its fingers, 5.1 cm3. PETG.
+- Box 40 x 85 x 28 over the tabs, 19.9 cm3; lid 40 x 60 x 10.9 with its fingers, 5.1 cm3. PETG.
 - The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2.5
   self-tapping screws at the far end.
 - The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
@@ -67,13 +67,15 @@ Module calipered; buzzer measured by the owner, partly by eye.
   under the lid (inserts not bought; `insert_hole_d` follows the maker's hole).
 - Two ledges mid-way along the long walls, 12 long, 5.5 out, flush with the boss tops, seat the flange's edge (~2 overlap),
   so the buzzer sits on four points and the wires can't tip it. If its leads leave over a ledge, turn the buzzer 180°.
-- Three closed cable-tie points on the floor: A, the 12 V pair in front of VIN (mousehole side); C, the buzzer leads
-  in front of OUT, A's mirror; B, the signal wire beside the module on its way to J1. The tie runs through a tunnel
-  5 wide with a pointed 45° roof, for ties up to 4.8 wide; the cable lies across the round top. The mousehole's cut
-  stops just past the floor fillet, clear of A (it used to cut the old tie there open).
+- Three closed cable-tie staples on the floor beside the module; its terminals face the long walls. A: the 12 V pair,
+  mousehole to VIN; B: the signal wire past VIN on its way to J1 at the far end, under a seat ledge (10 mm headroom,
+  tie it before the buzzer goes in); C: the buzzer leads to OUT, A's mirror. The tie runs across under a top with
+  fully round ends; the cable lies on top along the wall. Tunnel 5 x 1.8, for ties up to 4.8 wide. The mousehole's
+  cut stops just past the floor fillet, clear of A.
 
-  ![tie points A and C at the terminal end, B beside the module](out/ties.png)
-- Print box floor down and lid outer face down. Corbels, the snap ridges and the tie tunnels' roofs are 45°.
+  ![tie staples: A by the mousehole, B past VIN, C opposite A](out/ties.png)
+- Print box floor down and lid outer face down. Corbels and the snap ridges are 45°. The tie tunnels' roofs are
+  5 mm flat spans, printed unsupported (owner's exception for small tie points); `shop build` flags them.
 
 ## Wiring
 

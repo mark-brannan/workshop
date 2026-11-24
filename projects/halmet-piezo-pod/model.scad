@@ -5,7 +5,7 @@
 // walls on 45° corbels, leaving the floor beside the module clear for wires; the buzzer is turned in plan
 // (ear_angle) so its ears reach the walls. Two ledges mid-wall seat the flange's edge, so it sits on four points.
 // Two M3 screws hold the ears down into heat-set inserts in the bosses, inside the box, under the lid.
-// Three cable-tie points on the floor: the 12 V pair and the buzzer leads in front of their terminals, the signal wire beside the module.
+// Three cable-tie staples on the floor beside the module: the 12 V pair and the buzzer leads before their terminals, the signal wire past VIN.
 // The round body comes up through a hole in the lid, its top flush with the lid or just proud (proud).
 // The lid snaps on with one long finger down each long wall, its ridge clicking into a pocket in the wall; a stiff
 // stop across each end wall keys it lengthwise, so it sits located on all four walls (owner). The fingers stop
@@ -75,13 +75,13 @@ ledge_t = 1.2;        // flat top before the 45° corbel
 
 /* [Cable-tie points] */
 tie_span = 5;         // tunnel across, for a tie up to 4.8 wide
-tie_gap = 1.2;        // tunnel's straight sides; its roof rises from there at 45° to a point
-tie_deck_t = 2.2;     // over the roof's point; the top's ends are fully round so the tie bends round them
-tie_deck_w = 3;       // block's length the way the tie runs
+tie_gap = 1.8;        // tunnel height under the staple's top
+tie_deck_t = 2.2;     // staple's top; its ends are fully round so the tie bends round them
+tie_deck_w = 3;       // staple's width the way the tie runs
 tie_pier = 1.6;       // pier thickness each side of the tunnel
 // [x, y, a]: a = 0, the tie runs along X and the cable along Y; a = 90, the other way.
-// A: 12 V pair in front of VIN (mousehole side); B: signal wire beside the module on its way to J1; C: buzzer leads in front of OUT
-tie_pts = [[-7, -23, 90], [-12.9, -9, 0], [7, -23, 90]];
+// The terminals face the long walls. A: 12 V pair, mousehole to VIN; B: signal wire past VIN on its way to J1; C: buzzer leads to OUT, A's mirror
+tie_pts = [[-13, -21.5, 0], [-13, 5, 0], [13, -21.5, 0]];
 
 /* [Snap lid] */
 lid_t = 2.4;
@@ -205,18 +205,17 @@ module seat_ledge(sx) {
     }
 }
 
-// Cable-tie point: a block with a tunnel through it the way the tie runs; the cable lies on top across it.
-// The tunnel's roof is pointed, 45° each side, so nothing prints flat over air.
+// Cable-tie staple: a tunnel through a block the way the tie runs; the cable lies on top across it.
+// The tunnel's roof is a short flat span (owner accepts for tie points).
 module tie_point(t) {
-    peak = tie_gap + tie_span/2;
-    h = peak + tie_deck_t;
+    h = tie_gap + tie_deck_t;
     translate([t[0], t[1], floor_t - eps]) rotate([0, 0, t[2]]) difference() {
         rotate([90, 0, 0]) linear_extrude(tie_span + 2*tie_pier, center = true) hull() {
             translate([-tie_deck_w/2, 0]) square([tie_deck_w, eps]);
             for (s = [-1, 1]) translate([s*(tie_deck_w - tie_deck_t)/2, h - tie_deck_t/2]) circle(d = tie_deck_t);
         }
         rotate([90, 0, 90]) linear_extrude(tie_deck_w + 2, center = true)
-            polygon([[-tie_span/2, -1], [tie_span/2, -1], [tie_span/2, tie_gap], [0, peak], [-tie_span/2, tie_gap]]);
+            translate([-tie_span/2, -1]) square([tie_span, tie_gap + 1]);
     }
 }
 
@@ -267,7 +266,7 @@ module box() {
         }
         insert_holes();
         for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
-        translate([hole_x, -in_l/2 + (floor_fillet + 0.4 - wall - 1)/2, floor_t]) mousehole(hole_w, hole_side, floor_fillet + 0.4 + wall + 1);  // inside, just past the fillet: clear of tie A
+        translate([hole_x, -in_l/2 + (floor_fillet + 0.2 - wall - 1)/2, floor_t]) mousehole(hole_w, hole_side, floor_fillet + 0.2 + wall + 1);  // inside, just past the fillet: clear of tie A
         for (a = [0, 180]) rotate([0, 0, a]) translate([in_w/2, finger_y, depth - snap_z]) ridge(groove_d, finger_w + 2*groove_play);
     }
 }

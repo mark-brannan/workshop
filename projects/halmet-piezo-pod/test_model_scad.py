@@ -99,16 +99,16 @@ def test_seat_ledges_mid_wall(box):
         assert ray_hits(box, (s * (P["in_w"] / 2 - P["ledge_reach"] - 0.5), 0, DEPTH + 5), (0, 0, -1))[0][2] < LEDGE_Z - 5
 
 
-TIES = [(-7, -23, 90), (-12.9, -9, 0), (7, -23, 90)]  # A 12 V pair, B signal, C buzzer leads
+TIES = [(-13, -21.5, 0), (-13, 5, 0), (13, -21.5, 0)]  # A 12 V pair, B signal, C buzzer leads
 
 
-def test_tie_points_closed_with_pointed_roof(box):
-    peak = P["floor_t"] + P["tie_gap"] + P["tie_span"] / 2
+def test_tie_staples_closed(box):
+    peak = P["floor_t"] + P["tie_gap"]
     zt = P["floor_t"] + P["tie_gap"] / 2
     for x, y, a in TIES:
-        hits = ray_hits(box, (x, y, DEPTH + 5), (0, 0, -1))[:3]
+        hits = ray_hits(box, (x, y, peak + P["tie_deck_t"] + 1), (0, 0, -1))[:3]  # B sits under a seat ledge
         assert np.isclose(hits[0][2], peak + P["tie_deck_t"], atol=0.05)
-        assert np.isclose(hits[1][2], peak, atol=0.05)  # roof's point
+        assert np.isclose(hits[1][2], peak, atol=0.05)  # tunnel roof
         assert np.isclose(hits[2][2], P["floor_t"], atol=0.05)
         u = np.array([np.cos(np.radians(a)), np.sin(np.radians(a)), 0])  # the way the tie runs
         v = np.array([-u[1], u[0], 0])
