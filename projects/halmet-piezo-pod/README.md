@@ -8,6 +8,10 @@ screwed lid; no seal. The flanged buzzer sits under the lid, stacked over the mo
 
 ![box with lid, module and buzzer stand-ins](out/assembly.png)
 
+![half section on the centreline: inserts, M3 screws, buzzer ears, module under the ledges](out/cutaway.png)
+
+`show = "cutaway"` in `model.scad` renders the section; `"exploded"` the exploded view.
+
 ![box](out/halmet-piezo-pod_scad_pv_views.png)
 
 ![lid](out/halmet-piezo-pod_lid_pv_views.png)
@@ -42,8 +46,13 @@ Module calipered; buzzer measured by the owner, partly by eye.
   If the ear holes are not 40 apart, `ear_pitch` moves them.
 - Four M2.5 self-tapping screws into corner bosses hold the lid.
 - Two screws through the floor, from inside, hold the box to the bulkhead, clear of the module's ends.
-- Two cables (HALMET signal, boat 12 V) enter through a 12 x 7 notch in the bottom wall, run out to the
-  rim; the lid closes it. Tie them to the bulkhead below the box for strain relief.
+- Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a 45° pointed roof at the foot of
+  the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
+- Walls 2.0, floor 2.4, lid 2.4. Outside edges chamfered 45° where they face down in print, rounded where up;
+  2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
+- Buzzer ears: two M3 screws through the lid and the ears into M3 x 4 heat-set inserts in the end ledges
+  (inserts not bought; `insert_hole_d` follows the maker's hole). The ledges overhang the module's ends by
+  0.5 mm, so the module goes in tipped and slid 0.5 mm; the side rims let it.
 - Print box floor down and lid outer face down. Nothing overhangs.
 
 ## Wiring

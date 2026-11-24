@@ -16,8 +16,11 @@ P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "
 OUT_W = P["in_w"] + 2 * P["wall"]
 OUT_L = P["in_l"] + 2 * P["wall"]
 SEAT_Z = P["floor_t"] + P["plinth_h"]
-DEPTH = SEAT_Z + P["mod_h"] + P["top_clear"] + P["ear_t"]
-LEDGE_Z = DEPTH - P["ear_t"]
+INSERT_DEPTH = P["insert_l"] + 0.8
+LEDGE_T = INSERT_DEPTH + P["ledge_skin"]
+LEDGE_FRONT = P["ear_pitch"] / 2 - P["insert_hole_d"] / 2 - P["insert_wall"]
+LEDGE_Z = SEAT_Z + P["mod_h"] + P["slide_clear"] + LEDGE_T
+DEPTH = LEDGE_Z + P["ear_t"]
 TAB_Y = OUT_L / 2 + P["tab_reach"]
 def build(tmp_path_factory, src, name):
     d = tmp_path_factory.mktemp(name)
@@ -51,13 +54,14 @@ def test_lid_bounds_volume(lid):
 
 def test_stack_fits():
     assert P["plinth_h"] > P["pin_out"]  # pins clear of the pocket floor
-    assert P["ledge_front"] > P["mod_l"] / 2  # ledges past the module's ends
-    assert P["ledge_front"] < P["ear_pitch"] / 2 - P["peg_d"] / 2  # peg on the ledge
+    assert LEDGE_Z - LEDGE_T > SEAT_Z + P["mod_h"]  # ledges clear the module's top: it slides under one
+    assert P["mod_l"] / 2 - LEDGE_FRONT < P["pocket_slack"]  # ...far enough to pass the other
+    assert P["ledge_w"] >= P["insert_hole_d"] + 2 * P["insert_wall"]
     assert P["ear_span"] < P["in_l"]
     assert P["in_w"] - P["buzzer_d"] >= 6  # room for the leads leaving the buzzer's side
     assert P["body_hole_d"] > P["buzzer_d"]
-    assert P["peg_h"] < P["ear_t"]  # lid clamps the ears, not the pegs
-    assert abs(P["notch_x"]) - P["notch_w"] / 2 > P["ledge_w"] / 2  # notch clear of the bottom ledge
+    assert abs(P["hole_x"]) - P["hole_w"] / 2 > P["ledge_w"] / 2  # mousehole clear of the gusset
+    assert abs(P["hole_x"]) - P["hole_w"] / 2 > P["tab_base"] - 0.5  # ...and of the tab
 
 
 def test_seat_pocket_and_pilots(box):
@@ -69,10 +73,16 @@ def test_seat_pocket_and_pilots(box):
         assert np.isclose(hit, SEAT_Z - P["m2_depth"], atol=0.05)  # blind, deep enough for a longer M2
 
 
-def test_pegs_at_ear_pitch(box):
+def test_insert_holes_at_ear_pitch(box):
     for s in (-1, 1):
-        top = ray_hits(box, (0, s * P["ear_pitch"] / 2, DEPTH + 5), (0, 0, -1))[0][2]
-        assert np.isclose(top, LEDGE_Z + P["peg_h"], atol=0.05)
+        hits = ray_hits(box, (0, s * P["ear_pitch"] / 2, DEPTH + 5), (0, 0, -1))
+        assert np.isclose(hits[0][2], LEDGE_Z - INSERT_DEPTH, atol=0.05)  # blind, from the ledge top
+        assert hits[0][2] - hits[1][2] >= P["ledge_skin"] - 0.05
+
+
+def test_lid_screw_holes_over_inserts(lid):
+    for s in (-1, 1):
+        assert len(ray_hits(lid, (0, s * P["ear_pitch"] / 2, -1), (0, 0, 1))) == 0
 
 
 def test_two_tab_holes_through(box):
@@ -80,9 +90,12 @@ def test_two_tab_holes_through(box):
         assert len(ray_hits(box, (0, s * TAB_Y, -1), (0, 0, 1))) == 0
 
 
-def test_cable_notch_open_at_rim(box):
-    z = DEPTH - P["notch_d"] / 2
-    assert len(ray_hits(box, (P["notch_x"], -OUT_L, z), (0, 1, 0))) == 2  # only the top wall
+def test_mousehole_at_floor_terminal_end(box):
+    z = P["floor_t"] + 1
+    hits = ray_hits(box, (P["hole_x"], -OUT_L, z), (0, 1, 0))
+    assert hits[0][1] > -P["in_l"] / 2 + 1  # passes the terminal-end wall at its foot
+    above = P["floor_t"] + P["hole_side"] + P["hole_w"] / 2 * 2**0.5 + 0.5
+    assert ray_hits(box, (P["hole_x"], -OUT_L, above), (0, 1, 0))[0][1] < -P["in_l"] / 2  # wall above the roof
 
 
 def test_snap_ridge_engages_groove(box, lid):
