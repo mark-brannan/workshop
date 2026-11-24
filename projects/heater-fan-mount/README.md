@@ -12,12 +12,12 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 
 | Part | File | Prints | Volume |
 |---|---|---|---|
-| Box: fan socket and controller pocket | `part-box.scad` | knob face down; 45° gussets and thin YZ fins under the back wall leave short bridges (~13 mm), no supports | 50.9 cm³ |
+| Box: fan socket and controller pocket | `part-box.scad` | floor down, open top up, 0.8 mm 45° chamfer round the bed edge; the round knob hole (7.5) bridges its own crown; one-line 45° webs from both sides hold up the gland hole's crown, cut it out after printing; a 3 mm square LED window right of the knob, filled with clear epoxy or CA from inside against tape on the cabin face (its 3 mm top bridges; the fill covers it) | 38.7 cm³ |
 | Lid with the 76 mm collar | `part-lid.scad` | plate down | 32.2 cm³ |
 | Spigot: flange and duct thread | `part-spigot.scad` | flange down | 20.2 cm³ |
 | **Gauge, prints first** | `part-gauge.scad` | ring faces down | 23.5 cm³ |
 
-The box is the one part not printed in its model orientation: `part-box.scad` rotates it.
+Every part prints in its model orientation. The knob face prints as a vertical wall, so it shows layer lines, not the plate's texture.
 Four M4 screws through lid, fan, box floor and spigot flange; nuts sit in pockets in the flange.
 12 V enters through a PG9 gland (16 mm hole) on the back wall, against the bulkhead.
 
@@ -42,4 +42,4 @@ Four M4 screws through lid, fan, box floor and spigot flange; nuts sit in pocket
 | Pot shaft above the board | 7 | **estimate** |
 | Pot shaft across the board | centred | owner: the knob is centred on the module, so knob, standoffs and pocket share one centre line; pocket 40 wide |
 | PG9 gland | thread 15.2, hole 16 | catalogue typical, **unmeasured** |
-| Walls | 2 shell, 3 knob face, 1.6 divider and gussets, 2.5 lid and flange | set by each wall's job; no structural load beyond the unit's own weight |
+| Walls | 2 shell, 3 knob face, 1.6 divider, 2.5 lid and flange | set by each wall's job; no structural load beyond the unit's own weight |

@@ -1,8 +1,9 @@
 // Diesel-heater combustion-air fan mount: a 3" flexible duct from a deck vent screws onto the bottom,
 // an 80 mm fan pushes the air up, and a slotted collar clamps over the heater's bottom rim with a hose clamp.
 // Three printed parts, every one a flat face on the bed:
-//   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints knob face down
-//           (smooth cabin face); 45 deg gussets and YZ fins under the back wall leave short bridges, no supports.
+//   box     a plain rectangular tray: fan socket and, beside it, the controller pocket. Prints floor down, open
+//           top up. The knob hole bridges its own small crown; single-line 45 deg webs from both sides, cut out
+//           after, hold up the crown of the gland hole.
 //   lid     a flat plate closing fan and pocket, the heater collar standing on it. Prints plate down.
 //   spigot  a square flange the size of the fan with the threaded duct spigot. Prints flange down.
 // Four M4 screws through lid, fan, box floor and spigot flange hold the stack.
@@ -40,23 +41,25 @@ board = 33;
 board_holes = 26;
 pot_z = 7;          // UNMEASURED: pot shaft centre above the board's top
 pot_bushing = 7.5;  // M7 bushing through the wall; the pot is centred on the board (owner), so knob, board and pocket share one X
+knob_d = 15.5;      // knob skirt, owner: the LED window stays clear of it
+led_x = 8.5;        // indicator LED from the module's right edge, seen from the cabin (owner)
+led_win = 3;        // LED window aperture, square to the face; its 3 mm top bridges, then the fill covers it
+led_shift = 0.5;    // window centre from the LED along X: outboard, clear of the knob
+pane = 5;           // diamond seat on the wall's inside (45 deg roof): keys a clear epoxy or UV-resin plug
+pane_t = 1.5;       // seat depth from the inside; 1.5 mm of wall stays on the cabin face
+gland_web = 0.45;   // one extrusion line, 45 deg, from each side of the gland hole to its crown; cut out after printing
 gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed hole oversize); was PG7 12.5
 
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
-gusset_t = 1.6;     // gusset plate, 4 lines
-gusset = 20;        // back strip behind the fan: room for 45 deg gussets that hold up the back wall in print
-fin_t = 1.2;        // YZ fins under the back wall's flat spans, 3 lines
-fins_fan = 2;       // fins behind the fan, spread across the gap between the gussets
-fin_pocket = [-13, 13]; // pocket fins, x from the pocket centre: either side of the gland
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid (the whole unit hangs from it via the collar) and spigot flange (screws, nut pockets)
 pocket = 40;        // controller pocket, inside, along +X beside the fan bay: board 33 plus 3.5 each side
-r = 6;              // vertical edge rounding; the two on the bed (knob face) end in a 45 deg chamfer
+r = 6;              // vertical edge rounding
+bed_chamfer = 0.8;  // 45 deg chamfer round the box's bed edge: takes up elephant's foot, a clean line at the spigot seam
 fillet = 2;         // pocket floor and front corners
-pocket_chamfer = 6; // pocket's back corners: the back wall is the print's ceiling, this cuts its bridge 40 -> 28
 boss_fillet = 1.2;  // flare at the foot of each board standoff
 
 $fn = 96;
@@ -65,6 +68,9 @@ W = max(fan + 2 * fit, rim_d + 2 * collar_fit) + 2 * wall;   // box width (X) an
 L = W + divider + pocket;                   // box length (X): fan bay, divider, pocket
 H = floor_t + fan_t;                     // box height
 pocket_x = W / 2 - wall + divider + pocket / 2;           // pocket centre
+board_top = floor_t + 3 + 1.6;
+led_win_x = pocket_x + board / 2 - led_x + led_shift;
+led_win_z = board_top + 1;
 
 include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
@@ -72,51 +78,43 @@ include <BOSL2/rounding.scad>
 
 module rrect(w, d, rr = r) offset(rr) offset(-rr) square([w, d]);
 sock = fan + 2 * fit;
-// box outline; the box prints on its -Y edge, so the two corners there round to 45 deg, then chamfer to the bed
-module footprint() let(d = W + front - wall + gusset) translate([-W / 2, -W / 2 - (front - wall)]) intersection() {
-  square([L, d]);
-  hull() for (x = [r, L - r]) { translate([x, d - r]) circle(r); translate([x, r]) hull() { circle(r); translate([0, -r * sqrt(2)]) square(e, center = true); } }
-}
-// print-friendly holes through the box floor, which stands upright in print with +Y up
-module hex_hole(af) rotate(30) circle(d = af / cos(30), $fn = 6);    // flats across X, point up: no bridge
-module bore_2d() intersection() {                                     // 45 deg roof, flat at the fan's rim
-  hull() { circle(d = fan_bore); translate([0, fan_bore / 2 * sqrt(2)]) square(e, center = true); }
-  translate([-fan, -fan]) square([2 * fan, fan + fan / 2 - 1]);
-}
+// box outline: knob wall (front, -Y) is thicker than the rest
+module footprint() translate([-W / 2, -W / 2 - (front - wall)]) rrect(L, W + front - wall);
+// a round hole through a vertical wall, axis along Y, cut from y = 0 toward -Y
+module hole_y(d, h) rotate([90, 0, 0]) linear_extrude(h) circle(d = d);
 module fan_square() translate([-W / 2, -W / 2]) rrect(W, W);
 module holes(d, h, z = -e) for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, z]) cylinder(d = d, h = h);
 
-module yz_fin(x, d) translate([x - fin_t / 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(fin_t)
-  polygon([[W / 2 + gusset - wall - d, floor_t - e], [W / 2 + gusset - wall + e, floor_t - e], [W / 2 + gusset - wall + e, floor_t + d]]);
-
 module box() {
-  px0 = W / 2 - wall + divider; py0 = -W / 2 + wall; py1 = W / 2 + gusset - wall; c = pocket_chamfer;
+  px0 = W / 2 - wall + divider; py0 = -W / 2 + wall; py1 = W / 2 - wall;
   difference() {
-    linear_extrude(H) footprint();
-    translate([0, 0, floor_t]) linear_extrude(H) translate([-sock / 2, -sock / 2]) square([sock, sock + gusset]);
-    // controller pocket: filleted floor and front corners, chamfered back corners
-    translate([0, 0, floor_t]) offset_sweep(round_corners([[px0, py0], [px0 + pocket, py0], [px0 + pocket, py1 - c], [px0 + pocket - c, py1], [px0 + c, py1], [px0, py1 - c]],
-      method = "circle", radius = [fillet, fillet, 1, 1, 1, 1], $fn = 32), height = H, bottom = os_circle(r = fillet), steps = 8);
-    translate([0, 0, -e]) linear_extrude(floor_t + 2 * e) bore_2d();
-    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, -e]) linear_extrude(floor_t + 2 * e) hex_hole(4.4);
-    // fan wires into the pocket: 45 deg roof (toward +Y, up in print) instead of a 4 mm ledge
-    translate([W / 2 - wall - e, 0, 0]) rotate([90, 0, 90]) linear_extrude(divider + 2 * e) polygon([[-3, H - 4], [3, H - 4], [7, H + e], [-3, H + e]]);
-    translate([pocket_x, -W / 2 - (front - wall) - e, floor_t + 3 + 1.6 + pot_z]) rotate([-90, 0, 0]) cylinder(d = pot_bushing, h = front + 2 * e);
-    translate([pocket_x, W / 2 + gusset - wall - e, floor_t + fan_t / 2]) rotate([-90, 0, 0]) cylinder(d = gland, h = wall + 2 * e);
+    hull() { linear_extrude(e) offset(-bed_chamfer) footprint(); translate([0, 0, bed_chamfer]) linear_extrude(H - bed_chamfer) footprint(); }
+    translate([-sock / 2, -sock / 2, floor_t]) cube([sock, sock, H]);
+    // controller pocket: filleted floor and corners
+    translate([0, 0, floor_t]) offset_sweep(round_corners([[px0, py0], [px0 + pocket, py0], [px0 + pocket, py1], [px0, py1]],
+      method = "circle", radius = fillet, $fn = 32), height = H, bottom = os_circle(r = fillet), steps = 8);
+    translate([0, 0, -e]) cylinder(d = fan_bore, h = floor_t + 2 * e);
+    holes(4.4, floor_t + 2 * e);
+    // fan wires into the pocket: a notch in the divider, open at the top
+    translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
+    translate([pocket_x, -W / 2 + wall + e, board_top + pot_z]) hole_y(pot_bushing, front + 2 * e);
+    // LED window: square aperture through the knob wall, a diamond seat on its inside
+    translate([led_win_x, -W / 2 + wall + e, led_win_z]) rotate([90, 0, 0]) {
+      linear_extrude(front + 2 * e) square(led_win, center = true);
+      linear_extrude(pane_t + e) rotate(45) square(pane + 0.3, center = true);
+    }
+    translate([pocket_x, W / 2 + e, floor_t + fan_t / 2]) hole_y(gland, wall + 2 * e);
   }
-  // 45 deg gussets off the side walls behind the fan: printed knob face down, the back wall bridges ~41 mm
-  for (m = [0, 1]) mirror([m, 0, 0]) translate([0, 0, floor_t - e])
-    linear_extrude(fan_t + e) let(d = gusset_t * sqrt(2), x0 = -sock / 2 - 0.5, y0 = sock / 2 - 0.5, gg = gusset + 0.5 + 0.5)
-      polygon([[x0, y0], [x0 + gg, y0 + gg + 0.5], [x0 + gg - d, y0 + gg + 0.5], [x0, y0 + d]]);   // a 45 deg plate, hollow behind
-  // YZ fins: 45 deg triangles off the floor up to the back wall; they cut its flat spans short (short bridges accepted)
-  gap = sock - 2 * (gusset + 0.5);
-  for (i = [1:fins_fan]) yz_fin(-gap / 2 + i * gap / (fins_fan + 1), py1 - W / 2 + wall);
-  for (dx = fin_pocket) yz_fin(pocket_x + dx, fan_t);
-  // board standoffs: round, flared foot, point-up hex pilot
+  // gland hole's print support: a line rising at 45 deg from each side of the hole to its crown, the full wall deep
+  translate([pocket_x, W / 2 - e, floor_t + fan_t / 2]) rotate([90, 0, 0]) linear_extrude(wall - 2 * e) intersection() {
+    circle(d = gland + 0.4);
+    for (m = [0, 1]) mirror([m, 0]) translate([-gland / 4, gland / 4]) rotate(45) square([gland, gland_web], center = true);
+  }
+  // board standoffs: round, flared foot, pilot hole
   translate([pocket_x, -W / 2 + wall + board / 2 + 1, floor_t - e]) for (x = [-1, 1], y = [-1, 1])
     translate([x * board_holes / 2, y * board_holes / 2]) difference() {
       offset_sweep(circle(d = 6, $fn = 48), height = 3 + e, bottom = os_circle(r = -boss_fillet), steps = 6);
-      translate([0, 0, -e]) linear_extrude(3 + 3 * e) hex_hole(2.5);
+      translate([0, 0, -e]) cylinder(d = 2.5, h = 3 + 3 * e, $fn = 24);
     }
 }
 
