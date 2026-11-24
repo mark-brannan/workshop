@@ -8,7 +8,7 @@ snap-on lid; no seal. The flanged buzzer sits inside, stacked over the module; o
 
 ![box with lid, module and buzzer stand-ins](out/assembly.png)
 
-![half section on the centreline: inserts in the columns, M3 screws, buzzer ears, module](out/cutaway.png)
+![half section on the ear axis: inserts in the wall bosses, M3 screws, buzzer ears, module](out/cutaway.png)
 
 `show = "cutaway"` in `model.scad` renders the section; `"exploded"` the exploded view.
 
@@ -43,7 +43,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
 
 ## Design
 
-- Box 40 x 85 x 28 over the tabs, 19.4 cm3; lid 40 x 60 x 10.9 with its fingers, 4.4 cm3. PETG.
+- Box 40 x 85 x 28 over the tabs, 19.8 cm3; lid 40 x 60 x 10.9 with its fingers, 4.4 cm3. PETG.
 - The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2.5
   self-tapping screws at the far end.
 - The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
@@ -56,10 +56,18 @@ Module calipered; buzzer measured by the owner, partly by eye.
 - Walls 2.0, floor 2.4, lid 2.4. Outside edges square, box and lid flush at the seam; only the lid's top edge rounded;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
 - Buzzer as low as the module allows: its back 1 mm over the module's top, its top 3 mm proud of the lid
-  (`proud`; 0 is flush; owner, after the first print). Turned 39° in plan so its ears land on two columns standing on the floor beside
-  the module. Two M3 screws hold the ears into M3 x 4 heat-set inserts in the column tops, inside the box,
+  (`proud`; 0 is flush; owner, after the first print). Turned 41° in plan, ear tips 1.2 off the long walls (`ear_tip_gap`),
+  so its ears land on two bosses grown out of the long walls on 45° corbels. The floor beside the module's terminal end
+  is clear up to the corbel, room for a ferruled wire into the terminal (owner: the old floor column was in the way).
+  Two M3 screws hold the ears into M3 x 4 heat-set inserts in the boss tops, inside the box,
   under the lid (inserts not bought; `insert_hole_d` follows the maker's hole).
-- Print box floor down and lid outer face down. Nothing overhangs.
+- Two ledges mid-way along the long walls, 12 long, 5.5 out, flush with the boss tops, seat the flange's edge (~2 overlap),
+  so the buzzer sits on four points and the wires can't tip it. If its leads leave over a ledge, turn the buzzer 180°.
+- Two cable-tie bridges on the floor along the mousehole side: one just inside the mousehole (both cables),
+  one beside the module on the signal wire's way to J1. The tie runs across under a deck with fully round ends; the cable lies on top.
+  Tunnel 5 x 1.8, for ties up to 4.8 wide.
+- Print box floor down and lid outer face down. Corbels and the snap ridges are 45°. The tie tunnels' roofs are
+  5 mm flat spans, printed unsupported (owner's exception for small tie points); `shop build` flags them.
 
 ## Wiring
 
