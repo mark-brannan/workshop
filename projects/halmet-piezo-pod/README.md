@@ -32,7 +32,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
 |---|---|---|
 | XY-MOS module | 33.8 x 16.7 x 12; board ~1.1 thick | owner, caliper; height from seller listings |
 | `pocket_gap`, `hole_gap` | 3, 0.1 | owner, caliper: board's terminal end to the pin block's near edge; board's far end to a screw hole's near edge |
-| `hole_d` | 2.2 | guessed, typical M2; sets where the screw-hole centre sits |
+| `hole_d` | 2.6 | owner, caliper; sets where the screw-hole centre sits |
 | Buzzer, on hand | body 29.0 dia, ~15 high; ear flange 4.5 thick at the back; ears 47.4 tip to tip, holes ~40 apart; leads leave the side at the back | owner, caliper; height and hole pitch by eye |
 | `body_hole_d`, `ear_hole_d` | 29.8, 3.6 | clearance; printed holes come out small |
 | `m2_pilot` | 1.7 | M2 self-tapping into the plinth; calibration pending |
