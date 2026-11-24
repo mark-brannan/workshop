@@ -11,14 +11,14 @@
 // Ledges stand on 45° gussets; snap ridge and groove are 45° both faces.
 // The two cables (HALMET signal, boat 12 V) enter through a mousehole at the foot of the end wall at the
 // module's terminal end, its roof a semicircle. Two rounded-triangle tabs at the ends screw to the bulkhead.
-// Outside edges: 45° chamfer where they face down in print, rounded where they face up. Inside: the floor
+// Outside edges: rounded on top, square at the bottom. Inside: the floor
 // meets the walls on a fillet, the inside corners are rounded, the rim has a lead-in for the lid's skirt.
 
 /* [Parts] */
 mod_l = 33.8;         // XY-MOS module, owner caliper
 mod_w = 16.7;         // owner caliper
 mod_h = 12;           // board bottom to the top of its parts; seller listings, not calipered
-board_t = 1.6;        // GUESS: not calipered
+board_t = 1.1;        // owner, ~1.1
 pin_out = 2.6;        // terminal pins below the board; owner caliper
 pocket_w = 11.2;      // pin pocket, across the board; owner
 pocket_l = 6.1;       // along the board; owner
@@ -41,7 +41,7 @@ buzz_clear = 1;       // module top to the buzzer's back; mod_h is from listings
 proud = 0.5;          // buzzer top above the lid's top; 0 = flush
 in_r = 1.5;           // inside vertical corners
 floor_fillet = 2;     // floor to wall, inside
-chamfer_b = 0.6;      // back edge, against the bulkhead (faces down in print)
+chamfer_b = 0;        // back edge, against the bulkhead: square
 round_t = 0.6;        // rim's outer edge
 lead_in = 0.4;        // rim's inner edge, for the lid's skirt
 
@@ -70,8 +70,7 @@ skirt_gap = 0.2;      // skirt to wall
 snap_z = 2.5;         // ridge centre, below the lid's underside
 snap_d = 0.6;         // ridge height off the skirt
 groove_d = 0.8;       // groove depth into the wall
-lid_chamfer = 0.8;    // outer face's edge (faces down in print)
-lid_round = 0.4;      // inner face's edge, against the rim
+lid_round = 0.8;      // outer face's edge, the top in use; the inner face's edge is square
 
 /* [Cable mousehole, terminal end wall] */
 hole_w = 9;           // two cables side by side
@@ -208,7 +207,7 @@ module lid() {
     sk_x = in_w/2 - skirt_gap;
     difference() {
         union() {
-            slab(out_w, out_l, corner_r, lid_t, lid_chamfer, lid_round);
+            translate([0, 0, lid_t]) mirror([0, 0, 1]) slab(out_w, out_l, corner_r, lid_t, 0, lid_round);
             for (sx = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) {
                 translate([sk_x - skirt_t, -skirt_l/2, lid_t - eps]) cube([skirt_t, skirt_l, skirt_h + eps]);
                 translate([sk_x - eps, 0, lid_t + snap_z]) ridge(snap_d, skirt_l);

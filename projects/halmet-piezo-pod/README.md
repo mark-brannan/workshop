@@ -4,7 +4,7 @@ Symphony: [`firmware/halmet`](https://github.com/mark-brannan/symphony/tree/main
 
 Purpose: hold the HALMET's alarm buzzer and the XY-MOS trigger module that switches it, high on a
 vertical engine-room bulkhead, out of the splash and the worst of the oil and dust. A plain box and a
-screwed lid; no seal. The flanged buzzer sits under the lid, stacked over the module; only its round body comes out through the lid, so its leads stay inside.
+snap-on lid; no seal. The flanged buzzer sits inside, stacked over the module; only its round body comes out through the lid, so its leads stay inside.
 
 ![box with lid, module and buzzer stand-ins](out/assembly.png)
 
@@ -30,25 +30,26 @@ Module calipered; buzzer measured by the owner, partly by eye.
 
 | Parameter | Now | Source |
 |---|---|---|
-| XY-MOS module | 33.8 x 16.7 x 12 | owner, caliper; height from seller listings |
+| XY-MOS module | 33.8 x 16.7 x 12; board ~1.1 thick | owner, caliper; height from seller listings |
+| `pocket_r`, `hole_e` | 4, 2.5 | guessed: terminal-pin pocket centre to the board's terminal end; screw-hole centre to the far end |
 | Buzzer, on hand | body 29.0 dia, ~15 high; ear flange 4.5 thick at the back; ears 47.4 tip to tip, holes ~40 apart; leads leave the side at the back | owner, caliper; height and hole pitch by eye |
 | `body_hole_d`, `ear_hole_d` | 29.8, 3.6 | clearance; printed holes come out small |
-| `pilot_d`, `lid_hole_d` | 2.2, 3.2 | M2.5 self-tapping; printed holes come out small |
+| `m2_pilot` | 1.7 | M2 self-tapping into the plinth; calibration pending |
+| `insert_hole_d` | 4.0 | M3 x 4 heat-set insert, maker's hole; inserts not bought |
 | `mount_d` | 4.5 | #8 or M4 pan head |
 
 ## Design
 
-- Box 40 x 60 x 22.9, 15.4 cm3; lid 40 x 60 x 2.4, 3.9 cm3. PETG.
-- The module lies on the floor on foam tape, 3 mm under the buzzer's back.
-- The buzzer's round body goes up through a 29.8 mm hole in the lid; its ear flange bears on the lid's
-  underside, ears along the box's length. Two M3 bolts go down through the lid and the ears, nuts under the
-  ears. Its leads leave its side inside the box; the box is 36 wide inside so they have room toward a long wall.
-  If the ear holes are not 40 apart, `ear_pitch` moves them.
-- Four M2.5 self-tapping screws into corner bosses hold the lid.
-- Two screws through the floor, from inside, hold the box to the bulkhead, clear of the module's ends.
+- Box 40 x 85 x 30.5 over the tabs, 19.4 cm3; lid 40 x 60 x 6.4 with its skirts, 4.5 cm3. PETG.
+- The module sits in a rimmed seat on a 3 mm plinth, its terminal pins down in a blind pocket, held by two M2
+  self-tapping screws at the far end.
+- The buzzer's round body goes up through a 29.8 mm hole in the lid. Its leads leave its side inside the box;
+  the box is 36 wide inside so they have room toward a long wall. If the ear holes are not 40 apart, `ear_pitch` moves them.
+- The lid snaps on: a skirt down each long wall carries a 45° ridge that clicks into a groove in the wall.
+- Two rounded tabs at the ends screw to the bulkhead (#8 or M4).
 - Two cables (HALMET signal, boat 12 V) enter through a 9 mm mousehole with a round roof at the foot of
   the end wall at the module's terminal end. Tie them to the bulkhead below the box for strain relief.
-- Walls 2.0, floor 2.4, lid 2.4. Outside edges chamfered 45° where they face down in print, rounded where up;
+- Walls 2.0, floor 2.4, lid 2.4. Outside edges rounded on top, square at the bottom;
   2 mm fillet floor to wall inside, inside corners rounded, lead-in at the rim.
 - Buzzer as low as the module allows: its back 1 mm over the module's top, its top 0.5 mm proud of the lid
   (`proud`; 0 is flush). Turned 39° in plan so its ears land on two columns standing on the floor beside
