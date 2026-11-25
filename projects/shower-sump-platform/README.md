@@ -43,11 +43,16 @@ Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 n
 received is not recorded.
 
 Cable ties back up the screws against the sump sliding fore or aft (owner, 2026-11-25). One tie per wing, or a string
-of them, wraps the wing and the sump lengthwise, top and bottom: over the wing hugging the box body, down past each wing
-tip, slanting inboard down a fairlead groove in the deck's end face, through a slit in the end arch (`tie_*`), and under
+of them, wraps the wing and the sump lengthwise, top and bottom: over the wing hugging the box body, off each wing tip,
+slanting inboard down a fairlead groove in the deck's end face, through a slit in the end arch (`tie_*`), and under
 the sump. The slits sit inboard of the screw bosses, a little narrower than the wings, so the run under the deck
-clears them. Each slit's lower edge is a 45-degree V, its ceiling in print. Nothing sticks out fore or aft; nothing is
-drilled in the sump. A tie across a wing can't close: the wing grows out of the box wall along its inboard edge.
+clears them. From the box wall at the wing tip (x = 95.4) to the slit (x = 85) the tie slants about 45 degrees off
+vertical, not the 10 first guessed; the wing's thickness (`tie_top_z`, 3) is a guess and moves it a few degrees. Each
+slit is round-ended and square to that slant (owner, 2026-11-25), and the fairlead groove runs along it. Every edge the
+tie bends round is rounded (`tie_round`, 2): the slit's outer mouth, and the groove's top lip, whose last 45 degrees is a
+chamfer so it stands on the bed in print. Printed deck down, the slit's ceiling is its 45-degree side.
+`tie_path.py` draws the path into `out/tie-wrap.png`. Nothing sticks out fore or aft; nothing is drilled in the sump.
+A tie across a wing can't close: the wing grows out of the box wall along its inboard edge.
 
 ## Measured
 

@@ -78,14 +78,33 @@ def test_pilot_takes_a_nylon_m4_tap():
     assert (P["boss_d"] - 3.3) / 2 >= 2.8
 
 
-def test_tie_slits_through_end_arches(installed):
-    """A tie runs the full length under the deck through both end arches' slits, clear of the bosses."""
-    x, top, (w, h) = P["tie_x"], P["tie_slit_top"], (6.5, 2.2)
+def test_tie_slits_square_to_the_tie_with_rounded_mouths(installed):
+    """Each end arch has a round-ended slit, no V, square to the tie's slant down the end face; the fairlead groove
+    runs along that slant; the slit's outer mouth is rounded where the tie bends into it."""
+    lean = math.atan2(P["tie_top_x"] - P["tie_x"], P["tie_top_z"] - P["tie_zc"])
+    u = (math.cos(lean), -math.sin(lean))  # along the slit, x then z, starboard
+    v = (math.sin(lean), math.cos(lean))   # up the tie's run
+    half, ends = P["tie_slit_l"] / 2, P["tie_slit_w"] / 2
+    L = P["len"] / 2
     for s in (1, -1):
-        for dx in (0, -w / 2 + 0.3, w / 2 - 0.3):
-            assert not ray_hits(installed, [s * (x + dx), 60, top - h / 2], [0, -1, 0]), f"tie run blocked at {s * (x + dx)}"
-        assert ray_hits(installed, [s * (x + w / 2 + 1), 60, top - h / 2], [0, -1, 0]), "arch beside the slit"
-        assert ray_hits(installed, [s * x, 60, top - h - w / 2 - 0.5], [0, -1, 0]), "arch below the slit's V"
-        for f in (1, -1):  # fairlead groove down the deck's end face
-            assert ray_hits(installed, [s * x, f * (P["len"] / 2 - 0.5), 5], [0, 0, -1])[0][2] < top, "fairlead groove"
-            assert ray_hits(installed, [s * x, f * (P["len"] / 2 - 1.5), 5], [0, 0, -1])[0][2] == pytest.approx(0, abs=0.05)
+        def at(a, b):
+            return [s * (P["tie_x"] + a * u[0] + b * v[0]), 60, P["tie_zc"] + a * u[1] + b * v[1]]
+        for a in (0, -half + ends, half - ends):  # clear all along the slit's axis, both arches
+            assert not ray_hits(installed, at(a, 0), [0, -1, 0]), f"tie run blocked at {s}, {a}"
+        assert ray_hits(installed, at(half + 1, 0), [0, -1, 0]), "arch beyond the slit's end"
+        assert ray_hits(installed, at(0, ends + P["tie_round"] + 0.5), [0, -1, 0]), "arch above the mouth"
+        assert ray_hits(installed, at(0, -ends - P["tie_round"] - 0.5), [0, -1, 0]), "arch below the mouth"
+        for f in (1, -1):
+            o = at(0, 0)
+            o[1] = f * 60
+            # the mouth: just past the slit's edge on the tie's side, the face is cut back (rounded), deeper than the groove
+            o2 = at(0, ends + 1.2)
+            o2[1] = f * 60
+            assert abs(ray_hits(installed, o2, [0, -f, 0])[0][1]) < L - P["tie_lead"] - 0.1, "rounded mouth"
+            for b in (3, 6):  # fairlead groove along the slant, a tie_lead deep
+                g = at(0, b)
+                g[1] = f * 60
+                assert abs(ray_hits(installed, g, [0, -f, 0])[0][1]) == pytest.approx(L - P["tie_lead"], abs=0.05), "fairlead groove"
+            beside = at(P["tie_slit_l"] / 2 + 1.5, 4)
+            beside[1] = f * 60
+            assert abs(ray_hits(installed, beside, [0, -f, 0])[0][1]) == pytest.approx(L, abs=0.05), "end face beside the groove"
