@@ -99,7 +99,7 @@ tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
 /* [OLED frame] */
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
-ol_beam_t = 0.7;     // OLED side beams, thinned from outside
+ol_beam_t = 1.2;     // OLED side beams, the full rib like the radar's (were 0.7; owner, 2026-11-25)
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -256,7 +256,7 @@ module ol_snap_cuts() {   // slots either side of each side beam and its outside
     for (sx = [-1, 1]) {
         for (y = [y1 - ol_lip_len - rd_slot/2, y1 + rd_slot/2])
             translate([sx*(x_in + ol_rib_t/2), y, zc]) cube([ol_rib_t + 1, rd_slot, 20], center = true);
-        translate([sx*(x_in + ol_beam_t + (ol_rib_t - ol_beam_t + 1)/2), y1 - ol_lip_len/2, zc])
+        if (ol_beam_t < ol_rib_t) translate([sx*(x_in + ol_beam_t + (ol_rib_t - ol_beam_t + 1)/2), y1 - ol_lip_len/2, zc])
             cube([ol_rib_t - ol_beam_t + 1, ol_lip_len, 20], center = true);
     }
 }
@@ -295,8 +295,10 @@ module fillet2d(r) { translate([-0.01, -0.01]) difference() { square([r + 0.01, 
 // OLED side beams: an outside fillet only, in the corner of the thinning cut, sunk rd_groove into the face.
 module ol_beam_fillets() {
     x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
-    for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
-        translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
+    for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len + (ol_beam_t < ol_rib_t ? 0 : 1), center = true)   // full-rib beam: runs into the slots, which trim it flush
+        if (ol_beam_t < ol_rib_t) translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
+        else translate([sx*(x_in + ol_beam_t), face_t]) scale([sx, 1])   // full-rib beam: fillet on the face, 0.5 tall at the wall; the arc cuts the wall at an angle, not tangent, so the mesh has no zero-width tip
+            difference() { translate([-0.1, -0.1]) square([0.9, 0.9]); translate([0.75, 0.8]) circle(0.8, $fn = 32); }
 }
 module rd_beam_fillets() {
     x_in = rd_w/2 + rd_slack; y0 = rd_h/2 - 1 - rd_lip_len; y_in = rd_cy + rd_h/2 + rd_slack;
@@ -402,6 +404,7 @@ module shell() {
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
             ol_lips();
+            if (ol_beam_t >= ol_rib_t) ol_beam_fillets();   // before the cuts: the slots trim it
             linear_extrude(tm_back_z - 0.2) tm_seat_2d();
             tray_seats();
         }
@@ -444,7 +447,7 @@ module shell() {
         translate([-(ol_w/2 + ol_slack + 0.02), ol_cy - ol_h/2 - ol_slack - 0.02, ol_board_z])   // 0.02 into the ribs: no shared wall
             cube([ol_w + 2*ol_slack + 0.04, in_h - (ol_cy - ol_h/2 - ol_slack - 0.02), face_t]);       // up to the top wall
     }
-    ol_beam_fillets();   // after the cuts: it sits in the thinning cut's corner
+    if (ol_beam_t < ol_rib_t) ol_beam_fillets();   // after the cuts: it sits in the thinning cut's corner
 }
 
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side
