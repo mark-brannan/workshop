@@ -81,7 +81,7 @@ The back plate's four tabs click 0.5 mm bumps into V grooves in the side walls; 
    header pins short. TM1637: clip the bent header pins off flush with the black plastic and solder
    four wires to the joints on the board's back. D1 mini (bare is fine): wires in from the underside,
    soldered on the can side.
-2. OLED: tuck the board's lower edge under the two bottom lips (ribbon end down), then press the top end flat until the two side lips click. Glass ends flush with the face. No screws.
+2. OLED: tuck the board's lower edge under the two bottom lips (ribbon end down), then press the top end flat until the two side lips click. Glass ends flush with the face. No screws. Trim the four header solder bumps on the board's front to under 0.9 mm: each sits in a pocket that stops one 0.2 layer short of the outside, so one left longer pokes through.
 3. Radar: antenna side to the face. Tilt the board and tuck its whole lower edge into the slot under the bottom lip, then press the upper end flat until the two side lips and two top lips click over it. To remove, lift the upper end past the lips (press them apart) and tilt out. No glue.
 4. TM1637 and tray: display into its window, the tray's front on the board's back (header window at
    the -X end), four M2.5 x 10 self-tappers through tray and board into the posts.
@@ -129,6 +129,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | Snap `bump` | 0.5 | calibration pending |
 | Radar face `rd_skin`, `rd_border` | 0.6 in front of the antennas, pocketed from inside, 1.5 of full face kept round it for the board | 1.5 PETG is near a quarter wave at 24 GHz (εr about 2.6, guessed): about 17 % of the power reflected per pass, 0.6 about 5 % (plane-slab estimate) |
 | OLED glass `ol_glass_h` | 1.1 from the board's front; glass 26.7 x 19.3 | first print (owner, 2026-11-24): at the guessed 2.4 the glass sat 1.3 deep with the board on its posts. The board now lies in a pocket in the face (1.1 left), glass flush, no screws |
+| OLED board `ol_t`; header pin pockets `ol_nub_y`, `ol_nub_skin` | 1.2 (owner, caliper); four pockets 1.9 x 2.4 at 2.54 pitch, 1.3 below the top edge, 0.2 skin | thickness measured; row position from the owner photo |
 | OLED snap `ol_hook`, `ol_bot_x`, `ol_lip` | two rigid bottom lips 1.0 beside the ribbon fold, V-nesting the lower edge; two side lips 0.7 near the top on beams like the radar's | guessed; board thickness 1.6 guessed, a thinner board rattles 0.1 per 0.1 |
 | OLED active-area offset `ol_win_dy` | 1.5 toward the header | typical module; the gauge shows it |
 | ESP can height | 3.2 | typical D1 mini |

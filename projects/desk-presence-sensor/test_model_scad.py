@@ -242,3 +242,10 @@ def test_back_end_stops_snug_in_the_end_walls(back):
     cy0 = IN_H / 2
     assert np.isclose(ys.min(), cy0 - IN_H / 2 + P["end_clr"], atol=0.02)
     assert np.isclose(ys.max(), cy0 + IN_H / 2 - P["end_clr"], atol=0.02)
+
+
+def test_oled_header_pin_pockets_one_layer_short(shell):
+    y = OL_CY + P["ol_h"] / 2 - P["ol_nub_y"]
+    for i in range(int(P["ol_nubs"])):
+        x = (i - (P["ol_nubs"] - 1) / 2) * 2.54
+        assert np.isclose(max(h[2] for h in down(shell, x, y)), P["ol_nub_skin"], atol=0.02)

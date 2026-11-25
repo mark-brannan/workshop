@@ -45,7 +45,7 @@ tm_pin_span = 12.7;  // guessed: six pins per row, 2.54 pitch
 /* [OLED, top display] (generic drawing, not calipered) */
 ol_w = 27.3;         // X
 ol_h = 27.8;         // Y, header at the top edge, pins out the back
-ol_t = 1.6;          // guessed, standard PCB
+ol_t = 1.2;          // owner, caliper, 2026-11-24
 ol_pins = 1.7;       // clipped header pins behind the board, guessed
 ol_glass_h = 1.1;    // board front to glass face: 2.4 guessed left the glass 1.3 deep with the board on its posts (owner, first print, 2026-11-24)
 ol_glass_w = 26.7;   // guessed, typical 0.96" glass
@@ -59,7 +59,11 @@ ol_fwd = 1.8;        // glass moved toward the outside; 1.8 is flush (the glass 
 ol_rev = 0.8;        // reverse chamfer at the bottom end: relief widening toward the inside, for the ribbon
 ol_rev_w = 14;       // its width in X, narrow enough to leave the screw posts whole
 ol_pin_rec = 1.0;    // header-end relief cut into the face from inside, for the solder nubs; leaves face_t - this as skin
-ol_pin_w = 14;       // its width in X (four pads at 2.54 pitch are about 10 wide)
+ol_pin_w = 14;
+ol_nubs = 4;         // header pins, 2.54 pitch, centred in X; solder bumps 1.8 off the board front (owner), trimmed to under 0.9
+ol_nub_y = 1.3;      // pin row below the board's top edge: owner photo, pins ~0.8 above the top screw holes (2.1 down)
+ol_nub_d = 1.9;      // pocket across X; 2.4 along Y for the row's position
+ol_nub_skin = 0.2;   // one layer left at the outer face: a bump that is not trimmed enough pokes through       // its width in X (four pads at 2.54 pitch are about 10 wide)
 ol_bevel = 0.5;      // 45 deg chamfer around the glass at the outside face, sloping in toward it
 ol_hook = 1.0;       // bottom lips: reach from the rib; 45 deg underside 0.1 over the board's back edge, so the edge nests in a V
 ol_bot_x = [8, 13];  // bottom lips' |X| span, beside the ribbon fold
@@ -359,6 +363,9 @@ module shell() {
         }
         // glass pocket: through the face when flush, else from behind leaving a lip in front
         translate([0, 0, ol_glass_z <= 0 ? -1 : ol_glass_z]) linear_extrude(face_t + 1) offset(delta = 0.05) ol_glass_keepout();
+        // header pin pockets: each from inside to one layer short of the outer face; open to the back, no overhang
+        for (i = [0:ol_nubs - 1]) translate([(i - (ol_nubs - 1)/2)*2.54, ol_cy + ol_h/2 - ol_nub_y, ol_nub_skin])
+            hull() for (dy = [-1, 1]) translate([0, dy*(1.2 - ol_nub_d/2), 0]) cylinder(d = ol_nub_d, h = face_t);
         // header relief: a pocket in the face behind the pin end, open toward the back, so no overhang
         translate([-ol_pin_w/2, ol_cy + ol_glass_dy + ol_glass_l/2 + 0.3, face_t - ol_pin_rec])
             cube([ol_pin_w, ol_h/2 + 0.2 - (ol_glass_dy + ol_glass_l/2 + 0.3), ol_pin_rec + 1]);
