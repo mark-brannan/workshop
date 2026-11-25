@@ -31,13 +31,14 @@ tm_hole_dy = 19;
 tm_disp_l = 30;
 tm_disp_w = 14;
 tm_disp_h = 7;       // display face above the board's front
-tm_disp_dx = -0.75;  // toward the header end (-X)
+tm_disp_dx = -1.35;  // toward the header end (-X): clean end 7.1 (caliper); 5 from the pin end printed tight in segment-display-enclosure (owner, 2026-11-24)
 tm_disp_dy = -0.25;
 tm_recess = 0.5;     // display face behind the outer face
 tm_clear = 0.25;     // board edge to wall, per side
 tm_pilot_d = 2.2;    // M2.5 self-tapping, calibration pending
 tm_post_d = 5;
 win_clear = 0.3;     // per side around the display body
+tm_win_chamfer = 0.8; // 45 deg lead-in on the TM1637 window's inner edge, as segment-display-enclosure (owner, 2026-11-25); outer face flush
 tm_joint_h = 1.5;    // guessed: clipped pins and solder on the board's back
 tm_pin_row = 10.16;  // guessed: display pin rows apart (0.36" 4-digit), centred on the display
 tm_pin_span = 12.7;  // guessed: six pins per row, 2.54 pitch
@@ -404,6 +405,14 @@ module shell() {
         translate([0, 0, -1]) linear_extrude(face_t + 2) {
             tm_disp_keepout();
             translate([0, ol_cy + ol_win_dy]) square([ol_win_w, ol_win_h], center = true);
+        }
+        // TM1637 window: 45 deg chamfer round its inner edge, widening toward the back (no support); posts keep their full foot
+        difference() {
+            hull() {
+                translate([0, 0, face_t - tm_win_chamfer - 0.01]) linear_extrude(0.01) offset(delta = -0.01) tm_disp_keepout();   // just inside the window: no shared face
+                translate([0, 0, face_t]) linear_extrude(0.01) offset(delta = tm_win_chamfer) tm_disp_keepout();
+            }
+            translate([0, 0, -1]) linear_extrude(face_t + 2) offset(delta = 0.01) tm_posts_2d();   // 0.01 into the window: no shared edge
         }
         // glass pocket: through the face when flush, else from behind leaving a lip in front
         translate([0, 0, ol_glass_z <= 0 ? -1 : ol_glass_z]) linear_extrude(face_t + 1) offset(delta = 0.05) ol_glass_keepout();
