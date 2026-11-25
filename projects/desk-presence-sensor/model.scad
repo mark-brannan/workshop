@@ -81,6 +81,7 @@ rd_rib_h = 4;        // above the face interior
 rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
 rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
 rd_hook = 1.4;       // bottom lip reach from the rib; its 45 deg underside passes 0.1 over the board's back edge (was 0.9, timid: owner, first print)
+rd_hook_w = 5;       // bottom lip, centred: a short stay, clear of the parts along the board's bottom edge (owner, 2026-11-25)
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
 rd_beam_t = 0.7;     // beam thickness: the rib thinned from outside so the lip can flex (was 0.8, a little tight: owner, first print)
 rd_groove = 0.5;     // beam root sunk this far into the face, for a longer, softer beam
@@ -258,7 +259,7 @@ module ol_snap_cuts() {   // slots either side of each side beam and its outside
 module rd_hooks() {
     zb = face_t + rd_t + rd_lip_gap;
     translate([0, rd_cy - (rd_h/2 + rd_slack), 0])
-        rotate([90, 0, 90]) linear_extrude(rd_w + 2*rd_slack + 0.4, center = true)
+        rotate([90, 0, 90]) linear_extrude(rd_hook_w, center = true)
             polygon([[-0.2, zb - rd_slack - 0.2], [rd_hook, zb + rd_hook - rd_slack], [rd_hook, zb + rd_hook - rd_slack + 0.3],
                      [-0.2, zb + 2*rd_hook - rd_slack + 0.3]]);
 }
