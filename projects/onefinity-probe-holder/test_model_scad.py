@@ -19,6 +19,7 @@ SLOT = P["probe_t"] + 2 * P["fit_t"]
 D = P["probe_s"] * math.sqrt(2)
 K = (P["fit_v"] + P["wall"]) * math.sqrt(2)
 Y_PF = (SLOT / 2 + P["front_t"]) * math.cos(TILT) + K * math.sin(TILT) - 0.5
+Z_CUT = P["open_v"] * math.cos(TILT) - SLOT / 2 * math.sin(TILT)  # the open point's cut lands on the bed
 SCREW_ZS = [float(z) for z in re.search(r"^screw_zs\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text(), re.M).group(1).split(",")]
 SCREWS = [(x, z) for x in (-P["screw_x"], P["screw_x"]) for z in SCREW_ZS]
 
@@ -61,26 +62,25 @@ def test_screws_high(holder):
 
 def test_side_walls_reach_the_plate(holder):
     # just in front of the plate, high up, a ray across meets both fins (two faces each) and nothing else
-    assert len(ray_hits(holder, (100, Y_PF - 1, P["plate_pt"] + 55), (-1, 0, 0))) == 4
+    assert len(ray_hits(holder, (100, Y_PF - 1, 40), (-1, 0, 0))) == 4
 
 
 def test_point_open_from_above(holder):
     # straight down the slot centre, past the probe's point: nothing at all
-    assert len(ray_hits(holder, (0, -20 * math.sin(TILT), P["plate_pt"] + 60), (0, 0, -1))) == 0
+    assert len(ray_hits(holder, (0, -20 * math.sin(TILT), 46), (0, 0, -1))) == 0
 
 
 def test_no_flat_overhangs(holder):
     n, c = holder.face_normals, holder.triangles_center
-    bad = (n[:, 2] < -math.cos(math.radians(44.5))) & (c[:, 2] > 1.6)  # not the plate foot's 1.5 mm edge round on the bed
+    bad = (n[:, 2] < -math.cos(math.radians(44.5))) & (c[:, 2] > 1.6)  # not the plate's 1.5 mm edge round on the bed
     # the two 3 mm corner rounds of the quarter circle pass through flat for a few mm: about 37 mm^2 in all, at 44-46 deg
     assert holder.area_faces[bad].sum() < 40
 
 
 def _world(u, v, w):
     # probe frame (u across, v up the face, w through it, +w the support wall) to world, as placed() in model.scad
-    z_low = -K * math.cos(TILT) - (SLOT / 2 + P["wall"]) * math.sin(TILT)
     y, z = -w, v
-    return (u, y * math.cos(TILT) - z * math.sin(TILT), y * math.sin(TILT) + z * math.cos(TILT) + P["plate_pt"] - z_low)
+    return (u, y * math.cos(TILT) - z * math.sin(TILT), y * math.sin(TILT) + z * math.cos(TILT) - Z_CUT)
 
 
 def _pe(s, n):
