@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""Slice a model 3MF headless with the resolved settings of a saved OrcaSlicer project.
+
+The CLI cannot resolve a preset's `inherits` from the packed system bundles
+(`system/*.opc`), so it can't use a user preset file directly. A project 3MF
+saved from the GUI carries every setting already resolved; this copies that
+project's settings into the model 3MF and slices it.
+
+  scripts/orca-slice <settings.3mf> <model.3mf> <outdir> [--bed "Textured PEI Plate"]
+
+Writes <outdir>/<model>.project.3mf and <outdir>/plate_<n>.gcode, runs from
+<outdir> (orca-slicer drops result.json in the current directory), and prints
+the g-code header lines to check before uploading. A private copy of the GUI's
+config is used as --datadir so the run never touches the GUI's.
+"""
+import argparse, json, shutil, subprocess, sys, zipfile
+from pathlib import Path
+
+GUI_CONF = Path.home() / "Library/Application Support/OrcaSlicer"
+CHECK = ("printer_settings_id", "print_settings_id", "filament_settings_id", "filament_type",
+         "curr_bed_type", "layer_height", "nozzle_temperature =", "total filament used [g]")
+
+ap = argparse.ArgumentParser()
+ap.add_argument("settings"); ap.add_argument("model"); ap.add_argument("outdir")
+ap.add_argument("--bed", help="override curr_bed_type, e.g. 'Textured PEI Plate'")
+a = ap.parse_args()
+out = Path(a.outdir).resolve(); out.mkdir(parents=True, exist_ok=True)
+
+with zipfile.ZipFile(a.settings) as z:
+    settings = json.loads(z.read("Metadata/project_settings.config"))
+if a.bed:
+    settings["curr_bed_type"] = a.bed
+project = out / (Path(a.model).stem + ".project.3mf")
+with zipfile.ZipFile(a.model) as zin, zipfile.ZipFile(project, "w", zipfile.ZIP_DEFLATED) as zout:
+    for i in zin.infolist():
+        if i.filename != "Metadata/project_settings.config":
+            zout.writestr(i, zin.read(i))
+    zout.writestr("Metadata/project_settings.config", json.dumps(settings, indent=1))
+
+data = out / "orca-data"
+if not data.exists() and GUI_CONF.is_dir():
+    shutil.copytree(GUI_CONF, data, ignore=shutil.ignore_patterns("log", "cache", "*.lock"))
+cmd = ["orca-slicer", "--slice", "0", "--outputdir", str(out), str(project)]
+if data.exists():
+    cmd[1:1] = ["--datadir", str(data)]
+r = subprocess.run(cmd, cwd=out, capture_output=True, text=True)
+if r.returncode:
+    sys.exit(f"orca-slicer exit {r.returncode}\n{(r.stdout + r.stderr)[-800:]}")
+for g in sorted(out.glob("plate_*.gcode")):
+    print(g)
+    for line in g.open():
+        if line.startswith("; ") and any(line[2:].startswith(k) for k in CHECK):
+            print("  " + line.strip())

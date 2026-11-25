@@ -48,7 +48,14 @@ drill file and upload zip on build.
 Windows install, from `scripts/install-orcaslicer-linux` or, on a Mac,
 `scripts/install-orcaslicer-mac` (once per box; it is not in the repo). On a
 Mac the user's presets are in `~/Library/Application Support/OrcaSlicer/user/`
-(system presets are packed in `system/*.opc`); copy that folder as `--datadir`. It slices with the settings carried in a 3MF saved from
+(system presets are packed in `system/*.opc`); copy that folder as `--datadir`.
+
+The CLI cannot resolve a preset's `inherits` from those packed bundles, so a
+user preset file passed to `--load-settings` fails ("Preset was not found in
+the loaded bundle"). With no saved project for the model, borrow the settings
+of one that is: `scripts/orca-slice <saved.3mf> <model.3mf> <outdir> [--bed
+"Textured PEI Plate"]` grafts its resolved settings onto the model and slices.
+K2 Plus PETG at 0.20 Strength: `projects/shower-sump-platform/out/shower-sump-platform_scad.3mf`. It slices with the settings carried in a 3MF saved from
 OrcaSlicer, so slice the user's saved project, not a bare mesh:
 
 ```
