@@ -1,6 +1,6 @@
 // Onefinity touch-probe holder for a vertical surface: the probe drops in point first, as a diamond, and
 // leans out 30 deg toward the user, its flat face resting on a support wall on the user's side; machined face
-// up, toward the wall, behind a low lip. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
+// up, toward the wall, open between the fins. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
 // Probe frame: u across the face (X), v up the face, w through the thickness (+w = the support wall).
 // The cradle is built in that frame, then mirrored and tilted (placed()). Its V side walls run on to the wall plate as fins;
 // its rounded bottom runs down into the plate as a chute; both meet the plate through a concave fillet. Both screws sit at the top, above the cradle.
@@ -25,17 +25,16 @@ flare_from = 12;    // the flare starts this far up the V
 tilt = 30;          // lean from vertical, top out toward the user
 v_depth = 40;       // V sides: up to about half the probe (side corners at 45)
 wall = 6;           // V arms and support wall
-front_t = 3;        // low lip on the wall side
-front_h = 15;       // front lip height above the point: the top stays open
+front_t = 3;        // the V floor runs this far past the slot toward the wall, where the plate starts
 back_h = 65;        // support wall top above the point, past half the probe
 
 edge_r = 2.5;       // rounding on the support wall's outer edge
 corner_r = 3;       // rounding on 2D corners
 
 /* [Chute: the V's rounded bottom runs straight down into the plate] */
-keel_r = 10;        // the V's bottom is rounded this much: no point on the outside
-chute_h = 8;        // the chute takes the V up to this far above the probe point
-chute_foot_r = 12;  // the chute's rounded bottom on the plate
+keel_r = 6;         // the V's bottom is rounded this much: no point on the outside
+chute_h = 3;        // the chute takes the V up to this far above the probe point
+chute_foot_r = 6;    // the chute's rounded bottom on the plate
 chute_foot_z = 8;   // its lowest point on the plate: low enough that the chute's underside is steeper than 45
 
 /* [Blend: fins and chute meet the plate through a concave fillet] */
@@ -96,17 +95,16 @@ module cradle_outer() {
         slab(-80, w_back) intersection() { outer_v(v_depth); back_2d(); }
         slab(-81, -slot / 2) cutter_2d();
     }
-    slab(w_front, -slot / 2 + e) outer_v(front_h);
     slab_r(slot / 2, w_back, edge_r) back_2d();
 }
 module cutter() slab(-slot / 2, slot / 2) cutter_2d();
 
 // Placed: the probe frame mirrored so the support wall (+w) faces the user (-Y), then tilted so the
-// top leans out toward the user; the point and the low lip sit close to the wall. Lowest point on the bed.
+// top leans out toward the user; the point sits close to the wall.
 z_low = -k * cos(tilt) - w_back * sin(tilt);
 module placed() translate([0, 0, plate_pt - z_low]) rotate([tilt, 0, 0]) mirror([0, 1, 0]) children();
 
-// plate front face: just inside the low lip's bottom edge, the cradle's nearest point to the wall
+// plate front face: just inside the V point's wall-side end, the cradle's nearest point to the wall
 y_pf = (slot / 2 + front_t) * cos(tilt) + k * sin(tilt) - 0.5;
 
 module plate_2d() offset(r = plate_r) offset(delta = -plate_r) hull() {   // covers where the fins and the chute land, and the screws
@@ -131,7 +129,7 @@ module chute_foot() hull() {
     translate([0, chute_foot_z + chute_foot_r]) circle(r = chute_foot_r);
     translate([-(chute_h + k), z_J + chute_h]) square([2 * (chute_h + k), e]);
 }
-z_J = plate_pt - z_low + (-w_front) * sin(tilt) - k * cos(tilt);   // the V point at the lip, the cradle's nearest point to the wall
+z_J = plate_pt - z_low + (-w_front) * sin(tilt) - k * cos(tilt);   // the V point at its wall-side end
 // Fins: the V's side walls carried on toward the wall until they meet the plate, so they hold the cradle up.
 module wall_side() translate([-100, -100, 0]) cube([200, 100 + y_pf + 1, 200]);   // in front of the wall, stopping just inside the plate
 module fins() intersection() { placed() cradle_outer(); wall_side(); }
