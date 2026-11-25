@@ -47,6 +47,7 @@ ol_w = 27.3;         // X
 ol_h = 27.8;         // Y, header at the top edge, pins out the back
 ol_hole_dx = 23.3;
 ol_hole_dy = 23.6;
+ol_hole_top_dy = 0.35; // top row moved up: first print, pilots sat ~0.35 low in the board's top holes (owner photo, 2026-11-24)
 ol_t = 1.6;          // guessed, standard PCB
 ol_pins = 1.7;       // clipped header pins behind the board, guessed
 ol_glass_h = 2.4;    // guessed: board front to glass face
@@ -76,9 +77,13 @@ rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
 rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
 rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
-rd_hook = 0.9;       // bottom hooks over the board's lower edge
+rd_hook = 1.4;       // bottom lip reach from the rib; its 45 deg underside passes 0.1 over the board's back edge (was 0.9, timid: owner, first print)
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
-rd_beam_t = 0.8;     // beam thickness: the rib thinned from outside so the lip can flex
+rd_beam_t = 0.7;     // beam thickness: the rib thinned from outside so the lip can flex (was 0.8, a little tight: owner, first print)
+rd_groove = 0.5;     // beam root sunk this far into the face, for a longer, softer beam
+rd_top_x = [8, 10.7];   // top snap lips on the top rib's corner stubs, |X| span, clear of the header
+rd_skin = 0.6;       // face left in front of the antennas: 1.5 is near a quarter wave at 24 GHz, the worst reflection
+rd_border = 1.5;     // full face kept round the pocket, for the board to rest on
 rd_slot = 1;         // cut either side of a beam
 /* [TM1637 seat and tray seat] */
 tm_rib_t = 0.8;      // seating ribs along the board's top and bottom edges (the side walls seat its ends)
@@ -151,7 +156,7 @@ ol_glass_z = face_t + ol_gap - ol_fwd;   // glass front face
 ol_board_z = ol_glass_z + ol_glass_h;
 ol_back_z = ol_board_z + ol_t + ol_pins;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
-ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2]];
+ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2 + (sy > 0 ? ol_hole_top_dy : 0)]];
 // The depth stack, front to back.
 tm_back_z = tm_board_z + tm_t;                     // TM1637 board back
 tray_z0 = max(tm_back_z + screw_head, face_t + rd_t + rd_back + rd_pin_clr);   // tray front plane: rests on the wall seats, clear of the TM1637 and the radar pins
@@ -217,6 +222,14 @@ module rd_lips() {
                 polygon([[sx*0.2, zb], [-sx*rd_lip, zb + rd_lip], [-sx*rd_lip, zb + rd_lip + 0.3],
                          [sx*0.2, zb + 2*rd_lip + 0.3]]);
 }
+// Top snap lips: one on each corner stub of the top rib, on a beam flexing in Y, beside the header.
+module rd_top_lips() {
+    zb = face_t + rd_t + rd_lip_gap;
+    for (sx = [-1, 1]) { x = xs(sx, rd_top_x[0], rd_top_x[1]);
+        translate([0, rd_cy + rd_h/2 + rd_slack, 0]) yz(x[0], x[1])
+            polygon([[0.2, zb], [-rd_lip, zb + rd_lip], [-rd_lip, zb + rd_lip + 0.3], [0.2, zb + 2*rd_lip + 0.3]]);
+    }
+}
 // Radar bottom slot: one lip along the whole lower edge, over a whole bottom rib. The board's lower edge
 // tucks into the slot (floor = face, back = rib, roof = lip) at an angle, then the board lies flat and
 // the upper snap lips click over it. 45 deg underside, no supports.
@@ -224,19 +237,31 @@ module rd_hooks() {
     zb = face_t + rd_t + rd_lip_gap;
     translate([0, rd_cy - (rd_h/2 + rd_slack), 0])
         rotate([90, 0, 90]) linear_extrude(rd_w + 2*rd_slack + 0.4, center = true)
-            polygon([[-0.2, zb], [rd_hook, zb + rd_hook], [rd_hook, zb + rd_hook + 0.3], [-0.2, zb + 2*rd_hook + 0.3]]);
+            polygon([[-0.2, zb - rd_slack - 0.2], [rd_hook, zb + rd_hook - rd_slack], [rd_hook, zb + rd_hook - rd_slack + 0.3],
+                     [-0.2, zb + 2*rd_hook - rd_slack + 0.3]]);
 }
-// What the beams are cut free with.
+// What the beams are cut free with: slots either side and the outside thinning, all sunk rd_groove into the
+// face so each beam roots deeper and gives more. Open to the back: no overhang.
 module rd_beam_cuts() {
+    zc = face_t - rd_groove + 10;
     for (sx = [-1, 1]) { dy = 1;
         y0 = rd_h/2 - 1 - rd_lip_len;                      // beam spans y0 .. y0 + rd_lip_len from the radar centre
         x_in = rd_w/2 + rd_slack;
         for (y = [y0 - rd_slot, y0 + rd_lip_len])
-            translate([sx*(x_in + rd_rib_t/2), rd_cy + dy*(y + rd_slot/2), face_t + 10])
+            translate([sx*(x_in + rd_rib_t/2), rd_cy + dy*(y + rd_slot/2), zc])
                 cube([rd_rib_t + 1, rd_slot, 20], center = true);
-        translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), face_t + 10])
+        translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), zc])
             cube([(rd_rib_t - rd_beam_t) + 1, rd_lip_len, 20], center = true);
+        // top lip beam: a slot at its outer end (the inner end is the wire opening) and the outside thinned
+        y_in = rd_cy + rd_h/2 + rd_slack;
+        translate([sx*(rd_top_x[1] + rd_slot/2), y_in + rd_rib_t/2, zc]) cube([rd_slot, rd_rib_t + 1, 20], center = true);
+        translate([sx*((rd_top_x[0] + rd_top_x[1])/2 - 0.2), y_in + rd_beam_t + (rd_rib_t - rd_beam_t + 1)/2, zc])
+            cube([rd_top_x[1] - rd_top_x[0] + 0.4, rd_rib_t - rd_beam_t + 1, 20], center = true);
     }
+}
+// Thin face in front of the antennas, pocketed from inside (its floor faces the back: no overhang).
+module rd_pocket() {
+    translate([0, rd_cy, rd_skin]) linear_extrude(face_t) square([rd_w - 2*rd_border, rd_h - 2*rd_border], center = true);
 }
 
 // TM1637 seat: ribs along the board's top and bottom edges, stopping short of the tray's front plane.
@@ -305,6 +330,7 @@ module shell() {
             linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
             rd_lips();
+            rd_top_lips();
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
             linear_extrude(tm_back_z - 0.2) tm_seat_2d();
@@ -333,6 +359,7 @@ module shell() {
         translate([-cable_slot_w/2, in_h - 1, cable_z0]) cube([cable_slot_w, wall + 2, shell_d]);
         snap_grooves();
         rd_beam_cuts();
+        rd_pocket();
     }
 }
 

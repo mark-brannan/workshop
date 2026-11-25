@@ -81,14 +81,14 @@ def test_windows_through_radar_behind_solid_face(shell):
     cx, cy = P["tm_disp_dx"], TM_CY + P["tm_disp_dy"]
     assert len(down(shell, cx, cy)) == 0
     assert len(down(shell, 0, OL_CY + P["ol_win_dy"])) == 0
-    assert np.isclose(down(shell, 0, RD_CY)[0][2], P["face_t"], atol=0.02)
+    assert np.isclose(down(shell, 0, RD_CY)[0][2], P["rd_skin"], atol=0.02)   # thinned in front of the antennas
 
 
 def test_board_posts_blind_pilots_at_board_height(shell):
     for sx in (-1, 1):
         for sy in (-1, 1):
             for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
-                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2, P["ol_pilot_d"], OL_BOARD_Z)):
+                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2 + (P["ol_hole_top_dy"] if sy > 0 else 0), P["ol_pilot_d"], OL_BOARD_Z)):
                 assert np.isclose(down(shell, x, y)[0][2], P["face_t"] - 1, atol=0.02)
                 assert np.isclose(down(shell, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)
 
@@ -216,7 +216,7 @@ def test_gauge_full_depth_seats_no_walls_no_tray_seats(gauge):
     for sx in (-1, 1):
         for sy in (-1, 1):
             for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
-                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2, P["ol_pilot_d"], OL_BOARD_Z)):
+                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2 + (P["ol_hole_top_dy"] if sy > 0 else 0), P["ol_pilot_d"], OL_BOARD_Z)):
                 assert np.isclose(down(gauge, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)   # post at the shell's board height
 
 
