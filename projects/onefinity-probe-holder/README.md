@@ -5,7 +5,7 @@ attached, angled so you can reach in and lift it out. The probe drops in point f
 down. Its two lower edges sit in a 90° V, and its top leans out toward you 30°, so gravity holds it. The large flat
 face rests on a support wall on your side, facing down; the machined face (the 54 mm pocket) points up, toward the wall, open between the fins: no lip, since the lean keeps the probe on the support wall and the open side makes a wider target for the point. The V
 sides reach 43 mm up, about half the probe, and the support wall, a quarter circle about the V point, reaches 56 mm: past the probe's centre of mass, 46 mm up, and high enough for the ledges to reach the lip. The top stays open. The cords leave
-the two upper edges and nothing gets in their way. The V flares out 4 mm a side toward its top so the probe finds its seat by sliding. The V's side walls carry on toward the wall as fins until they meet the 5 mm plate, so they hold the cradle up. Fins meet the plate through an R6 concave fillet. The point is open: one flat cut straight across, 10 mm above the tip at the support wall, so the tip hangs free and only the arms and the support wall hold the probe. Wall-side of the probe, each fin's inner face steps in 3 mm over the raised lip on the machined face, 1 mm clear of it, inside the fin's outline; the step starts 4 mm below the lip and tapers into the fin at 45°, and the pocket passes it freely. Outside edges are rounded, the V arms' top edges R2.
+the two upper edges and nothing gets in their way. The V flares out 4 mm a side toward its top so the probe finds its seat by sliding. The V's side walls carry on level toward the wall as fins until they meet the 5 mm plate, so they hold the cradle up; their outsides are flat faces with rounded tops. Fins meet the plate through an R6 concave fillet. The point is open: one horizontal cut, the bed, 12 mm above the tip at the support wall and at the tip on the wall side; the fins and plate end on the same line, so the tip hangs free and only the arms and the support wall hold the probe. Wall-side of the probe, each fin's inner face steps in 3 mm over the raised lip on the machined face, 1 mm clear of it, inside the fin's outline; the step starts 4 mm below the lip and tapers into the fin at 45°, and the pocket passes it freely. Outside edges are rounded, the V arms' top edges R2.
 
 ![probe in place](out/concept_with_probe.png)
 
@@ -31,18 +31,17 @@ Hardware: 2 × #8 (4 mm) countersunk wood screws, about 25 mm long, through a 5 
 | `tilt` | 30° from vertical, top out toward the user | owner: 15 to 20, top out, bottom near the wall |
 | `fit_t`, `fit_v` | 1.0, 0.8 a side, plus a 4 mm flare at the V's top | loose drop-in that guides itself. It's a holder, not a fixture, so no gauge print |
 | `v_depth`, `back_h` | 43, 56 | owner: cover about half the square, a little more on the flat face, top open; the flat face needs cover only past the centre of mass (46 up, the pocket shifts it 1 mm up) |
-| `plate_pt` | 14 | the plate stops just under the fins |
-| `open_v`, `ledge_in` | 10; 3 | owner: about 10 mm of the point open, a flat cut; ledges a few mm over the lip, flush |
+| `open_v`, `ledge_in` | 12; 3 | owner: about 10 mm of the point open, a flat cut; ledges a few mm over the lip, flush |
 | Screws | 2 at ±25, z 82, above the cradle; holes 5, countersink 10 | #8 wood screws, loose; printed holes run small. High, because the load pulls the top of the plate off the wall |
 
 ## How overhangs are held (print orientation = as installed)
 
-- V arm undersides and the fins: 52° from horizontal, because the 45° V is tilted back 30°.
-- The open point's flat cut tilts 20° off square, rising toward the wall, so it leans 50°; the fillet under it is trimmed to the same plane.
+- V arm undersides: 52° from horizontal. The fins' undersides, run level to the plate, lean 41°: owner accepts.
+- The open point's cut is the bed: the cradle, fins and plate all start on it.
 - Each ledge's underside, facing the support wall, leans 60°; its end tapers at 45° and faces sideways.
 - The R6 fillet where the fins meet the plate runs from vertical at the plate to the face it joins, so it is never flatter than that face.
 - The support wall's outer face leans out at 60°.
 - Screw holes run horizontally with teardrop tops. Countersinks are 90° cones.
 - The test allows under 40 mm² of flat overhang: the 3 mm corner rounds of the quarter circle pass through flat (44–46°) for a few mm.
 
-Volume 63.3 cm³ (about 80 g PETG), down from 93.3 with the nose cut out and the plate shortened.
+Volume 103.3 cm³ (about 130 g PETG), up from 63.3 with the fins run level down to the bed.

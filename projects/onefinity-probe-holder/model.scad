@@ -104,8 +104,8 @@ module ledge_2d() offset(r = arm_r) offset(delta = -arm_r) difference() {
     translate([-ledge_u0, -50]) square([2 * ledge_u0, 200]);
 }
 module half_2d(i) translate([i == 0 ? -100 : 0, -100]) square([100, 300]);
-module arm_side_2d(i) intersection() {   // one V arm, top edges rounded, just clear of the cutter: no shared faces
-    offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = 0.05) cutter_2d(); }
+module arm_side_2d(i) intersection() {   // one V arm, top edges rounded; unflared, so the fin top stands over the ledges (the slot's cutter flares it)
+    offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = fit_v + 0.05) hull() { diamond(); translate([0, 100]) diamond(); } }
     half_2d(i);
 }
 module support_wall() slab_r(slot / 2, w_back, edge_r) offset(delta = -0.02) back_2d();   // just inside the arms: no shared faces
@@ -136,9 +136,12 @@ module plate() difference() {
 
 // Fins: each V arm swept horizontally toward the wall until it meets the plate, so they hold the cradle up.
 module wall_side() translate([-100, -100, -50]) cube([200, 100 + y_pf + 1, 250]);   // in front of the wall, stopping just inside the plate
-module fins() for (i = [0:1]) intersection() { to_wall() placed() slab(w_front, w_back) arm_side_2d(i); wall_side(); }
+module fin(i) to_wall() placed() slab(w_front, w_back) arm_side_2d(i);
+module fins() for (i = [0:1]) intersection() { fin(i); wall_side(); }
 // ledges: each fin's inner face, wall-side of the probe, stepped in over the lip and swept the same way; fit_t clear of the lip
-module ledges() for (i = [0:1]) intersection() { to_wall() placed() slab(-probe_t / 2 - 0.5, -probe_t / 2) intersection() { ledge_2d(); half_2d(i); } wall_side(); }
+module ledges() for (i = [0:1]) intersection() { to_wall() placed() slab(-probe_t / 2 - 0.5, -probe_t / 2) intersection() { ledge_2d(); half_2d(i); } wall_side();
+    hull() { fin(i); translate([i == 0 ? 12 : -12, 0, 0]) fin(i); }   // no higher than the fin top, carried level inward: the outside stays the fin's own face
+}
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
 // Blend: each of the two fins is sliced parallel to the plate; each slice
 // grows by the fillet's offset at that distance, and consecutive slices are hulled, so the fillet is smooth.

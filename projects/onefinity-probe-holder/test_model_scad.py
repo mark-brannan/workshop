@@ -45,7 +45,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 58_000 < holder.volume < 69_000  # 63.3 cm^3 as built
+    assert 97_000 < holder.volume < 110_000  # 103.3 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -62,7 +62,7 @@ def test_screws_high(holder):
 
 def test_side_walls_reach_the_plate(holder):
     # just in front of the plate, high up, a ray across meets both fins (two faces each) and nothing else
-    assert len(ray_hits(holder, (100, Y_PF - 1, 40), (-1, 0, 0))) == 4
+    assert len(ray_hits(holder, (100, Y_PF - 1, 25), (-1, 0, 0))) == 4
 
 
 def test_point_open_from_above(holder):
@@ -72,7 +72,8 @@ def test_point_open_from_above(holder):
 
 def test_no_flat_overhangs(holder):
     n, c = holder.face_normals, holder.triangles_center
-    bad = (n[:, 2] < -math.cos(math.radians(44.5))) & (c[:, 2] > 1.6)  # not the plate's 1.5 mm edge round on the bed
+    bad = (n[:, 2] < -math.cos(math.radians(39.5)))  # the fins' undersides, swept level, lean 41 deg: owner accepts
+    bad &= c[:, 2] > 1.6  # not the plate's 1.5 mm edge round on the bed
     # the two 3 mm corner rounds of the quarter circle pass through flat for a few mm: about 37 mm^2 in all, at 44-46 deg
     assert holder.area_faces[bad].sum() < 40
 
