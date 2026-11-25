@@ -9,11 +9,13 @@ the two upper edges and nothing gets in their way. The V flares out 4 mm a side 
 
 ![probe in place](out/assembly.png)
 
+![lip leg and ledge, iso close-ups](out/assembly_lip.png)
+
 ![sections across the lip and the pocket](out/assembly_sections.png)
 
 ## Files (out/)
 
-`onefinity-probe-holder_scad.3mf` / `.stl`: the holder, printed as installed: the plate's lower edge on the bed. `assembly.png`, `assembly_sections.png`: the probe seated in it, lip legs orange, ledge faces green, and cuts square to its edge; `assembly.py` redraws them on every `shop build`.
+`onefinity-probe-holder_scad.3mf` / `.stl`: the holder, printed as installed: the plate's lower edge on the bed. `assembly.png`, `assembly_lip.png`, `assembly_sections.png`: the probe seated in it, lip legs orange, ledge faces green, and cuts square to its edge; `assembly.py` redraws them on every `shop build`.
 
 Hardware: 2 × #8 (4 mm) countersunk wood screws, about 25 mm long, through a 5 mm plate. Both sit at the plate's top (z 45), just above the cradle (the fins top out at 39.9), where the probe's weight pulls the plate off the wall; the plate ends 11 mm above them. A drill or driver reaches them straight on, its countersink just clear of the fins.
 

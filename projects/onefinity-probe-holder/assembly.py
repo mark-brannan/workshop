@@ -170,12 +170,48 @@ def sections(holder, probe, path):
     plt.close(fig)
 
 
+def lip_closeups(holder, probe, path):
+    """Iso close-ups on the right side corner, where the lip leg meets its ledge, from each face's side (they face each other)."""
+    hc = face_colours(holder, HOLDER, [(-TO_WALL, W_LEDGE, LEDGE)])
+    pc = face_colours(probe, PROBE, [(TO_WALL, W_LIP, LIP), (TO_WALL, W_POCKET, POCKET)])
+    wall_side = -(holder.triangles_center - world(0, 0, 0)) @ TO_WALL < W_LEDGE + 0.05
+    no_support = holder.submesh([np.where(wall_side)[0]], append=True)
+    up_edge = wdir(1, 1, 0) / math.sqrt(2)  # up the probe's lower-right edge
+    across = wdir(-1, 1, 0) / math.sqrt(2)  # in from that edge, across the face
+    f = world(*pe(P["pocket_s"] + 2, 2), (W_LIP + W_LEDGE) / 2)  # between lip and ledge, on the lap
+    panels = [
+        ("lip side: from the wall, above and outside the corner; holder see-through\n"
+         "orange lip leg and blue pocket under the green ledge", TO_WALL + 0.7 * up_edge - 0.6 * across, holder, hc, 0.35, probe, 1.0, 0),
+        ("ledge side: from the user, above and outside the corner; probe see-through, support wall cut away\n"
+         "green ledge face, the orange lip leg behind it", -TO_WALL + 0.5 * up_edge + 0.5 * across + 0.4 * np.array((0, 0, 1)), no_support, hc[wall_side], 1.0, probe, 0.35, 0),
+    ]
+    pv.OFF_SCREEN = True
+    p = pv.Plotter(off_screen=True, shape=(1, 2), window_size=(2000, 1000), border=True)
+    for i, (label, vec, hm, hcol, hop, pm, pop, g) in enumerate(panels):
+        p.subplot(0, i)
+        p.set_background("#202326")
+        shift = -g * TO_WALL
+        for part, col in pv_parts(pm, pc):
+            p.add_mesh(part.translate(shift, inplace=False), color=col, opacity=pop)
+        for part, col in pv_parts(hm, hcol):
+            p.add_mesh(part, color=col, opacity=1.0 if col == LEDGE else hop)
+        p.add_mesh(pv.wrap(hm).extract_feature_edges(30), color="#111111", line_width=1.5, opacity=max(hop, 0.4))
+        p.add_text(label, font_size=9, color="white")
+        foc = f + shift / 2
+        p.camera.focal_point = tuple(foc)
+        p.camera.position = tuple(foc + (110 if i == 0 else 150) * vec / np.linalg.norm(vec))
+        p.camera.up = (0, 0, 1)
+    p.screenshot(str(path))
+    p.close()
+
+
 def main():
     holder = trimesh.load(OUT / "onefinity-probe-holder_scad.stl")
     probe = probe_mesh()
     three_d(holder, probe, OUT / "assembly.png")
+    lip_closeups(holder, probe, OUT / "assembly_lip.png")
     sections(holder, probe, OUT / "assembly_sections.png")
-    for f in ("assembly.png", "assembly_sections.png"):
+    for f in ("assembly.png", "assembly_lip.png", "assembly_sections.png"):
         print(OUT / f)
 
 
