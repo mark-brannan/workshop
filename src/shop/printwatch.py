@@ -108,7 +108,7 @@ def job_checks(st: dict, job: Job, plate: str, vents: str, cfs: bool, macros: se
     else:
         c.append(Check("FAIL" if enable != 0 else "ok", f"spool job, CFS printing {'off' if enable == 0 else 'on'}", feed_gcode(False)))
         if job.toolchanges:
-            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}; re-send it with shop watch upload"))
+            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}; start strips them"))
 
     for m in MACROS:
         c.append(Check("ok" if m in macros else "FAIL", f"macro {m}" + ("" if m in macros else " missing: re-copy its .cfg")))
@@ -196,16 +196,25 @@ def feed_gcode(cfs: bool) -> str:
 
 def preflight(a: argparse.Namespace, fix: bool | None = None) -> int:
     job = read_job(a.file)
+    if job.high_temp and (a.plate is None or a.vents is None):
+        print(f"preflight: {job.material} job needs --plate and --vents; they are not guessed for it")
+        return 1
+    a.plate, a.vents = a.plate or "pattern", a.vents or "open"
     macros = {o.split(" ", 1)[1] for o in api("/printer/objects/list")["objects"] if o.startswith("gcode_macro ")}
     patches = read_patches()
     print(f"preflight  {a.file}")
     checks = job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches)
     fixes = [ch.fix for ch in checks if ch.level == "FAIL" and ch.fix]
-    if not ((a.fix if fix is None else fix) and fixes):
+    strip = bool(job.toolchanges) and not a.cfs
+    if not ((a.fix if fix is None else fix) and (fixes or strip)):
         return report(checks)
     for f in fixes:
         print(f"  sent  {f.replace(chr(10), ' / ')}")
         gcode(f)
+    if strip:
+        restrip(a.file)
+        print("  sent  tool changes stripped from the file on the printer")
+        job = read_job(a.file)
     return report(job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches))
 
 
@@ -243,18 +252,30 @@ def spool_gcode(data: bytes) -> bytes:
     return b"".join(ln for ln in data.splitlines(keepends=True) if not TOOLCHANGE.match(ln))
 
 
-def upload(a: argparse.Namespace) -> int:
-    src = Path(a.file)
-    data = src.read_bytes()
-    if not a.cfs:
-        data = spool_gcode(data)
+def put(name: str, data: bytes) -> None:
     boundary = "shopwatch" + str(time.time_ns())
-    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{src.name}"\r\n'
+    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{name}"\r\n'
             f"Content-Type: application/octet-stream\r\n\r\n").encode() + data + f"\r\n--{boundary}--\r\n".encode()
     req = urllib.request.Request(f"{URL}/server/files/upload", data=body, headers={
         "X-Api-Key": _key(), "Content-Type": f"multipart/form-data; boundary={boundary}"})
     with urllib.request.urlopen(req, timeout=120) as r:
         r.read()
+
+
+def restrip(name: str) -> None:
+    """Strip the tool changes from the copy already on the printer."""
+    req = urllib.request.Request(f"{URL}/server/files/gcodes/{urllib.parse.quote(name)}", headers={"X-Api-Key": _key()})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        data = r.read()
+    put(name, spool_gcode(data))
+
+
+def upload(a: argparse.Namespace) -> int:
+    src = Path(a.file)
+    data = src.read_bytes()
+    if not a.cfs:
+        data = spool_gcode(data)
+    put(src.name, data)
     print(f"upload {src.name}: {len(data)} bytes" + ("" if a.cfs else ", tool changes stripped for the spool"))
     return 0
 
@@ -446,8 +467,8 @@ def main(argv: list[str]) -> int:
         watching = name == "next"  # a running job needs them only for a pre-layer-1 restart
         if not watching:  # next watches whatever is printing
             pf.add_argument("file")
-        pf.add_argument("--plate", required=not watching, choices=PLATES)
-        pf.add_argument("--vents", required=not watching, choices=("closed", "open"))
+        pf.add_argument("--plate", choices=PLATES, help="default for a PETG job: pattern; required for ASA/ABS")
+        pf.add_argument("--vents", choices=("closed", "open"), help="default for a PETG job: open; required for ASA/ABS")
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
         if name == "next":
