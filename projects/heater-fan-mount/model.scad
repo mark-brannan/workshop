@@ -68,6 +68,7 @@ thread_gap = 0.6;   // floor hole to the spigot's rib crest, each side
 /* [Shell] */
 wall = 2;           // box sides and collar: enclosure only (0.3 inH2O is nothing); thin collar fingers flex under the clamp
 front = 3;          // knob wall: prints on the bed (smooth cabin face), carries the pot nut
+wire_y = 23;        // fan-wire notch centre along the divider, toward the gland end: the fan's lead leaves its frame there and cannot wrap past the body or pass the wall (owner photos, 2026-11-24)
 divider = 1.6;      // fan bay to pocket: separates, carries nothing (4 lines)
 floor_t = 2;        // fan sits on it; the screws clamp at the corners
 plate_t = 2.5;      // lid: the whole unit hangs from it via the collar
@@ -117,7 +118,7 @@ module box() {
     holes(4.4, floor_t + 2 * e);
     countersinks();
     // fan wires into the pocket: a notch in the divider, open at the top
-    translate([W / 2 - wall - e, -3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
+    translate([W / 2 - wall - e, wire_y - 3, H - 4]) cube([divider + 2 * e, 6, 4 + e]);
     translate([pocket_x, -W / 2 + wall + e, board_top + pot_z]) hole_y(pot_bushing, front + 2 * e);
     // LED window: square aperture through the knob wall, chamfered at 45 deg on its inside
     translate([led_win_x, -W / 2 + wall + e, led_win_z]) rotate([90, 0, 0]) {
