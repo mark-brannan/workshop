@@ -47,7 +47,7 @@ def main():
     p = pv.Plotter(off_screen=True, shape=(1, 2), window_size=(1800, 820), border=False)
     for col, (vec, zoom, title) in enumerate([
         ((0.9, 1, 0.55), 2.6, "Starboard forward end: over the wing, off its tip, down the fairlead, through the slit"),
-        ((-0.45, 1, 0.3), 4.2, f"End face from forward and inboard: tie slants {lean:.0f} deg off vertical; slit square to it"),
+        ((-0.45, 1, 0.3), 4.2, f"End face from forward and inboard: tie centreline slants {lean:.0f} deg; 12 mm slit tilted {P['tie_tilt']:.0f} deg"),
     ]):
         p.subplot(0, col)
         p.set_background(BG)

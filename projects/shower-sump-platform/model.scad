@@ -41,18 +41,19 @@ rivet_reach = 36;    // outermost hole centre, fore and aft, clear of the arches
 /* [Cable ties: one per wing wraps the wing and the sump lengthwise, top and bottom (owner, 2026-11-25). It runs over
    the wing hugging the box body, off each wing tip, down the deck's end face slanting inboard, through a slit in each
    end arch, and under the sump. Inboard of the screw bosses, so the run under the deck clears them] */
-tie_x = 85;          // slit centre from the centreline: inboard of the bosses (88.5), a little narrower than the wings
-tie_zc = -7.5;       // slit centre height: its upper end stays clear under the deck
-tie_slit_l = 6.5;    // slit length, square to the tie's run: a 4.8 x 1.3 tie with room
+tie_x = 82;          // slit centre from the centreline: a 12 mm tie under the deck clears the bosses (inboard edge 88.5)
+tie_zc = -8.3;       // slit centre height: its upper end clear under the deck, its lower end inside the aft arch
+tie_slit_l = 12;     // slit length: a 0.47 in (11.9 mm) tie, the largest wanted (owner, 2026-11-25)
 tie_slit_w = 2.2;    // slit width, round-ended
-tie_top_x = 95.4;    // where the tie leaves the wing tip: hugging the box wall (x = 93) plus half the tie's width
+tie_tilt = 20;       // slit tilt off horizontal, outboard end low (owner, 2026-11-25); the tie's own slant is steeper and it twists the rest
+tie_top_x = 99;      // where a 12 mm tie leaves the wing tip: hugging the box wall (x = 93) plus half its width
 tie_top_z = 3;       // the wing's top there: wing thickness, a guess (unmeasured)
-tie_lead = 1;        // fairlead: a groove the slit's length wide, this deep into the deck's end face, along the tie's slant
-tie_round = 2;       // radius of every edge the tie bends around: the slit's outer mouth and the fairlead's top lip
+tie_lead = 1;        // fairlead: a funnel this deep in the deck's end face, from where the tie crosses the deck top to the slit
+tie_round = 2;       // every rim the tie can bend round: the fairlead's edges and top lip, rounded this wide
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
-tie_lean = atan2(tie_top_x - tie_x, tie_top_z - tie_zc);  // the tie's slant off vertical down the end face; the slit is square to it
+tie_lean = atan2(tie_top_x - tie_x, tie_top_z - tie_zc);  // the tie's slant off vertical down the end face
 
 // deck and skirts apart: a hull() of whole end sections would fill the space under the deck
 module platform() difference() {
@@ -68,29 +69,44 @@ module platform() difference() {
   }
 }
 
-// one end arch's tie slit, square to the tie's slant, with the fairlead groove down the deck's end face above it.
-// Local frame on the end face: u along the slit, v up the tie's run toward the wing; y through the arch
+// one end arch's tie slit and the fairlead funnel above it in the deck's end face (y = len / 2). The funnel is the hull
+// of the slit and the tie's crossing of the deck top, its rim rounded tie_round wide into the face
 module tie_slit() {
-  yf = len / 2 - tie_lead;                  // groove floor: the slit's outer mouth
-  yi = len / 2 - arch_t - 0.1;              // just past the arch's inner face, so no slice lies on it
-  ro = tie_round; ri = 0.6;
-  q = function(r, t) t <= 0 ? r : t >= r ? 0 : r - sqrt(r * r - (r - t) * (r - t));  // quarter-round growth at depth t
-  g = function(y) max(q(ro, yf - y), q(ri, y - yi));
-  ys = concat([yi - 2], [for (t = [0 : ri / 4 : ri]) yi + t], [for (t = [ro : -ro / 8 : 0]) yf - t], [yf + 2]);
-  translate([tie_x, 0, tie_zc]) rotate([0, tie_lean, 0]) {
-    // the slit, its mouths flared by quarter-rounds
-    for (i = [0 : len(ys) - 2]) hull() for (y = [ys[i], ys[i + 1]])
-      translate([0, y, 0]) rotate([-90, 0, 0]) linear_extrude(e) stadium(tie_slit_l, tie_slit_w, g(y));
-    // fairlead groove up the tie's run, from below the slit to above the deck top
-    top = (-tie_zc + 2) / cos(tie_lean);
-    translate([-tie_slit_l / 2, yf, -tie_slit_w / 2 - ro]) cube([tie_slit_l, tie_lead + 2, top + tie_slit_w / 2 + ro]);
-  }
-  // the groove's top lip, where it meets the deck top: rounded, blended to 45 degrees at the bed in print
+  L = len / 2;
+  yf = L - tie_lead;                        // funnel floor: the slit's outer mouth
+  yi = L - arch_t - 0.03;                   // just past the arch's inner face; slices near it leave slivers (0.1 left the mesh open)
+  q = function(r, t) t <= 0 ? r : t >= r ? 0 : r - sqrt(r * r - (r - t) * (r - t));    // quarter-round growth at depth t
+  rim = function(t) t <= 0 ? tie_round : t >= tie_lead ? 0 : tie_round * (1 - sqrt(1 - pow(1 - t / tie_lead, 2)));
+  snap = function(g) g < 0.05 ? 0 : g;      // a sliver of growth makes slivers of mesh
+  // the slit, its mouths rounded into the funnel floor and out of the arch's inner face
+  ym = yf + 0.05;                           // the slit's rounding starts just inside the funnel, no slice on its floor
+  gs = function(y) max(q(tie_lead, ym - y), q(0.6, y - yi));
+  ys = concat([yi - 2], [for (k = [0 : 10]) yi + (ym - yi) * k / 10], [ym + 0.4]);  // in order, none repeated
+  for (i = [0 : len(ys) - 2]) hull() for (y = [ys[i], ys[i + 1]]) face_slice(y) slit2d(gs(y));
+  // the funnel: an elliptical round from the face down to its floor. Behind the floor it carries on, narrowing at 45
+  // degrees, but only where the top lip is rounded into the deck top, so the lip's ends taper rather than step
+  yr = concat([L + 2], [for (t = [0.03 : (tie_lead - 0.03) / 8 : tie_lead]) L - t]);  // 0.03: no slice on the end face
+  yb = [for (d = [0 : tie_round / 6 : tie_round]) yf - d];
   intersection() {
-    translate([tie_x, 0, tie_zc]) rotate([0, tie_lean, 0])
-      translate([-tie_slit_l / 2, yf - 5, 0]) cube([tie_slit_l, 10, -tie_zc / cos(tie_lean) + 5]);
-    translate([-200, 0, 0]) rotate([90, 0, 90]) linear_extrude(400) lip_cutter(yf, tie_round);
+    union() {
+      for (i = [0 : len(yr) - 2]) hull() for (y = [yr[i], yr[i + 1]]) face_slice(y) offset(r = snap(rim(L - y))) funnel2d();
+      for (i = [0 : len(yb) - 2]) hull() for (y = [yb[i], yb[i + 1]]) face_slice(y) offset(delta = -(yf - y)) funnel2d();
+    }
+    union() {
+      translate([-200, yf - 0.02, -50]) cube([400, 50, 100]);
+      translate([-200, 0, 0]) rotate([90, 0, 90]) linear_extrude(400) lip_cutter(yf, tie_round);
+    }
   }
+}
+
+// a 2D outline in the end face (x across, y up = z) placed as a thin slab at fore-aft position y
+module face_slice(y) translate([0, y, 0]) rotate([90, 0, 0]) linear_extrude(e) children();
+module slit2d(g = 0) translate([tie_x, tie_zc]) rotate(-tie_tilt) stadium(tie_slit_l, tie_slit_w, g);
+module funnel2d() hull() {
+  slit2d();
+  x0 = tie_x + (0 - tie_zc) * tan(tie_lean);  // the tie's centre where it crosses the deck top
+  hw = tie_slit_l / 2 / cos(tie_lean);
+  translate([x0 - hw, 0]) square([2 * hw, 5]);
 }
 
 // a convex quarter-round on the edge at (y0, 0), material at y < y0 and z < 0; the last 45 degrees a chamfer
