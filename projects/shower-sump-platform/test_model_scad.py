@@ -95,7 +95,9 @@ def test_tie_slits_and_fairlead_funnels(installed):
         for f in (1, -1):
             mouth = ray_hits(installed, slit(0, ends + 0.6, f), [0, -f, 0])
             assert mouth and abs(mouth[0][1]) < L - P["tie_lead"] - 0.1, "rounded slit mouth"
-            for z in (-2, -3.5):  # the funnel floor along the tie's slant
+            for x in range(88, 101, 2):  # the deck top under the tab is whole out to its end
+                assert ray_hits(installed, [s * x, f * (L - 0.2), 5], [0, 0, -1])[0][2] == pytest.approx(0, abs=0.05), f"deck top at {s * x}, {f}"
+            for z in (-3.5, -5):  # the funnel floor along the tie's slant
                 x = P["tie_x"] + (z - P["tie_zc"]) * math.tan(lean)
                 hit = ray_hits(installed, [s * x, f * 60, z], [0, -f, 0])
                 assert abs(hit[0][1]) == pytest.approx(L - P["tie_lead"], abs=0.05), f"funnel floor at {s}, {f}, {z}"
