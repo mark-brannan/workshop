@@ -116,6 +116,15 @@ def test_box_round_holes_and_gland_web(box):
     assert ray_hits(box, (POCKET_X, 60, gz + P["gland"] / 2 + 0.3), (0, -1, 0))[0][1] == pytest.approx(W / 2, abs=0.05)  # round
 
 
+def test_box_fan_wire_notch_at_the_gland_end(box):
+    # a ray along X through the divider, just under its top: open across the notch, blocked 3.1 either side of it and elsewhere
+    x0, z = W / 2 - P["wall"] + P["divider"] / 2 - 5, H - 2
+    for dy in (-2.9, 0, 2.9):
+        assert ray_hits(box, (x0, P["wire_y"] + dy, z), (1, 0, 0))[:1] and ray_hits(box, (x0, P["wire_y"] + dy, z), (1, 0, 0))[0][0] > x0 + 5
+    for y in (P["wire_y"] - 3.1, P["wire_y"] + 3.1, 0):
+        assert ray_hits(box, (x0, y, z), (1, 0, 0))[0][0] == pytest.approx(x0 + 5 - P["divider"] / 2, abs=0.05)
+
+
 LED_X = POCKET_X + P["board"] / 2 - P["led_x"]
 WIN_X, WIN_Z = LED_X + P["led_shift"], P["floor_t"] + 3 + 1.6 + 1
 
