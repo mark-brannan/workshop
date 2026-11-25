@@ -20,6 +20,7 @@ Why each check exists: projects/k2-plus-mods/printer-notes.md.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shlex
 import subprocess
@@ -108,7 +109,7 @@ def job_checks(st: dict, job: Job, plate: str, vents: str, cfs: bool, macros: se
     else:
         c.append(Check("FAIL" if enable != 0 else "ok", f"spool job, CFS printing {'off' if enable == 0 else 'on'}", feed_gcode(False)))
         if job.toolchanges:
-            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}; re-send it with shop watch upload"))
+            c.append(Check("FAIL", f"spool job but file has tool changes: {'; '.join(job.toolchanges)}; start strips them"))
 
     for m in MACROS:
         c.append(Check("ok" if m in macros else "FAIL", f"macro {m}" + ("" if m in macros else " missing: re-copy its .cfg")))
@@ -196,16 +197,25 @@ def feed_gcode(cfs: bool) -> str:
 
 def preflight(a: argparse.Namespace, fix: bool | None = None) -> int:
     job = read_job(a.file)
+    if job.high_temp and (a.plate is None or a.vents is None):
+        print(f"preflight: {job.material} job needs --plate and --vents; they are not guessed for it")
+        return 1
+    a.plate, a.vents = a.plate or "pattern", a.vents or "open"
     macros = {o.split(" ", 1)[1] for o in api("/printer/objects/list")["objects"] if o.startswith("gcode_macro ")}
     patches = read_patches()
     print(f"preflight  {a.file}")
     checks = job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches)
     fixes = [ch.fix for ch in checks if ch.level == "FAIL" and ch.fix]
-    if not ((a.fix if fix is None else fix) and fixes):
+    strip = bool(job.toolchanges) and not a.cfs
+    if not ((a.fix if fix is None else fix) and (fixes or strip)):
         return report(checks)
     for f in fixes:
         print(f"  sent  {f.replace(chr(10), ' / ')}")
         gcode(f)
+    if strip:
+        restrip(a.file)
+        print("  sent  tool changes stripped from the file on the printer")
+        job = read_job(a.file)
     return report(job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches))
 
 
@@ -243,18 +253,30 @@ def spool_gcode(data: bytes) -> bytes:
     return b"".join(ln for ln in data.splitlines(keepends=True) if not TOOLCHANGE.match(ln))
 
 
-def upload(a: argparse.Namespace) -> int:
-    src = Path(a.file)
-    data = src.read_bytes()
-    if not a.cfs:
-        data = spool_gcode(data)
+def put(name: str, data: bytes) -> None:
     boundary = "shopwatch" + str(time.time_ns())
-    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{src.name}"\r\n'
+    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{name}"\r\n'
             f"Content-Type: application/octet-stream\r\n\r\n").encode() + data + f"\r\n--{boundary}--\r\n".encode()
     req = urllib.request.Request(f"{URL}/server/files/upload", data=body, headers={
         "X-Api-Key": _key(), "Content-Type": f"multipart/form-data; boundary={boundary}"})
     with urllib.request.urlopen(req, timeout=120) as r:
         r.read()
+
+
+def restrip(name: str) -> None:
+    """Strip the tool changes from the copy already on the printer."""
+    req = urllib.request.Request(f"{URL}/server/files/gcodes/{urllib.parse.quote(name)}", headers={"X-Api-Key": _key()})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        data = r.read()
+    put(name, spool_gcode(data))
+
+
+def upload(a: argparse.Namespace) -> int:
+    src = Path(a.file)
+    data = src.read_bytes()
+    if not a.cfs:
+        data = spool_gcode(data)
+    put(src.name, data)
     print(f"upload {src.name}: {len(data)} bytes" + ("" if a.cfs else ", tool changes stripped for the spool"))
     return 0
 
@@ -311,9 +333,19 @@ WATCH_OBJECTS = ["webhooks", "print_stats", "virtual_sdcard", "gcode_move"]
 KEY = re.compile(r"\bkey\d+\b")
 
 
-def checkpoint_due(layer: int, done: set[int], every: int = EVERY) -> int | None:
+def checkpoints(count: int) -> list[int]:
+    """Layers to look at: 2, 10 (50 on a tall part), then a quarter of the part apart, 100 at most."""
+    every = min(EVERY, max(10, count // 4))
+    base = [*CHECKPOINTS] if count > 100 else [2, 10]
+    return base + [c for c in range(every, count, every) if c - base[-1] >= every // 2]
+
+
+def checkpoint_due(layer: int, done: set[int], every: int = EVERY, count: int | None = None) -> int | None:
     """The newest checkpoint whose frame exists at ``layer`` (frames trail by one), if newer than any done."""
-    passed = [c for c in CHECKPOINTS if c < layer] + list(range(every, layer, every))
+    if count:
+        passed = [c for c in checkpoints(count) if c < layer]
+    else:
+        passed = [c for c in CHECKPOINTS if c < layer] + list(range(every, layer, every))
     latest = max(passed, default=None)
     return latest if latest is not None and latest > max(done, default=0) else None
 
@@ -429,28 +461,72 @@ def next_(a: argparse.Namespace) -> int:
                 gcode(f"M220 S{pct}")
                 sent = pct
                 print(f"  taper  Z {st['gcode_move']['gcode_position'][2]:.1f} of {height:.1f}: speed {pct}%", flush=True)
-        c = checkpoint_due(layer, done)
+        c = checkpoint_due(layer, done, count=int(st["virtual_sdcard"].get("layer_count") or 0) or None)
         if c is not None:
             out = frames / f"layer-{c:04d}.jpg"
             if frame(argparse.Namespace(layer=c, out=str(out))) == 0:
                 print(f"watch CHECKPOINT layer {c} of {st['virtual_sdcard'].get('layer_count', '?')}: {out}")
+                a.last_frame = (c, out, st['virtual_sdcard'].get('layer_count', '?'))
                 return 0
         time.sleep(a.poll)
 
 
+JUDGE = ("Read the image {path}: a camera frame of a PETG 3D print on a bed, after layer {layer} of {count}. "
+         "Reply with one line only: OK, or PROBLEM: <reason> for spaghetti, a part detached or lifted, "
+         "a blob on the nozzle, or an empty bed.")
+
+
+def judge(path: str, layer: int, count: str) -> tuple[str, float]:
+    """A cheap model's one-line verdict on a frame, and what the call cost in dollars."""
+    r = subprocess.run(["claude", "-p", "--model", "haiku", "--allowedTools", "Read", "--output-format", "json",
+                        JUDGE.format(path=path, layer=layer, count=count)],
+                       capture_output=True, text=True, timeout=180, cwd=Path(path).parent)
+    try:
+        j = json.loads(r.stdout)
+        return str(j["result"]).strip().splitlines()[0], float(j.get("total_cost_usd", 0))
+    except (ValueError, KeyError, IndexError):
+        return "UNCHECKED: the judge gave no answer", 0.0
+
+
+def run(a: argparse.Namespace) -> int:
+    """Watch to the end, a model looking at each frame. With a file, start it unless it is already printing; without, watch what is printing."""
+    if a.file is None and running_file() is None:
+        print("run FAIL: nothing is printing; give a file to start one")
+        return 1
+    if a.file is not None and running_file() != a.file and start(a):
+        return 1
+    spent = 0.0
+    while True:
+        rc = next_(a)
+        if rc == 0:
+            layer, out, count = a.last_frame
+            verdict, cost = judge(str(out), layer, str(count))
+            spent += cost
+            bell = "\a" if not verdict.startswith("OK") else ""
+            print(f"{bell}watch VERDICT layer {layer}: {verdict}  (judge ${cost:.4f}, ${spent:.4f} so far)", flush=True)
+            continue
+        print("\a" + f"watch ended: {'DONE' if rc == 3 else 'FAULT'}; the print is left as it is; judge cost ${spent:.4f}", flush=True)
+        return 0 if rc == 3 else rc
+
+
+COMMANDS = ("preflight", "start", "next", "run", "soak", "upload", "frame", "-h", "--help")
+
+
 def main(argv: list[str]) -> int:
+    if not argv or argv[0] not in COMMANDS:  # `shop watch [file]` is `run`
+        argv = ["run", *argv]
     p = argparse.ArgumentParser(prog="shop watch")
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("preflight", "start", "next"):
+    for name in ("preflight", "start", "next", "run"):
         pf = sub.add_parser(name)
         watching = name == "next"  # a running job needs them only for a pre-layer-1 restart
         if not watching:  # next watches whatever is printing
-            pf.add_argument("file")
-        pf.add_argument("--plate", required=not watching, choices=PLATES)
-        pf.add_argument("--vents", required=not watching, choices=("closed", "open"))
+            pf.add_argument("file", **({"nargs": "?"} if name == "run" else {}))
+        pf.add_argument("--plate", choices=PLATES, help="default for a PETG job: pattern; required for ASA/ABS")
+        pf.add_argument("--vents", choices=("closed", "open"), help="default for a PETG job: open; required for ASA/ABS")
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
-        if name == "next":
+        if name in ("next", "run"):
             pf.add_argument("--frames", help="where frames go; default ~/.local/state/print-watch/<file stem>")
             pf.add_argument("--no-taper", dest="taper", action="store_false")
             pf.add_argument("--taper-from", type=float, default=60, help="mm where the speed taper starts")
@@ -473,7 +549,7 @@ def main(argv: list[str]) -> int:
     fr.add_argument("layer", type=int)
     fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "upload": upload, "start": start, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
+    return {"preflight": preflight, "upload": upload, "start": start, "run": run, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
 
 
 if __name__ == "__main__":

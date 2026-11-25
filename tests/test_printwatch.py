@@ -263,3 +263,14 @@ def test_a_spool_upload_drops_only_tool_change_lines():
 
     src = b"START_PRINT EXTRUDER_TEMP=250\nT0\nM109 S250\n;T0 in a comment\nTIMELAPSE_TAKE_FRAME\nT12\n"
     assert spool_gcode(src) == b"START_PRINT EXTRUDER_TEMP=250\nM109 S250\n;T0 in a comment\nTIMELAPSE_TAKE_FRAME\n"
+
+
+def test_a_short_part_gets_about_five_frames_and_a_tall_one_keeps_the_old_schedule():
+    from shop.printwatch import checkpoints
+    assert checkpoints(46) == [2, 10, 22, 33, 44]
+    assert checkpoints(529) == [2, 10, 50, 100, 200, 300, 400, 500]
+
+
+def test_checkpoint_due_uses_the_part_s_layer_count():
+    assert checkpoint_due(23, {10}, count=46) == 22
+    assert checkpoint_due(23, {22}, count=46) is None
