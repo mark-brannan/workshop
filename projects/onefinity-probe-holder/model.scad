@@ -26,9 +26,10 @@ tilt = 30;          // lean from vertical, top out toward the user
 v_depth = 40;       // V sides: up to about half the probe (side corners at 45)
 wall = 6;           // V arms and support wall
 front_t = 3;        // the V floor runs this far past the slot toward the wall, where the plate starts
-back_h = 65;        // support wall top above the point, past half the probe
+back_h = 52;        // support wall top above the point: past the probe's centre of mass (46 up), no more
 
 edge_r = 2.5;       // rounding on the support wall's outer edge
+arm_r = 2;          // rounding on the V arms' top edges
 corner_r = 3;       // rounding on 2D corners
 
 /* [Chute: the V's rounded bottom runs straight down into the plate] */
@@ -37,9 +38,13 @@ chute_h = 3;        // the chute takes the V up to this far above the probe poin
 chute_foot_r = 6;    // the chute's rounded bottom on the plate
 chute_foot_z = 8;   // its lowest point on the plate: low enough that the chute's underside is steeper than 45
 
+/* [Tip fill: solid from the probe's machined face at the point to the plate, its top a ramp up toward the wall] */
+fill_h0 = 4;        // the ramp meets the probe's machined face this far up from the point
+ramp_a = 50;        // the ramp's slope from horizontal, rising toward the wall, so a point that lands wall-side slides into the tip
+
 /* [Blend: fins and chute meet the plate through a concave fillet] */
 blend_r = 6;        // fillet radius where the fins and chute meet the plate
-blend_n = 6;        // fillet steps
+blend_n = 12;       // fillet steps
 
 /* [Wall plate: covers where the fins and chute land; screws high, where the load pulls out] */
 plate_t = 5;
@@ -91,13 +96,18 @@ module slab(w0, w1) translate([0, w1, 0]) rotate([90, 0, 0]) linear_extrude(w1 -
 module slab_r(w0, w1, r) translate([0, w1, 0]) rotate([90, 0, 0]) round_base(w1 - w0, r) children();   // outer face at w1 rounded
 
 module cradle_outer() {
-    difference() {   // the V's side walls run on toward the wall, as fins, until the plate stops them (holder())
-        slab(-80, w_back) intersection() { outer_v(v_depth); back_2d(); }
-        slab(-81, -slot / 2) cutter_2d();
-    }
-    slab_r(slot / 2, w_back, edge_r) back_2d();
+    // the V's side walls run on toward the wall, as fins, until the plate stops them (holder()); their top edges rounded
+    slab(-80, w_back) offset(r = arm_r) offset(delta = -arm_r) difference() { intersection() { outer_v(v_depth); back_2d(); } offset(delta = 0.05) cutter_2d(); }   // just clear of the cutter: no shared faces
+    slab_r(slot / 2, w_back, edge_r) offset(delta = -0.02) back_2d();   // just inside the arms: no shared faces
 }
 module cutter() slab(-slot / 2, slot / 2) cutter_2d();
+// Tip fill: the probe's machined face (toward the wall) is pocket_d shy of the slot face along both lower edges, so the
+// V bottom is filled from there to the plate, under a ramp rising toward the wall: nothing behind the point, no tab to catch on.
+w_fill = -slot / 2 + pocket_d;               // fit_t clear of the machined face
+module tip_fill() intersection() {
+    slab(-80, w_fill) cutter_2d();
+    translate([0, w_fill, fill_h0]) rotate([-(ramp_a - tilt), 0, 0]) translate([-200, -200, -400]) cube(400);
+}
 
 // Placed: the probe frame mirrored so the support wall (+w) faces the user (-Y), then tilted so the
 // top leans out toward the user; the point sits close to the wall.
@@ -158,11 +168,12 @@ module holder() {
         placed() cutter();
         for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access
     }
+    intersection() { placed() tip_fill(); wall_side(); }
 }
 
 show_probe = false; // preview only: the probe resting in the slot, flat face on the support wall
 
-module probe() color("silver", 0.6) translate([0, fit_t, -fit_v * sqrt(2)]) mirror([0, 1, 0]) difference() {   // resting on the V, flat face on the support wall
+module probe() color("silver", 0.6) translate([0, fit_t, -fit_v * sqrt(2)]) difference() {   // resting on the V, flat face on the support wall (+w), pocket toward the wall plate
     slab(-probe_t / 2, probe_t / 2) diamond();
     slab(-probe_t / 2 - 1, -probe_t / 2 + pocket_d) scale(pocket_s / probe_s) diamond();
 }

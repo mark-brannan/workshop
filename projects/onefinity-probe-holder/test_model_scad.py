@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the slot open from above, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the slot open from above, solid behind the tip, no flat overhangs."""
 
 import math
 import re
@@ -44,7 +44,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 105_000 < holder.volume < 130_000  # 113.3 cm^3 as built
+    assert 85_000 < holder.volume < 100_000  # 93.3 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -75,3 +75,19 @@ def test_no_flat_overhangs(holder):
     bad = (n[:, 2] < -math.cos(math.radians(44.5))) & (c[:, 2] > 1.6)  # not the plate foot's 1.5 mm edge round on the bed
     # the two 3 mm corner rounds of the quarter circle pass through flat for a few mm: about 27 mm^2 in all
     assert holder.area_faces[bad].sum() < 35
+
+
+def _world(u, v, w):
+    # probe frame (u across, v up the face, w through it, +w the support wall) to world, as placed() in model.scad
+    z_low = -K * math.cos(TILT) - (SLOT / 2 + P["wall"]) * math.sin(TILT)
+    y, z = -w, v
+    return (u, y * math.cos(TILT) - z * math.sin(TILT), y * math.sin(TILT) + z * math.cos(TILT) + P["plate_pt"] - z_low)
+
+
+def test_solid_behind_the_tip(holder):
+    # from the gap at the probe's machined face, near the point, toward the wall: solid from within the fit clearance to the plate's back
+    w_face = -P["probe_t"] / 2 + P["pocket_d"] + P["fit_t"]  # the machined face, the probe resting on the support wall
+    h = ray_hits(holder, _world(0, 3, w_face - 0.5), (0, 1, 0))
+    assert len(h) == 2
+    assert np.linalg.norm(np.array(h[0]) - _world(0, 3, w_face - 0.5)) < 2.5
+    assert np.isclose(h[1][1], Y_PF + P["plate_t"], atol=0.05)
