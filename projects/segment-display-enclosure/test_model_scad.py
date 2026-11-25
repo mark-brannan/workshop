@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import trimesh
 from shop.scad import build_scad, find_openscad
-from shop.testing import ray_hits
+from shop.testing import ray_hits, seated_overlap
 
 HERE = Path(__file__).parent
 pytestmark = pytest.mark.skipif(find_openscad() is None, reason="openscad not found")
@@ -108,3 +108,10 @@ def test_display_offsets_match_calipers():
 def test_lip_fits_inside_shell():
     assert P["lip_clear"] > 0 and P["lip_t"] >= 1
     assert P["hole_dx"] / 2 + P["tube_d"] / 2 < IN_L / 2
+
+
+def test_printed_back_turned_over_fits_printed_shell(shell, back, tmp_path):
+    # the printed meshes in the pose they are used: the back turned over about X, its outer face on top of the shell
+    place = f"translate([0, 0, {SHELL_H + P['cover_t']}]) rotate([180, 0, 0])"
+    assert seated_overlap(tmp_path, shell, back, place) < 0.01
+    assert seated_overlap(tmp_path, shell, back, place, mirror="[1, 0, 0]") > 1  # tongue at the wrong end
