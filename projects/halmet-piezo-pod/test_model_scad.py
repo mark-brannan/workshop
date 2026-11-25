@@ -63,6 +63,8 @@ def test_stack_fits():
     assert P["ledge_reach"] - (P["in_w"] / 2 - P["buzzer_d"] / 2) >= 1.5  # flange edge overlaps the ledges
     assert LEDGE_Z + P["ear_t"] + 2.5 < DEPTH  # M3 heads inside, under the lid
     assert 2 <= P["proud"] <= 4  # ~3 of the buzzer's housing shows above the lid (owner)
+    assert P["board_dy"] + P["mod_l"] / 2 + P["fit"] + P["rim_t"] < P["in_l"] / 2  # slid board's seat still inside the box
+    assert any(y < 0 and y + COL_R < P["board_dy"] - P["mod_l"] / 2 + 1.5 for _, y in EAR_XY)  # terminal-end boss clear of the terminals (owner, 2026-11-25)
     assert P["hole_pitch"] / 2 + P["hole_d"] / 2 < P["mod_w"] / 2  # screw holes inside the board's edges
     assert P["ear_span"] < P["in_l"]
     assert P["in_w"] - P["buzzer_d"] >= 6  # room for the leads leaving the buzzer's side
@@ -71,12 +73,12 @@ def test_stack_fits():
 
 
 def test_seat_pocket_and_pilots(box):
-    pocket_y = -P["mod_l"] / 2 + P["pocket_gap"] + P["pocket_l"] / 2
+    pocket_y = P["board_dy"] - P["mod_l"] / 2 + P["pocket_gap"] + P["pocket_l"] / 2
     hole_e = P["hole_gap"] + P["hole_d"] / 2
     assert np.isclose(ray_hits(box, (0, pocket_y, DEPTH + 5), (0, 0, -1))[0][2], P["floor_t"], atol=0.05)
     assert np.isclose(ray_hits(box, (0, 0, DEPTH + 5), (0, 0, -1))[0][2], SEAT_Z, atol=0.05)
     for s in (-1, 1):
-        hit = ray_hits(box, (s * P["hole_pitch"] / 2, P["mod_l"] / 2 - hole_e, DEPTH + 5), (0, 0, -1))[0][2]
+        hit = ray_hits(box, (s * P["hole_pitch"] / 2, P["board_dy"] + P["mod_l"] / 2 - hole_e, DEPTH + 5), (0, 0, -1))[0][2]
         assert np.isclose(hit, SEAT_Z - P["m25_depth"], atol=0.05)  # blind, deep enough for a longer M2.5
 
 
