@@ -168,7 +168,7 @@ def test_cover_fire_glyph_groove_reads_from_above(cover):
     z_top = SHELL_H + P["cover_t"]
     depth = P["groove_w"] / 2
     cell_x = P["cell_end"] + P["cell_x_on"]
-    glyph_x = (cell_x + P["cell_hole_d"] / 2 + IN_L + P["wall"] + P["cover_gap"] + P["skirt_t"]) / 2
+    glyph_x = (cell_x + P["cell_hole_d"] / 2 + IN_L + P["wall"] + P["cover_gap"] + P["skirt_t"]) / 2 - P["glyph_bias"]
     to_use = lambda p: (glyph_x - P["glyph_h"] * p[1], P["glyph_h"] * p[0])  # rotate(90): tip toward -X, the cell
     ring = LinearRing(pts)
     far = sorted(pts, key=lambda p: -ring.distance(Point(-p[0], p[1])))[:3]  # outline points whose mirror is off it

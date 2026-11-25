@@ -60,6 +60,7 @@ cell_hole_d = 8;      // generous: the cell is bent up by hand, its position is 
 notch_clear = 0.5;    // per side, round the cable where it passes the skirt
 glyph = true;         // fire glyph on the cover's top face, outlined by a 90° V groove (owner, 2026-11-25)
 glyph_h = 18;         // tip to base, along X, tip toward the photocell end; leaves about 3 to the plate's long edges (owner, 2026-11-25)
+glyph_bias = 4;       // glyph shifted this far toward the cell hole from the middle of the open plate (owner, 2026-11-25)
 groove_w = 1.2;       // V groove width at the face; 90°, so half as deep
 
 /* [Lidded only] */
@@ -190,7 +191,7 @@ module cover() {
 
 // Fire glyph outline as a 90° V groove into the face below z = 0: a hull of two inverted cones per edge,
 // each hull convex, so the mesh is the same every build. Printed face down, both groove walls are 45° chamfers.
-glyph_x = (cell_x + cell_hole_d/2 + in_l + wall + cover_gap + skirt_t) / 2;   // centred in the plate past the cell hole
+glyph_x = (cell_x + cell_hole_d/2 + in_l + wall + cover_gap + skirt_t) / 2 - glyph_bias;   // the plate past the cell hole, biased toward it
 module glyph_groove() {
     d = groove_w / 2;
     for (path = fire_glyph_paths) for (i = [0 : len(path) - 1])
