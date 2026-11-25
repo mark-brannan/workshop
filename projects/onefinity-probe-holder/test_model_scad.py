@@ -45,7 +45,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 97_000 < holder.volume < 110_000  # 103.3 cm^3 as built
+    assert 82_000 < holder.volume < 93_000  # 87.4 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -54,10 +54,13 @@ def test_two_screw_holes_clear_and_reachable(holder):
         assert len(ray_hits(holder, (x, -300, z), (0, 1, 0))) == 0
 
 
-def test_screws_high(holder):
-    # the pull-out load is greatest at the top: the screws sit in the top fifth of the plate
-    top = holder.bounds[1][2]
-    assert all(z > 0.8 * top for _, z in SCREWS)
+def test_screws_just_above_the_cradle(holder):
+    # the countersink's lower edge clears the cradle's top by a few mm, no more: the plate stays low
+    v = holder.vertices
+    cradle_top = v[v[:, 1] < Y_PF - 0.2][:, 2].max()
+    assert all(0 < z - P["csk_d"] / 2 - cradle_top < 8 for _, z in SCREWS)
+    # and the screws are still the plate's top: the plate ends one rim above them
+    assert holder.bounds[1][2] < max(SCREW_ZS) + P["csk_d"] / 2 + P["plate_r"] + 0.5
 
 
 def test_side_walls_reach_the_plate(holder):

@@ -52,7 +52,7 @@ plate_r = 6;        // plate corner radius
 screw_d = 5;        // #8 / 4 mm wood screw, loose (printed holes run small); teardrop top
 csk_d = 10;         // 90 deg countersink on the front face
 screw_x = 25;
-screw_zs = [82];   // at the top, above the cradle: the pull-out load is greatest here, and a driver reaches over the support wall
+screw_zs = [45];   // just above the cradle (fins top out at 39.9): the countersink clears them for the drill, and the plate stops 11 mm above
 
 $fn = 48;
 e = 0.01;
