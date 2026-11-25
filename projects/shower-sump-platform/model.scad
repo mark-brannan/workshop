@@ -38,6 +38,14 @@ rivet_pitch = 8;     // fore-aft, in two rows staggered by half a pitch
 rivet_rows = [6.5, 14];  // slant distance down the face to each row: between the ridges
 rivet_reach = 36;    // outermost hole centre, fore and aft, clear of the arches
 
+/* [Cable ties: one per wing wraps the wing and the sump lengthwise, top and bottom (owner, 2026-11-25). It runs over
+   the wing hugging the box body, down past each wing tip, slanting inboard, through a slit in each end arch, and
+   under the sump. Inboard of the screw bosses, so the run under the deck clears them] */
+tie_x = 85;          // slit centre from the centreline: inboard of the bosses (88.5), a little narrower than the wings
+tie_slit = [6.5, 2.2];  // x, z: a 4.8 x 1.3 tie with room
+tie_slit_top = -5;   // z of the slit's top: 1 under the deck. Its bottom is a 45 degree V, the ceiling in print
+tie_lead = 1;        // fairlead: a groove the slit's width down the deck's end face, from the deck top to the slit
+
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
@@ -47,12 +55,22 @@ module platform() difference() {
   frame();
   for (h = holes) translate([h[0], h[1], -boss_h - e]) cylinder(d = hole_d, h = boss_h + 2 * e, $fn = 24);
   translate([-opening[0] / 2, -opening[1] / 2, -deck_t - e]) cube([opening[0], opening[1], deck_t + 2 * e]);
+  for (s = [-1, 1], f = [-1, 1]) scale([s, f, 1]) tie_slit();
   // a hole that meets a boss stops at it, so the pilot keeps its wall
   difference() {
     for (s = [-1, 1]) scale([s, 1, 1]) for (r = [0 : len(rivet_rows) - 1])
       for (y = [-rivet_reach + r * rivet_pitch / 2 : rivet_pitch : rivet_reach]) rivet(y, rivet_rows[r]);
     for (h = holes) translate([h[0], h[1], -boss_h - 1]) cylinder(d = boss_d + 1, h = boss_h + 1, $fn = 32);  // +1: no face shared with the boss
   }
+}
+
+// one end arch's tie slit, with the fairlead groove in the deck's end face above it
+module tie_slit() {
+  w = tie_slit[0];
+  translate([0, len / 2 + 1, 0]) rotate([90, 0, 0]) linear_extrude(arch_t + 3)
+    polygon([[tie_x - w / 2, tie_slit_top], [tie_x + w / 2, tie_slit_top], [tie_x + w / 2, tie_slit_top - tie_slit[1]],
+             [tie_x, tie_slit_top - tie_slit[1] - w / 2], [tie_x - w / 2, tie_slit_top - tie_slit[1]]]);
+  translate([tie_x - w / 2, len / 2 - tie_lead, tie_slit_top - tie_slit[1]]) cube([w, tie_lead + 1, -tie_slit_top + tie_slit[1] + 1]);
 }
 
 // a hole square through the skirt, pointed toward the skirt's foot, which is up in print

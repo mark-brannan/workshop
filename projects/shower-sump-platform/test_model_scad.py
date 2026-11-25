@@ -76,3 +76,16 @@ def test_pilot_takes_a_nylon_m4_tap():
     """Printed Ø3 is drilled to 3.3 and tapped M4 (README, 2026-11-24): the pilot must be under 3.3, the boss wall after drilling at least 2.8."""
     assert P["hole_d"] < 3.3
     assert (P["boss_d"] - 3.3) / 2 >= 2.8
+
+
+def test_tie_slits_through_end_arches(installed):
+    """A tie runs the full length under the deck through both end arches' slits, clear of the bosses."""
+    x, top, (w, h) = P["tie_x"], P["tie_slit_top"], (6.5, 2.2)
+    for s in (1, -1):
+        for dx in (0, -w / 2 + 0.3, w / 2 - 0.3):
+            assert not ray_hits(installed, [s * (x + dx), 60, top - h / 2], [0, -1, 0]), f"tie run blocked at {s * (x + dx)}"
+        assert ray_hits(installed, [s * (x + w / 2 + 1), 60, top - h / 2], [0, -1, 0]), "arch beside the slit"
+        assert ray_hits(installed, [s * x, 60, top - h - w / 2 - 0.5], [0, -1, 0]), "arch below the slit's V"
+        for f in (1, -1):  # fairlead groove down the deck's end face
+            assert ray_hits(installed, [s * x, f * (P["len"] / 2 - 0.5), 5], [0, 0, -1])[0][2] < top, "fairlead groove"
+            assert ray_hits(installed, [s * x, f * (P["len"] / 2 - 1.5), 5], [0, 0, -1])[0][2] == pytest.approx(0, abs=0.05)

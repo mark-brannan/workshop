@@ -42,9 +42,12 @@ across or more, spans each 9 mm wing slot. Screw length: wing thickness + washer
 Fusion had a pocket there instead, its floor 8 deep at the centre and about 18 near its ends; what it
 received is not recorded.
 
-No cable ties. Each wing grows out of the box wall along its inboard edge (the box drawing's wall line at x = 93), so a
-tie loop across a wing has to pass through the wall; the slits once cut beside each wing could not be used and are gone
-(2026-11-25). The six screws and penny washers alone hold the wings.
+Cable ties back up the screws against the sump sliding fore or aft (owner, 2026-11-25). One tie per wing, or a string
+of them, wraps the wing and the sump lengthwise, top and bottom: over the wing hugging the box body, down past each wing
+tip, slanting inboard down a fairlead groove in the deck's end face, through a slit in the end arch (`tie_*`), and under
+the sump. The slits sit inboard of the screw bosses, a little narrower than the wings, so the run under the deck
+clears them. Each slit's lower edge is a 45-degree V, its ceiling in print. Nothing sticks out fore or aft; nothing is
+drilled in the sump. A tie across a wing can't close: the wing grows out of the box wall along its inboard edge.
 
 ## Measured
 
