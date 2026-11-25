@@ -1,7 +1,7 @@
 # DIN-rail mount for an ESP32 breakout board
 
 Purpose: hold an ESP32 breakout board on a 35 mm TS35 rail. A flat 5 mm plate has
-four 6 mm standoffs for the board's M2 holes, so the pins and solder on its back
+four 6 mm standoffs for the board's M3 holes, so the pins and solder on its back
 clear the plate. The underside carries the same four blind peg holes as
 `../din-rail-psu-mount`; press in the owner's DIN clips (thing:2415668). Rail runs
 along X. Print as modelled: plate flat, standoffs up, no supports.
@@ -10,12 +10,17 @@ along X. Print as modelled: plate flat, standoffs up, no supports.
 
 | Value | mm | Source |
 |---|---|---|
-| Board hole spacing | 80 x ~75.5 | owner, caliper |
+| Board hole centres | 81.2 x 77.0 | owner, caliper: outside edge to outside edge 84.4 (long) x 80.2 (short), less a 3.2 hole; diagonal 115.2 agrees within 0.1 (any hole 3.0-3.25 fits it) |
+| Hole size | 3.1-3.3, M3 | owner, plastic caliper, touch-dependent |
 
 ## Guessed
 
 | Value | Now | Why |
 |---|---|---|
 | `standoff_h` | 6 | clears typical header pins and solder; check the board's back |
-| `insert_d` | 3.2 | M2 heat-set insert; set ~1.8 to tap M2 into the plastic. Calibration pending |
-| `plate_l` x `plate_w` | 92 x 86 | 6 mm margin around the standoffs; the board's outline is unmeasured |
+| `insert_d` | 4.0 | M3 heat-set insert; set ~2.6 to tap M3 into the plastic. Calibration pending |
+| `plate_l` x `plate_w` | 93.2 x 89 | 6 mm margin around the standoffs; the board's outline is unmeasured |
+
+## History
+
+- 2026-11-24: the first gauge put the board's far holes ~1–1.5 mm off (owner, photos); spacing was 80 x ~75.5, now 81.2 x 77.0 from three caliper readings. Holes are M3, not M2.

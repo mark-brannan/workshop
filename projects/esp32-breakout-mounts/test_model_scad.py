@@ -51,8 +51,15 @@ def test_four_standoffs_with_blind_insert_holes(base):
             assert np.isclose(hits(base, x + P["insert_d"] / 2 + 0.5, y)[0][2], T + H, atol=0.02)
 
 
-def test_standoff_clears_back_of_board_and_fits_m2(base):
-    assert H >= 5 and P["insert_d"] >= 1.6 and P["standoff_d"] - P["insert_d"] >= 2.5
+def test_standoff_clears_back_of_board_and_fits_m3(base):
+    assert H >= 5 and P["insert_d"] >= 2.5 and P["standoff_d"] - P["insert_d"] >= 3.0
+
+
+def test_hole_spacing_matches_calipers():
+    # outside-edge readings 84.4 x 80.2 and diagonal 115.2 holes 3.1-3.3 (plastic caliper); the diagonal only weakly fixes d, so take the middle
+    d = 3.2
+    assert np.isclose(P["hole_dx"], 84.4 - d, atol=0.05) and np.isclose(P["hole_dy"], 80.2 - d, atol=0.05)
+    assert np.isclose(np.hypot(P["hole_dx"], P["hole_dy"]) + d, 115.2, atol=0.15)
 
 
 def test_four_blind_peg_holes_from_underside(base):
