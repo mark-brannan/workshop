@@ -38,16 +38,6 @@ rivet_pitch = 8;     // fore-aft, in two rows staggered by half a pitch
 rivet_rows = [6.5, 14];  // slant distance down the face to each row: between the ridges
 rivet_reach = 36;    // outermost hole centre, fore and aft, clear of the arches
 
-/* [Tie eyes: a lug off each deck end under each wing tip; a tie runs fore-aft over the wing against the box body,
-   wraps both tips and passes down through these, so the wing can't slide fore or aft] */
-tie_eye_x = 94.5;    // slot centre from the centreline: under the wing tip's furthest point (x 93 to 96.6), beside the body
-tie_eye_slot = [6.5, 2.2];  // x, y: a 4.8 x 1.3 tie with room
-tie_eye_gap = 2;     // deck end to the slot: clears the wing tip, which overhangs the deck end by up to 1.5
-tie_eye_wall = 2;    // lug wall beside the slot, across x
-tie_eye_bar = 3;     // outer bar, along y: the tie wraps round it
-tie_eye_lead = 1;    // fairlead: a groove the slot's width down the bar's outer face, so the tie's return strand stays in line
-tie_eye_h = 5;       // down from the deck top: 1 below the deck, onto the end arch; clear of the hull at the forward end
-
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
@@ -57,11 +47,6 @@ module platform() difference() {
   frame();
   for (h = holes) translate([h[0], h[1], -boss_h - e]) cylinder(d = hole_d, h = boss_h + 2 * e, $fn = 24);
   translate([-opening[0] / 2, -opening[1] / 2, -deck_t - e]) cube([opening[0], opening[1], deck_t + 2 * e]);
-  for (s = [-1, 1], f = [-1, 1]) scale([s, f, 1])
-    translate([tie_eye_x - tie_eye_slot[0] / 2, len / 2 + tie_eye_gap, -tie_eye_h - 1]) {
-      cube([tie_eye_slot[0], tie_eye_slot[1], tie_eye_h + 2]);
-      translate([0, tie_eye_slot[1] + tie_eye_bar - tie_eye_lead, 0]) cube([tie_eye_slot[0], tie_eye_lead + 1, tie_eye_h + 2]);
-    }
   // a hole that meets a boss stops at it, so the pilot keeps its wall
   difference() {
     for (s = [-1, 1]) scale([s, 1, 1]) for (r = [0 : len(rivet_rows) - 1])
@@ -85,10 +70,6 @@ module rivet(y, sl) {
 module frame() {
   hw_a = w_aft / 2 - bond_gap / sin(hull_angle);
   hw_f = w_fwd / 2 - bond_gap / sin(hull_angle);
-  // tie eyes: a lug off each end of the deck under each wing tip, the slot through it vertical (no overhang in print)
-  for (s = [-1, 1], f = [-1, 1]) scale([s, f, 1])
-    translate([tie_eye_x - tie_eye_slot[0] / 2 - tie_eye_wall, len / 2 - e, -tie_eye_h])
-      cube([tie_eye_slot[0] + 2 * tie_eye_wall, tie_eye_gap + tie_eye_slot[1] + tie_eye_bar + e, tie_eye_h]);
   // deck: a trapezoid in plan
   translate([0, 0, -deck_t]) linear_extrude(deck_t)
     polygon([[-hw_a, -len / 2], [hw_a, -len / 2], [hw_f, len / 2], [-hw_f, len / 2]]);
