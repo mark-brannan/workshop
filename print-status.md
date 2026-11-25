@@ -13,7 +13,7 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | printer-chute-transition | done, functional | friction fit poor; attach with tape or similar, no cyanoacrylate |
 | calibration | printed, not reviewed | review card: what the prints show |
 | photocell-flame-pod | next, priority 1 | nothing sliced or printed; gauge prints first |
-| esp32-breakout-mounts | next, priority 2 | renamed from -mount; variants to follow, one or two parameters each |
+| esp32-freenove-universal-mount | next, priority 2 | Freenove universal breakout board; other boards get their own project |
 | shower-sump-platform | next, priority 3 | not printed |
 | lux-sensor-mount, lux-capsule, lux-tube-cap, gv30-lux-mount | needs design work | |
 | small-box-sensors, imu-tray, halpi2-endpoint-box, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |

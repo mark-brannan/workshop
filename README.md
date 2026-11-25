@@ -28,7 +28,7 @@ Then `shop build`, `shop doctor` (which tools this box has), `shop fusion`
 
     uv sync
     uv run python -m shop.build                      # every project, .py and .scad alike
-    uv run python -m shop.build projects/esp32-breakout-mounts  # one project
+    uv run python -m shop.build projects/esp32-freenove-universal-mount  # one project
     uv run pytest -q
     shop views projects/<slug>/model.scad <view>   # six labelled OpenSCAD views, montaged into out/
 

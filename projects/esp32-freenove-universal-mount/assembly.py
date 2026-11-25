@@ -1,6 +1,6 @@
 """Assembled mount: board on the standoffs, two DIN clips screwed to the back. Writes out/assembly.png and out/assembly_exploded.png.
 
-Usage: uv run python assembly.py   (reads out/esp32-breakout-mounts_scad.stl, so build first)
+Usage: uv run python assembly.py   (reads out/esp32-freenove-universal-mount_scad.stl, so build first)
 The board is a stand-in slab (87 x 83 x 1.6, vendor drawing; thickness assumed), not a model of the module.
 """
 import re
@@ -38,7 +38,7 @@ def board(z0):
 
 def scene(p, explode):
     dz = 28 if explode else 0
-    mount = pv.read(str(OUT / "esp32-breakout-mounts_scad.stl"))
+    mount = pv.read(str(OUT / "esp32-freenove-universal-mount_scad.stl"))
     p.add_mesh(mount, color="#c8a24a")
     for c in clips():
         p.add_mesh(c.translate((0, 0, -dz), inplace=False), color="#4a8fd6")

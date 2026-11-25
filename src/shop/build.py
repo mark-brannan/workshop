@@ -1,7 +1,7 @@
 """Build every model in a project dir, Python or OpenSCAD, the same way.
 
     uv run python -m shop.build                      # all projects/*
-    uv run python -m shop.build projects/esp32-breakout-mounts  # one project
+    uv run python -m shop.build projects/esp32-freenove-universal-mount  # one project
 
 ``model.py`` runs as a script (it exports itself). ``model.scad`` builds via
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*`` (STL, 3MF, PNGs); a model with

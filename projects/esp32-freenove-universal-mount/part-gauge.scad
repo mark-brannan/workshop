@@ -1,4 +1,4 @@
-// Fit-check gauge, generated: shop gauge projects/esp32-breakout-mounts "base()" 1 8
+// Fit-check gauge, generated: shop gauge projects/esp32-freenove-universal-mount "base()" 1 8
 // Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
 // a hand-written gauge replaces this file and drops this first line.
 use <model.scad>

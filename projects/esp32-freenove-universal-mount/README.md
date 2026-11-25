@@ -1,4 +1,4 @@
-# DIN-rail mount for an ESP32 breakout board
+# DIN-rail mount for the Freenove universal ESP32 breakout board
 
 Purpose: hold an ESP32 breakout board on a 35 mm TS35 rail. A flat 5 mm plate has
 four 6 mm standoffs for the board's M3 holes, so the pins and solder on its back
