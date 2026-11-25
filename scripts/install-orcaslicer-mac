@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# macOS OrcaSlicer for agents: `orca-slicer` on PATH for CLI slicing, pinned to
+# the Windows install's version so presets saved there load here. It sits
+# beside, never over, any OrcaSlicer.app in /Applications (the user's GUI).
+# src/shop/tools.py picks `orca-slicer` on PATH first.
+#
+#   ~/.local/opt/orcaslicer/<version>/OrcaSlicer.app   copied from the release DMG
+#   ~/.local/opt/orcaslicer/current                    -> <version>
+#   ~/.local/bin/orca-slicer                           wrapper exec'ing the app binary
+#                                                      (a symlink would lose the bundle path)
+#
+# Idempotent. To move the pin, change VERSION and SHA256 (the asset digest:
+# gh api repos/OrcaSlicer/OrcaSlicer/releases/tags/v<VERSION> --jq '.assets[]|.name+" "+.digest').
+# Keep VERSION equal to scripts/install-orcaslicer-linux's.
+set -euo pipefail
+
+VERSION=2.5.2
+SHA256=6ea1afcdffb7e9ab011e2d6f6db665cb18463d1c4774591cd5db7ee0225479d9
+URL="https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v${VERSION}/OrcaSlicer_Mac_universal_V${VERSION}.dmg"
+
+OPT="$HOME/.local/opt/orcaslicer"
+BIN="$HOME/.local/bin"
+APP="$OPT/$VERSION/OrcaSlicer.app"
+
+mkdir -p "$OPT" "$BIN"
+
+if [[ ! -x "$APP/Contents/MacOS/OrcaSlicer" ]]; then
+  work=$(mktemp -d)
+  mnt="$work/mnt"
+  trap 'hdiutil detach -quiet "$mnt" 2>/dev/null || true; rm -rf "$work"' EXIT
+  curl -sSfL -o "$work/orca.dmg" "$URL"
+  echo "$SHA256  $work/orca.dmg" | shasum -a 256 -c --quiet
+  mkdir "$mnt"
+  hdiutil attach -quiet -nobrowse -readonly -mountpoint "$mnt" "$work/orca.dmg"
+  mkdir -p "$OPT/$VERSION"
+  ditto "$mnt/OrcaSlicer.app" "$APP.partial"
+  mv "$APP.partial" "$APP"
+fi
+ln -sfn "$VERSION" "$OPT/current"
+
+cat > "$BIN/orca-slicer" <<EOF
+#!/bin/sh
+# Written by workshop scripts/install-orcaslicer-mac.
+exec "$OPT/current/OrcaSlicer.app/Contents/MacOS/OrcaSlicer" "\$@"
+EOF
+chmod +x "$BIN/orca-slicer"
+
+"$BIN/orca-slicer" --help 2>&1 | grep -m1 -i 'orcaslicer' || true
+case ":$PATH:" in *":$BIN:"*) ;; *) echo "warning: $BIN is not on PATH" >&2 ;; esac

@@ -44,9 +44,11 @@ drill file and upload zip on build.
 
 ## Slice headless
 
-`orca-slicer` is a native Linux OrcaSlicer, the same version as the user's
-Windows install, from `scripts/install-orcaslicer-linux` (once per box; it is
-not in the repo). It slices with the settings carried in a 3MF saved from
+`orca-slicer` is a native OrcaSlicer, the same version as the user's
+Windows install, from `scripts/install-orcaslicer-linux` or, on a Mac,
+`scripts/install-orcaslicer-mac` (once per box; it is not in the repo). On a
+Mac the user's presets are in `~/Library/Application Support/OrcaSlicer/user/`
+(system presets are packed in `system/*.opc`); copy that folder as `--datadir`. It slices with the settings carried in a 3MF saved from
 OrcaSlicer, so slice the user's saved project, not a bare mesh:
 
 ```
