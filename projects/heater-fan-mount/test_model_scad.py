@@ -178,16 +178,27 @@ def test_lid_air_path_and_four_screw_holes(lid):
             assert ray_hits(lid, (x, y, 50), (0, 0, -1)) == []
 
 
-def test_lid_nut_pockets_in_low_mounds(lid):
+def test_lid_nut_pockets_in_low_concave_mounds(lid):
     top = P["plate_t"] + P["nut_h"] - P["nut_sink"]  # mound top, level with the top of the nut
+
+    def z(x, y):
+        return ray_hits(lid, (x, y, 50), (0, 0, -1))[0][2]
+
     for sx in (-1, 1):
         for sy in (-1, 1):
             x, y = sx * HOLE, sy * HOLE
-            assert np.isclose(ray_hits(lid, (x + 3, y, 50), (0, 0, -1))[0][2], P["plate_t"] - P["nut_sink"], atol=0.05)  # nut seat
-            assert np.isclose(ray_hits(lid, (x - sx * 3.5, y - sy * 3.5, 50), (0, 0, -1))[0][2], top, atol=0.05)  # rim round the nut
-            mid = ray_hits(lid, (x - sx * 6, y - sy * 6, 50), (0, 0, -1))[0][2]
-            assert P["plate_t"] + 0.3 < mid < top - 0.3  # a slope, not a step, fading into the plate
-    assert (P["nut_h"] - P["nut_sink"]) / ((P["mound_d"] - P["mound_top"]) / 2) < 0.35  # gentle: under 20 deg
+            assert np.isclose(z(x + 3, y), P["plate_t"] - P["nut_sink"], atol=0.05)  # nut seat
+            assert np.isclose(z(x - sx * 3.4, y - sy * 3.4), top, atol=0.05)  # rim round the nut
+            rise = [z(x - sx * d, y) - P["plate_t"] for d in (5.5, 8, 10.5, 13)]  # inward along the edge, clear of the collar
+            assert all(a > b for a, b in zip(rise, rise[1:])) and rise[-1] < 0.15  # falls away and meets the plate
+            assert rise[0] - rise[1] > rise[1] - rise[2] > rise[2] - rise[3]  # concave: steep by the nut, flat at the foot
+            edge = z(x, W / 2 - 0.3 if sy > 0 else Y0 + 0.3)  # the plate's edge beside the nut
+            assert P["plate_t"] - P["lid_round"] < edge <= P["plate_t"] + 0.01  # no higher than anywhere else round the lid
+
+
+def test_lid_top_edge_rounded_over(lid):
+    assert np.isclose(ray_hits(lid, (W / 2 + 20, W / 2 - 0.05, 50), (0, 0, -1))[0][2], P["plate_t"] - P["lid_round"], atol=0.25)
+    assert np.isclose(ray_hits(lid, (W / 2 + 20, W / 2 - P["lid_round"] - 0.3, 50), (0, 0, -1))[0][2], P["plate_t"], atol=0.02)
 
 
 # spigot: flange on the bed, spigot up

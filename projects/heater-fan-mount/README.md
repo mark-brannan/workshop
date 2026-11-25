@@ -18,7 +18,7 @@ A PWM board in a pocket beside the fan sets the speed from a knob on the cabin f
 | **Gauge, prints first** | `part-gauge.scad` | ring faces down | 23.5 cm³ |
 
 Every part prints in its model orientation. The knob face prints as a vertical wall, so it shows layer lines, not the plate's texture.
-The spigot's 80.4 mm square flange drops into the fan socket and sits on the floor's corners, under the fan; its thread hangs out through the floor, so the box's underside is flat (owner, 2026-11-24). The fan's own four M4 countersunk screws (35 overall, 32.5 threaded, owner) come up through floor, flange, fan and lid: heads flush in the floor, nuts on top of the lid, each sunk 1 mm in a hex pocket inside a low mound that fades into the plate, the nut level with the mound's top. The heads are 6.7 across (owner); the countersink is 7.3.
+The spigot's 80.4 mm square flange drops into the fan socket and sits on the floor's corners, under the fan; its thread hangs out through the floor, so the box's underside is flat (owner, 2026-11-24). The fan's own four M4 countersunk screws (35 overall, 32.5 threaded, owner) come up through floor, flange, fan and lid: heads flush in the floor, nuts on top of the lid, each (2.8 thick, owner) sunk 1 mm in a hex pocket inside a low mound, the nut level with the mound's top. The mounds sweep down concave, meet the plate flat and fall to the plate's edge, so the edge is one height all round; the plate's top edge has a 0.6 roundover. The heads are 6.7 across (owner); the countersink is 7.3.
 12 V enters through a PG9 gland (16 mm hole) on the back wall, against the bulkhead.
 
 ## The gauge

@@ -54,11 +54,13 @@ gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed h
 /* [Screws: the fan's own M4 countersunk; owner: 35 overall, 32.5 threaded] */
 screw_l = 35;
 head_d = 7.3;       // countersink at the bed: the head is 6.7 across (owner), plus 0.6 since printed holes come undersize
-nut_h = 3.2;        // M4 hex nut, on top of the lid
+nut_h = 2.8;        // M4 hex nut, on top of the lid (owner)
 nut_sink = 1;       // hex pocket into the lid's top: holds the nut against turning, one screwdriver from below
 nut_d = 8.5;        // pocket across the hex's corners: a 7 mm nut, plus allowance since printed holes come undersize
-mound_d = 26;       // each nut sits in a low mound that fades into the lid; its foot
-mound_top = 11;     // and its flat top, level with the top of the nut
+mound_d = 26;       // each nut sits in a low mound: its foot, toward the middle of the lid
+mound_top = 10;     // its flat top, level with the top of the nut; the sides sweep down concave and meet the plate flat
+lid_round = 0.6;    // roundover on the lid plate's top edge; the mounds fall to it, so the edge is one height all round
+step = 0.1;         // curved faces are built in slabs this thick, finer than a layer
 flange_t = 2;       // spigot flange, clamped flat between fan and floor
 flange_fit = 0.2;   // flange to fan socket, each side
 thread_gap = 0.6;   // floor hole to the spigot's rib crest, each side
@@ -139,18 +141,32 @@ module box() {
     }
 }
 
+// the plate, its top edge rounded over
+module lid_plate() {
+  linear_extrude(plate_t - lid_round) footprint();
+  for (k = [0 : round(lid_round / step) - 1]) let (zr = (k + 1) * step)
+    translate([0, 0, plate_t - lid_round + k * step - e]) linear_extrude(step + e) offset(delta = -(lid_round - sqrt(max(0, lid_round * lid_round - zr * zr)))) footprint();
+}
+// a nut mound: height falls off as the square of the distance from its foot, so it meets the plate flat (concave).
+// Toward the plate's edge the foot is the edge itself, so the mound adds nothing to the edge's height.
+module mound(x, y) {
+  h = nut_h - nut_sink;
+  run = W / 2 - fan_holes / 2 - lid_round - mound_top / 2 - 0.05;
+  for (k = [0 : round(h / step) - 1]) let (q = sqrt((k + 1) * step / h))
+    translate([0, 0, plate_t + k * step - e]) linear_extrude(step + e) intersection() {
+      translate([x, y]) circle(d = mound_top + (mound_d - mound_top) * (1 - q));
+      offset(delta = -(lid_round + run * q)) footprint();
+    }
+}
+
 module lid() {
   // z = 0 on the face that meets the box (the bed when printed)
   od = rim_d + 2 * collar_fit + 2 * wall;
   difference() {
     union() {
-      linear_extrude(plate_t) footprint();
+      lid_plate();
       cylinder(d = od, h = plate_t + rim_grip);
-      // nut mounds: a shallow cone at each corner, cut off square at the plate's edge
-      intersection() {
-        linear_extrude(plate_t + nut_h) footprint();
-        for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - e]) rotate(1.3) cylinder(d1 = mound_d, d2 = mound_top, h = nut_h - nut_sink + e);   // turned off the diagonal: a facet edge through the corner's arc leaves the mesh open
-      }
+      for (x = [-1, 1], y = [-1, 1]) mound(x * fan_holes / 2, y * fan_holes / 2);
     }
     translate([0, 0, -e]) cylinder(d = fan_bore, h = plate_t + 2 * e);
     translate([0, 0, plate_t]) cylinder(d = rim_d + 2 * collar_fit, h = rim_grip + e);   // the rim lands on the plate
