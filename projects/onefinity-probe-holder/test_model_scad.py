@@ -45,7 +45,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 82_000 < holder.volume < 93_000  # 87.4 cm^3 as built
+    assert 83_000 < holder.volume < 94_000  # 88.2 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):

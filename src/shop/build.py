@@ -7,7 +7,8 @@
 ``shop.scad.build_scad`` into ``out/<slug>_scad.*`` (STL, 3MF, PNGs); a model with
 ``mode = "2d"`` at top level is a 2D model and also gets a DXF. Each
 ``part-<name>.scad`` beside it is a further printed part, built to ``out/<slug>_<name>.*``. Without
-OpenSCAD the .scad models are skipped, not failed (CI has none).
+OpenSCAD the .scad models are skipped, not failed (CI has none). An ``assembly.py`` beside them runs
+last, so its views are redrawn from the meshes just built.
 """
 
 from __future__ import annotations
@@ -51,6 +52,10 @@ def build_project(proj: Path) -> int:
             if before is not None and stl is not None and Path(stl).read_bytes() != before and not _scad_edited(proj):
                 print(f"   WARNING {Path(stl).name}: mesh changed with no .scad edited since the last commit: the build may not repeat"
                       " (or OpenSCAD or a library changed)")
+    asm = proj / "assembly.py"   # the project's assembly views, redrawn from the fresh meshes so they never go stale
+    if asm.exists() and find_openscad() is not None and rc == 0:
+        print(f"== {asm}")
+        rc |= subprocess.run([sys.executable, str(asm)], cwd=proj).returncode
     for stl in sorted((proj / "out").glob("*.stl")):
         if stl.stat().st_mtime >= started - 1:
             for w in solid.warnings(stl) + overhang.warnings(stl):
