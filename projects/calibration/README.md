@@ -66,6 +66,6 @@ the limit; the filament profile's max volumetric speed goes a little under it.
 
 | Filament | Printed | Clean to | Marginal | Failed | Profile max volumetric speed |
 |---|---|---|---|---|---|
-| PETG, Generic PETG @K2 Plus (250 °C, fan 80, flow 0.95), spool | 2026-11-25 read | 24 mm³/s (column 9) | 26 (column 10, faint flaws) | 28 (column 11) | 22 mm³/s (was the preset's 16) |
+| PETG, Generic PETG @K2 Plus (250 °C, fan 80, flow 0.95), spool | 2026-11-25 read | 24 mm³/s (column 9) | 26 (column 10, faint flaws) | 28 (column 11) | 24 mm³/s, the owner's preset (was the preset's 16) |
 
 Overhangs: none; the columns grow from the bed.
