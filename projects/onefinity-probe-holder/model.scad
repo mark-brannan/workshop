@@ -5,7 +5,7 @@
 // The cradle is built in that frame, then mirrored and tilted (placed()). Its V side walls run on to the wall plate as fins;
 // they run horizontally into the plate and meet it through a concave fillet. One horizontal cut on the bed ends the
 // cradle, the fins and the plate; below it the probe's tip hangs free.
-// Wall-side of the probe, each fin's inner face steps in over the probe's raised lip on the machined face, flush with the fin. Both screws sit at the top, above the cradle.
+// Wall-side of the probe, each fin's inner face carries a small square ledge in the pocket, just under the end of the lip's leg. Both screws sit at the top, above the cradle.
 // Prints as installed, plate edge and foot on the bed. Every overhang is a 45 deg or steeper slope (see README).
 
 /* [Probe: owner, caliper] */
@@ -25,7 +25,7 @@ flare_from = 12;    // the flare starts this far up the V
 
 /* [Cradle] */
 tilt = 30;          // lean from vertical, top out toward the user
-v_depth = 43;       // V sides: about half the probe (side corners at 45), high enough for the detents to reach the lip's ends
+v_depth = 43;       // V sides: about half the probe (side corners at 45), high enough for the ledges to reach the lip's ends
 wall = 6;           // V arms and support wall
 front_t = 3;        // the V floor runs this far past the slot toward the wall, where the plate starts
 back_h = 56;        // support wall top above the point: past the probe's centre of mass (46 up), and the arc the arms end on clears the lip
@@ -39,11 +39,11 @@ keel_r = 6;         // the V's bottom rounding (cut away by the open point)
 /* [Open point: one horizontal cut, the bed, below which the probe's tip hangs free] */
 open_v = 12;        // the cut meets the support wall's face this far above the probe point; the slot's wall-side face just above the point, so no sliver of floor
 
-/* [Detents: a rounded bump on each fin's inner face, in the pocket just under the end of each lip leg] */
-det_r = 2;          // bump radius
-det_h = 1;          // how far it stands past the lip's face into the pocket (pocket_d deep): the pocket slides over it
-det_in = 3;         // reach in from the probe's edge, across the face
-det_gap = 0.5;      // the lip leg's end sits this far above the bump
+/* [Ledges: a small square step on each fin's inner face, wall side, in the pocket just under the end of each lip leg] */
+ledge_l = 8;        // length along the probe's edge
+ledge_in = 2;       // reach in past the probe's edge, across the face
+ledge_h = 2;        // how far it stands past the lip's face into the pocket (pocket_d deep): the pocket floor clears it by 1.8
+ledge_gap = 0.5;    // the lip leg's end sits this far above the ledge's square top
 
 /* [Blend: the fins meet the plate through a concave fillet] */
 blend_r = 6;        // fillet radius where the fins meet the plate
@@ -142,13 +142,12 @@ module fin(i) to_wall() placed() intersection() {   // the end on the arc rounde
     slab_r(w_front, w_back, edge_r) translate([0, -k]) circle(r = back_h + k, $fn = 240);
 }
 module fins() for (i = [0:1]) intersection() { fin(i); wall_side(); }
-// detents: each a nub, a capsule across the probe's edge in the pocket just under the lip leg's end, rooted in the fin
-det_s = pocket_s - det_gap - det_r;
-det_w = -probe_t / 2 + fit_t + det_h - det_r;   // the lip's face as seated is fit_t past the slot's wall side
-module detents() for (m = [0, 1]) intersection() {
-    placed() mirror([m, 0, 0]) hull() for (n = [0, det_in]) let(q = pe(det_s, n)) translate([q[0], det_w, q[1]]) sphere(r = det_r, $fn = 24);
-    wall_side();
-}
+// ledges: each a square block on the fin's inner face, from its wall-side face to ledge_h past the lip's face, rooted
+// across the flared V wall (from 1 mm inside its outer face); every face is a plane: top and inner face up, lower end 52 deg, user face 60 deg
+ledge_s1 = pocket_s - ledge_gap;   // square top, just under the lip leg's end
+ledge_w = -probe_t / 2 + fit_t + ledge_h;   // the lip's face as seated is fit_t past the slot's wall side
+module ledges() for (m = [0, 1]) placed() mirror([m, 0, 0])
+    slab(w_front, ledge_w) polygon([pe(ledge_s1 - ledge_l, 1 - wall), pe(ledge_s1, 1 - wall), pe(ledge_s1, ledge_in), pe(ledge_s1 - ledge_l, ledge_in)]);
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
 // Blend: each of the two fins is sliced parallel to the plate; each slice
 // grows by the fillet's offset at that distance, and consecutive slices are hulled, so the fillet is smooth.
@@ -170,7 +169,7 @@ module holder() intersection() {
             placed() cutter();
             for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access
         }
-        detents();
+        ledges();
     }
     translate([-200, -200, 0]) cube(400);   // the open point's cut: the bed
 }

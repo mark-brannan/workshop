@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, detents under the lip, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, ledges under the lip, no flat overhangs."""
 
 import math
 import re
@@ -45,7 +45,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 83_000 < holder.volume < 94_000  # 86.8 cm^3 as built
+    assert 83_000 < holder.volume < 94_000  # 87.0 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -109,11 +109,20 @@ W_LIP = -P["probe_t"] / 2 + P["fit_t"]  # the lip's face as seated; the pocket f
 
 
 @pytest.mark.parametrize("side", [1, -1])
-def test_detent_just_under_each_lip_leg(holder, side):
-    # in the pocket, just below the lip leg's end, toward the wall: the bump, det_h past the lip's face, so the pocket clears it
-    u, v = _pe(P["pocket_s"] - P["det_gap"] - P["det_r"], 1.5)
+@pytest.mark.parametrize("ds", [0.5, 4, 7.5])
+def test_ledge_just_under_each_lip_leg(holder, side, ds):
+    # in the pocket, along the ledge's length under the lip leg's end, toward the wall: its face ledge_h past the lip's face, the pocket floor clear
+    u, v = _pe(P["pocket_s"] - P["ledge_gap"] - ds, 1)
     a, h = _ray_w(holder, side * u, v, W_LIP + P["pocket_d"], -1)
-    assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["pocket_d"] - P["det_h"], atol=0.15)
+    assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["pocket_d"] - P["ledge_h"], atol=0.05)
+
+
+@pytest.mark.parametrize("side", [1, -1])
+def test_ledge_ends_square_under_the_lip(holder, side):
+    # just above the ledge's top, still in the pocket: open to the slot's face, so the lip leg's end clears it
+    u, v = _pe(P["pocket_s"] - P["ledge_gap"] + 0.2, 1)
+    a, h = _ray_w(holder, side * u, v, W_LIP + P["pocket_d"], -1)
+    assert not len(h) or np.linalg.norm(np.array(h[0]) - a) > P["pocket_d"] + P["fit_t"] - 0.05
 
 
 @pytest.mark.parametrize("side", [1, -1])
