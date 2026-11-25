@@ -41,6 +41,7 @@ open_v = 12;        // the cut meets the support wall's face this far above the 
 
 /* [Ledges: wall-side of the probe, each fin's inner face steps in over the raised lip (the 9.5 mm band outside the pocket)] */
 ledge_in = 3;       // reach in over the lip, past the probe's edge; the pocket, pocket_d deeper, passes freely
+ledge_run = 20;     // the ledge grows from nothing to ledge_in over this run along the edge, full 4 mm below the lip: no square end
 
 /* [Blend: the fins meet the plate through a concave fillet] */
 blend_r = 6;        // fillet radius where the fins meet the plate
@@ -96,13 +97,12 @@ module slab_r(w0, w1, r, n = 10) translate([0, w1, 0]) rotate([90, 0, 0]) round_
 module arm_2d() intersection() { outer_v(v_depth); back_2d(); }
 // the probe as seated (fit_v down the V), extended upward
 module seated_2d() translate([0, -fit_v * sqrt(2)]) hull() { diamond(); translate([0, 100]) diamond(); }
-// only over the lip: a vertical end tapers each ledge back into the fin at 45 deg, starting 4 mm below the lip
-ledge_u0 = (pocket_s - 4 - ledge_in) / sqrt(2);
-module ledge_2d() difference() {   // unrounded: the clip in ledges() gives it the fin's own top and rounding
-    arm_2d();
-    offset(delta = -ledge_in) seated_2d();
-    translate([-ledge_u0, -50]) square([2 * ledge_u0, 200]);
-}
+// (s along the seated probe's lower-right edge from its point, n inward) to (u, v)
+function pe(s, n) = [(s - n) / sqrt(2), (s + n) / sqrt(2) - fit_v * sqrt(2)];
+// a band along each lower edge, inside the probe's outline: nothing at s1 - ledge_run, ledge_in from s1 (4 mm below the lip) on
+ledge_s1 = pocket_s - 4;
+module ledge_band() for (m = [0, 1]) mirror([m, 0]) polygon([pe(ledge_s1 - ledge_run, -1), pe(ledge_s1 - ledge_run, 0), pe(ledge_s1, ledge_in), pe(D, ledge_in), pe(D, -1)]);
+module ledge_2d() intersection() { arm_2d(); ledge_band(); }   // unrounded: the clip in ledges() gives it the fin's own top and rounding
 module half_2d(i) translate([i == 0 ? -100 : 0, -100]) square([100, 300]);
 module arm_side_2d(i) intersection() {   // one V arm, top edges rounded; unflared, so the fin top stands over the ledges (the slot's cutter flares it)
     offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = fit_v + 0.05) hull() { diamond(); translate([0, 100]) diamond(); } }
@@ -151,7 +151,7 @@ module ledges() for (i = [0:1]) intersection() { to_wall() placed() slab(-probe_
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
 // Blend: each of the two fins is sliced parallel to the plate; each slice
 // grows by the fillet's offset at that distance, and consecutive slices are hulled, so the fillet is smooth.
-module piece(i) intersection() { fins(); translate([i == 0 ? -100 : 0, -100, 0]) cube([100, 300, 300]); }
+module piece(i) intersection() { union() { fins(); ledges(); } translate([i == 0 ? -100 : 0, -100, 0]) cube([100, 300, 300]); }
 module piece_cut(i, yc) projection(cut = true) translate([0, 0, yc]) rotate([-90, 0, 0]) piece(i);
 module blend_layer(i, a) let(d = blend_r * (1 - cos(a)), o = blend_r * (1 - sin(a)), yc = y_pf + 0.2 - d)   // starts just inside the plate: no face shared with it
     translate([0, yc, 0]) rotate([90, 0, 0]) linear_extrude(0.01, center = true) offset(r = o + 0.02) piece_cut(i, yc - 0.01);   // just proud of the piece: no face shared with it
@@ -174,12 +174,12 @@ module holder() intersection() {
     translate([-200, -200, 0]) cube(400);   // the open point's cut: the bed
 }
 
-show_probe = false; // preview only: the probe resting in the slot, flat face on the support wall
+part = "holder";    // "holder"; "probe": the probe as seated, for assembly.py; "both": preview
 
 module probe() color("silver", 0.6) translate([0, fit_t, -fit_v * sqrt(2)]) difference() {   // resting on the V, flat face on the support wall (+w), pocket toward the wall plate
     slab(-probe_t / 2, probe_t / 2) diamond();
     slab(-probe_t / 2 - 1, -probe_t / 2 + pocket_d) scale(pocket_s / probe_s) diamond();
 }
 
-holder();
-if (show_probe) placed() probe();
+if (part != "probe") holder();
+if (part != "holder") placed() probe();
