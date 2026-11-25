@@ -38,12 +38,6 @@ rivet_pitch = 8;     // fore-aft, in two rows staggered by half a pitch
 rivet_rows = [6.5, 14];  // slant distance down the face to each row: between the ridges
 rivet_reach = 36;    // outermost hole centre, fore and aft, clear of the arches
 
-/* [Cable-tie slits: each wing is tied down through the opening and these slits, round the deck strip] */
-tie_slit_x = 103.7;  // inboard edge, from the centreline: just outside the traced wing (103.3 at most here)
-tie_slit_t = 2;      // across x: a 4.8 mm tie is 1.3 thick
-tie_slit_w = 6;      // along y: a 4.8 mm tie, with room. Outboard edge stays inside the skirt's inner face at the deck underside
-tie_slit_y = [-24.5, -37.5];  // centres, on the wing's straight outboard edge, clear of the end arch (the deck narrows too fast at +y)
-
 e = 0.01;
 run = skirt_h / tan(hull_angle);              // inward step of the skirt over its depth
 tn = skirt_t / sin(hull_angle);               // skirt thickness, measured across X
@@ -53,8 +47,6 @@ module platform() difference() {
   frame();
   for (h = holes) translate([h[0], h[1], -boss_h - e]) cylinder(d = hole_d, h = boss_h + 2 * e, $fn = 24);
   translate([-opening[0] / 2, -opening[1] / 2, -deck_t - e]) cube([opening[0], opening[1], deck_t + 2 * e]);
-  for (s = [-1, 1]) scale([s, 1, 1]) for (y = tie_slit_y)
-    translate([tie_slit_x, y - tie_slit_w / 2, -deck_t - e]) cube([tie_slit_t, tie_slit_w, deck_t + 2 * e]);
   // a hole that meets a boss stops at it, so the pilot keeps its wall
   difference() {
     for (s = [-1, 1]) scale([s, 1, 1]) for (r = [0 : len(rivet_rows) - 1])
