@@ -24,6 +24,7 @@ disp_dx = -0.75;     // toward the header (-X): pin end 5 (owner, exact); clean 
 disp_dy = -0.25;     // 4.5 to the -Y edge, 5 to +Y (caliper); -Y is the bottom edge seen from the front, pins on the right
 disp_recess = 0.5;   // display face sits this far behind the shell's outer face
 window_clear = 0.3;  // per side around the display body
+seat_dx = 0.3;       // hole pattern and window this far toward the clean end (+X) from the cavity's centre: first print seated the display hard against the window's clean end, ~0.6 open at the pin end, holes off the same way (owner photos, 2026-11-24)
 
 /* [Header] (owner, caliper) */
 hdr_w = 10.2;        // 4 pins x 2.54
@@ -58,7 +59,7 @@ out_l = in_l + 2*wall;
 out_w = in_w + 2*wall;
 board_z = disp_recess + disp_h;            // board front face
 shell_h = board_z + board_t + rear_clear;  // rim
-holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2, sy*hole_dy/2]];
+holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*hole_dx/2 + seat_dx, sy*hole_dy/2]];
 notch_w = hdr_w + 2*plug_clear + 0.5;
 notch_z = board_z + board_t - pin_span - plug_clear;  // bottom of the end-wall opening
 tongue_clear = 0.2;
@@ -67,7 +68,7 @@ module rrect(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true);
 
 // Keep-out for the display body inside the shell.
 module disp_keepout() {
-    translate([disp_dx, disp_dy, 0])
+    translate([disp_dx + seat_dx, disp_dy, 0])
         square([disp_l + 2*window_clear, disp_w + 2*window_clear], center = true);
 }
 
@@ -111,7 +112,11 @@ module back() {
                 square([in_l - 2*lip_clear, in_w - 2*lip_clear], center = true);
                 square([in_l - 2*lip_clear - 2*lip_t, in_w - 2*lip_clear - 2*lip_t], center = true);
             }
-            for (h = holes) translate([h[0], h[1], 0]) cylinder(d = tube_d, h = cover_t + rear_clear);
+            // tubes clipped to the lip's outline, so the clean-end pair stays clear of the shell wall
+            intersection() {
+                for (h = holes) translate([h[0], h[1], 0]) cylinder(d = tube_d, h = cover_t + rear_clear);
+                linear_extrude(cover_t + rear_clear) square([in_l - 2*lip_clear, in_w - 2*lip_clear], center = true);
+            }
             // tongue sits in the -X end wall's notch
             translate([-out_l/2, -(notch_w/2 - tongue_clear), 0])
                 cube([wall, notch_w - 2*tongue_clear, cover_t + tongue_h]);
@@ -122,13 +127,13 @@ module back() {
 
 // Stand-ins for review renders only: board, display, header and plug.
 module module_standin() {
-    translate([0, 0, board_z]) linear_extrude(board_t) difference() {
+    translate([seat_dx, 0, board_z]) linear_extrude(board_t) difference() {
         square([board_l, board_w], center = true);
-        for (h = holes) translate(h) circle(d = hole_d);
+        for (h = holes) translate(h - [seat_dx, 0]) circle(d = hole_d);
     }
-    translate([disp_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
+    translate([disp_dx + seat_dx, disp_dy, disp_recess]) linear_extrude(disp_h) square([disp_l, disp_w], center = true);
     pz = board_z + board_t - pin_span;
-    translate([-board_l/2 - pin_out, -hdr_w/2, pz]) cube([pin_out + 2.5, hdr_w, 2.54]);   // header + bent pins
+    translate([seat_dx - board_l/2 - pin_out, -hdr_w/2, pz]) cube([pin_out + 2.5, hdr_w, 2.54]);   // header + bent pins
 }
 
 if (part == "shell") shell();

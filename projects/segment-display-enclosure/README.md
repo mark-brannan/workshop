@@ -32,6 +32,7 @@ assembly with stand-ins, from above, below and the face.
 | Display to clean end | 7.1 measured, 6.5 by difference; the display may be ~29.8 at its base | owner, caliper |
 | Header pins | 5 from the board's back to the top of the bend; 6.8 past the board edge | owner, caliper |
 | Display to long edges | 4.5 (-Y, bottom with pins on the right, seen from the front) and 5 | owner, caliper |
+| Seat, first print | display hard against the window's clean end, ~0.6 open at the pin end; screw holes off the same way. Holes and window moved 0.3 toward the clean end (`seat_dx`) | owner photos |
 
 ## Guessed
 
