@@ -2,7 +2,8 @@
 // leans out 30 deg toward the user, its flat face resting on a support wall on the user's side; machined face
 // up, toward the wall, behind a low lip. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
 // Probe frame: u across the face (X), v up the face, w through the thickness (+w = the support wall).
-// The cradle is built in that frame, then mirrored and tilted (placed()) and joined to a narrow wall plate by a solid gusset under its point.
+// The cradle is built in that frame, then mirrored and tilted (placed()). Its V side walls run on to the wall plate as fins;
+// its rounded bottom runs down into the plate as a chute. Both screws sit at the top, above the cradle.
 // Prints as installed, plate edge and foot on the bed. Every overhang is a 45 deg or steeper slope (see README).
 
 /* [Probe: owner, caliper] */
@@ -31,18 +32,21 @@ back_h = 65;        // support wall top above the point, past half the probe
 edge_r = 2.5;       // rounding on the support wall's outer edge
 corner_r = 3;       // rounding on 2D corners
 
-/* [Wall plate: screws into a vertical wood surface] */
-plate_x = 60;       // narrower than the body
-plate_h = 66;       // bed to just above the gusset
+/* [Chute: the V's rounded bottom runs straight down into the plate] */
+keel_r = 10;        // the V's bottom is rounded this much: no point on the outside
+chute_h = 8;        // the chute takes the V up to this far above the probe point
+chute_foot_r = 12;  // the chute's rounded bottom on the plate
+chute_foot_z = 8;   // its lowest point on the plate: low enough that the chute's underside is steeper than 45
+
+/* [Wall plate: covers where the fins and chute land; screws high, where the load pulls out] */
 plate_t = 5;
 plate_r = 6;        // plate corner radius
-plate_pt = 28;      // height of the cradle's lowest point above the plate's bottom edge
-gusset_taper = 0.8; // the gusset is this much narrower at the plate, so its flanks are steeper than 45
-gusset_drop = 8;    // the gusset's end on the plate sits this much lower, so its underside stays steep
+plate_pt = 40;      // height of the cradle's lowest point above the plate's bottom edge
+plate_bot_x = 14;   // half-width of the flat foot on the bed
 screw_d = 5;        // #8 / 4 mm wood screw, loose (printed holes run small); teardrop top
 csk_d = 10;         // 90 deg countersink on the front face
-screw_x = 20;
-screw_zs = [10];   // below the cradle point, on the plate's extension
+screw_x = 25;
+screw_zs = [108];   // at the top, above the cradle: the pull-out load is greatest here, and a driver reaches over the support wall
 
 $fn = 48;
 e = 0.01;
@@ -54,7 +58,11 @@ w_front = -slot / 2 - front_t;
 
 // --- probe frame, 2D in (u, v) ---
 module diamond() polygon([[0, 0], [D / 2, D / 2], [0, D], [-D / 2, D / 2]]);
-module outer_v(h) polygon([[0, -k], [h + k, h], [-(h + k), h]]);
+module keel_v(h, y0 = 0) hull() {   // 90 deg V, point at y0 rounded to keel_r, top edge at y0 + h
+    translate([0, y0 + keel_r * sqrt(2)]) circle(r = keel_r);
+    translate([-h, y0 + h - e]) square([2 * h, e]);
+}
+module outer_v(h) keel_v(h + k, -k);
 module rnd(r) offset(r = r) offset(delta = -r) children();     // round the corners of a convex 2D shape
 module back_2d() intersection() {   // quarter circle: 90 deg sector about the V point, arc top at back_h; the point stays sharp
     outer_v(back_h);
@@ -80,7 +88,10 @@ module slab(w0, w1) translate([0, w1, 0]) rotate([90, 0, 0]) linear_extrude(w1 -
 module slab_r(w0, w1, r) translate([0, w1, 0]) rotate([90, 0, 0]) round_base(w1 - w0, r) children();   // outer face at w1 rounded
 
 module cradle_outer() {
-    slab(-slot / 2, w_back) intersection() { outer_v(v_depth); back_2d(); }   // the lower flanks stay sharp: a rounded downward edge goes flat
+    difference() {   // the V's side walls run on toward the wall, as fins, until the plate stops them (holder())
+        slab(-80, w_back) intersection() { outer_v(v_depth); back_2d(); }
+        slab(-81, -slot / 2) cutter_2d();
+    }
     slab(w_front, -slot / 2 + e) outer_v(front_h);
     slab_r(slot / 2, w_back, edge_r) back_2d();
 }
@@ -94,37 +105,43 @@ module placed() translate([0, 0, plate_pt - z_low]) rotate([tilt, 0, 0]) mirror(
 // plate front face: just inside the low lip's bottom edge, the cradle's nearest point to the wall
 y_pf = (slot / 2 + front_t) * cos(tilt) + k * sin(tilt) - 0.5;
 
+module plate_2d() offset(r = plate_r) offset(delta = -plate_r) hull() {   // covers where the fins and the chute land, and the screws
+    translate([-plate_bot_x, 0]) square([2 * plate_bot_x, 1]);
+    offset(delta = plate_r) fin_print();
+    for (x = [-screw_x, screw_x], z = screw_zs) translate([x, z]) circle(r = csk_d / 2 + plate_r);
+}
 module teardrop(d) hull() { circle(d = d); rotate(45) square(d / 2); }   // point up (+Y in 2D)
 
 module plate() difference() {
-    translate([0, y_pf, 0]) rotate([90, 0, 0]) mirror([0, 0, 1]) round_base(plate_t, 1.5) translate([0, 0]) offset(r = plate_r) offset(delta = -plate_r) translate([-plate_x / 2, 0]) square([plate_x, plate_h]);
+    translate([0, y_pf, 0]) rotate([90, 0, 0]) mirror([0, 0, 1]) round_base(plate_t, 1.5) plate_2d();
     for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf, z]) {
         translate([0, plate_t + e, 0]) rotate([90, 0, 0]) linear_extrude(plate_t + 2 * e) teardrop(screw_d);
         translate([0, -e, 0]) rotate([-90, 0, 0]) cylinder(d1 = csk_d + 2 * e, d2 = screw_d, h = (csk_d - screw_d) / 2 + e);
     }
 }
 
-// Gusset: the V profile at the lip's wall side carried straight back to the plate, dropped at the plate so the
-// underside is steeper than 45. It meets the plate at a point and blends into it.
-module wall_side() placed() slab(w_front + 0.1, -slot / 2 + e) outer_v(v_depth);   // flush with the V arms
-module shadow() intersection() {   // the gusset's outline seen from the plate, cut off under the plate's top
-    projection() rotate([-90, 0, 0]) wall_side();
-    translate([-100, -100]) square([200, 100 + plate_h - 2]);
+// Chute: the hull of the cradle's lower V (bottom rounded to keel_r) and a rounded U on the plate below it.
+// Straight sides from cradle to plate, no point and no hook; its underside runs down to the plate steeper than 45.
+module chute_foot() hull() {
+    translate([0, chute_foot_z + chute_foot_r]) circle(r = chute_foot_r);
+    translate([-(chute_h + k), z_J + chute_h]) square([2 * (chute_h + k), e]);
 }
-module wedge() hull() {
-    wall_side();
-    translate([0, y_pf + 1, 0]) rotate([90, 0, 0]) linear_extrude(1) hull() {   // the shadow, narrowed, plus the shadow dropped
-        scale([gusset_taper, 1]) shadow();
-        translate([0, -gusset_drop]) scale([gusset_taper, 1]) shadow();
-    }
+z_J = plate_pt - z_low + (-w_front) * sin(tilt) - k * cos(tilt);   // the V point at the lip, the cradle's nearest point to the wall
+// Fins: the V's side walls carried on toward the wall until they meet the plate, so they hold the cradle up.
+module wall_side() translate([-100, -100, 0]) cube([200, 100 + y_pf + 1, 200]);   // in front of the wall, stopping just inside the plate
+module fins() intersection() { placed() cradle_outer(); wall_side(); }
+module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
+module chute() hull() {
+    placed() slab(w_front + 0.3, w_back - 0.3) offset(delta = -0.05) outer_v(chute_h);   // just inside the cradle: no shared faces
+    translate([0, y_pf + 1, 0]) rotate([90, 0, 0]) linear_extrude(1) chute_foot();
 }
 
 module holder() {
     difference() {
         union() {
             plate();
-            placed() cradle_outer();
-            wedge();
+            chute();
+            fins();
         }
         placed() cutter();
         for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access

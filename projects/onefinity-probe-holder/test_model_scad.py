@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes, the slot open from above, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the slot open from above, no flat overhangs."""
 
 import math
 import re
@@ -19,7 +19,8 @@ SLOT = P["probe_t"] + 2 * P["fit_t"]
 D = P["probe_s"] * math.sqrt(2)
 K = (P["fit_v"] + P["wall"]) * math.sqrt(2)
 Y_PF = (SLOT / 2 + P["front_t"]) * math.cos(TILT) + K * math.sin(TILT) - 0.5
-SCREWS = [(x, 10) for x in (-P["screw_x"], P["screw_x"])]
+SCREW_ZS = [float(z) for z in re.search(r"^screw_zs\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text(), re.M).group(1).split(",")]
+SCREWS = [(x, z) for x in (-P["screw_x"], P["screw_x"]) for z in SCREW_ZS]
 
 
 @pytest.fixture(scope="module")
@@ -38,17 +39,29 @@ def test_bounds(holder):
     assert np.isclose(lo[2], 0, atol=0.05)
     assert np.isclose(hi[1], Y_PF + P["plate_t"], atol=0.05)  # plate back face is the wall
     assert -50 < lo[1] < -35  # the support wall leans out toward the user
-    assert hi[0] < 55 and lo[0] > -55  # the quarter-circle body is the widest part
+    assert hi[0] < 60 and lo[0] > -60  # the plate under the fins is the widest part
 
 
 
 def test_volume_window(holder):
-    assert 70_000 < holder.volume < 95_000  # 82.9 cm^3 as built
+    assert 105_000 < holder.volume < 130_000  # 118.5 cm^3 as built
 
 
-def test_two_screw_holes_clear_through_plate(holder):
+def test_two_screw_holes_clear_and_reachable(holder):
+    # a driver from the front meets nothing on its way through the hole: the screws sit above the cradle
     for x, z in SCREWS:
-        assert len(ray_hits(holder, (x, Y_PF - 40, z), (0, 1, 0))) == 0
+        assert len(ray_hits(holder, (x, -300, z), (0, 1, 0))) == 0
+
+
+def test_screws_high(holder):
+    # the pull-out load is greatest at the top: the screws sit in the top fifth of the plate
+    top = holder.bounds[1][2]
+    assert all(z > 0.8 * top for _, z in SCREWS)
+
+
+def test_side_walls_reach_the_plate(holder):
+    # just in front of the plate, high up, a ray across meets both fins (two faces each) and nothing else
+    assert len(ray_hits(holder, (100, Y_PF - 1, 95), (-1, 0, 0))) == 4
 
 
 def test_probe_slot_open_from_above(holder):
