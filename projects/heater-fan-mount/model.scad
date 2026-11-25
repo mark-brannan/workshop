@@ -8,7 +8,7 @@
 //   spigot  a square flange that drops into the fan socket, under the fan, with the threaded duct spigot hanging
 //           out through the floor: the box's underside stays flat. Prints flange down.
 // The fan's own four M4 countersunk screws come up through box floor, spigot flange, fan and lid; heads flush in
-// the floor, nuts on top of the lid.
+// the floor; nuts on top of the lid, each sunk 1 mm in a hex pocket inside a low mound, level with the mound's top.
 // Origin: fan axis on Z, z = 0 on the box's underside, Z up as installed. Knob faces -Y (the cabin);
 // the 12 V gland is on the back (+Y), against the bulkhead, out of sight.
 
@@ -55,6 +55,10 @@ gland = 16;         // PG9 cable gland for the 12 V feed (thread 15.2, printed h
 screw_l = 35;
 head_d = 7.3;       // countersink at the bed: the head is 6.7 across (owner), plus 0.6 since printed holes come undersize
 nut_h = 3.2;        // M4 hex nut, on top of the lid
+nut_sink = 1;       // hex pocket into the lid's top: holds the nut against turning, one screwdriver from below
+nut_d = 8.5;        // pocket across the hex's corners: a 7 mm nut, plus allowance since printed holes come undersize
+mound_d = 26;       // each nut sits in a low mound that fades into the lid; its foot
+mound_top = 11;     // and its flat top, level with the top of the nut
 flange_t = 2;       // spigot flange, clamped flat between fan and floor
 flange_fit = 0.2;   // flange to fan socket, each side
 thread_gap = 0.6;   // floor hole to the spigot's rib crest, each side
@@ -142,11 +146,17 @@ module lid() {
     union() {
       linear_extrude(plate_t) footprint();
       cylinder(d = od, h = plate_t + rim_grip);
+      // nut mounds: a shallow cone at each corner, cut off square at the plate's edge
+      intersection() {
+        linear_extrude(plate_t + nut_h) footprint();
+        for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - e]) rotate(1.3) cylinder(d1 = mound_d, d2 = mound_top, h = nut_h - nut_sink + e);   // turned off the diagonal: a facet edge through the corner's arc leaves the mesh open
+      }
     }
     translate([0, 0, -e]) cylinder(d = fan_bore, h = plate_t + 2 * e);
     translate([0, 0, plate_t]) cylinder(d = rim_d + 2 * collar_fit, h = rim_grip + e);   // the rim lands on the plate
     for (i = [0:slots - 1]) rotate(i * 360 / slots + 30) translate([0, -1, plate_t + 5]) cube([od, 2, rim_grip]);
     holes(4.4, plate_t + 2 * e);
+    for (x = [-1, 1], y = [-1, 1]) translate([x * fan_holes / 2, y * fan_holes / 2, plate_t - nut_sink]) cylinder(d = nut_d, h = nut_h + e, $fn = 6);
   }
 }
 

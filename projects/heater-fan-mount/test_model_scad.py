@@ -178,6 +178,18 @@ def test_lid_air_path_and_four_screw_holes(lid):
             assert ray_hits(lid, (x, y, 50), (0, 0, -1)) == []
 
 
+def test_lid_nut_pockets_in_low_mounds(lid):
+    top = P["plate_t"] + P["nut_h"] - P["nut_sink"]  # mound top, level with the top of the nut
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            x, y = sx * HOLE, sy * HOLE
+            assert np.isclose(ray_hits(lid, (x + 3, y, 50), (0, 0, -1))[0][2], P["plate_t"] - P["nut_sink"], atol=0.05)  # nut seat
+            assert np.isclose(ray_hits(lid, (x - sx * 3.5, y - sy * 3.5, 50), (0, 0, -1))[0][2], top, atol=0.05)  # rim round the nut
+            mid = ray_hits(lid, (x - sx * 6, y - sy * 6, 50), (0, 0, -1))[0][2]
+            assert P["plate_t"] + 0.3 < mid < top - 0.3  # a slope, not a step, fading into the plate
+    assert (P["nut_h"] - P["nut_sink"]) / ((P["mound_d"] - P["mound_top"]) / 2) < 0.35  # gentle: under 20 deg
+
+
 # spigot: flange on the bed, spigot up
 def test_spigot_bounds_volume(spigot):
     assert spigot.is_watertight and len(spigot.split()) == 1
@@ -196,7 +208,7 @@ def test_flange_drops_in_the_socket_and_the_floor_corners_stop_it():
 
 def test_the_fans_own_screws_reach_through_the_nut():
     # heads flush in the floor, then flange, fan and lid; the nut on top of the lid has all its threads on
-    assert P["screw_l"] >= FAN_Z + P["fan_t"] + P["plate_t"] + P["nut_h"]
+    assert P["screw_l"] >= FAN_Z + P["fan_t"] + P["plate_t"] - P["nut_sink"] + P["nut_h"]
 
 
 def test_spigot_bore_and_rib(spigot):
