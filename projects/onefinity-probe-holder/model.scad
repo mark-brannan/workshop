@@ -73,12 +73,12 @@ module rnd(r) offset(r = r) offset(delta = -r) children();     // round the corn
 module back_2d() intersection() {   // quarter circle: 90 deg sector about the V point, arc top at back_h; the point stays sharp
     outer_v(back_h);
     union() {
-        rnd(corner_r) translate([0, -k]) circle(r = back_h + k, $fn = 96);
+        rnd(corner_r) translate([0, -k]) circle(r = back_h + k, $fn = 240);
         intersection() { outer_v(back_h); translate([0, -k]) circle(r = 4 * corner_r); }
     }
 }
 // extrude children() over 0..h with the z = 0 perimeter edge rounded to radius r (convex children only)
-module round_base(h, r, n = 5) hull() {
+module round_base(h, r, n = 10) hull() {
     translate([0, 0, r]) linear_extrude(h - r) children();
     for (i = [0:n]) translate([0, 0, r * (1 - sin(90 * i / n))]) linear_extrude(0.01) offset(delta = -r * (1 - cos(90 * i / n))) children();
 }
@@ -91,14 +91,14 @@ module cutter_2d() union() {
 // extrude a (u, v) shape over w0..w1
 module slab(w0, w1) translate([0, w1, 0]) rotate([90, 0, 0]) linear_extrude(w1 - w0) children();
 
-module slab_r(w0, w1, r) translate([0, w1, 0]) rotate([90, 0, 0]) round_base(w1 - w0, r) children();   // outer face at w1 rounded
+module slab_r(w0, w1, r, n = 10) translate([0, w1, 0]) rotate([90, 0, 0]) round_base(w1 - w0, r, n) children();   // outer face at w1 rounded
 
 module arm_2d() intersection() { outer_v(v_depth); back_2d(); }
 // the probe as seated (fit_v down the V), extended upward
 module seated_2d() translate([0, -fit_v * sqrt(2)]) hull() { diamond(); translate([0, 100]) diamond(); }
 // only over the lip: a vertical end tapers each ledge back into the fin at 45 deg, starting 4 mm below the lip
 ledge_u0 = (pocket_s - 4 - ledge_in) / sqrt(2);
-module ledge_2d() offset(r = arm_r) offset(delta = -arm_r) difference() {
+module ledge_2d() difference() {   // unrounded: the clip in ledges() gives it the fin's own top and rounding
     arm_2d();
     offset(delta = -ledge_in) seated_2d();
     translate([-ledge_u0, -50]) square([2 * ledge_u0, 200]);
@@ -108,7 +108,10 @@ module arm_side_2d(i) intersection() {   // one V arm, top edges rounded; unflar
     offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = fit_v + 0.05) hull() { diamond(); translate([0, 100]) diamond(); } }
     half_2d(i);
 }
-module support_wall() slab_r(slot / 2, w_back, edge_r) offset(delta = -0.02) back_2d();   // just inside the arms: no shared faces
+module support_wall() intersection() {   // both faces' edges rounded: the slot-side edge along the arc carries the arms' top rounding round the wall
+    slab_r(slot / 2, w_back, edge_r) offset(delta = -0.02) back_2d();
+    mirror([0, 1, 0]) slab_r(-w_back, -slot / 2, arm_r) offset(delta = -0.02) back_2d();
+}   // just inside the arms: no shared faces
 module cutter() slab(-slot / 2, slot / 2) cutter_2d();
 
 // Placed: the probe frame mirrored so the support wall (+w) faces the user (-Y), then tilted so the
@@ -136,11 +139,14 @@ module plate() difference() {
 
 // Fins: each V arm swept horizontally toward the wall until it meets the plate, so they hold the cradle up.
 module wall_side() translate([-100, -100, -50]) cube([200, 100 + y_pf + 1, 250]);   // in front of the wall, stopping just inside the plate
-module fin(i) to_wall() placed() slab(w_front, w_back) arm_side_2d(i);
+module fin(i) to_wall() placed() intersection() {   // the end on the arc rounded like the support wall's rim; the V sides stay square, their lower edge faces down
+    slab(w_front, w_back) arm_side_2d(i);
+    slab_r(w_front, w_back, edge_r) translate([0, -k]) circle(r = back_h + k, $fn = 240);
+}
 module fins() for (i = [0:1]) intersection() { fin(i); wall_side(); }
 // ledges: each fin's inner face, wall-side of the probe, stepped in over the lip and swept the same way; fit_t clear of the lip
 module ledges() for (i = [0:1]) intersection() { to_wall() placed() slab(-probe_t / 2 - 0.5, -probe_t / 2) intersection() { ledge_2d(); half_2d(i); } wall_side();
-    hull() { fin(i); translate([i == 0 ? 12 : -12, 0, 0]) fin(i); }   // no higher than the fin top, carried level inward: the outside stays the fin's own face
+    hull() { fin(i); translate([(i == 0 ? 1 : -1) * ledge_in * sqrt(2), 0, 0]) fin(i); }   // the fin's top and its inner rounding carried in to the ledge face: one top, no groove
 }
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
 // Blend: each of the two fins is sliced parallel to the plate; each slice
