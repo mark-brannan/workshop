@@ -30,7 +30,7 @@ def installed():
 
 
 def test_bbox_and_volume(installed):
-    assert installed.extents == pytest.approx([2 * HW, P["len"], P["skirt_h"]], abs=0.1)
+    assert installed.extents == pytest.approx([2 * HW, P["len"] + 2 * (P["tie_eye_gap"] + 2.2 + P["tie_eye_bar"]), P["skirt_h"]], abs=0.1)
     assert installed.is_watertight and 30_000 < installed.volume < 150_000
 
 
@@ -76,3 +76,19 @@ def test_pilot_takes_a_nylon_m4_tap():
     """Printed Ø3 is drilled to 3.3 and tapped M4 (README, 2026-11-24): the pilot must be under 3.3, the boss wall after drilling at least 2.8."""
     assert P["hole_d"] < 3.3
     assert (P["boss_d"] - 3.3) / 2 >= 2.8
+
+
+def test_tie_eyes(installed):
+    """A vertical slot through a lug off each deck end, under each wing tip, with a fairlead groove on its outer face."""
+    down = [0, 0, -1]
+    x, (sx, sy), gap, bar, lead = P["tie_eye_x"], (6.5, 2.2), P["tie_eye_gap"], P["tie_eye_bar"], P["tie_eye_lead"]
+    for s in (1, -1):
+        for f in (1, -1):
+            y0 = f * (P["len"] / 2 + gap + sy / 2)
+            for dx in (0, -sx / 2 + 0.3, sx / 2 - 0.3):
+                assert not ray_hits(installed, [s * (x + dx), y0, 5], down), f"slot blocked at {s}, {f}, {dx}"
+            yb = f * (P["len"] / 2 + gap + sy + (bar - lead) / 2)  # the bar the tie wraps
+            assert ray_hits(installed, [s * x, yb, 5], down)[0][2] == pytest.approx(0, abs=0.05)
+            yl = f * (P["len"] / 2 + gap + sy + bar - lead / 2)  # the fairlead groove
+            assert not ray_hits(installed, [s * x, yl, 5], down), "fairlead groove"
+            assert ray_hits(installed, [s * (x + sx / 2 + 1), yl, 5], down), "groove walls"
