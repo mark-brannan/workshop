@@ -38,6 +38,7 @@ def detect() -> list[Tool]:
             which("orca-slicer"),
             "/Applications/OrcaSlicer.app",
             WIN / "Program Files/OrcaSlicer/orca-slicer.exe",
+            *sorted((WIN / "Users").glob("*/AppData/Local/Microsoft/WindowsApps/orca-slicer.exe")),
         )),
         Tool("LightBurn", "laser", _first(
             which("lightburn"),

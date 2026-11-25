@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Native Linux OrcaSlicer for this user, outside any repo or worktree, so every
+# session finds `orca-slicer` on PATH (CLI slicing; the GUI runs under WSLg too).
+# src/shop/tools.py picks it before any Windows install.
+#
+#   ~/.local/opt/orcaslicer/<version>/   extracted AppImage (no FUSE needed)
+#   ~/.local/opt/orcaslicer/current      -> <version>
+#   ~/.local/bin/orca-slicer             -> current/AppRun
+#
+# Keep VERSION at the Windows install's version so presets saved there load
+# here. Idempotent. To move the pin, change VERSION and SHA256 (the asset digest:
+# gh api repos/OrcaSlicer/OrcaSlicer/releases/tags/v<VERSION> --jq '.assets[]|.name+" "+.digest').
+set -euo pipefail
+
+VERSION=2.5.2
+SHA256=22fa88884dec3fdbd29e90cba9912fcff6fb57a60b1bdc1a6c189c61a6b0a870
+URL="https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v${VERSION}/OrcaSlicer_Linux_AppImage_Ubuntu2404_V${VERSION}.AppImage"
+
+OPT="$HOME/.local/opt/orcaslicer"
+BIN="$HOME/.local/bin"
+
+mkdir -p "$OPT" "$BIN"
+
+# The AppImage links the host's WebKitGTK; without it the binary exits before
+# --help, even for headless slicing.
+if ! ldconfig -p | grep -q 'libwebkit2gtk-4.1.so.0'; then
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q libwebkit2gtk-4.1-0
+fi
+
+if [[ ! -x "$OPT/$VERSION/AppRun" ]]; then
+  work=$(mktemp -d)
+  trap 'rm -rf "$work"' EXIT
+  curl -sSfL -o "$work/orca.AppImage" "$URL"
+  echo "$SHA256  $work/orca.AppImage" | sha256sum -c --quiet
+  chmod +x "$work/orca.AppImage"
+  (cd "$work" && ./orca.AppImage --appimage-extract >/dev/null)
+  mv "$work/squashfs-root" "$OPT/$VERSION"
+fi
+ln -sfn "$VERSION" "$OPT/current"
+ln -sfn "$OPT/current/AppRun" "$BIN/orca-slicer"
+
+"$BIN/orca-slicer" --help 2>&1 | grep -m1 -i 'orcaslicer' || true
+case ":$PATH:" in *":$BIN:"*) ;; *) echo "warning: $BIN is not on PATH" >&2 ;; esac

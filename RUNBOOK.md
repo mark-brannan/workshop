@@ -13,6 +13,7 @@ prints the list; `shop watch <cmd> --help` prints each one's flags.
 | rebuild one part (STL, 3MF, PNG) | `shop build projects/<slug>` |
 | check a part from six sides | `shop views projects/<slug>/model.scad <view>` |
 | print a thin fit-check before the real part | `shop gauge projects/<slug> "mount()" <z_plate> [<z_wall>]` |
+| slice a 3MF to g-code, no GUI | `orca-slicer --slice 0 --outputdir <dir> <file.3mf>` |
 | run every test | `uv run pytest -q` (from `~/workshop`) |
 | see what the printer is doing | `shop printer` |
 | check a job before starting it | `shop watch preflight <file.gcode> --plate frosted --vents closed` |
@@ -40,6 +41,22 @@ changed, the old one is kept under `out/printed/`.
 
 A project with a KiCad board (`one-wire-bus-board`) also writes its Gerbers,
 drill file and upload zip on build.
+
+## Slice headless
+
+`orca-slicer` is a native Linux OrcaSlicer, the same version as the user's
+Windows install, from `scripts/install-orcaslicer-linux` (once per box; it is
+not in the repo). It slices with the settings carried in a 3MF saved from
+OrcaSlicer, so slice the user's saved project, not a bare mesh:
+
+```
+orca-slicer --datadir <scratch>/orca --slice 0 --outputdir <scratch> --export-3mf sliced.3mf <file.3mf>
+```
+
+Writes `plate_<n>.gcode`, `result.json` (`"return_code": 0` on success) and the
+sliced 3MF. `--datadir` keeps the run from touching any GUI config. Check the
+g-code header (`; printer_model`, `; filament_type`, `; total layers count`)
+before uploading it.
 
 ## Print a high-temperature job (ASA, ABS)
 
