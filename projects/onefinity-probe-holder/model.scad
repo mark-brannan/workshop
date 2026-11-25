@@ -3,8 +3,8 @@
 // up, toward the wall, open between the fins. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
 // Probe frame: u across the face (X), v up the face, w through the thickness (+w = the support wall).
 // The cradle is built in that frame, then mirrored and tilted (placed()). Its V side walls run on to the wall plate as fins;
-// they meet the plate through a concave fillet. The point is open: below a 90 deg notch the probe's tip hangs free.
-// Two tabs inside the fins, near their tops, lap over the probe's raised lip on the machined face. Both screws sit at the top, above the cradle.
+// they meet the plate through a concave fillet. The point is open: below one flat cut the probe's tip hangs free.
+// Wall-side of the probe, each fin's inner face steps in over the probe's raised lip on the machined face, flush with the fin. Both screws sit at the top, above the cradle.
 // Prints as installed, plate edge and foot on the bed. Every overhang is a 45 deg or steeper slope (see README).
 
 /* [Probe: owner, caliper] */
@@ -24,10 +24,10 @@ flare_from = 12;    // the flare starts this far up the V
 
 /* [Cradle] */
 tilt = 30;          // lean from vertical, top out toward the user
-v_depth = 40;       // V sides: up to about half the probe (side corners at 45)
+v_depth = 43;       // V sides: about half the probe (side corners at 45), high enough for the ledges to reach the lip
 wall = 6;           // V arms and support wall
 front_t = 3;        // the V floor runs this far past the slot toward the wall, where the plate starts
-back_h = 52;        // support wall top above the point: past the probe's centre of mass (46 up), no more
+back_h = 56;        // support wall top above the point: past the probe's centre of mass (46 up), and the arc the arms end on clears the lip
 
 edge_r = 2.5;       // rounding on the support wall's outer edge
 arm_r = 2;          // rounding on the V arms' top edges
@@ -35,13 +35,12 @@ corner_r = 3;       // rounding on 2D corners
 
 keel_r = 6;         // the V's bottom rounding (cut away by the open point)
 
-/* [Open point: the cradle stops short of the probe's tip; a 90 deg notch, its sides square to the V arms] */
-open_v = 10;        // the V arms end this far above the probe point, along its edges; the notch peaks at twice this on the centre line
+/* [Open point: one flat cut, straight across, below which the probe's tip hangs free] */
+open_v = 10;        // the cut meets the support wall's face this far above the probe point
+cut_a = 20;         // the cut tilts this much off square, rising toward the wall, so it leans 50 deg in print
 
-/* [Tabs: inside each fin, near its top, lapping over the probe's raised lip (the 9.5 mm band outside the pocket)] */
-tab_in = 3;         // reach in over the lip, past the probe's edge
-tab_len = 4.5;      // the lip slides this far under each tab
-tab_t = 3;          // thickness, toward the wall; the top end is a 45 deg lead-in
+/* [Ledges: wall-side of the probe, each fin's inner face steps in over the raised lip (the 9.5 mm band outside the pocket)] */
+ledge_in = 3;       // reach in over the lip, past the probe's edge; the pocket, pocket_d deeper, passes freely
 
 /* [Blend: the fins meet the plate through a concave fillet] */
 blend_r = 6;        // fillet radius where the fins meet the plate
@@ -96,28 +95,28 @@ module slab(w0, w1) translate([0, w1, 0]) rotate([90, 0, 0]) linear_extrude(w1 -
 
 module slab_r(w0, w1, r) translate([0, w1, 0]) rotate([90, 0, 0]) round_base(w1 - w0, r) children();   // outer face at w1 rounded
 
-// the open point: below v + |u| = 2 * open_v; its faces square to the arms, so they lean 52 deg in print
-module notch_2d() polygon([[0, 2 * open_v], [300, 2 * open_v - 300], [-300, 2 * open_v - 300]]);
+module arm_2d() intersection() { outer_v(v_depth); back_2d(); }
+// the probe as seated (fit_v down the V), extended upward
+module seated_2d() translate([0, -fit_v * sqrt(2)]) hull() { diamond(); translate([0, 100]) diamond(); }
+// only over the lip: a vertical end tapers each ledge back into the fin at 45 deg, starting 4 mm below the lip
+ledge_u0 = (pocket_s - 4 - ledge_in) / sqrt(2);
+module ledge_2d() offset(r = arm_r) offset(delta = -arm_r) difference() {
+    arm_2d();
+    offset(delta = -ledge_in) seated_2d();
+    translate([-ledge_u0, -50]) square([2 * ledge_u0, 200]);
+}
+// the open point: everything below one plane, straight across u, rising toward the wall
+module flat_cut() rotate([-cut_a, 0, 0]) translate([-200, -200, -400 + open_v * cos(cut_a) + slot / 2 * sin(cut_a)]) cube(400);
+module ledge(w0) difference() { slab(w0, -probe_t / 2) ledge_2d(); flat_cut(); }   // fit_t clear of the lip
 module cradle_outer() difference() {
     union() {
         // the V's side walls run on toward the wall, as fins, until the plate stops them (holder()); their top edges rounded
-        slab(-80, w_back) offset(r = arm_r) offset(delta = -arm_r) difference() { intersection() { outer_v(v_depth); back_2d(); } offset(delta = 0.05) cutter_2d(); }   // just clear of the cutter: no shared faces
+        slab(-80, w_back) offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = 0.05) cutter_2d(); }   // just clear of the cutter: no shared faces
         slab_r(slot / 2, w_back, edge_r) offset(delta = -0.02) back_2d();   // just inside the arms: no shared faces
     }
-    slab(-100, 100) notch_2d();
+    flat_cut();
 }
 module cutter() slab(-slot / 2, slot / 2) cutter_2d();
-
-// Tabs: (s, n) along the seated probe's lower-right edge (s from its point) and inward from it; mirrored for the left.
-// Inner face fit_t clear of the lip with the probe on the support wall; the pocket (pocket_d deeper) passes under freely.
-function pe(s, n) = [(s - n) / sqrt(2), (s + n) / sqrt(2) - fit_v * sqrt(2)];
-// The arms end on the support wall's arc short of the lip, so each tab rises from the arm (its root 8 mm down the edge) as an ear.
-module tab_strip(s0, s1) polygon([pe(s0, -(wall - 0.5)), pe(s1, -(wall - 0.5)), pe(s1, tab_in), pe(s0, tab_in)]);
-module tab() let(s0 = pocket_s + 0.5, w1 = -probe_t / 2) hull() {
-    slab(w1 - tab_t, w1) tab_strip(s0 - 8, s0 + tab_len);
-    slab(w1 - tab_t, w1 - tab_t + e) tab_strip(s0 - 8, s0 + tab_len + tab_t);
-}
-module tabs() { tab(); mirror([1, 0, 0]) tab(); }
 
 // Placed: the probe frame mirrored so the support wall (+w) faces the user (-Y), then tilted so the
 // top leans out toward the user; the point sits close to the wall.
@@ -162,9 +161,10 @@ module holder() {
             blend();
         }
         placed() cutter();
+        intersection() { placed() flat_cut(); translate([-100, -100, 0]) cube([200, 100 + y_pf - 0.01, 200]); }   // trims the fillet under the cut flush: it would go flat there
         for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access
     }
-    placed() tabs();
+    intersection() { placed() ledge(-80); wall_side(); }   // outside the blend: its hull would bridge the ledge's end flat
 }
 
 show_probe = false; // preview only: the probe resting in the slot, flat face on the support wall

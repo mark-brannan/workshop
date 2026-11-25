@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, tabs over the lip, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, ledges over the lip, no flat overhangs."""
 
 import math
 import re
@@ -44,7 +44,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 55_000 < holder.volume < 66_000  # 60.5 cm^3 as built
+    assert 58_000 < holder.volume < 69_000  # 63.3 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -102,8 +102,8 @@ def test_point_open_through_the_thickness(holder):
 
 
 @pytest.mark.parametrize("side", [1, -1])
-def test_tabs_lap_the_lip(holder, side):
-    # from the lip's face, toward the wall, 1.5 mm in from each edge: the tab, fit_t away
+def test_ledges_lap_the_lip(holder, side):
+    # from the lip's face, toward the wall, 1.5 mm in from each edge: the ledge, fit_t away
     u, v = _pe(P["pocket_s"] + 2, 1.5)
     a, h = _ray_w(holder, side * u, v, -P["probe_t"] / 2 + P["fit_t"], -1)
     assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["fit_t"], atol=0.1)
