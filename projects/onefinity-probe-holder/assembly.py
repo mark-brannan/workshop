@@ -1,8 +1,8 @@
-"""The probe seated in the holder: how the lip's two legs meet the ledges. Writes out/assembly.png and out/assembly_sections.png.
+"""The probe seated in the holder: where the lip's two legs sit on the detents. Writes out/assembly.png and out/assembly_sections.png.
 
     uv run python projects/onefinity-probe-holder/assembly.py   (shop build runs it after the model; reads the holder STL)
 
-Lip (raised L on the machined face) orange, pocket floor blue, the holder's ledge faces green.
+Lip (raised L on the machined face) orange, pocket floor blue, the holder's detent bumps green.
 """
 import math
 import re
@@ -27,7 +27,7 @@ P = {k: float(v) for k, v in re.findall(r"^(\w+)\s*=\s*([-\d.]+)\s*;", (HERE / "
 T = math.radians(P["tilt"])
 SLOT = P["probe_t"] + 2 * P["fit_t"]
 Z_CUT = P["open_v"] * math.cos(T) - SLOT / 2 * math.sin(T)
-HOLDER, PROBE, LIP, POCKET, LEDGE = "#b9a8e0", "#9aa3ad", "#ff9a3c", "#4f8fd6", "#3fbf6f"
+HOLDER, PROBE, LIP, POCKET, DETENT = "#b9a8e0", "#9aa3ad", "#ff9a3c", "#4f8fd6", "#3fbf6f"
 
 
 def world(u, v, w):
@@ -47,8 +47,29 @@ def pe(s, n):
 
 W_LIP = -P["probe_t"] / 2 + P["fit_t"]  # the lip's face, wall side
 W_POCKET = W_LIP + P["pocket_d"]
-W_LEDGE = -P["probe_t"] / 2
-TO_WALL = wdir(0, 0, -1)  # the normal of the lip, pocket floor; the ledges face the other way
+W_SLOT = -P["probe_t"] / 2  # the slot's wall-side face; the lip sits fit_t past it
+DET_S = P["pocket_s"] - P["det_gap"] - P["det_r"]
+DET_TOP = W_LIP + P["det_h"]  # the bump's crest, in the pocket
+TO_WALL = wdir(0, 0, -1)  # the normal of the lip and the pocket floor
+
+
+def frame(pts):
+    """World to the probe frame (u, v, w), the inverse of world()."""
+    X, Y, Z = pts[:, 0], pts[:, 1], pts[:, 2] + Z_CUT
+    y, z = Y * math.cos(T) + Z * math.sin(T), -Y * math.sin(T) + Z * math.cos(T)
+    return X, z, -y
+
+
+def holder_colours(m):
+    """Holder purple, its two detent bumps green: the part of each bump past the slot's face, near the lip legs' ends."""
+    c = np.tile(np.array(matplotlib.colors.to_rgb(HOLDER)), (len(m.faces), 1))
+    u, v, w = frame(m.triangles_center)
+    v = v + P["fit_v"] * math.sqrt(2)
+    s, n = (np.abs(u) + v) / math.sqrt(2), (v - np.abs(u)) / math.sqrt(2)
+    r = P["det_r"] + 0.3
+    hit = (np.abs(s - DET_S) < r) & (n > -r) & (n < P["det_in"] + r) & (w > W_SLOT - 0.2)
+    c[hit] = matplotlib.colors.to_rgb(DETENT)
+    return (c * 255).astype(np.uint8)
 
 
 def probe_mesh() -> trimesh.Trimesh:
@@ -78,23 +99,23 @@ def pv_parts(m, colours):
 
 
 def three_d(holder, probe, path):
-    hc = face_colours(holder, HOLDER, [(-TO_WALL, W_LEDGE, LEDGE)])
+    hc = holder_colours(holder)
     pc = face_colours(probe, PROBE, [(TO_WALL, W_LIP, LIP), (TO_WALL, W_POCKET, POCKET)])
-    # the wall plate and the sweep behind the ledges hidden, so the machined face shows from the wall side
-    y_cut = world(0, 0, W_LEDGE - 4)[1]
+    # the wall plate and the sweep behind the detents hidden, so the machined face shows from the wall side
+    y_cut = world(0, 0, W_SLOT - 4)[1]
     keep = holder.triangles_center[:, 1] < y_cut
     open_h = holder.submesh([np.where(keep)[0]], append=True)
     open_c = hc[keep]
-    # everything on the user's side of the ledge faces hidden, so the ledges show through the probe
-    wall_side = -(holder.triangles_center - world(0, 0, 0)) @ TO_WALL < W_LEDGE + 0.05
+    # everything on the user's side of the detents hidden, so the detents show through the probe
+    wall_side = -(holder.triangles_center - world(0, 0, 0)) @ TO_WALL < W_SLOT + 0.05
     back_h = holder.submesh([np.where(wall_side)[0]], append=True)
     back_c = hc[wall_side]
     panels = [
         ("seated, from the user's side", (0, -1, 0.35), (0, 0, 1), holder, hc, 1.0),
-        ("from the wall, square to the machined face (holder behind the ledges cut away, see-through):\n"
-         "green ledges over the orange lip's two legs", TO_WALL, (0, 0, 1), open_h, open_c, 0.55),
+        ("from the wall, square to the machined face (holder behind the detents cut away, see-through):\n"
+         "green detents just under the ends of the orange lip's two legs", TO_WALL, (0, 0, 1), open_h, open_c, 0.55),
         ("from the user's side, square to the probe (see-through), support wall cut away:\n"
-         "green ledge faces behind the orange lip legs", -TO_WALL, (0, 0, 1), back_h, back_c, 1.0),
+         "green detents just under the orange lip legs' ends", -TO_WALL, (0, 0, 1), back_h, back_c, 1.0),
         ("the probe alone, machined face: lip L orange, pocket blue", TO_WALL, (0, 0, 1), None, None, 1.0),
     ]
     pv.OFF_SCREEN = True
@@ -106,7 +127,7 @@ def three_d(holder, probe, path):
             p.add_mesh(part, color=col, opacity=0.4 if i == 2 else 1.0)
         if hm is not None:
             for part, col in pv_parts(hm, hcol):
-                p.add_mesh(part, color=col, opacity=op if col != LEDGE else 1.0)
+                p.add_mesh(part, color=col, opacity=op if col != DETENT else 1.0)
             p.add_mesh(pv.wrap(hm).extract_feature_edges(30), color="#111111", line_width=1.5)
         p.add_text(label, font_size=10, color="white")
         p.view_vector(tuple(vec), viewup=up)
@@ -137,8 +158,8 @@ def section(m, s, origin_n=0.0):
 def sections(holder, probe, path):
     lap = P["pocket_s"] + 2
     cuts = [
-        (lap, f"across a lip leg, {lap:.0f} mm up the edge: the ledge laps the lip"),
-        (P["pocket_s"] - 10, f"across the pocket, {P['pocket_s'] - 10:.0f} mm up: the ledge tapering in, the pocket floor well clear"),
+        (DET_S, f"across the detent, {DET_S:.1f} mm up the edge: the bump in the pocket, the floor clear of it"),
+        (lap, f"across a lip leg, {lap:.0f} mm up the edge: nothing over the lip face"),
     ]
     fig, axs = plt.subplots(1, 2, figsize=(16, 8), facecolor="#202326")
     for ax, (s, title) in zip(axs, cuts):
@@ -149,10 +170,10 @@ def sections(holder, probe, path):
             ax.fill(*poly.exterior.xy, color=PROBE, ec="white", lw=0.6, alpha=0.9)
         lip = -W_LIP
         ax.axvline(lip, color=LIP, lw=1, ls=":")
-        ax.axvline(-W_LEDGE, color=LEDGE, lw=1, ls=":")
+        ax.axvline(-DET_TOP, color=DETENT, lw=1, ls=":")
         ax.axvline(-W_POCKET, color=POCKET, lw=1, ls=":")
         ax.text(lip, 21, " lip face", color=LIP, fontsize=9, ha="right")
-        ax.text(-W_LEDGE, 23, " ledge face", color=LEDGE, fontsize=9)
+        ax.text(-DET_TOP, 23, "detent crest ", color=DETENT, fontsize=9, ha="right")
         ax.text(-W_POCKET, 19, "pocket floor ", color=POCKET, fontsize=9, ha="right")
         ax.text(-16, -8, "support wall side\n(toward the user)", color="white", fontsize=9)
         ax.text(14, -8, "wall plate side", color="white", fontsize=9)
@@ -171,19 +192,19 @@ def sections(holder, probe, path):
 
 
 def lip_closeups(holder, probe, path):
-    """Iso close-ups on the right side corner, where the lip leg meets its ledge, from each face's side (they face each other)."""
-    hc = face_colours(holder, HOLDER, [(-TO_WALL, W_LEDGE, LEDGE)])
+    """Iso close-ups on the right side corner, where the lip leg's end sits on its detent."""
+    hc = holder_colours(holder)
     pc = face_colours(probe, PROBE, [(TO_WALL, W_LIP, LIP), (TO_WALL, W_POCKET, POCKET)])
-    wall_side = -(holder.triangles_center - world(0, 0, 0)) @ TO_WALL < W_LEDGE + 0.05
+    wall_side = -(holder.triangles_center - world(0, 0, 0)) @ TO_WALL < W_SLOT + 0.05
     no_support = holder.submesh([np.where(wall_side)[0]], append=True)
     up_edge = wdir(1, 1, 0) / math.sqrt(2)  # up the probe's lower-right edge
     across = wdir(-1, 1, 0) / math.sqrt(2)  # in from that edge, across the face
-    f = world(*pe(P["pocket_s"] + 2, 2), (W_LIP + W_LEDGE) / 2)  # between lip and ledge, on the lap
+    f = world(*pe(P["pocket_s"], 1.5), W_LIP)  # the lip leg's end, over the detent
     panels = [
         ("lip side: from the wall, above and outside the corner; holder see-through\n"
-         "orange lip leg and blue pocket under the green ledge", TO_WALL + 0.7 * up_edge - 0.6 * across, holder, hc, 0.35, probe, 1.0, 0),
-        ("ledge side: from the user, above and outside the corner; probe see-through, support wall cut away\n"
-         "green ledge face, the orange lip leg behind it", -TO_WALL + 0.5 * up_edge + 0.5 * across + 0.4 * np.array((0, 0, 1)), no_support, hc[wall_side], 1.0, probe, 0.35, 0),
+         "the orange lip leg's end just above the green detent, in the blue pocket", TO_WALL + 0.7 * up_edge - 0.6 * across, holder, hc, 0.35, probe, 1.0, 0),
+        ("detent side: from the user, above and outside the corner; probe see-through, support wall cut away\n"
+         "the green detent, the orange lip leg's end just above it", -TO_WALL + 0.5 * up_edge + 0.5 * across + 0.4 * np.array((0, 0, 1)), no_support, hc[wall_side], 1.0, probe, 0.35, 0),
     ]
     pv.OFF_SCREEN = True
     p = pv.Plotter(off_screen=True, shape=(1, 2), window_size=(2000, 1000), border=True)
@@ -194,7 +215,7 @@ def lip_closeups(holder, probe, path):
         for part, col in pv_parts(pm, pc):
             p.add_mesh(part.translate(shift, inplace=False), color=col, opacity=pop)
         for part, col in pv_parts(hm, hcol):
-            p.add_mesh(part, color=col, opacity=1.0 if col == LEDGE else hop)
+            p.add_mesh(part, color=col, opacity=1.0 if col == DETENT else hop)
         p.add_mesh(pv.wrap(hm).extract_feature_edges(30), color="#111111", line_width=1.5, opacity=max(hop, 0.4))
         p.add_text(label, font_size=9, color="white")
         foc = f + shift / 2

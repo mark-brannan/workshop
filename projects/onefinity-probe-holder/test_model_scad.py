@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, ledges over the lip, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, detents under the lip, no flat overhangs."""
 
 import math
 import re
@@ -45,7 +45,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 83_000 < holder.volume < 94_000  # 88.2 cm^3 as built
+    assert 83_000 < holder.volume < 94_000  # 86.8 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -105,9 +105,20 @@ def test_point_open_through_the_thickness(holder):
     assert len(h) == 2 and np.isclose(h[1][1], Y_PF + P["plate_t"], atol=0.05)
 
 
+W_LIP = -P["probe_t"] / 2 + P["fit_t"]  # the lip's face as seated; the pocket floor is pocket_d past it
+
+
 @pytest.mark.parametrize("side", [1, -1])
-def test_ledges_lap_the_lip(holder, side):
-    # from the lip's face, toward the wall, 1.5 mm in from each edge: the ledge, fit_t away
+def test_detent_just_under_each_lip_leg(holder, side):
+    # in the pocket, just below the lip leg's end, toward the wall: the bump, det_h past the lip's face, so the pocket clears it
+    u, v = _pe(P["pocket_s"] - P["det_gap"] - P["det_r"], 1.5)
+    a, h = _ray_w(holder, side * u, v, W_LIP + P["pocket_d"], -1)
+    assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["pocket_d"] - P["det_h"], atol=0.15)
+
+
+@pytest.mark.parametrize("side", [1, -1])
+def test_lip_face_uncovered(holder, side):
+    # over the lip leg, toward the wall: nothing near the lip's face, so the probe lifts straight out
     u, v = _pe(P["pocket_s"] + 2, 1.5)
-    a, h = _ray_w(holder, side * u, v, -P["probe_t"] / 2 + P["fit_t"], -1)
-    assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["fit_t"], atol=0.1)
+    a, h = _ray_w(holder, side * u, v, W_LIP, -1)
+    assert not len(h) or np.linalg.norm(np.array(h[0]) - a) > 5

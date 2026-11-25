@@ -25,7 +25,7 @@ flare_from = 12;    // the flare starts this far up the V
 
 /* [Cradle] */
 tilt = 30;          // lean from vertical, top out toward the user
-v_depth = 43;       // V sides: about half the probe (side corners at 45), high enough for the ledges to reach the lip
+v_depth = 43;       // V sides: about half the probe (side corners at 45), high enough for the detents to reach the lip's ends
 wall = 6;           // V arms and support wall
 front_t = 3;        // the V floor runs this far past the slot toward the wall, where the plate starts
 back_h = 56;        // support wall top above the point: past the probe's centre of mass (46 up), and the arc the arms end on clears the lip
@@ -39,9 +39,11 @@ keel_r = 6;         // the V's bottom rounding (cut away by the open point)
 /* [Open point: one horizontal cut, the bed, below which the probe's tip hangs free] */
 open_v = 12;        // the cut meets the support wall's face this far above the probe point; the slot's wall-side face just above the point, so no sliver of floor
 
-/* [Ledges: wall-side of the probe, each fin's inner face steps in over the raised lip (the 9.5 mm band outside the pocket)] */
-ledge_in = 3;       // reach in over the lip, past the probe's edge; the pocket, pocket_d deeper, passes freely
-ledge_run = 20;     // the ledge grows from nothing to ledge_in over this run along the edge, full 4 mm below the lip: no square end
+/* [Detents: a rounded bump on each fin's inner face, in the pocket just under the end of each lip leg] */
+det_r = 2;          // bump radius
+det_h = 1;          // how far it stands past the lip's face into the pocket (pocket_d deep): the pocket slides over it
+det_in = 3;         // reach in from the probe's edge, across the face
+det_gap = 0.5;      // the lip leg's end sits this far above the bump
 
 /* [Blend: the fins meet the plate through a concave fillet] */
 blend_r = 6;        // fillet radius where the fins meet the plate
@@ -99,12 +101,8 @@ module arm_2d() intersection() { outer_v(v_depth); back_2d(); }
 module seated_2d() translate([0, -fit_v * sqrt(2)]) hull() { diamond(); translate([0, 100]) diamond(); }
 // (s along the seated probe's lower-right edge from its point, n inward) to (u, v)
 function pe(s, n) = [(s - n) / sqrt(2), (s + n) / sqrt(2) - fit_v * sqrt(2)];
-// a band along each lower edge, inside the probe's outline: nothing at s1 - ledge_run, ledge_in from s1 (4 mm below the lip) on
-ledge_s1 = pocket_s - 4;
-module ledge_band() for (m = [0, 1]) mirror([m, 0]) polygon([pe(ledge_s1 - ledge_run, -1), pe(ledge_s1 - ledge_run, 0), pe(ledge_s1, ledge_in), pe(D, ledge_in), pe(D, -1)]);
-module ledge_2d() intersection() { arm_2d(); ledge_band(); }   // unrounded: the clip in ledges() gives it the fin's own top and rounding
 module half_2d(i) translate([i == 0 ? -100 : 0, -100]) square([100, 300]);
-module arm_side_2d(i) intersection() {   // one V arm, top edges rounded; unflared, so the fin top stands over the ledges (the slot's cutter flares it)
+module arm_side_2d(i) intersection() {   // one V arm, top edges rounded; unflared (the slot's cutter flares it)
     offset(r = arm_r) offset(delta = -arm_r) difference() { arm_2d(); offset(delta = fit_v + 0.05) hull() { diamond(); translate([0, 100]) diamond(); } }
     half_2d(i);
 }
@@ -144,14 +142,17 @@ module fin(i) to_wall() placed() intersection() {   // the end on the arc rounde
     slab_r(w_front, w_back, edge_r) translate([0, -k]) circle(r = back_h + k, $fn = 240);
 }
 module fins() for (i = [0:1]) intersection() { fin(i); wall_side(); }
-// ledges: each fin's inner face, wall-side of the probe, stepped in over the lip and swept the same way; fit_t clear of the lip
-module ledges() for (i = [0:1]) intersection() { to_wall() placed() slab(-probe_t / 2 - 0.5, -probe_t / 2) intersection() { ledge_2d(); half_2d(i); } wall_side();
-    hull() { fin(i); translate([(i == 0 ? 1 : -1) * ledge_in * sqrt(2), 0, 0]) fin(i); }   // the fin's top and its inner rounding carried in to the ledge face: one top, no groove
+// detents: each a nub, a capsule across the probe's edge in the pocket just under the lip leg's end, rooted in the fin
+det_s = pocket_s - det_gap - det_r;
+det_w = -probe_t / 2 + fit_t + det_h - det_r;   // the lip's face as seated is fit_t past the slot's wall side
+module detents() for (m = [0, 1]) intersection() {
+    placed() mirror([m, 0, 0]) hull() for (n = [0, det_in]) let(q = pe(det_s, n)) translate([q[0], det_w, q[1]]) sphere(r = det_r, $fn = 24);
+    wall_side();
 }
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
 // Blend: each of the two fins is sliced parallel to the plate; each slice
 // grows by the fillet's offset at that distance, and consecutive slices are hulled, so the fillet is smooth.
-module piece(i) intersection() { union() { fins(); ledges(); } translate([i == 0 ? -100 : 0, -100, 0]) cube([100, 300, 300]); }
+module piece(i) intersection() { fins(); translate([i == 0 ? -100 : 0, -100, 0]) cube([100, 300, 300]); }
 module piece_cut(i, yc) projection(cut = true) translate([0, 0, yc]) rotate([-90, 0, 0]) piece(i);
 module blend_layer(i, a) let(d = blend_r * (1 - cos(a)), o = blend_r * (1 - sin(a)), yc = y_pf + 0.2 - d)   // starts just inside the plate: no face shared with it
     translate([0, yc, 0]) rotate([90, 0, 0]) linear_extrude(0.01, center = true) offset(r = o + 0.02) piece_cut(i, yc - 0.01);   // just proud of the piece: no face shared with it
@@ -169,7 +170,7 @@ module holder() intersection() {
             placed() cutter();
             for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access
         }
-        ledges();   // outside the blend: its hull would bridge the ledge's end flat
+        detents();
     }
     translate([-200, -200, 0]) cube(400);   // the open point's cut: the bed
 }
