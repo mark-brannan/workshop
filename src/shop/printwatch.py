@@ -466,7 +466,7 @@ def next_(a: argparse.Namespace) -> int:
             out = frames / f"layer-{c:04d}.jpg"
             if frame(argparse.Namespace(layer=c, out=str(out))) == 0:
                 print(f"watch CHECKPOINT layer {c} of {st['virtual_sdcard'].get('layer_count', '?')}: {out}")
-                a.last_frame = (c, out, st['virtual_sdcard'].get('layer_count', '?'))
+                a.last_frame = (c, out, int(st["virtual_sdcard"].get("layer_count") or 0))
                 return 0
         time.sleep(a.poll)
 
@@ -476,10 +476,10 @@ JUDGE = ("Read the image {path}: a camera frame of a PETG 3D print on a bed, aft
          "a blob on the nozzle, or an empty bed.")
 
 
-def judge(path: str, layer: int, count: str) -> tuple[str, float]:
+def judge(path: str, layer: int, count: int | str) -> tuple[str, float]:
     """A cheap model's one-line verdict on a frame, and what the call cost in dollars."""
-    r = subprocess.run(["claude", "-p", "--model", "haiku", "--allowedTools", "Read", "--output-format", "json",
-                        JUDGE.format(path=path, layer=layer, count=count)],
+    r = subprocess.run(["claude", "-p", "--model", "haiku", "--tools", "Read", "--allowedTools", "Read", "--setting-sources", "project",
+                        "--strict-mcp-config", "--output-format", "json", JUDGE.format(path=path, layer=int(layer), count=int(count))],
                        capture_output=True, text=True, timeout=180, cwd=Path(path).parent)
     try:
         j = json.loads(r.stdout)
@@ -500,7 +500,7 @@ def run(a: argparse.Namespace) -> int:
         rc = next_(a)
         if rc == 0:
             layer, out, count = a.last_frame
-            verdict, cost = judge(str(out), layer, str(count))
+            verdict, cost = judge(str(out), layer, count)
             spent += cost
             bell = "\a" if not verdict.startswith("OK") else ""
             print(f"{bell}watch VERDICT layer {layer}: {verdict}  (judge ${cost:.4f}, ${spent:.4f} so far)", flush=True)
