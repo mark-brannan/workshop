@@ -245,7 +245,10 @@ module ol_lips() {
             polygon([[-0.2, zb - ol_slack - 0.2], [ol_hook, zb + ol_hook - ol_slack], [ol_hook, zb + ol_hook - ol_slack + 0.3],
                      [-0.2, zb + 2*ol_hook - ol_slack + 0.3]]);
         translate([sx*(ol_w/2 + ol_slack), ol_cy + ol_h/2 - 1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
-            polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
+            union() {
+                polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
+                translate([sx*0.3, zb - 0.1]) square([0.4, 0.5], center = true);   // foot sunk 0.2 into the beam: the lip starts 0.1 above its top
+            }
     }
 }
 module ol_snap_cuts() {   // slots either side of each side beam and its outside thinned, sunk rd_groove into the face
