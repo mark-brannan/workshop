@@ -65,6 +65,16 @@ def gauge(tmp_path_factory):
     return build(tmp_path_factory, "part-gauge.scad")
 
 
+@pytest.fixture(scope="module")
+def gauge_oled(tmp_path_factory):
+    return build(tmp_path_factory, "part-gauge-oled.scad")
+
+
+@pytest.fixture(scope="module")
+def gauge_radar(tmp_path_factory):
+    return build(tmp_path_factory, "part-gauge-radar.scad")
+
+
 def down(mesh, x, y, z=80):
     return ray_hits(mesh, (x, y, z), (0, 0, -1))
 
@@ -216,6 +226,20 @@ def test_gauge_full_depth_seats_no_walls_no_tray_seats(gauge):
         for sy in (-1, 1):
             for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),):
                 assert np.isclose(down(gauge, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)   # post at the shell's board height
+
+
+def test_oled_gauge_is_only_the_oled_seat(gauge_oled):
+    assert gauge_oled.is_watertight
+    assert gauge_oled.bounds[0][1] > TM_CY + P["tm_w"] / 2                                 # nothing of the TM1637 or radar
+    assert OL_BOARD_Z < gauge_oled.bounds[1][2] < OL_BACK_Z + 1                          # frame and lips at the shell's height, no taller
+    assert gauge_oled.volume < 0.2 * 1000 * P["box_w"]                                    # a fraction of the plate
+
+
+def test_radar_gauge_is_only_the_radar_clip(gauge_radar):
+    assert gauge_radar.is_watertight
+    assert gauge_radar.bounds[1][1] < TM_CY - P["tm_w"] / 2                                # nothing of the TM1637 or OLED
+    assert np.isclose(gauge_radar.bounds[1][2] - P["face_t"], P["rd_rib_h"], atol=1.5)    # ribs and lips at the shell's height
+    assert gauge_radar.bounds[1][2] < P["face_t"] + P["rd_rib_h"] + 3
 
 
 def test_printed_back_turned_over_fits_printed_shell(shell, back, tmp_path):

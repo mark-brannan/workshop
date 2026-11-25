@@ -147,7 +147,7 @@ end_t = 1.2;
 end_clr = 0.1;       // to the end wall: snug (the side tabs alone let it slide, owner, first print, 2026-11-24)
 end_w = [[-8, 8], [6.5, 14]];   // bottom stop's X span; top stops' |X| span, either side of the plug and cable slot
 
-view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded | layers
+view = "shell";      // shell | gauge | gauge_oled | gauge_radar | back | tray | front | front_xray | side_xray | open | exploded | layers
 
 /* [Hidden] */
 $fn = 48;
@@ -335,6 +335,21 @@ module gauge() {
         }
         translate([0, 0, face_t + 0.01]) tray_seats();   // cut from just above the face: it stays whole
     }
+}
+
+// Fit gauges for one feature group each: the shell's face and seats cut to a box round the OLED, or the radar.
+// Cut from shell() so every depth is the shell's; no walls, no other part, no tray seats.
+gm = 2;   // face margin kept beyond the ribs
+module gauge_oled() {
+    y0 = max(ol_cy - ol_h/2 - ol_slack - ol_rib_t - gm, tm_cy + tm_w/2 + tm_clear + tm_rib_t + 0.1);   // not into the TM1637's seat rib
+    y1 = in_h - 0.1;                                  // just inside the top wall: no sliver of it
+    x1 = min(ol_w/2 + ol_slack + ol_rib_t + gm, in_w/2 - 0.1);
+    intersection() { shell(); translate([-x1, y0, -1]) cube([2*x1, y1 - y0, ol_back_z + 2]); }
+}
+module gauge_radar() {
+    y1 = min(rd_cy + rd_h/2 + rd_slack + rd_rib_t + gm, tm_cy - tm_w/2 - tm_clear - tm_rib_t - 0.1);   // not into the TM1637's seat rib
+    x1 = min(rd_w/2 + rd_slack + rd_rib_t + gm, in_w/2 - 0.1);
+    intersection() { shell(); translate([-x1, 0.1, -1]) cube([2*x1, y1 - 0.1, face_t + rd_rib_h + 3]); }
 }
 
 module shell() {
@@ -527,6 +542,8 @@ else if (view == "front_xray") orient("front") { ghost(0.15) shell(); color("ora
 else if (view == "side_xray") orient("side") { color("lightgray") cut_side() shell(); ghost(0.3) back_placed(); color("orange") cut_side() tray_placed(); standins(cut = true); }
 else if (view == "shell") shell();
 else if (view == "gauge") gauge();
+else if (view == "gauge_oled") gauge_oled();
+else if (view == "gauge_radar") gauge_radar();
 else if (view == "back") back();
 else if (view == "tray") tray();
 else if (view == "layers") exploded();
