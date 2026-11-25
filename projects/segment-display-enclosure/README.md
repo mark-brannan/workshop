@@ -28,11 +28,10 @@ assembly with stand-ins, from above, below and the face.
 | Board | 41.5 x 23.5 | owner, caliper |
 | Hole spacing | 37.5 x 19, ~2.8 dia, edge 0.5 from board edge | owner, caliper |
 | Display body | 30 x 14, face 7 above the board | owner, caliper |
-| Display to pin end | 5, exact; the window is anchored here | owner |
-| Display to clean end | 7.1 measured, 6.5 by difference; the display may be ~29.8 at its base | owner, caliper |
+| Display to clean end | 7.1, caliper; the window is anchored here | owner, caliper |
+| Display to pin end | 5 by eye; 4.4 by difference. The first print anchored the window here: the display came through only with the board pushed hard to the clean-end wall, case holes then ~0.5 toward the pin end (2026-11-24) | owner |
 | Header pins | 5 from the board's back to the top of the bend; 6.8 past the board edge | owner, caliper |
 | Display to long edges | 4.5 (-Y, bottom with pins on the right, seen from the front) and 5 | owner, caliper |
-| Seat, first print | display hard against the window's clean end, ~0.6 open at the pin end; screw holes off the same way. Holes and window moved 0.3 toward the clean end (`seat_dx`) | owner photos |
 
 ## Guessed
 

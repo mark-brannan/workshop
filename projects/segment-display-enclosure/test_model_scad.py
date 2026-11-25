@@ -17,7 +17,7 @@ IN_L, IN_W = P["board_l"] + 2 * P["board_clear"], P["board_w"] + 2 * P["board_cl
 OUT_L, OUT_W = IN_L + 2 * P["wall"], IN_W + 2 * P["wall"]
 BOARD_Z = P["disp_recess"] + P["disp_h"]
 SHELL_H = BOARD_Z + P["board_t"] + P["rear_clear"]
-HOLES = [(sx * P["hole_dx"] / 2 + P["seat_dx"], sy * P["hole_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
+HOLES = [(sx * P["hole_dx"] / 2, sy * P["hole_dy"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
 
 
 def build(tmp_path_factory, part):
@@ -49,7 +49,7 @@ def test_shell_bounds_volume(shell):
 
 
 def test_window_fits_display_and_is_through(shell):
-    cx, cy = P["disp_dx"] + P["seat_dx"], P["disp_dy"]
+    cx, cy = P["disp_dx"], P["disp_dy"]
     assert len(down(shell, cx, cy)) == 0
     assert len(down(shell, cx + P["disp_l"] / 2 + 0.2, cy + P["disp_w"] / 2 + 0.2)) == 0  # clearance at the corner
     assert len(down(shell, cx + P["disp_l"] / 2 + 1.0, cy)) > 0  # face beyond the window
@@ -101,10 +101,10 @@ def test_posts_clear_display():
 
 
 def test_display_offsets_match_calipers():
-    assert np.isclose((P["disp_dx"] - P["disp_l"] / 2) + P["board_l"] / 2, 5)  # pin end
+    assert np.isclose(P["board_l"] / 2 - (P["disp_dx"] + P["disp_l"] / 2), 7.1)  # clean end
     assert np.isclose(P["board_w"] / 2 + (P["disp_dy"] - P["disp_w"] / 2), 4.5)  # -Y edge
 
 
 def test_lip_fits_inside_shell():
     assert P["lip_clear"] > 0 and P["lip_t"] >= 1
-    assert P["hole_dx"] / 2 + abs(P["seat_dx"]) + P["screw_clear_d"] / 2 + 0.4 < IN_L / 2 - P["lip_clear"]  # clipped tube keeps a wall
+    assert P["hole_dx"] / 2 + P["tube_d"] / 2 < IN_L / 2
