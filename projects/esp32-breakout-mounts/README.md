@@ -2,9 +2,11 @@
 
 Purpose: hold an ESP32 breakout board on a 35 mm TS35 rail. A flat 5 mm plate has
 four 6 mm standoffs for the board's M3 holes, so the pins and solder on its back
-clear the plate. The underside carries the same four blind peg holes as
-`../din-rail-psu-mount`; press in the owner's DIN clips (thing:2415668). Rail runs
-along X. Print as modelled: plate flat, standoffs up, no supports.
+clear the plate. The back is flat: two of the preferred DIN clips (Printables 420009, printed
+as `../din-rail-psu-mount/out/din-rail-psu-mount_din-clip.3mf`, two M3 heat inserts each) screw on from the board side,
+countersunk M3 x 6 under the board. The rail runs along X, the board's long side; each clip
+spans the short side (Y, 51 mm between its screws), hook up (+Y). Print as modelled: plate flat,
+standoffs up, no supports. Assembly render: `out/assembly.png`, `out/assembly_exploded.png` (`uv run python assembly.py`; the board is a stand-in slab).
 
 ## Measured, and from what
 
@@ -24,3 +26,4 @@ along X. Print as modelled: plate flat, standoffs up, no supports.
 ## History
 
 - 2026-11-24: the first gauge put the board's far holes ~1–1.5 mm off (owner, photos); spacing was 80 x ~75.5, now 81.2 x 77.0 from three caliper readings. Holes are M3, not M2.
+- 2026-11-24: clip holes turned 90 degrees (owner): clips now span the board's short side, rail along its long side. Blind peg holes for thing:2415668 replaced by four countersunk M3 holes for the 420009 clip.
