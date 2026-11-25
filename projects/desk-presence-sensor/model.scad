@@ -288,6 +288,12 @@ module rd_beam_cuts() {
 // Fillets where each snap beam roots in the face, both sides, so the bend has no sharp corner to start a crack.
 // Concave and upward-facing in print pose: no overhang.
 module fillet2d(r) { translate([-0.01, -0.01]) difference() { square([r + 0.01, r + 0.01]); translate([r + 0.01, r + 0.01]) circle(r, $fn = 24); } }
+// OLED side beams: an outside fillet only, in the corner of the thinning cut, sunk rd_groove into the face.
+module ol_beam_fillets() {
+    x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
+    for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
+        translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
+}
 module rd_beam_fillets() {
     x_in = rd_w/2 + rd_slack; y0 = rd_h/2 - 1 - rd_lip_len; y_in = rd_cy + rd_h/2 + rd_slack;
     for (sx = [-1, 1]) {
@@ -426,6 +432,7 @@ module shell() {
         translate([-(ol_w/2 + ol_slack + 0.02), ol_cy - ol_h/2 - ol_slack - 0.02, ol_board_z])   // 0.02 into the ribs: no shared wall
             cube([ol_w + 2*ol_slack + 0.04, in_h - (ol_cy - ol_h/2 - ol_slack - 0.02), face_t]);       // up to the top wall
     }
+    ol_beam_fillets();   // after the cuts: it sits in the thinning cut's corner
 }
 
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side
