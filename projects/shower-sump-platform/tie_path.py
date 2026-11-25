@@ -22,7 +22,7 @@ def tie_points(s=1):
     """Starboard (s=1) or port tie, centreline: along the wing top hugging the box wall, off both tips, down each fairlead, through the slits."""
     L, x0, z0, xs, zs = P["len"] / 2, P["tie_top_x"], P["tie_top_z"], P["tie_x"], P["tie_zc"]
     tip = 45.35  # wing tip, ref/sump-wing-outline.csv
-    y_mouth, y_in = L - P["tie_lead"], L - P["arch_t"]
+    y_mouth, y_in = L, L - P["arch_t"]
     half = [(x0, 0, z0 + 0.7), (x0, tip, z0 + 0.7), (xs, y_mouth + 0.7, zs + P["tie_slit_w"] / 2), (xs, y_in, zs)]
     pts = half + [(x, -y, z) for x, y, z in reversed(half)]
     return np.array([(s * x, y, z) for x, y, z in pts])

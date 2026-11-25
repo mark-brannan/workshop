@@ -44,14 +44,14 @@ received is not recorded.
 
 Cable ties back up the screws against the sump sliding fore or aft (owner, 2026-11-25). One tie per wing, or a string
 of them, wraps the wing and the sump lengthwise, top and bottom: over the wing hugging the box body, off each wing tip,
-slanting inboard down a fairlead groove in the deck's end face, through a slit in the end arch (`tie_*`), and under
+slanting inboard down the deck's end face, through a slit in the end arch (`tie_*`), and under
 the sump. Each slit is 12 mm long, round-ended, for ties up to 0.47 in (owner, 2026-11-25), and sits inboard of
 the screw bosses so a tie that wide clears them under the deck. A 12 mm tie leaving the wing against the box wall
 slants about 56 degrees off vertical down to the slit; the slit is tilted 20 degrees (owner, 2026-11-25) and the tie
-twists the rest. The wing's thickness (`tie_top_z`, 3) is a guess and moves the slant a few degrees. The fairlead is
-a funnel 1 mm deep in the end face, the hull of the slit and the tie's run just under the deck top; its rim and the
-slit's mouth are rounded (`tie_round`). It stops 0.5 below the deck top, so the deck top under each tab is whole to
-its end (owner, 2026-11-25): the tab overhangs the deck's end, and the tie leaves the tab's own rounded edge.
+twists the rest. The wing's thickness (`tie_top_z`, 3) is a guess and moves the slant a few degrees. The end face
+stays flat, no channel (owner, 2026-11-25): the tie comes down it and bends in round the slit's outer mouth, rounded
+`tie_round` (1.2) into the face; the inner mouth is eased on its long edges. The deck top under each tab is whole to
+its end: the tab overhangs the deck's end, and the tie leaves the tab's own rounded edge.
 `tie_path.py` draws the path into `out/tie-wrap.png`. Nothing sticks out fore or aft; nothing is drilled in the sump.
 A tie across a wing can't close: the wing grows out of the box wall along its inboard edge.
 
