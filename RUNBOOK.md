@@ -19,6 +19,8 @@ prints the list; `shop watch <cmd> --help` prints each one's flags.
 | check a job before starting it | `shop watch preflight <file.gcode> --plate frosted --vents closed` |
 | heat-soak for an ASA or ABS job | `shop watch soak <file.gcode> --plate frosted` |
 | start a job safely | `shop watch start <file.gcode> --plate frosted --vents closed` |
+| start a job and watch it to the end; a cheap model checks each frame | `shop watch <file.gcode>` |
+| watch whatever is printing now | `shop watch` |
 | watch a running job, frame by frame | `shop watch next` |
 | grab the camera frame after a layer | `shop watch frame <layer> out.jpg` |
 | find the Fusion scripts folder | `shop fusion` |

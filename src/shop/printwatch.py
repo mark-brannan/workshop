@@ -20,6 +20,7 @@ Why each check exists: projects/k2-plus-mods/printer-notes.md.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shlex
 import subprocess
@@ -332,9 +333,19 @@ WATCH_OBJECTS = ["webhooks", "print_stats", "virtual_sdcard", "gcode_move"]
 KEY = re.compile(r"\bkey\d+\b")
 
 
-def checkpoint_due(layer: int, done: set[int], every: int = EVERY) -> int | None:
+def checkpoints(count: int) -> list[int]:
+    """Layers to look at: 2, 10 (50 on a tall part), then a quarter of the part apart, 100 at most."""
+    every = min(EVERY, max(10, count // 4))
+    base = [*CHECKPOINTS] if count > 100 else [2, 10]
+    return base + [c for c in range(every, count, every) if c - base[-1] >= every // 2]
+
+
+def checkpoint_due(layer: int, done: set[int], every: int = EVERY, count: int | None = None) -> int | None:
     """The newest checkpoint whose frame exists at ``layer`` (frames trail by one), if newer than any done."""
-    passed = [c for c in CHECKPOINTS if c < layer] + list(range(every, layer, every))
+    if count:
+        passed = [c for c in checkpoints(count) if c < layer]
+    else:
+        passed = [c for c in CHECKPOINTS if c < layer] + list(range(every, layer, every))
     latest = max(passed, default=None)
     return latest if latest is not None and latest > max(done, default=0) else None
 
@@ -450,28 +461,72 @@ def next_(a: argparse.Namespace) -> int:
                 gcode(f"M220 S{pct}")
                 sent = pct
                 print(f"  taper  Z {st['gcode_move']['gcode_position'][2]:.1f} of {height:.1f}: speed {pct}%", flush=True)
-        c = checkpoint_due(layer, done)
+        c = checkpoint_due(layer, done, count=int(st["virtual_sdcard"].get("layer_count") or 0) or None)
         if c is not None:
             out = frames / f"layer-{c:04d}.jpg"
             if frame(argparse.Namespace(layer=c, out=str(out))) == 0:
                 print(f"watch CHECKPOINT layer {c} of {st['virtual_sdcard'].get('layer_count', '?')}: {out}")
+                a.last_frame = (c, out, st['virtual_sdcard'].get('layer_count', '?'))
                 return 0
         time.sleep(a.poll)
 
 
+JUDGE = ("Read the image {path}: a camera frame of a PETG 3D print on a bed, after layer {layer} of {count}. "
+         "Reply with one line only: OK, or PROBLEM: <reason> for spaghetti, a part detached or lifted, "
+         "a blob on the nozzle, or an empty bed.")
+
+
+def judge(path: str, layer: int, count: str) -> tuple[str, float]:
+    """A cheap model's one-line verdict on a frame, and what the call cost in dollars."""
+    r = subprocess.run(["claude", "-p", "--model", "haiku", "--allowedTools", "Read", "--output-format", "json",
+                        JUDGE.format(path=path, layer=layer, count=count)],
+                       capture_output=True, text=True, timeout=180, cwd=Path(path).parent)
+    try:
+        j = json.loads(r.stdout)
+        return str(j["result"]).strip().splitlines()[0], float(j.get("total_cost_usd", 0))
+    except (ValueError, KeyError, IndexError):
+        return "UNCHECKED: the judge gave no answer", 0.0
+
+
+def run(a: argparse.Namespace) -> int:
+    """Watch to the end, a model looking at each frame. With a file, start it unless it is already printing; without, watch what is printing."""
+    if a.file is None and running_file() is None:
+        print("run FAIL: nothing is printing; give a file to start one")
+        return 1
+    if a.file is not None and running_file() != a.file and start(a):
+        return 1
+    spent = 0.0
+    while True:
+        rc = next_(a)
+        if rc == 0:
+            layer, out, count = a.last_frame
+            verdict, cost = judge(str(out), layer, str(count))
+            spent += cost
+            bell = "\a" if not verdict.startswith("OK") else ""
+            print(f"{bell}watch VERDICT layer {layer}: {verdict}  (judge ${cost:.4f}, ${spent:.4f} so far)", flush=True)
+            continue
+        print("\a" + f"watch ended: {'DONE' if rc == 3 else 'FAULT'}; the print is left as it is; judge cost ${spent:.4f}", flush=True)
+        return 0 if rc == 3 else rc
+
+
+COMMANDS = ("preflight", "start", "next", "run", "soak", "upload", "frame", "-h", "--help")
+
+
 def main(argv: list[str]) -> int:
+    if not argv or argv[0] not in COMMANDS:  # `shop watch [file]` is `run`
+        argv = ["run", *argv]
     p = argparse.ArgumentParser(prog="shop watch")
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("preflight", "start", "next"):
+    for name in ("preflight", "start", "next", "run"):
         pf = sub.add_parser(name)
         watching = name == "next"  # a running job needs them only for a pre-layer-1 restart
         if not watching:  # next watches whatever is printing
-            pf.add_argument("file")
+            pf.add_argument("file", **({"nargs": "?"} if name == "run" else {}))
         pf.add_argument("--plate", choices=PLATES, help="default for a PETG job: pattern; required for ASA/ABS")
         pf.add_argument("--vents", choices=("closed", "open"), help="default for a PETG job: open; required for ASA/ABS")
         pf.add_argument("--cfs", action="store_true", help="feed from the CFS; default is the spool")
         pf.add_argument("--fix", action="store_true", help="send the fixes the failed checks name, then re-check")
-        if name == "next":
+        if name in ("next", "run"):
             pf.add_argument("--frames", help="where frames go; default ~/.local/state/print-watch/<file stem>")
             pf.add_argument("--no-taper", dest="taper", action="store_false")
             pf.add_argument("--taper-from", type=float, default=60, help="mm where the speed taper starts")
@@ -494,7 +549,7 @@ def main(argv: list[str]) -> int:
     fr.add_argument("layer", type=int)
     fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "upload": upload, "start": start, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
+    return {"preflight": preflight, "upload": upload, "start": start, "run": run, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
 
 
 if __name__ == "__main__":
