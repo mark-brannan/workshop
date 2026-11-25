@@ -53,8 +53,9 @@ OrcaSlicer, so slice the user's saved project, not a bare mesh:
 orca-slicer --datadir <scratch>/orca --slice 0 --outputdir <scratch> --export-3mf sliced.3mf <file.3mf>
 ```
 
-Writes `plate_<n>.gcode`, `result.json` (`"return_code": 0` on success) and the
-sliced 3MF. `--datadir` keeps the run from touching any GUI config. Check the
+Writes `plate_<n>.gcode` and the sliced 3MF to `--outputdir`, and `result.json`
+(`"return_code": 0` on success) to the current directory, so run it from the
+scratch dir. `--datadir` keeps the run from touching any GUI config. Check the
 g-code header (`; printer_model`, `; filament_type`, `; total layers count`)
 before uploading it.
 
