@@ -24,6 +24,7 @@ disp_dx = -1.35;     // toward the header (-X): clean end 7.1 (caliper). First p
 disp_dy = -0.25;     // 4.5 to the -Y edge, 5 to +Y (caliper); -Y is the bottom edge seen from the front, pins on the right
 disp_recess = 0.5;   // display face sits this far behind the shell's outer face
 window_clear = 0.3;  // per side around the display body
+window_chamfer = 0.8; // 45 deg lead-in on the window's inner edge, for a tight or different board (owner, 2026-11-25); the outer face stays flush
 
 /* [Header] (owner, caliper) */
 hdr_w = 10.2;        // 4 pins x 2.54
@@ -95,6 +96,11 @@ module shell() {
             linear_extrude(board_z) posts_2d();
         }
         translate([0, 0, -1]) linear_extrude(face_t + 2) disp_keepout();
+        // 45 deg chamfer round the window's inner edge: widens upward, so it prints without support
+        hull() {
+            translate([0, 0, face_t - window_chamfer]) linear_extrude(0.01) disp_keepout();
+            translate([0, 0, face_t]) linear_extrude(0.01) offset(delta = window_chamfer) disp_keepout();
+        }
         for (h = holes) translate([h[0], h[1], face_t - 1]) cylinder(d = pilot_d, h = board_z);
         // header end: open from the rim down to the bottom of the plug window
         translate([-out_l/2 - 1, -notch_w/2, notch_z]) cube([wall + 2, notch_w, shell_h]);
