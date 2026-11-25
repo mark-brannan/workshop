@@ -3,7 +3,7 @@
 // up, toward the wall, behind a low lip. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
 // Probe frame: u across the face (X), v up the face, w through the thickness (+w = the support wall).
 // The cradle is built in that frame, then mirrored and tilted (placed()). Its V side walls run on to the wall plate as fins;
-// its rounded bottom runs down into the plate as a chute. Both screws sit at the top, above the cradle.
+// its rounded bottom runs down into the plate as a chute; both meet the plate through a concave fillet. Both screws sit at the top, above the cradle.
 // Prints as installed, plate edge and foot on the bed. Every overhang is a 45 deg or steeper slope (see README).
 
 /* [Probe: owner, caliper] */
@@ -37,6 +37,10 @@ keel_r = 10;        // the V's bottom is rounded this much: no point on the outs
 chute_h = 8;        // the chute takes the V up to this far above the probe point
 chute_foot_r = 12;  // the chute's rounded bottom on the plate
 chute_foot_z = 8;   // its lowest point on the plate: low enough that the chute's underside is steeper than 45
+
+/* [Blend: fins and chute meet the plate through a concave fillet] */
+blend_r = 6;        // fillet radius where the fins and chute meet the plate
+blend_n = 6;        // fillet steps
 
 /* [Wall plate: covers where the fins and chute land; screws high, where the load pulls out] */
 plate_t = 5;
@@ -107,7 +111,8 @@ y_pf = (slot / 2 + front_t) * cos(tilt) + k * sin(tilt) - 0.5;
 
 module plate_2d() offset(r = plate_r) offset(delta = -plate_r) hull() {   // covers where the fins and the chute land, and the screws
     translate([-plate_bot_x, 0]) square([2 * plate_bot_x, 1]);
-    offset(delta = plate_r) fin_print();
+    offset(delta = blend_r + 2) fin_print();   // room for the fillet and a 2 mm rim
+    offset(delta = blend_r + 2) chute_foot();
     for (x = [-screw_x, screw_x], z = screw_zs) translate([x, z]) circle(r = csk_d / 2 + plate_r);
 }
 module teardrop(d) hull() { circle(d = d); rotate(45) square(d / 2); }   // point up (+Y in 2D)
@@ -131,6 +136,14 @@ z_J = plate_pt - z_low + (-w_front) * sin(tilt) - k * cos(tilt);   // the V poin
 module wall_side() translate([-100, -100, 0]) cube([200, 100 + y_pf + 1, 200]);   // in front of the wall, stopping just inside the plate
 module fins() intersection() { placed() cradle_outer(); wall_side(); }
 module fin_print() projection(cut = true) translate([0, 0, y_pf + 0.5]) rotate([-90, 0, 0]) fins();   // (x, z) on the plate face
+// Blend: each of the three pieces that meet the plate (two fins, the chute) is sliced parallel to the plate; each slice
+// grows by the fillet's offset at that distance, and consecutive slices are hulled, so the fillet is smooth.
+module piece(i) if (i == 2) chute(); else intersection() { fins(); translate([i == 0 ? -100 : 0, -100, 0]) cube([100, 300, 300]); }
+module piece_cut(i, yc) projection(cut = true) translate([0, 0, yc]) rotate([-90, 0, 0]) piece(i);
+module blend_layer(i, a) let(d = blend_r * (1 - cos(a)), o = blend_r * (1 - sin(a)), yc = y_pf + 0.2 - d)   // starts just inside the plate: no face shared with it
+    translate([0, yc, 0]) rotate([90, 0, 0]) linear_extrude(0.01, center = true) offset(r = o + 0.02) piece_cut(i, yc - 0.01);   // just proud of the piece: no face shared with it
+module blend() for (i = [0:2], j = [0:blend_n - 1]) hull() { blend_layer(i, 90 * j / blend_n); blend_layer(i, 90 * (j + 1) / blend_n); }
+
 module chute() hull() {
     placed() slab(w_front + 0.3, w_back - 0.3) offset(delta = -0.05) outer_v(chute_h);   // just inside the cradle: no shared faces
     translate([0, y_pf + 1, 0]) rotate([90, 0, 0]) linear_extrude(1) chute_foot();
@@ -142,6 +155,7 @@ module holder() {
             plate();
             chute();
             fins();
+            blend();
         }
         placed() cutter();
         for (x = [-screw_x, screw_x], z = screw_zs) translate([x, y_pf - 30, z]) rotate([-90, 0, 0]) cylinder(d = csk_d, h = 30);   // screwdriver access
