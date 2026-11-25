@@ -76,7 +76,6 @@ NOT_YET: dict[str, str] = {
     "outside-sensor-pod": "8ad47841620b",
     "printer-chute-transition": "1893e4b5f0b2",
     "rudder-angle-sensor": "ee0f31b75e9e",
-    "segment-display-enclosure": "a1de2dc3a9df",
     "small-box-sensors": "06242b1db715",
 }
 
