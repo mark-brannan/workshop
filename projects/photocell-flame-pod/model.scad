@@ -59,7 +59,7 @@ cell_x_on = 1;        // photocell centre in from the board's photocell end; gue
 cell_hole_d = 8;      // generous: the cell is bent up by hand, its position is guessed
 notch_clear = 0.5;    // per side, round the cable where it passes the skirt
 glyph = true;         // fire glyph on the cover's top face, outlined by a 90° V groove (owner, 2026-11-25)
-glyph_h = 25;         // tip to base, along X, tip toward the header end
+glyph_h = 18;         // tip to base, along X, tip toward the photocell end; leaves about 3 to the plate's long edges (owner, 2026-11-25)
 groove_w = 1.2;       // V groove width at the face; 90°, so half as deep
 
 /* [Lidded only] */
@@ -181,7 +181,7 @@ module cover() {
             for (s = [-1, 1], e = [false, true]) catch_profile(s, groove = false, end = e);
         }
         translate([cell_x, 0, z0 - 1]) cylinder(d = cell_hole_d, h = cover_t + 2);
-        if (glyph) translate([glyph_x, 0, z0 + cover_t]) rotate(-90) glyph_groove();
+        if (glyph) translate([glyph_x, 0, z0 + cover_t]) rotate(90) glyph_groove();
         // the cable passes the skirt in a notch open at the skirt's foot
         translate([exit_x - cable_d/2 - notch_clear, -out_w/2 - cover_gap - skirt_t - 1, z0 - skirt_h - 1])
             cube([cable_d + 2*notch_clear, cover_gap + skirt_t + 2, skirt_h + 1]);

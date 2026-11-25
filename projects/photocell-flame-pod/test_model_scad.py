@@ -169,7 +169,7 @@ def test_cover_fire_glyph_groove_reads_from_above(cover):
     depth = P["groove_w"] / 2
     cell_x = P["cell_end"] + P["cell_x_on"]
     glyph_x = (cell_x + P["cell_hole_d"] / 2 + IN_L + P["wall"] + P["cover_gap"] + P["skirt_t"]) / 2
-    to_use = lambda p: (glyph_x + P["glyph_h"] * p[1], -P["glyph_h"] * p[0])  # rotate(-90): tip toward +X
+    to_use = lambda p: (glyph_x - P["glyph_h"] * p[1], P["glyph_h"] * p[0])  # rotate(90): tip toward -X, the cell
     ring = LinearRing(pts)
     far = sorted(pts, key=lambda p: -ring.distance(Point(-p[0], p[1])))[:3]  # outline points whose mirror is off it
     assert ring.distance(Point(-far[-1][0], far[-1][1])) * P["glyph_h"] > 2 * depth
@@ -179,3 +179,7 @@ def test_cover_fire_glyph_groove_reads_from_above(cover):
         assert np.isclose(down(cover, x, -y)[0][2], z_top, atol=0.02)  # the mirrored glyph would put it on plain face
     assert np.isclose(down(cover, glyph_x, 0)[0][2], z_top, atol=0.02)  # the glyph itself stands at the face
     assert P["cover_t"] - depth >= 0.8  # plate left under the groove
+    half_w = OUT_W / 2 + P["cover_gap"] + P["skirt_t"]
+    assert half_w - P["glyph_h"] * np.abs(pts[:, 0]).max() - depth >= 2.5  # margin to the plate's long edges
+    tip_x = glyph_x - P["glyph_h"] * pts[:, 1].max()
+    assert tip_x - depth - (cell_x + P["cell_hole_d"] / 2) >= 2.5  # and to the cell hole
