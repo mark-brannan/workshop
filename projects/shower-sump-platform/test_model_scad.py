@@ -78,11 +78,10 @@ def test_pilot_takes_a_nylon_m4_tap():
     assert (P["boss_d"] - 3.3) / 2 >= 2.8
 
 
-def test_tie_slits_and_fairlead_funnels(installed):
-    """Each end arch has a round-ended 12 mm slit, no V, tilted tie_tilt with its outboard end low; above it a fairlead
-    funnel a tie_lead deep runs up the tie's slant to the deck top; the slit's outer mouth is rounded."""
+def test_tie_slits_in_a_flat_end_face(installed):
+    """Each end arch has a round-ended 12 mm slit, no V, tilted tie_tilt with its outboard end low, its outer mouth
+    rounded; the end face around it, and the deck top under the tab, are whole and flat."""
     tilt = math.radians(P["tie_tilt"])
-    lean = math.atan2(P["tie_top_x"] - P["tie_x"], P["tie_top_z"] - P["tie_zc"])
     half, ends, L = P["tie_slit_l"] / 2, P["tie_slit_w"] / 2, P["len"] / 2
     assert P["tie_slit_l"] == 12
     for s in (1, -1):
@@ -91,15 +90,14 @@ def test_tie_slits_and_fairlead_funnels(installed):
         for a in (0, -half + ends, half - ends):
             assert not ray_hits(installed, slit(a, 0), [0, -1, 0]), f"tie run blocked at {s}, {a}"
         assert ray_hits(installed, slit(half + 1, 0), [0, -1, 0]), "arch beyond the slit's end"
-        assert ray_hits(installed, slit(0, -ends - P["tie_lead"] - 0.5), [0, -1, 0]), "arch below the slit"
         for f in (1, -1):
-            mouth = ray_hits(installed, slit(0, ends + 0.6, f), [0, -f, 0])
-            assert mouth and abs(mouth[0][1]) < L - P["tie_lead"] - 0.1, "rounded slit mouth"
-            for x in range(88, 101, 2):  # the deck top under the tab is whole out to its end
+            mouth = ray_hits(installed, slit(0, ends + 0.5, f), [0, -f, 0])
+            assert mouth and abs(mouth[0][1]) < L - 0.1, "rounded slit mouth"
+            for b in (ends + P["tie_round"] + 0.3, -ends - P["tie_round"] - 0.3):  # flat face just past the round
+                hit = ray_hits(installed, slit(0, b, f), [0, -f, 0])
+                assert abs(hit[0][1]) == pytest.approx(L, abs=0.05), f"end face flat at {s}, {f}, {b}"
+            for z in (-1, -2.5):  # the end face above the slit, on the tie's way down
+                hit = ray_hits(installed, [s * (P["tie_x"] + 6), f * 60, z], [0, -f, 0])
+                assert abs(hit[0][1]) == pytest.approx(L, abs=0.05), "end face flat above the slit"
+            for x in range(88, 101, 2):
                 assert ray_hits(installed, [s * x, f * (L - 0.2), 5], [0, 0, -1])[0][2] == pytest.approx(0, abs=0.05), f"deck top at {s * x}, {f}"
-            for z in (-3.5, -5):  # the funnel floor along the tie's slant
-                x = P["tie_x"] + (z - P["tie_zc"]) * math.tan(lean)
-                hit = ray_hits(installed, [s * x, f * 60, z], [0, -f, 0])
-                assert abs(hit[0][1]) == pytest.approx(L - P["tie_lead"], abs=0.05), f"funnel floor at {s}, {f}, {z}"
-            beside = ray_hits(installed, [s * (P["tie_x"] - half - 4), f * 60, P["tie_zc"]], [0, -f, 0])
-            assert abs(beside[0][1]) == pytest.approx(L, abs=0.05), "end face beside the funnel"
