@@ -1,4 +1,4 @@
-// Photocell flame pod: a small PETG tray for one LM393 photoresistor module.
+// Photocell flame pod: a small PETG shell for one LM393 photoresistor module.
 // Origin: inside floor corner at the photocell end, centred across. X along the module, header end at +X.
 // Print floor down, as modelled. The module sits component side up on two edge ledges and a boss.
 // Potted (default): a pin on the boss locates the board; epoxy fills to just under the trimpot top, so
@@ -29,7 +29,7 @@ cable_d = 4.5;        // exit width for a 3-core cable; guessed, caliper the cab
 pin_z = 1.27;         // header pin row above the board top; right-angle header, guessed
 end_clear = 1;        // cable exit's far edge to the inner end wall
 
-/* [Tray] */
+/* [Shell] */
 wall = 1.6;           // 4 lines at 0.4
 floor_t = 2;
 corner_r = 2;         // outside vertical corners
@@ -40,7 +40,7 @@ seat_l = 2;           // corner seats under the photocell end's two corners, thi
 stop_h = 1;           // end stop over the corner seats, above the board top: the board can't slide or tip toward the cell
 hdr_bare = 3;         // nor under the header end's solder row
 boss_d = 7.5;
-locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go in a printed PETG tray (owner, 2026-11-24)
+locate_d = 2.6;       // potted: pin up through the board hole; 3.4 would not go in a printed PETG shell (owner, 2026-11-24)
 locate_tip = 0.6;     // 45° chamfer on the pin top, a lead-in for the hole
 cell_end = 4;         // board's photocell end to the inner end wall: the cell body overhangs here
 pour_above = 4;       // potted: epoxy line above the board top: over the cable, under the trimpot top (owner, 2026-11-24)
@@ -78,7 +78,7 @@ tab_l = 8;            // past each end wall
 tab_t = 2.5;
 tab_hole = 3.5;       // M3 or #6 pan head
 
-part = "tray";        // [tray, cover, assembly, none]
+part = "shell";        // [shell, cover, assembly, none]
 
 /* [Hidden] */
 $fn = 48;
@@ -94,7 +94,7 @@ hole_x = bx1 - hole_from_hdr;
 board_z = floor_t + ledge;           // board underside
 board_top = board_z + board_t;
 pour_z = board_top + pour_above;           // potted: epoxy line
-tray_h = potted ? board_top + pot_h + pot_clear : board_top + cell_h + top_clear;
+shell_h = potted ? board_top + pot_h + pot_clear : board_top + cell_h + top_clear;
 cable_z = board_top + pin_z;               // cable centre, level with the header pins
 cols = [for (x = [col_in, in_l - col_in], y = [-(in_w/2 - col_in), in_w/2 - col_in]) [x, y]];
 
@@ -109,12 +109,12 @@ module tab_2d() {
 }
 function tab_holes() = [for (s = [-1, 1]) [in_l/2 + s*(in_l/2 + wall + tab_l/2), 0]];
 
-module tray() {
+module shell() {
     difference() {
         union() {
             difference() {
-                linear_extrude(tray_h) outline();
-                translate([0, -in_w/2, floor_t]) cube([in_l, in_w, tray_h]);
+                linear_extrude(shell_h) outline();
+                translate([0, -in_w/2, floor_t]) cube([in_l, in_w, shell_h]);
             }
             if (tabs) linear_extrude(tab_t) tab_2d();
             // edge ledges, one under each long edge of the board
@@ -131,18 +131,18 @@ module tray() {
                 translate([0, 0, board_t - locate_tip]) cylinder(d1 = locate_d, d2 = locate_d - 2*locate_tip, h = locate_tip + 0.01);
             }
             else intersection() {   // lid-screw columns in the inside corners
-                for (c = cols) translate([c[0], c[1], 0]) cylinder(d = column_d, h = tray_h);
-                translate([0, -in_w/2, 0]) cube([in_l, in_w, tray_h]);
+                for (c = cols) translate([c[0], c[1], 0]) cylinder(d = column_d, h = shell_h);
+                translate([0, -in_w/2, 0]) cube([in_l, in_w, shell_h]);
             }
         }
         if (!potted) {
             // M3 down through board and boss into a pressed-in nut; clearance on through the floor
             translate([hole_x, 0, -1]) cylinder(d = screw_d, h = board_z + 2);
             translate([hole_x, 0, board_z - nut_t]) cylinder(d = (nut_af + 2*nut_fit) / cos(30), h = nut_t + 1, $fn = 6);
-            for (c = cols) translate([c[0], c[1], tray_h - pilot_h]) cylinder(d = pilot_d, h = pilot_h + 1);
+            for (c = cols) translate([c[0], c[1], shell_h - pilot_h]) cylinder(d = pilot_d, h = pilot_h + 1);
         }
         // cable exit in the -Y side wall, round-bottomed, open to the rim
-        translate([exit_x - cable_d/2, -in_w/2 - wall - 1, cable_z]) cube([cable_d, wall + 2, tray_h]);
+        translate([exit_x - cable_d/2, -in_w/2 - wall - 1, cable_z]) cube([cable_d, wall + 2, shell_h]);
         translate([exit_x, -in_w/2 + 1, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d, h = wall + 2);
         if (tabs) for (h = tab_holes()) translate([h[0], h[1], -1]) cylinder(d = tab_hole, h = tab_t + 2);
         if (potted) for (s = [-1, 1], e = [false, true]) catch_profile(s, groove = true, end = e);
@@ -152,10 +152,10 @@ module tray() {
 // Snap catch: a 45° V lip on the cover skirt's inside, into a 45° V groove round the wall's outside,
 // one mid-wall on each of the four walls. Both faces at 45°: the cover pops off to reach the trimpot,
 // and neither needs support printed either way up.
-lip_z = tray_h - skirt_h + 0.3 + cover_gap + catch;   // the V's apex height
+lip_z = shell_h - skirt_h + 0.3 + cover_gap + catch;   // the V's apex height
 module catch_profile(s, groove, end = false) {
     c = end ? end_catch : catch;
-    w = end ? out_l/2 : out_w/2;       // wall's outside face, from the tray's centre
+    w = end ? out_l/2 : out_w/2;       // wall's outside face, from the shell's centre
     y0 = groove ? w + 0.01 : w + cover_gap + 0.01;
     tip = groove ? w - c - 0.1 : w - c;
     h = abs(y0 - tip);
@@ -166,7 +166,7 @@ module catch_profile(s, groove, end = false) {
 
 cell_x = bx0 + cell_x_on;
 module cover() {
-    z0 = tray_h;
+    z0 = shell_h;
     difference() {
         union() {
             translate([0, 0, z0]) linear_extrude(cover_t) offset(r = cover_gap + skirt_t) outline();
@@ -183,7 +183,7 @@ module cover() {
     }
 }
 
-// Lidded build: the lid's cut profile, the tray's outline with two holes on a diagonal over the columns.
+// Lidded build: the lid's cut profile, the shell's outline with two holes on a diagonal over the columns.
 lid_cols = [cols[0], cols[3]];
 module lid_2d() {
     difference() {
@@ -205,11 +205,11 @@ module module_standin() {
     translate([exit_x, 0, cable_z]) rotate([90, 0, 0]) cylinder(d = cable_d - 0.3, h = out_w/2 + 0 + 6);
 }
 
-if (part == "tray") tray();
+if (part == "shell") shell();
 else if (part == "cover") cover();
 else if (part == "assembly") {
-    tray();
+    shell();
     color("tan") module_standin();
     if (potted) color("lightsteelblue") translate([0, 0, 8]) cover();   // lifted 8 to show both
-    if (!potted) color("lightblue", 0.5) translate([0, 0, tray_h + 8]) linear_extrude(lid_t) lid_2d();
+    if (!potted) color("lightblue", 0.5) translate([0, 0, shell_h + 8]) linear_extrude(lid_t) lid_2d();
 }

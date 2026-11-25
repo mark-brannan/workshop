@@ -1,4 +1,4 @@
-// Fit-check gauge, generated: shop gauge projects/photocell-flame-pod "tray()" 1 4.5
+// Fit-check gauge, generated: shop gauge projects/photocell-flame-pod "shell()" 1 4.5
 // Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
 // a hand-written gauge replaces this file and drops this first line.
 use <model.scad>
@@ -14,4 +14,4 @@ module gauge_slice() {
     if (z_wall >= 0) translate([0, 0, gauge_t - 0.01]) linear_extrude(gauge_rise + 0.01) projection(cut = true) translate([0, 0, -z_wall]) children();
 }
 
-gauge_slice() tray();
+gauge_slice() shell();
