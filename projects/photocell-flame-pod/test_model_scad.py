@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import trimesh
+from shapely.geometry import LinearRing, Point
 from shop.scad import build_scad, find_openscad
 from shop.testing import ray_hits, seated_overlap
 
@@ -30,6 +31,8 @@ def build(tmp_path_factory, src, name, two_d=False):
     d = tmp_path_factory.mktemp(name)
     for f in ("model.scad", "part-lid.scad", "part-cover.scad"):
         (d / f).write_text((HERE / f).read_text())
+    (d / "art").mkdir()
+    (d / "art/fire-glyph.scad").write_text((HERE / "art/fire-glyph.scad").read_text())
     return trimesh.load(build_scad(d / src, d, name, two_d=two_d, render=False)["stl"])
 
 
@@ -156,3 +159,23 @@ def test_printed_cover_turned_over_fits_printed_shell(shell, cover, tmp_path):
     place = "translate([0, 0, 0])"
     assert seated_overlap(tmp_path, shell, cover, place) < 0.01
     assert seated_overlap(tmp_path, shell, cover, place, mirror="[1, 0, 0]") > 1  # the test sees a cover put on wrong
+
+
+def test_cover_fire_glyph_groove_reads_from_above(cover):
+    """On the printed cover in its use pose: a 90° V groove round the glyph, the right way round, not mirrored."""
+    pts = re.findall(r"\[(-?[\d.]+), (-?[\d.]+)\]", (HERE / "art/fire-glyph.scad").read_text())
+    pts = np.array(pts, float)
+    z_top = SHELL_H + P["cover_t"]
+    depth = P["groove_w"] / 2
+    cell_x = P["cell_end"] + P["cell_x_on"]
+    glyph_x = (cell_x + P["cell_hole_d"] / 2 + IN_L + P["wall"] + P["cover_gap"] + P["skirt_t"]) / 2
+    to_use = lambda p: (glyph_x + P["glyph_h"] * p[1], -P["glyph_h"] * p[0])  # rotate(-90): tip toward +X
+    ring = LinearRing(pts)
+    far = sorted(pts, key=lambda p: -ring.distance(Point(-p[0], p[1])))[:3]  # outline points whose mirror is off it
+    assert ring.distance(Point(-far[-1][0], far[-1][1])) * P["glyph_h"] > 2 * depth
+    for p in far:
+        x, y = to_use(p)
+        assert np.isclose(down(cover, x, y)[0][2], z_top - depth, atol=0.08)  # at the V's apex
+        assert np.isclose(down(cover, x, -y)[0][2], z_top, atol=0.02)  # the mirrored glyph would put it on plain face
+    assert np.isclose(down(cover, glyph_x, 0)[0][2], z_top, atol=0.02)  # the glyph itself stands at the face
+    assert P["cover_t"] - depth >= 0.8  # plate left under the groove

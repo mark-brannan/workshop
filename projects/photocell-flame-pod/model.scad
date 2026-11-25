@@ -58,6 +58,9 @@ end_catch = 0.7;      // end-wall lip reach: the short skirt is stiff near its c
 cell_x_on = 1;        // photocell centre in from the board's photocell end; guessed, from the photo
 cell_hole_d = 8;      // generous: the cell is bent up by hand, its position is guessed
 notch_clear = 0.5;    // per side, round the cable where it passes the skirt
+glyph = true;         // fire glyph on the cover's top face, outlined by a 90° V groove (owner, 2026-11-25)
+glyph_h = 25;         // tip to base, along X, tip toward the header end
+groove_w = 1.2;       // V groove width at the face; 90°, so half as deep
 
 /* [Lidded only] */
 nut_af = 5.5;         // M3 hex nut across flats
@@ -82,6 +85,7 @@ part = "shell";        // [shell, cover, assembly, none]
 
 /* [Hidden] */
 $fn = 48;
+include <art/fire-glyph.scad>
 lead_l = lead == "dupont" ? plug_out : solder_out;
 bx0 = cell_end;                      // board's photocell end
 bx1 = bx0 + board_l;                 // board's header end
@@ -177,10 +181,21 @@ module cover() {
             for (s = [-1, 1], e = [false, true]) catch_profile(s, groove = false, end = e);
         }
         translate([cell_x, 0, z0 - 1]) cylinder(d = cell_hole_d, h = cover_t + 2);
+        if (glyph) translate([glyph_x, 0, z0 + cover_t]) rotate(-90) glyph_groove();
         // the cable passes the skirt in a notch open at the skirt's foot
         translate([exit_x - cable_d/2 - notch_clear, -out_w/2 - cover_gap - skirt_t - 1, z0 - skirt_h - 1])
             cube([cable_d + 2*notch_clear, cover_gap + skirt_t + 2, skirt_h + 1]);
     }
+}
+
+// Fire glyph outline as a 90° V groove into the face below z = 0: a hull of two inverted cones per edge,
+// each hull convex, so the mesh is the same every build. Printed face down, both groove walls are 45° chamfers.
+glyph_x = (cell_x + cell_hole_d/2 + in_l + wall + cover_gap + skirt_t) / 2;   // centred in the plate past the cell hole
+module glyph_groove() {
+    d = groove_w / 2;
+    for (path = fire_glyph_paths) for (i = [0 : len(path) - 1])
+        hull() for (p = [path[i], path[(i + 1) % len(path)]])
+            translate(glyph_h * p) translate([0, 0, -d]) cylinder(r1 = 0, r2 = d + 0.01, h = d + 0.01, $fn = 12);
 }
 
 // Lidded build: the lid's cut profile, the shell's outline with two holes on a diagonal over the columns.
