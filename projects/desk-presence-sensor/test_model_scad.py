@@ -87,8 +87,7 @@ def test_windows_through_radar_behind_solid_face(shell):
 def test_board_posts_blind_pilots_at_board_height(shell):
     for sx in (-1, 1):
         for sy in (-1, 1):
-            for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
-                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2 + (P["ol_hole_top_dy"] if sy > 0 else 0), P["ol_pilot_d"], OL_BOARD_Z)):
+            for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),):
                 assert np.isclose(down(shell, x, y)[0][2], P["face_t"] - 1, atol=0.02)
                 assert np.isclose(down(shell, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)
 
@@ -186,14 +185,14 @@ def test_oled_reverse_chamfer_relief(shell):
     yb = OL_CY + P["ol_glass_dy"] - (P["ol_glass_l"] / 2 + 0.35)
     top = max(h[2] for h in down(shell, 0, yb - 0.6))
     assert top < P["face_t"] - 0.05                                        # face thinned under the ribbon end
-    assert np.isclose(max(h[2] for h in down(shell, 9, yb - 0.6)), P["face_t"], atol=0.01)   # untouched beside it
+    assert np.isclose(max(h[2] for h in down(shell, 9, yb - 0.6)), OL_BOARD_Z, atol=0.01)   # the board pocket floor beside it
 
 
 def test_oled_header_relief(shell):
     y = OL_CY + P["ol_glass_dy"] + P["ol_glass_l"] / 2 + 2
     assert np.isclose(max(h[2] for h in down(shell, 0, y)), P["face_t"] - P["ol_pin_rec"], atol=0.01)   # floor of the relief
     assert max(h[2] for h in down(shell, 0, y)) > 0.3                                                   # skin left on the front
-    assert np.isclose(max(h[2] for h in down(shell, 9, y)), P["face_t"], atol=0.01)                      # untouched beside it
+    assert np.isclose(max(h[2] for h in down(shell, 9, y)), OL_BOARD_Z, atol=0.01)                       # the board pocket floor beside it
 
 
 def test_tm_seat_and_tray_seats(shell):
@@ -215,8 +214,7 @@ def test_gauge_full_depth_seats_no_walls_no_tray_seats(gauge):
     assert np.isclose(max(h[2] for h in down(gauge, IN_W / 2 - 0.5, ys)), P["face_t"], atol=0.01)       # no tray seat
     for sx in (-1, 1):
         for sy in (-1, 1):
-            for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),
-                               (sx * P["ol_hole_dx"] / 2, OL_CY + sy * P["ol_hole_dy"] / 2 + (P["ol_hole_top_dy"] if sy > 0 else 0), P["ol_pilot_d"], OL_BOARD_Z)):
+            for x, y, d, z in ((sx * P["tm_hole_dx"] / 2, TM_CY + sy * P["tm_hole_dy"] / 2, P["tm_pilot_d"], TM_BOARD_Z),):
                 assert np.isclose(down(gauge, x + d / 2 + 0.3, y)[0][2], z, atol=0.02)   # post at the shell's board height
 
 
@@ -225,3 +223,22 @@ def test_printed_back_turned_over_fits_printed_shell(shell, back, tmp_path):
     place = f'translate([0, 0, {shell.bounds[1][2] + P["back_t"]}]) rotate([0, 180, 0])'
     # The back's mirror image seats as cleanly (0 overlap both ways), so this cannot tell the two apart.
     assert seated_overlap(tmp_path, shell, back, place) < 0.01
+
+
+def test_oled_flush_on_snap_lips(shell):
+    y = OL_CY - P["ol_h"] / 2 + 2                                          # behind the board, beside the glass
+    assert np.isclose(max(h[2] for h in down(shell, 9, y)), OL_BOARD_Z, atol=0.02)   # board lies on the pocket floor
+    assert np.isclose(OL_BOARD_Z - P["ol_glass_h"], 0, atol=0.01)          # glass face flush with the outer face
+    yb = OL_CY - P["ol_h"] / 2 - P["ol_slack"] + 0.5                       # under a bottom lip, over the board edge
+    assert len(down(shell, 10, yb)) > len(down(shell, 0, yb))              # lip beside the ribbon, none at the ribbon
+    xs_ = P["ol_w"] / 2 + P["ol_slack"] - 0.2
+    ys_ = OL_CY + P["ol_h"] / 2 - 1 - P["ol_lip_len"] / 2
+    assert len(down(shell, xs_, ys_)) > len(down(shell, xs_, OL_CY))       # side lip near the top
+
+
+def test_back_end_stops_snug_in_the_end_walls(back):
+    # print pose: tape face on the bed, so Y is unchanged; the stops stand inside the end walls
+    ys = back.vertices[back.vertices[:, 2] > P["back_t"] + 1][:, 1]
+    cy0 = IN_H / 2
+    assert np.isclose(ys.min(), cy0 - IN_H / 2 + P["end_clr"], atol=0.02)
+    assert np.isclose(ys.max(), cy0 + IN_H / 2 - P["end_clr"], atol=0.02)

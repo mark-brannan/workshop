@@ -45,12 +45,9 @@ tm_pin_span = 12.7;  // guessed: six pins per row, 2.54 pitch
 /* [OLED, top display] (generic drawing, not calipered) */
 ol_w = 27.3;         // X
 ol_h = 27.8;         // Y, header at the top edge, pins out the back
-ol_hole_dx = 23.3;
-ol_hole_dy = 23.6;
-ol_hole_top_dy = 0.35; // top row moved up: first print, pilots sat ~0.35 low in the board's top holes (owner photo, 2026-11-24)
 ol_t = 1.6;          // guessed, standard PCB
 ol_pins = 1.7;       // clipped header pins behind the board, guessed
-ol_glass_h = 2.4;    // guessed: board front to glass face
+ol_glass_h = 1.1;    // board front to glass face: 2.4 guessed left the glass 1.3 deep with the board on its posts (owner, first print, 2026-11-24)
 ol_glass_w = 26.7;   // guessed, typical 0.96" glass
 ol_glass_l = 19.3;
 ol_glass_dy = 0;     // guessed: glass centred between the hole rows
@@ -64,8 +61,10 @@ ol_rev_w = 14;       // its width in X, narrow enough to leave the screw posts w
 ol_pin_rec = 1.0;    // header-end relief cut into the face from inside, for the solder nubs; leaves face_t - this as skin
 ol_pin_w = 14;       // its width in X (four pads at 2.54 pitch are about 10 wide)
 ol_bevel = 0.5;      // 45 deg chamfer around the glass at the outside face, sloping in toward it
-ol_pilot_d = 1.6;    // M2 self-tapping, calibration pending
-ol_post_d = 3.6;
+ol_hook = 1.0;       // bottom lips: reach from the rib; 45 deg underside 0.1 over the board's back edge, so the edge nests in a V
+ol_bot_x = [8, 13];  // bottom lips' |X| span, beside the ribbon fold
+ol_lip = 0.7;        // side snap lips over the board's long edges, near the top, on flexing beams like the radar's
+ol_lip_len = 4;
 
 /* [LD2410C radar] (vendor, not calipered) */
 rd_w = 22;           // X
@@ -139,6 +138,10 @@ tab_w = 10;
 tab_clr = 0.2;       // tab to the wall
 bump = 0.5;          // 45 deg both faces: gentle
 bump_z = 3;          // bump centre in front of the shell rim
+end_len = 4;         // end stops: plain tabs inside the top and bottom walls, so the plate cannot slide along Y
+end_t = 1.2;
+end_clr = 0.1;       // to the end wall: snug (the side tabs alone let it slide, owner, first print, 2026-11-24)
+end_w = [[-8, 8], [6.5, 14]];   // bottom stop's X span; top stops' |X| span, either side of the plug and cable slot
 
 view = "shell";      // shell | back | tray | front | front_xray | side_xray | open | exploded | layers
 
@@ -156,7 +159,6 @@ ol_glass_z = face_t + ol_gap - ol_fwd;   // glass front face
 ol_board_z = ol_glass_z + ol_glass_h;
 ol_back_z = ol_board_z + ol_t + ol_pins;
 tm_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*tm_hole_dx/2, tm_cy + sy*tm_hole_dy/2]];
-ol_holes = [for (sx = [-1, 1], sy = [-1, 1]) [sx*ol_hole_dx/2, ol_cy + sy*ol_hole_dy/2 + (sy > 0 ? ol_hole_top_dy : 0)]];
 // The depth stack, front to back.
 tm_back_z = tm_board_z + tm_t;                     // TM1637 board back
 tray_z0 = max(tm_back_z + screw_head, face_t + rd_t + rd_back + rd_pin_clr);   // tray front plane: rests on the wall seats, clear of the TM1637 and the radar pins
@@ -205,12 +207,6 @@ module tm_posts_2d() {
     }
 }
 
-module ol_posts_2d() {
-    difference() {
-        for (h = ol_holes) translate(h) circle(d = ol_post_d);
-        ol_glass_keepout();
-    }
-}
 
 // Radar snap: four lips, two per side rib, each on a beam freed by slots and thinned from outside.
 // Both slopes are 45 deg, so the board pushes in (and gently out) and nothing needs support.
@@ -228,6 +224,27 @@ module rd_top_lips() {
     for (sx = [-1, 1]) { x = xs(sx, rd_top_x[0], rd_top_x[1]);
         translate([0, rd_cy + rd_h/2 + rd_slack, 0]) yz(x[0], x[1])
             polygon([[0.2, zb], [-rd_lip, zb + rd_lip], [-rd_lip, zb + rd_lip + 0.3], [0.2, zb + 2*rd_lip + 0.3]]);
+    }
+}
+// OLED, no screws: its lower edge tucks under two rigid bottom lips beside the ribbon fold, then the board
+// presses flat until two side lips, on beams freed like the radar's, click over its long edges near the top.
+module ol_lips() {
+    zb = ol_board_z + ol_t + 0.1;
+    for (sx = [-1, 1]) { x = xs(sx, ol_bot_x[0], ol_bot_x[1]);
+        translate([0, ol_cy - ol_h/2 - ol_slack, 0]) yz(x[0], x[1])
+            polygon([[-0.2, zb - ol_slack - 0.2], [ol_hook, zb + ol_hook - ol_slack], [ol_hook, zb + ol_hook - ol_slack + 0.3],
+                     [-0.2, zb + 2*ol_hook - ol_slack + 0.3]]);
+        translate([sx*(ol_w/2 + ol_slack), ol_cy + ol_h/2 - 1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
+            polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
+    }
+}
+module ol_snap_cuts() {   // slots either side of each side beam and its outside thinned, sunk rd_groove into the face
+    zc = face_t - rd_groove + 10; x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
+    for (sx = [-1, 1]) {
+        for (y = [y1 - ol_lip_len - rd_slot/2, y1 + rd_slot/2])
+            translate([sx*(x_in + ol_rib_t/2), y, zc]) cube([ol_rib_t + 1, rd_slot, 20], center = true);
+        translate([sx*(x_in + rd_beam_t + (ol_rib_t - rd_beam_t + 1)/2), y1 - ol_lip_len/2, zc])
+            cube([ol_rib_t - rd_beam_t + 1, ol_lip_len, 20], center = true);
     }
 }
 // Radar bottom slot: one lip along the whole lower edge, over a whole bottom rib. The board's lower edge
@@ -280,8 +297,8 @@ module tray_seats() {
 // OLED seat: ribs round the board's sides and bottom; the top edge meets the wall.
 module ol_frame_2d() {
     translate([0, ol_cy]) difference() {
-        translate([0, (ol_h/2 + 0.5 - (ol_h/2 + ol_slack + ol_rib_t))/2])
-            square([ol_w + 2*(ol_slack + ol_rib_t), ol_h/2 + 0.5 + ol_h/2 + ol_slack + ol_rib_t], center = true);
+        translate([0, (ol_h/2 + 0.6 - (ol_h/2 + ol_slack + ol_rib_t))/2])
+            square([ol_w + 2*(ol_slack + ol_rib_t), ol_h/2 + 0.6 + ol_h/2 + ol_slack + ol_rib_t], center = true);   // 0.1 into the top wall: no shared face
         square([ol_w + 2*ol_slack, ol_h + 2*ol_slack], center = true);
     }
 }
@@ -297,7 +314,7 @@ module rd_ribs_2d() {
 // Snap groove in the side walls: a 45 deg V matching the tab bumps.
 module snap_grooves() {
     for (sx = [-1, 1], y = tab_ys)
-        translate([sx*in_w/2, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w + 2, center = true)
+        translate([sx*in_w/2, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w + 0.4, center = true)
             polygon([[0, -bump - 0.1], [sx*(bump + 0.1), 0], [0, bump + 0.1]]);
 }
 
@@ -327,12 +344,12 @@ module shell() {
                 translate([0, cy0, face_t]) linear_extrude(shell_d) square([in_w, in_h], center = true);
             }
             linear_extrude(tm_board_z) tm_posts_2d();
-            linear_extrude(ol_board_z) ol_posts_2d();
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
             rd_lips();
             rd_top_lips();
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
+            ol_lips();
             linear_extrude(tm_back_z - 0.2) tm_seat_2d();
             tray_seats();
         }
@@ -354,12 +371,15 @@ module shell() {
             translate([0, 0, ol_bevel]) linear_extrude(0.01) square([ol_glass_w + 0.72, ol_glass_l + 0.72], center = true);  // 0.01 proud: no shared wall with the pocket
         }
         for (h = tm_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = tm_pilot_d, h = tm_board_z);
-        for (h = ol_holes) translate([h[0], h[1], face_t - 1]) cylinder(d = ol_pilot_d, h = ol_board_z);
         // cable slot through the top wall, open to the rim: no roof to print
         translate([-cable_slot_w/2, in_h - 1, cable_z0]) cube([cable_slot_w, wall + 2, shell_d]);
         snap_grooves();
         rd_beam_cuts();
         rd_pocket();
+        ol_snap_cuts();
+        // board pocket: the board lies in the face, on a floor at its own front (floor faces the back: no overhang)
+        translate([-(ol_w/2 + ol_slack + 0.02), ol_cy - ol_h/2 - ol_slack - 0.02, ol_board_z])   // 0.02 into the ribs: no shared wall
+            cube([ol_w + 2*ol_slack + 0.04, in_h - (ol_cy - ol_h/2 - ol_slack - 0.02), face_t]);       // up to the top wall
     }
 }
 
@@ -420,6 +440,10 @@ module back_placed() {
         translate([x_out - (sx > 0 ? tab_t : 0), y - tab_w/2, shell_d - tab_len]) cube([tab_t, tab_w, tab_len + 0.01]);
         translate([x_out, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w, center = true)
             polygon([[0, -bump], [sx*bump, 0], [0, bump]]);
+    }
+    translate([end_w[0][0], cy0 - in_h/2 + end_clr, shell_d - end_len]) cube([end_w[0][1] - end_w[0][0], end_t, end_len + 0.01]);
+    for (sx = [-1, 1]) { x = xs(sx, end_w[1][0], end_w[1][1]);
+        translate([x[0], cy0 + in_h/2 - end_clr - end_t, shell_d - end_len]) cube([x[1] - x[0], end_t, end_len + 0.01]);
     }
 }
 
