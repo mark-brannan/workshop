@@ -1,4 +1,4 @@
-"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the slot open from above, solid behind the tip, no flat overhangs."""
+"""Tests for the probe holder: bounding box, volume window, screw holes and reach, fins to the plate, the point open, tabs over the lip, no flat overhangs."""
 
 import math
 import re
@@ -44,7 +44,7 @@ def test_bounds(holder):
 
 
 def test_volume_window(holder):
-    assert 85_000 < holder.volume < 100_000  # 93.3 cm^3 as built
+    assert 55_000 < holder.volume < 66_000  # 60.5 cm^3 as built
 
 
 def test_two_screw_holes_clear_and_reachable(holder):
@@ -61,20 +61,19 @@ def test_screws_high(holder):
 
 def test_side_walls_reach_the_plate(holder):
     # just in front of the plate, high up, a ray across meets both fins (two faces each) and nothing else
-    assert len(ray_hits(holder, (100, Y_PF - 1, 95), (-1, 0, 0))) == 4
+    assert len(ray_hits(holder, (100, Y_PF - 1, P["plate_pt"] + 55), (-1, 0, 0))) == 4
 
 
-def test_probe_slot_open_from_above(holder):
-    # straight down the slot centre at the probe's point: nothing until the V floor, about at the cradle point height
-    h = ray_hits(holder, (0, -20 * math.sin(TILT), 75), (0, 0, -1))  # through the slot at the probe frame (u 0, w 0, v 20)
-    assert len(h) and P["plate_pt"] + 5 < h[0][2] < P["plate_pt"] + 25
+def test_point_open_from_above(holder):
+    # straight down the slot centre, past the probe's point: nothing at all
+    assert len(ray_hits(holder, (0, -20 * math.sin(TILT), P["plate_pt"] + 60), (0, 0, -1))) == 0
 
 
 def test_no_flat_overhangs(holder):
     n, c = holder.face_normals, holder.triangles_center
     bad = (n[:, 2] < -math.cos(math.radians(44.5))) & (c[:, 2] > 1.6)  # not the plate foot's 1.5 mm edge round on the bed
-    # the two 3 mm corner rounds of the quarter circle pass through flat for a few mm: about 27 mm^2 in all
-    assert holder.area_faces[bad].sum() < 35
+    # the two 3 mm corner rounds of the quarter circle pass through flat for a few mm: about 37 mm^2 in all, at 44-46 deg
+    assert holder.area_faces[bad].sum() < 40
 
 
 def _world(u, v, w):
@@ -84,10 +83,27 @@ def _world(u, v, w):
     return (u, y * math.cos(TILT) - z * math.sin(TILT), y * math.sin(TILT) + z * math.cos(TILT) + P["plate_pt"] - z_low)
 
 
-def test_solid_behind_the_tip(holder):
-    # from the gap at the probe's machined face, near the point, toward the wall: solid from within the fit clearance to the plate's back
-    w_face = -P["probe_t"] / 2 + P["pocket_d"] + P["fit_t"]  # the machined face, the probe resting on the support wall
-    h = ray_hits(holder, _world(0, 3, w_face - 0.5), (0, 1, 0))
-    assert len(h) == 2
-    assert np.linalg.norm(np.array(h[0]) - _world(0, 3, w_face - 0.5)) < 2.5
-    assert np.isclose(h[1][1], Y_PF + P["plate_t"], atol=0.05)
+def _pe(s, n):
+    # (s along the seated probe's lower-right edge from its point, n inward) to (u, v), as pe() in model.scad
+    return (s - n) / math.sqrt(2), (s + n) / math.sqrt(2) - P["fit_v"] * math.sqrt(2)
+
+
+def _ray_w(holder, u, v, w, sign):
+    a, b = np.array(_world(u, v, w)), np.array(_world(u, v, w + sign))
+    return a, ray_hits(holder, tuple(a), tuple(b - a))
+
+
+def test_point_open_through_the_thickness(holder):
+    # 7 mm up the probe's edge, through its thickness: nothing toward the user, only the wall plate toward the wall
+    u, v = _pe(7, 1)
+    assert len(_ray_w(holder, u, v, 0, 1)[1]) == 0
+    h = _ray_w(holder, u, v, 0, -1)[1]
+    assert len(h) == 2 and np.isclose(h[1][1], Y_PF + P["plate_t"], atol=0.05)
+
+
+@pytest.mark.parametrize("side", [1, -1])
+def test_tabs_lap_the_lip(holder, side):
+    # from the lip's face, toward the wall, 1.5 mm in from each edge: the tab, fit_t away
+    u, v = _pe(P["pocket_s"] + 2, 1.5)
+    a, h = _ray_w(holder, side * u, v, -P["probe_t"] / 2 + P["fit_t"], -1)
+    assert len(h) and np.isclose(np.linalg.norm(np.array(h[0]) - a), P["fit_t"], atol=0.1)
