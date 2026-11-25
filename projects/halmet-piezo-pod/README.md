@@ -62,7 +62,7 @@ Module calipered; buzzer measured by the owner, partly by eye.
 - Buzzer as low as the module allows: its back 1 mm over the module's top, its top 3 mm proud of the lid
   (`proud`; 0 is flush; owner, after the first print). Turned 41° in plan, ear tips 1.2 off the long walls (`ear_tip_gap`),
   so its ears land on two bosses grown out of the long walls on 45° corbels. The floor beside the module's terminal end
-  is clear up to the corbel, room for a ferruled wire into the terminal (owner: the old floor column was in the way).
+  is clear up to the corbel, room for a ferruled wire into the terminal (owner: the old floor column was in the way). The board is slid 7 toward its far end (`board_dy`) so the terminal-end boss stands clear of the ferrules; the far-end boss then sits beside the board's far end, where nothing tall is (owner, 2026-11-25).
   Two M3 screws hold the ears into M3 x 4 heat-set inserts in the boss tops, inside the box,
   under the lid (inserts not bought; `insert_hole_d` follows the maker's hole).
 - Two ledges mid-way along the long walls, 12 long, 5.5 out, flush with the boss tops, seat the flange's edge (~2 overlap),

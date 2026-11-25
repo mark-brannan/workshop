@@ -78,12 +78,14 @@ rd_back = 8;         // pins behind the board: normal male header, owner 2026-11
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
 rd_rib_h = 4;        // above the face interior
-rd_lip = 0.7;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports
+rd_lip = 0.5;        // snap lip over the board edge, each side; both slopes 45 deg: push in or out, no supports (was 0.7: owner, little hold needed)
 rd_lip_len = 4;      // along Y, two per side, each on its own flexing beam
 rd_hook = 1.4;       // bottom lip reach from the rib; its 45 deg underside passes 0.1 over the board's back edge (was 0.9, timid: owner, first print)
 rd_hook_w = 5;       // bottom lip, centred: a short stay, clear of the parts along the board's bottom edge (owner, 2026-11-25)
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
-rd_beam_t = 0.7;     // beam thickness: the rib thinned from outside so the lip can flex (was 0.8, a little tight: owner, first print)
+rd_beam_t = 1.2;     // beam thickness; at rd_rib_t the rib is not thinned (was 0.7: top and side beams snapped at the root, owner, 2026-11-25)
+rd_fillet_in = 0.4;  // beam root fillet on the board side, inside the 0.5 slack
+rd_fillet_out = 0.8; // beam root fillet on the outside
 rd_groove = 0.5;     // beam root sunk this far into the face, for a longer, softer beam
 rd_top_x = [8, 10.7];   // top snap lips on the top rib's corner stubs, |X| span, clear of the header
 rd_skin = 0.6;       // face left in front of the antennas: 1.5 is near a quarter wave at 24 GHz, the worst reflection
@@ -96,6 +98,7 @@ tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
 /* [OLED frame] */
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
+ol_beam_t = 0.7;     // OLED side beams, thinned from outside
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -249,8 +252,8 @@ module ol_snap_cuts() {   // slots either side of each side beam and its outside
     for (sx = [-1, 1]) {
         for (y = [y1 - ol_lip_len - rd_slot/2, y1 + rd_slot/2])
             translate([sx*(x_in + ol_rib_t/2), y, zc]) cube([ol_rib_t + 1, rd_slot, 20], center = true);
-        translate([sx*(x_in + rd_beam_t + (ol_rib_t - rd_beam_t + 1)/2), y1 - ol_lip_len/2, zc])
-            cube([ol_rib_t - rd_beam_t + 1, ol_lip_len, 20], center = true);
+        translate([sx*(x_in + ol_beam_t + (ol_rib_t - ol_beam_t + 1)/2), y1 - ol_lip_len/2, zc])
+            cube([ol_rib_t - ol_beam_t + 1, ol_lip_len, 20], center = true);
     }
 }
 // Radar bottom slot: one lip along the whole lower edge, over a whole bottom rib. The board's lower edge
@@ -273,13 +276,36 @@ module rd_beam_cuts() {
         for (y = [y0 - rd_slot, y0 + rd_lip_len])
             translate([sx*(x_in + rd_rib_t/2), rd_cy + dy*(y + rd_slot/2), zc])
                 cube([rd_rib_t + 1, rd_slot, 20], center = true);
-        translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), zc])
+        if (rd_beam_t < rd_rib_t) translate([sx*(x_in + rd_rib_t - (rd_rib_t - rd_beam_t)/2 + 0.5), rd_cy + dy*(y0 + rd_lip_len/2), zc])
             cube([(rd_rib_t - rd_beam_t) + 1, rd_lip_len, 20], center = true);
         // top lip beam: a slot at its outer end (the inner end is the wire opening) and the outside thinned
         y_in = rd_cy + rd_h/2 + rd_slack;
         translate([sx*(rd_top_x[1] + rd_slot/2), y_in + rd_rib_t/2, zc]) cube([rd_slot, rd_rib_t + 1, 20], center = true);
-        translate([sx*((rd_top_x[0] + rd_top_x[1])/2 - 0.2), y_in + rd_beam_t + (rd_rib_t - rd_beam_t + 1)/2, zc])
+        if (rd_beam_t < rd_rib_t) translate([sx*((rd_top_x[0] + rd_top_x[1])/2 - 0.2), y_in + rd_beam_t + (rd_rib_t - rd_beam_t + 1)/2, zc])
             cube([rd_top_x[1] - rd_top_x[0] + 0.4, rd_rib_t - rd_beam_t + 1, 20], center = true);
+    }
+}
+// Fillets where each snap beam roots in the face, both sides, so the bend has no sharp corner to start a crack.
+// Concave and upward-facing in print pose: no overhang.
+module fillet2d(r) { translate([-0.01, -0.01]) difference() { square([r + 0.01, r + 0.01]); translate([r + 0.01, r + 0.01]) circle(r, $fn = 24); } }
+// OLED side beams: an outside fillet only, in the corner of the thinning cut, sunk rd_groove into the face.
+module ol_beam_fillets() {
+    x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
+    for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
+        translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
+}
+module rd_beam_fillets() {
+    x_in = rd_w/2 + rd_slack; y0 = rd_h/2 - 1 - rd_lip_len; y_in = rd_cy + rd_h/2 + rd_slack;
+    for (sx = [-1, 1]) {
+        translate([0, rd_cy + y0 + rd_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true) {
+            translate([sx*x_in, face_t]) scale([-sx, 1]) fillet2d(rd_fillet_in);
+            translate([sx*(x_in + rd_beam_t), face_t]) scale([sx, 1]) fillet2d(rd_fillet_out);
+        }
+        x = xs(sx, rd_top_x[0], rd_top_x[1]);
+        yz(x[0], x[1]) {
+            translate([y_in, face_t]) scale([-1, 1]) fillet2d(rd_fillet_in);
+            translate([y_in + rd_beam_t, face_t]) fillet2d(rd_fillet_out);
+        }
     }
 }
 // Thin face in front of the antennas, pocketed from inside (its floor faces the back: no overhang).
@@ -368,6 +394,7 @@ module shell() {
             linear_extrude(face_t + rd_rib_h) rd_ribs_2d();
             rd_lips();
             rd_top_lips();
+            rd_beam_fillets();
             rd_hooks();
             linear_extrude(ol_board_z + ol_t) ol_frame_2d();
             ol_lips();
@@ -405,6 +432,7 @@ module shell() {
         translate([-(ol_w/2 + ol_slack + 0.02), ol_cy - ol_h/2 - ol_slack - 0.02, ol_board_z])   // 0.02 into the ribs: no shared wall
             cube([ol_w + 2*ol_slack + 0.04, in_h - (ol_cy - ol_h/2 - ol_slack - 0.02), face_t]);       // up to the top wall
     }
+    ol_beam_fillets();   // after the cuts: it sits in the thinning cut's corner
 }
 
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side

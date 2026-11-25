@@ -41,6 +41,8 @@ ear_span = 47.4;      // ear tip to ear tip; owner, caliper
 ear_pitch = 40;       // ear hole to ear hole; owner, by eye
 ear_r = 3.5;          // ear tip radius; by eye
 
+board_dy = 7;         // board slid toward its far end, off the box centre, so the terminal-end boss stands clear of the ferrules (owner, 2026-11-25)
+
 /* [Box] */
 in_w = 36;            // across: the buzzer's leads leave its side, toward a long wall
 in_l = 56;            // up the bulkhead
@@ -178,7 +180,7 @@ module mousehole(w, side, through) {
 module ridge(d, l) { rotate([90, 0, 0]) linear_extrude(l, center = true) polygon([[0, -d], [d, 0], [0, d]]); }
 
 module seat() {
-    difference() {
+    translate([0, board_dy, 0]) difference() {
         translate([-seat_w/2, -seat_l/2, floor_t - eps]) cube([seat_w, seat_l, plinth_h + rim_h + eps]);
         translate([-mod_w/2 - fit, -mod_l/2 - fit, seat_z]) cube([mod_w + 2*fit, mod_l + 2*fit, rim_h + 1]);
         translate([-pocket_w/2 - pin_relief, -mod_l/2 + pocket_r - pocket_l/2 - pin_relief, floor_t]) cube([pocket_w + 2*pin_relief, pocket_l + 2*pin_relief, plinth_h + 1]);
@@ -265,7 +267,7 @@ module box() {
             seat();
         }
         insert_holes();
-        for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
+        for (sx = [-1, 1]) translate([sx*hole_pitch/2, board_dy + mod_l/2 - hole_e, seat_z - m25_depth]) cylinder(d = m25_pilot, h = m25_depth + 1);
         translate([hole_x, -in_l/2 + (floor_fillet + 0.2 - wall - 1)/2, floor_t]) mousehole(hole_w, hole_side, floor_fillet + 0.2 + wall + 1);  // inside, just past the fillet: clear of tie A
         for (a = [0, 180]) rotate([0, 0, a]) translate([in_w/2, finger_y, depth - snap_z]) ridge(groove_d, finger_w + 2*groove_play);
     }
@@ -299,11 +301,11 @@ module lid() {
 // hand can make, and it hides a lid that only fits as its own mirror image.
 module lid_on() { translate([0, 0, depth + lid_t]) rotate([0, 180, 0]) lid(); }
 
-module module_standin() {
+module module_standin() { translate([0, board_dy, 0]) {
     color("darkgreen") translate([-mod_w/2, -mod_l/2, seat_z]) cube([mod_w, mod_l, board_t]);
     color("seagreen") translate([-mod_w/2 + 1, -mod_l/2 + 1, seat_z + board_t]) cube([mod_w - 2, mod_l - 2 - 2*hole_e, mod_h - board_t]);
     color("silver") translate([-pocket_w/2 + 1, -mod_l/2 + pocket_r - pocket_l/2 + 1, seat_z - pin_out]) cube([pocket_w - 2, pocket_l - 2, pin_out]);
-}
+}}
 
 module buzzer_standin() {
     translate([0, 0, ledge_z]) rotate([0, 0, ear_angle]) difference() {
@@ -327,7 +329,7 @@ module cut() { if (show == "cutaway") intersection() { children(); rotate([0, 0,
 module assembled() {
     color("orange") cut() box();
     cut() module_standin();
-    color("silver") cut() for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t]) m25_screw();
+    color("silver") cut() for (sx = [-1, 1]) translate([sx*hole_pitch/2, board_dy + mod_l/2 - hole_e, seat_z + board_t]) m25_screw();
     color("goldenrod") cut() for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l]) insert_standin();
     color("white") cut() buzzer_standin();
     color("gold") cut() lid_on();
@@ -340,7 +342,7 @@ module exploded() {
     g = explode;
     color("orange") box();
     translate([0, 0, g]) module_standin();
-    color("silver") for (sx = [-1, 1]) translate([sx*hole_pitch/2, mod_l/2 - hole_e, seat_z + board_t + 1.6*g]) m25_screw();
+    color("silver") for (sx = [-1, 1]) translate([sx*hole_pitch/2, board_dy + mod_l/2 - hole_e, seat_z + board_t + 1.6*g]) m25_screw();
     for (sy = [-1, 1]) translate([each ear_xy(sy), ledge_z - insert_l + 1.6*g]) insert_standin();
     translate([0, 0, 2.2*g]) color("white") buzzer_standin();
     translate([0, 0, 3.2*g]) color("gold") lid_on();
