@@ -1,0 +1,12 @@
+# PETG reprint round, 2026-11-24 (owner's list). Rebuild with: shop plate plates/petg-2026-11-24.plate
+projects/desk-presence-sensor/out/desk-presence-sensor_gauge-oled.stl
+projects/desk-presence-sensor/out/desk-presence-sensor_gauge-radar.stl
+projects/segment-display-enclosure/out/segment-display-enclosure_scad.stl
+projects/segment-display-enclosure/out/segment-display-enclosure_back.stl
+projects/halmet-piezo-pod/out/halmet-piezo-pod_scad.stl
+projects/halmet-piezo-pod/out/halmet-piezo-pod_lid.stl
+projects/photocell-flame-pod/out/photocell-flame-pod_scad.stl
+projects/photocell-flame-pod/out/photocell-flame-pod_lid.stl
+projects/photocell-flame-pod/out/photocell-flame-pod_cover.stl
+projects/heater-fan-mount/out/heater-fan-mount_gauge.stl
+projects/esp32-breakout-mounts/out/esp32-breakout-mounts_gauge.stl
