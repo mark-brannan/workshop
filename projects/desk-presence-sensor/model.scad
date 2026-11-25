@@ -73,7 +73,7 @@ ol_lip_len = 4;
 /* [LD2410C radar] (vendor, not calipered) */
 rd_w = 22;           // X
 rd_h = 16;           // Y
-rd_t = 1;            // board, guessed
+rd_t = 1.5;          // board, owner 2026-11-25 (was a 1.0 guess: slot and lips too shallow)
 rd_back = 8;         // pins behind the board: normal male header, owner 2026-11-22
 rd_slack = 0.5;      // per side
 rd_rib_t = 1.2;
@@ -86,7 +86,8 @@ rd_beam_t = 0.7;     // beam thickness: the rib thinned from outside so the lip 
 rd_groove = 0.5;     // beam root sunk this far into the face, for a longer, softer beam
 rd_top_x = [8, 10.7];   // top snap lips on the top rib's corner stubs, |X| span, clear of the header
 rd_skin = 0.6;       // face left in front of the antennas: 1.5 is near a quarter wave at 24 GHz, the worst reflection
-rd_border = 1.5;     // full face kept round the pocket, for the board to rest on
+rd_border = 1.5;     // full face kept each side of the pocket, for the board to rest on; top and bottom the
+                     // pocket runs to the rib, clear of the header joints (top) and parts on the bottom edge (owner, 2026-11-25)
 rd_slot = 1;         // cut either side of a beam
 /* [TM1637 seat and tray seat] */
 tm_rib_t = 0.8;      // seating ribs along the board's top and bottom edges (the side walls seat its ends)
@@ -282,7 +283,7 @@ module rd_beam_cuts() {
 }
 // Thin face in front of the antennas, pocketed from inside (its floor faces the back: no overhang).
 module rd_pocket() {
-    translate([0, rd_cy, rd_skin]) linear_extrude(face_t) square([rd_w - 2*rd_border, rd_h - 2*rd_border], center = true);
+    translate([0, rd_cy, rd_skin]) linear_extrude(face_t) square([rd_w - 2*rd_border, rd_h + 2*rd_slack], center = true);
 }
 
 // TM1637 seat: ribs along the board's top and bottom edges, stopping short of the tray's front plane.

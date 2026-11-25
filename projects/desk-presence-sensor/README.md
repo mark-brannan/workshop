@@ -10,7 +10,7 @@ carries the face boards and the shallow **back plate** snaps gently into it. A p
 onto the TM1637's back with the TM1637's own screws and holds the D1 mini flat behind the radar and
 TM1637, USB up. The only openings are the two display windows and the cable slot in the top. Not sealed.
 
-Outside: 45 x 80.2 x 22.2 mm (was 45 x 81 x 52 with the D1 mini on edge).
+Outside: 45 x 80.2 x 24.6 mm (was 45 x 81 x 52 with the D1 mini on edge).
 
 ## Requirements
 
@@ -109,6 +109,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | Value | mm | Source |
 |---|---|---|
 | TM1637 board, holes, display | see [`parts.md`](../../parts.md) | owner, caliper |
+| LD2410C board thickness `rd_t` | 1.5 | owner, 2026-11-25 (was a 1.0 guess; slot and lips sat too shallow) |
 | Pin directions: D1 mini male out the back, OLED out the back, radar out the back | | owner, by eye |
 
 ## Guessed (the gauge checks the face ones)
@@ -125,6 +126,7 @@ drives the TM1637. Firmware: [`esphome/desk.yaml`](esphome/desk.yaml).
 | TM1637 seat `tm_rib_t`; tray seats `tray_seat_w` | 0.8 ribs along the board's top and bottom edges, stopping 0.2 under the board's back; 1.2 wide blocks along each wall, tops 0.05 under the tray's front plane | the tray rests on the TM1637's back and on these blocks where it overhangs the radar zone |
 | Tray front plane `tray_z0`, `screw_head`, `rd_pin_clr` | the larger of TM1637 back + 1.5 (screw heads) and radar pins + 0.5: 11.0 | the tray no longer rests on the TM1637; it rests on the wall seat blocks, box 1.9 deeper (owner, 2026-11-22) |
 | OLED frame `ol_slack`, `ol_rib_t` | 0.3 per side, 1.2 thick; sides and bottom only | the top edge meets the wall |
+| Radar antenna pocket `rd_border` | 0.9 deep, 1.5 face strips each side; runs rib to rib top and bottom | clears the header joints along the top and the parts on the bottom edge (owner, 2026-11-25); their heights are not measured |
 | Radar back `rd_back` | 8 behind its board | normal male pin headers, owner 2026-11-22; they end 1.4 mm into the tray's window, 2.6 short of the D1 |
 | Hook catch `catch`, lower corner hooks `lip_catch`, pocket `stop_rec`, post `hook_t`, clearance `d1_clr` | 0.6 over the board, 0.8, 1.0 (guessed from "under 1 mm", not calipered), 1.0 thick, 0.2 | about 3 % strain at the catch, gentle for PETG by estimate |
 | Snap `bump` | 0.5 | calibration pending |
