@@ -39,31 +39,31 @@ def test_bounds_and_watertight(base):
     assert np.allclose(base.bounds, [[-L / 2, -W / 2, 0], [L / 2, W / 2, T + H]], atol=0.02)
 
 
-def test_four_standoffs_with_blind_insert_holes(base):
+def test_four_standoffs_with_blind_pilot_holes(base):
     for sx in (-1, 1):
         for sy in (-1, 1):
             x, y = sx * P["hole_dx"] / 2, sy * P["hole_dy"] / 2
             h = hits(base, x, y)
-            # rim-less first hit is the bottom of the insert hole, inside the plate
-            assert np.isclose(h[0][2], T + H - P["insert_depth"], atol=0.02)
-            assert T + H - P["insert_depth"] > 0.5  # never breaks through the underside
+            # rim-less first hit is the bottom of the pilot hole, inside the plate
+            assert np.isclose(h[0][2], T + H - P["pilot_depth"], atol=0.02)
+            assert T + H - P["pilot_depth"] > 0.5  # never breaks through the underside
             # the standoff body is there, off-axis
-            assert np.isclose(hits(base, x + P["insert_d"] / 2 + 0.5, y)[0][2], T + H, atol=0.02)
+            assert np.isclose(hits(base, x + P["pilot_d"] / 2 + 0.5, y)[0][2], T + H, atol=0.02)
 
 
 def test_standoff_clears_back_of_board_and_fits_m3(base):
-    assert H >= 5 and P["insert_d"] >= 1.6 and P["standoff_d"] - P["insert_d"] >= 2.5
+    assert H >= 5 and 1.5 <= P["pilot_d"] <= 2.0 and P["standoff_d"] - P["pilot_d"] >= 2.5
 
 
 def test_hole_spacing_matches_calipers():
-    # holes 2.2; inside edge to inside edge 70.7 (long, X, along the rail) and 56.4 (short, Y); centres = inside + one hole
+    # holes 2.2; inside edge to inside edge 56.4 (short, X) and 70.7 (long, Y); centres = inside + one hole
     d = 2.2
-    assert np.isclose(P["hole_dx"], 70.7 + d, atol=0.01)
-    assert np.isclose(P["hole_dy"], 56.4 + d, atol=0.01)
+    assert np.isclose(P["hole_dx"], 56.4 + d, atol=0.01)
+    assert np.isclose(P["hole_dy"], 70.7 + d, atol=0.01)
     # the inside-edge diagonal 91.4 is an independent check on both
     assert abs(np.hypot(P["hole_dx"], P["hole_dy"]) - d - 91.4) < 0.2
     # board 63 x 77: holes land inside the board, edge margin 0.5 to 1.2 (owner said ~0.5 by eye)
-    for span, edge in ((P["hole_dx"], 77), (P["hole_dy"], 63)):
+    for span, edge in ((P["hole_dx"], 63), (P["hole_dy"], 77)):
         assert 0.5 <= (edge - span - d) / 2 < 1.3
 
 
@@ -71,7 +71,7 @@ def test_four_countersunk_clip_holes_through_the_plate(base):
     xs = [float(v) for v in re.search(r"clip_xs\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text()).group(1).split(",")]
     ys = [float(v) for v in re.search(r"clip_ys\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text()).group(1).split(",")]
     assert len(xs) * len(ys) == 4
-    assert abs(ys[0] - ys[1]) == pytest.approx(51, abs=0.01)  # clip span across the rail = the board's short side (Y)
+    assert abs(ys[0] - ys[1]) == pytest.approx(51, abs=0.01)  # clip span across the rail = the board's long side (Y)
     for x in xs:
         for y in ys:
             assert hits(base, x, y) == [] and len(hits(base, x + 2.5, y)) > 0  # open through the shank; solid just beside it

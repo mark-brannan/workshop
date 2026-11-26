@@ -32,7 +32,7 @@ def clips():
 
 
 def board(z0):
-    b = pv.Box(bounds=(-38.5, 38.5, -31.5, 31.5, z0, z0 + 1.6)).triangulate()
+    b = pv.Box(bounds=(-31.5, 31.5, -38.5, 38.5, z0, z0 + 1.6)).triangulate()
     return b
 
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     shot(OUT / "assembly.png", [
         ("board side up, from front-left: front = -Y (viewer), rail runs left-right (X)", (-1, -1, 0.9), (0, 0, 1), False),
         ("from below: clips screwed to the back (rail side), hook end at +Y", (1, 1, -0.9), (0, 0, 1), False),
-        ("plan from above: board long side and terminal strips along the rail (X); clips across it (Y)", (0, 0, 1), (0, 1, 0), True),
+        ("plan from above: board short side along the rail (X); long side and clips across it (Y)", (0, 0, 1), (0, 1, 0), True),
         ("end view from +X: clip hooks at top (+Y), spring latch at bottom (-Y)", (1, 0, 0), (0, 0, 1), True),
     ])
     shot(OUT / "assembly_exploded.png", [("exploded: clips screwed to the back, board on the four standoffs", (-1, -1, 0.5), (0, 0, 1), False)],
