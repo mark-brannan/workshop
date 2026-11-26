@@ -22,7 +22,7 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Item | Value | Note |
 |---|---|---|
 | Driver handle opening | 10 dia, circular, in the bottom | |
-| Post diameter | very slightly under 10 | exact value to gauge |
+| Post diameter | 9.9, fixed, same for all 7 | your "very slightly under 10"; not below it |
 | Post height | up to 50, probably ~25 | start at 25 |
 
 ## Zone C: holes
