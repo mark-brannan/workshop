@@ -6,8 +6,9 @@
 // After Szmalu's "DIN Rail Stand KIT" (Thingiverse 3609072; nothing of its mesh is used): each rail passes through
 // the bracket in a slot of its own cross-section, held between the slot's flat faces, and one M4 screw through
 // the slot's cover and the rail's base pins it lengthwise. The plate is thick across the rail and the bars are
-// ladders, two thin strips with a slot between, as the original's foot is. As the original, the face ends in the
-// top rail's block, and a crossbar from the back post meets that block just below the rail's centre; a diagonal
+// ladders, two thin strips with a slot between, as the original's foot is. The top is the original's: a solid 3 mm
+// post and face meet in a flat corner flush with the top rail block, each rail is set into the face so its block
+// is flush with the face's outer line, and a 3 mm crossbar's top meets the top block's bottom; a diagonal
 // from just below the lower rail's centre to the back rail's block makes a triangle with the face and foot.
 //
 // The profile is drawn in 2D with x toward the front of the desk and y up, then extruded bracket_t:
@@ -55,16 +56,18 @@ $fn = 48;
 e = 0.01;
 u = [-cos(a), sin(a)];            // up the face
 n = [sin(a), cos(a)];             // out of the face (toward the user)
-face_len = s1 + pitch + 17.5 + block_wall + strut / 2;  // face runs up into the top of the back post, as the original
-foot0 = [strut / 2 + face_len * cos(a), bar_w / 2];   // face centreline at its foot
+top_in = 9;                                         // the face's outer line meets the flat top this far forward of the post's back, as the original
+rail_top = 25;                                      // top rail centre, this far down the face from that corner, as the original
+face_len = s1 + pitch + rail_top;
+foot0 = [top_in - (strut / 2) * sin(a) + face_len * cos(a), bar_w / 2];   // face centreline at its foot
 top = foot0 + face_len * u;                           // the corner: face meets the post
 foot_len = flat_x + mod_h / 2 + 10;
-top_y = local(edge(s1 + pitch), n, -17.5 - block_wall, 7.5 + cover)[1];   // flat top: post and top block flush, as the original
+top_y = top[1] + (strut / 2) * cos(a);              // flat top: post, top block and face flush, as the original
 post_top = [strut / 2, top_y - strut / 2];
 post_foot = [strut / 2, bar_w / 2];
 foot_end = [foot_len, bar_w / 2];
 
-function edge(s) = foot0 + s * u + (strut / 2) * n;  // rail base on the face's outer edge
+function edge(s) = foot0 + s * u + (strut / 2 - 7.5 - cover) * n;  // rail base, set into the face so the block's outer side is flush with it, as the original
 
 // rail seats: base point and outward direction
 seats = [[edge(s1), n], [edge(s1 + pitch), n], [[flat_x, bar_w], [0, 1]], [[back_x, bar_w], [0, 1]]];
@@ -101,7 +104,7 @@ module profile() {
             bar([bar_w / 2, bar_w / 2], foot_end);   // foot, on the desk, flush with the back of the post
             bar(post_foot, post_top, strut);     // back post
             bar(foot0, top, strut);              // sloped face
-            hull() { at(seats[1][0], seats[1][1]) block2d(); translate([0, top_y - strut]) square(strut); }   // the top block fills the corner, as the original
+            hull() { at(seats[1][0], seats[1][1]) block2d(); translate([0, top_y - strut]) square([top_in, strut]); translate(top) circle(d = strut); }   // the top block fills the corner, as the original
             bar([strut / 2, cross_y], [face_x(cross_y), cross_y], strut);   // crossbar, post to face, under the top block
             bar(j1, k0);                         // diagonal, tier 1 block to back rail block
             for (s = seats) at(s[0], s[1]) block2d();

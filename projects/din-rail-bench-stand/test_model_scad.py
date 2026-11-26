@@ -22,14 +22,15 @@ A = math.radians(P["a"])
 W, T = P["bar_w"], P["bracket_t"]
 U = np.array([-math.cos(A), math.sin(A)])
 N = np.array([math.sin(A), math.cos(A)])
-FACE_LEN = P["s1"] + P["pitch"] + 17.5 + P["block_wall"] + W / 2
-FOOT0 = np.array([W / 2 + P["face_shift"] + FACE_LEN * math.cos(A), W / 2])
-TOP = FOOT0 + FACE_LEN * U
+S = P["strut"]
+FACE_LEN = P["s1"] + P["pitch"] + P["rail_top"]
+FOOT0 = np.array([P["top_in"] - S / 2 * math.sin(A) + FACE_LEN * math.cos(A), W / 2])
+TOP_Y = (FOOT0 + FACE_LEN * U)[1] + S / 2 * math.cos(A)
 FOOT_LEN = P["flat_x"] + P["mod_h"] / 2 + 10
 
 
 def edge(s):
-    return FOOT0 + s * U + (W / 2) * N
+    return FOOT0 + s * U + (S / 2 - 7.5 - P["cover"]) * N
 
 
 UP = np.array([0.0, 1.0])
@@ -61,22 +62,29 @@ def test_one_watertight_piece(bracket):
 
 
 def test_bounds(bracket):
-    assert np.allclose(bracket.bounds, [[0, 0, 0], [FOOT_LEN + W / 2, TOP[1] + W / 2, T]], atol=0.1)
+    assert np.allclose(bracket.bounds, [[0, 0, 0], [FOOT_LEN + W / 2, TOP_Y, T]], atol=0.1)
 
 
-def test_braces_join_rail_blocks_below_the_rail_centre(bracket):
-    # crossbar: back post to the top block; diagonal: lower block to the back rail block. Each is solid at its
-    # middle and lands on its block's inner side, below the rail's centre line along the face
-    (c1, _), (c2, _), _, (cb, _) = SEATS
+def test_top_is_the_originals(bracket):
+    # as Szmalu's: a solid 3 mm post, flat on top, flush with the top rail block; the face's outer line meets the
+    # flat top top_in forward of the post's back; a 3 mm crossbar whose top meets the top block's bottom
+    assert solid(bracket, (S / 2, TOP_Y / 2)) and not solid(bracket, (S + 0.5, TOP_Y / 2))
+    assert solid(bracket, (P["top_in"] - 0.5, TOP_Y - 0.5)) and not solid(bracket, (P["top_in"] + 1.5, TOP_Y - 0.5))
+    c2 = SEATS[1][0]
+    low = local(c2, N, 17.5 + P["block_wall"], -W)[1]
+    assert solid(bracket, (S + 5, low - S / 2)) and not solid(bracket, (S + 5, low - S - 0.5))
+
+
+def test_diagonal_joins_the_tier_1_block_below_the_rail_centre(bracket):
+    (c1, _), _, _, (cb, _) = SEATS
     j1 = local(c1, N, P["below"], -W / 2)
-    j2 = local(c2, N, P["below"], -W / 2)
     k0 = np.array([P["back_x"] + 17.5 + P["block_wall"] - W / 2, W + 7.5 + P["cover"] - W / 2])
-    for a_, b_ in ((np.array([W / 2, j2[1]]), j2), (j1, k0)):
+    for a_, b_ in ((j1, k0),):
         d = (b_ - a_) / np.linalg.norm(b_ - a_)
         side = np.array([-d[1], d[0]])
         mid = (a_ + b_) / 2
         assert solid(bracket, mid + (W / 2 - P["strip"] / 2) * side) and solid(bracket, mid - (W / 2 - P["strip"] / 2) * side)
-    assert P["below"] > 0 and j2[1] < c2[1] and j1[1] < c1[1]
+    assert P["below"] > 0 and j1[1] < c1[1]
 
 
 def test_gauge_is_one_rail_block(tmp_path):
@@ -86,8 +94,8 @@ def test_gauge_is_one_rail_block(tmp_path):
 
 
 def test_volume_window(bracket):
-    bars = FOOT_LEN + TOP[1] + FACE_LEN + TOP[0]  # foot, back post, face, top bar centrelines
-    lo = bars * 2 * P["strip"] * T     # two strips per ladder bar; rungs, strut and rail blocks add to this
+    blocks = 4 * (35 + 2 * P["block_wall"]) * (W + 7.5 + P["cover"])   # rail slots come out of these
+    lo = (FOOT_LEN * 2 * P["strip"] + (TOP_Y + FACE_LEN) * S + blocks / 2) * T   # foot ladder, solid post and face
     assert lo < bracket.volume < 1.8 * lo
 
 
