@@ -87,7 +87,8 @@ rd_hook_w = 5;       // bottom lip, centred: a short stay, clear of the parts al
 rd_lip_gap = 0.1;    // board back to where the lip underside starts
 rd_beam_t = 1.2;     // beam thickness; at rd_rib_t the rib is not thinned (was 0.7: top and side beams snapped at the root, owner, 2026-11-25)
 rd_fillet_in = 0.4;  // beam root fillet on the board side, inside the 0.5 slack
-rd_fillet_out = 0.8; // beam root fillet on the outside
+rd_fillet_out = 1.5; // beam root fillet on the outside, as the OLED's
+rd_floor_fillet = 0.5;  // root fillet on the pocket floor, board side of the bottom rib and top beams: inside the 0.5 slack
 rd_groove = 0.5;     // beam root sunk this far into the face, for a longer, softer beam
 rd_top_x = [8, 10.7];   // top snap lips on the top rib's corner stubs, |X| span, clear of the header
 rd_skin = 0.6;       // face left in front of the antennas: 1.5 is near a quarter wave at 24 GHz, the worst reflection
@@ -101,6 +102,7 @@ tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
 ol_beam_t = 1.2;     // OLED side beams, the full rib like the radar's (were 0.7; owner, 2026-11-25)
+ol_fillet_out = 1.5;  // outside root fillet of each OLED side beam: no sharp corner for a crack to start; about 1.0 tall at the wall
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -138,6 +140,7 @@ hook_w = 4.3;
 hook_t = 1.0;        // post, Y; flexes away from the board
 hook_slot = 0.8;     // free gap either side of the post
 hook_root = 0.6;     // post joins the tray only in this bottom layer
+hook_fillet = 0.4;   // post root fillet each side, half the free gap
 strap_t = 1.6;       // bed-side strap closing the plug gap; leaves room under a plug fatter than guessed
 hdr_win = [-17.3, 28.5, 40.3];   // TM1637 header joints, -X end: window x from the edge to [0], y [1] to [2]
 
@@ -147,6 +150,7 @@ tab_len = 6;         // snap tab, into the shell
 tab_t = 1.2;
 tab_w = 10;
 tab_clr = 0.2;       // tab to the wall
+tab_fillet = 1.0;    // root fillet on the inner side of each tab and end stop (the wall side has no room)
 bump = 0.5;          // 45 deg both faces: gentle
 bump_z = 3;          // bump centre in front of the shell rim
 end_len = 4;         // end stops: plain tabs inside the top and bottom walls, so the plate cannot slide along Y
@@ -249,15 +253,8 @@ module ol_lips() {
             union() {
                 polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
                 translate([sx*(ol_beam_t - 0.05)/2, zb + ol_lip/2]) square([ol_beam_t - 0.05, ol_lip + 0.6], center = true);   // the beam carried up behind the lip, 0.05 shy of its outer face: a 0.4 foot is under one line, and the slicer floats the lip
-                ol_gusset(sx, zb + 2*ol_lip + 0.3 - 0.05);   // outside brace to the face: the lip cannot break off its root
             }
     }
-}
-// 45 deg brace on the outside of a side beam, from the face to the lip's top, the beam's length; sunk 0.3 into the face.
-module ol_gusset(sx, top) {
-    g = top - face_t;
-    polygon([[0, face_t - 0.3], [sx*(ol_beam_t + g), face_t - 0.3], [sx*(ol_beam_t + g), face_t],
-             [sx*(ol_beam_t - 0.05), top], [0, top]]);
 }
 module ol_snap_cuts() {   // slots either side of each side beam and its outside thinned, sunk rd_groove into the face
     zc = face_t - rd_groove + 10; x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
@@ -300,26 +297,37 @@ module rd_beam_cuts() {
 // Fillets where each snap beam roots in the face, both sides, so the bend has no sharp corner to start a crack.
 // Concave and upward-facing in print pose: no overhang.
 module fillet2d(r) { translate([-0.01, -0.01]) difference() { square([r + 0.01, r + 0.01]); translate([r + 0.01, r + 0.01]) circle(r, $fn = 24); } }
+// Root fillet, wall along +Y, floor along +X: the arc cuts both the wall and the floor at an angle, not tangent, so
+// the mesh has no zero-width tip or sliver; about 0.64 r tall at the wall, 0.74 r out on the floor. Buried 0.1 into both.
+module root_fillet(r) { difference() { translate([-0.1, -0.1]) square([r + 0.1, r + 0.1]); translate([0.94*r, 0.98*r]) circle(r, $fn = 48); } }
 // OLED side beams: an outside fillet only, in the corner of the thinning cut, sunk rd_groove into the face.
 module ol_beam_fillets() {
     x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
     for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len + (ol_beam_t < ol_rib_t ? 0 : 1), center = true)   // full-rib beam: runs into the slots, which trim it flush
         if (ol_beam_t < ol_rib_t) translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
-        else translate([sx*(x_in + ol_beam_t), face_t]) scale([sx, 1])   // full-rib beam: fillet on the face, 0.5 tall at the wall; the arc cuts the wall at an angle, not tangent, so the mesh has no zero-width tip
-            difference() { translate([-0.1, -0.1]) square([0.9, 0.9]); translate([0.75, 0.8]) circle(0.8, $fn = 32); }
+        else translate([sx*(x_in + ol_beam_t), face_t]) scale([sx, 1]) root_fillet(ol_fillet_out);   // full-rib beam: fillet on the face
 }
 module rd_beam_fillets() {
     x_in = rd_w/2 + rd_slack; y0 = rd_h/2 - 1 - rd_lip_len; y_in = rd_cy + rd_h/2 + rd_slack;
     for (sx = [-1, 1]) {
         translate([0, rd_cy + y0 + rd_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(rd_lip_len, center = true) {
             translate([sx*x_in, face_t]) scale([-sx, 1]) fillet2d(rd_fillet_in);
-            translate([sx*(x_in + rd_beam_t), face_t]) scale([sx, 1]) fillet2d(rd_fillet_out);
+            translate([sx*(x_in + rd_beam_t), face_t]) scale([sx, 1]) root_fillet(rd_fillet_out);
         }
         x = xs(sx, rd_top_x[0], rd_top_x[1]);
         yz(x[0], x[1]) {
             translate([y_in, face_t]) scale([-1, 1]) fillet2d(rd_fillet_in);
-            translate([y_in + rd_beam_t, face_t]) fillet2d(rd_fillet_out);
+            translate([y_in + rd_beam_t, face_t]) root_fillet(rd_fillet_out);
         }
+    }
+}
+// Where the antenna pocket runs to a rib, the board-side root sits on the pocket floor: fillet it along the bottom rib
+// (the hook's pry pulls this side) and under the top beams, in the slack below the board's edge. Added after the pocket cut.
+module rd_floor_fillets() {
+    px = rd_w/2 - rd_border; y_lo = rd_cy - (rd_h/2 + rd_slack); y_hi = rd_cy + rd_h/2 + rd_slack;
+    yz(-px - 0.01, px + 0.01) translate([y_lo, rd_skin]) root_fillet(rd_floor_fillet);
+    for (sx = [-1, 1]) { x = xs(sx, rd_top_x[0], px + 0.01);
+        yz(x[0], x[1]) translate([y_hi, rd_skin]) scale([-1, 1]) root_fillet(rd_floor_fillet);
     }
 }
 // Thin face in front of the antennas, pocketed from inside (its floor faces the back: no overhang).
@@ -456,6 +464,7 @@ module shell() {
             cube([ol_w + 2*ol_slack + 0.04, in_h - (ol_cy - ol_h/2 - ol_slack - 0.02), face_t]);       // up to the top wall
     }
     if (ol_beam_t < ol_rib_t) ol_beam_fillets();   // after the cuts: it sits in the thinning cut's corner
+    rd_floor_fillets();
 }
 
 // Tray, placed. A frame whose front face bears on the TM1637's back wherever it is bare: side
@@ -492,7 +501,11 @@ module tray_placed() {
         s = xs(sx, seat_x, rail_x + 0.01); r = xs(sx, hook_x0, rail_x + 0.01); p = xs(sx, hook_x0, hook_x0 + hook_w);
         translate([s[0], d1_y1 - seat, tray_z0]) cube([s[1] - s[0], seat_y1 - d1_y1 + seat, tray_t]);    // top seat
         translate([r[0], seat_y1 - 0.01, tray_z0]) cube([r[1] - r[0], tm_win_y1 - seat_y1 + 0.02, hook_root]);  // hook root
-        yz(p[0], p[1]) hook_profile();
+        yz(p[0], p[1]) {
+            hook_profile();
+            translate([post_y0, tray_z0 + hook_root]) scale([-1, 1]) root_fillet(hook_fillet);   // root fillets in the free gaps, both sides
+            translate([post_y1, tray_z0 + hook_root]) root_fillet(hook_fillet);
+        }
     }
     // lower edge: the lip profile across the full width, its catch cut away in the centre. What is left there is the stop
     // block (the board's lower edge bears on it, flush with the board's face so the module's can clears it, no overhang);
@@ -513,12 +526,16 @@ module back_placed() {
     for (sx = [-1, 1], y = tab_ys) {
         x_out = sx*(in_w/2 - tab_clr);
         translate([x_out - (sx > 0 ? tab_t : 0), y - tab_w/2, shell_d - tab_len]) cube([tab_t, tab_w, tab_len + 0.01]);
+        translate([x_out - sx*tab_t, y, shell_d]) rotate([90, 0, 0]) linear_extrude(tab_w, center = true)
+            scale([-sx, -1]) root_fillet(tab_fillet);   // inner root; concave and facing up in print pose
         translate([x_out, y, shell_d - bump_z]) rotate([90, 0, 0]) linear_extrude(tab_w, center = true)
             polygon([[0, -bump], [sx*bump, 0], [0, bump]]);
     }
     translate([end_w[0][0], cy0 - in_h/2 + end_clr, shell_d - end_len]) cube([end_w[0][1] - end_w[0][0], end_t, end_len + 0.01]);
+    yz(end_w[0][0], end_w[0][1]) translate([cy0 - in_h/2 + end_clr + end_t, shell_d]) scale([1, -1]) root_fillet(tab_fillet);
     for (sx = [-1, 1]) { x = xs(sx, end_w[1][0], end_w[1][1]);
         translate([x[0], cy0 + in_h/2 - end_clr - end_t, shell_d - end_len]) cube([x[1] - x[0], end_t, end_len + 0.01]);
+        yz(x[0], x[1]) translate([cy0 + in_h/2 - end_clr - end_t, shell_d]) scale([-1, -1]) root_fillet(tab_fillet);
     }
 }
 
