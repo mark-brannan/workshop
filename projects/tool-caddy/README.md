@@ -30,15 +30,20 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Shaft diameter | just under 3; use 3 | tip-down hole |
 | Length | ~155 | |
 
-## Layout (plan view, not to scale)
+## Layout (plan view from the user's seat, not to scale)
+
+Two rows. Front row: the tray with its 50 side facing the user (85 deep), the hex posts beside it in a line. Back row: the long drivers in a line.
 
 ```
- Zone A 85 x 50      Zone B: 7 posts, 15 c-c    Zone C: ~9 holes, 20 c-c
- [ open tray     ]   o  o  o  o  o  o  o        O  O  O  O  O  O  O  O  O
+ back    O  O  O  O  O  O  O  O  O          C: 9 holes, 20 c-c, ~178 wide
+ front   [ A tray ]  o  o  o  o  o  o  o    A: 50 wide x 85 deep; B: 7 posts, 15 c-c, ~100 wide
+                         user
 ```
+
+Front row is about 50 + wall + 100 = ~160 wide; back row is ~178. Row depths: front 85 (tray); back ~20 (handle Ø18 plus wall).
 
 ## Open
 
-- Arrangement of the zones, rows, overall size.
-- In a single line B spans 90 c-c and C spans 160 c-c.
+- Which side of the tray the posts sit on, and whether the back row is centred or flush left.
+- Overall width: take the back row's ~178 and let the front row sit within it, or widen it to match.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
