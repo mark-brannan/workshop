@@ -183,3 +183,23 @@ def test_cover_fire_glyph_groove_reads_from_above(cover):
     assert half_w - P["glyph_h"] * np.abs(pts[:, 0]).max() - depth >= 2.5  # margin to the plate's long edges
     tip_x = glyph_x - P["glyph_h"] * pts[:, 1].max()
     assert tip_x - depth - (cell_x + P["cell_hole_d"] / 2) >= 2.5  # and to the cell hole
+
+
+def test_plate_three_pods_covers_off_centre_and_not_back_right(tmp_path_factory):
+    d = tmp_path_factory.mktemp("plate")
+    for f in ("model.scad", "part-plate.scad", "part-cover.scad"):
+        (d / f).write_text((HERE / f).read_text())
+    (d / "art").mkdir()
+    (d / "art/fire-glyph.scad").write_text((HERE / "art/fire-glyph.scad").read_text())
+    plate = trimesh.load(build_scad(d / "part-plate.scad", d, "plate", render=False)["stl"])
+    parts = plate.split(only_watertight=False)
+    assert len(parts) == 6
+    covers = [p for p in parts if p.bounds[1][2] < 7]  # cover is 5.6 tall, shell 10.8
+    shells = [p for p in parts if p.bounds[1][2] > 7]
+    assert len(covers) == len(shells) == 3
+    for c in covers:
+        x, y = c.bounds.mean(axis=0)[:2]
+        assert abs(x) > 60, "cover away from the centre"
+        assert not (x > 0 and y > 0), "back right quadrant stays empty"
+    assert plate.bounds[0][2] == pytest.approx(0, abs=1e-6)
+    assert plate.bounds[1][0] - plate.bounds[0][0] < 350
