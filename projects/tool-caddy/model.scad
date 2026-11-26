@@ -21,8 +21,9 @@ function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
 snip_w = 40; snip_h = 45; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
-snip_wall = 2.5; snip_plate_t = 2.5; snip_clear = 1; snip_over = 0.5; snip_tip_up = 3;   // tip hangs 3 above the base
-snip_total_w = snip_w + snip_clear + 2*(snip_plate_t + snip_wall - snip_over);
+snip_wall = 3; snip_thumb_t = 4; snip_thumb_len = 9; snip_clear = 2; snip_tilt = 15; snip_tip_up = 3;   // tip hangs 3 above the base
+snip_W = snip_w + snip_clear - snip_hand_in;                 // web centre to web centre (32)
+snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall);      // outer width of the pair
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
@@ -59,23 +60,37 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 10;
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down, hung by the shoulders (45 from the tip, 40 wide, where the recurve begins).
-// Two lobster claws rise from rear plates, each a thin C seen from above, ⊂ ⊃, openings facing each other,
-// 10 inside, 2.5 wall: the snips drop in from above and each shoulder edge sits in a claw. A 45 deg bowl
-// under the C takes the shoulder's underside; a 45 deg rib joins it to the plate (support from behind only).
+// One hand-like part: the fingers are a single back wall across the whole pair, rising from the base and
+// curling forward at each end through a round web into a short thumb (the saddle). Seen from above:
+// ⊂ ⊃ joined at the back, openings facing each other, 10 inside, 3 wall, 12 tall, no floor between.
+// Each thumb is 9 long, 4 thick, tilted 15 deg up toward the inside; the pair is 2 wider than the
+// shoulders so they push up into the thumbs and catch. A leg under each thumb leans back as it goes down
+// to the floor (about 8 deg), so the thumb's underside is held. Rim rounded 1 outside, 1.8 on the inside edge.
 snip_hand_h = 12;
-module soft(r = 1) { offset(r = r, $fn = 24) offset(delta = -r) children(); }   // rounds every convex corner
-module claw2d() { Ri = snip_hand_in/2; R = Ri + snip_wall - snip_over;           // ring centre at (R, 0); its back sinks 0.5 into the plate at x = 0
-  soft(1) difference() { translate([R, 0]) circle(r = R + snip_over, $fn = 48);
-    translate([R, 0]) union() { circle(r = Ri, $fn = 48); translate([0, -snip_hand_gap/2]) square([R + 1, snip_hand_gap]); } } }
-module snip_hand() { R = snip_hand_in/2 + snip_wall - snip_over; z0 = snip_h + snip_tip_up;   // left hand: inward is +x; z0 = shoulder rest
-  translate([0, 0, z0]) linear_extrude(snip_hand_h) claw2d();
-  translate([R, 0, z0 - R]) cylinder(r1 = 2.5, r2 = R, h = R + 0.5, $fn = 48);          // 45 deg bowl under the ring
-  translate([0, snip_wall/2, 0]) rotate([90, 0, 0]) linear_extrude(snip_wall)     // 45 deg rib from the plate to the bowl
-    polygon([[-0.5, z0 - R - 5.5], [R, z0 - R], [R, z0 + 0.5], [-0.5, z0 + 0.5]]);
-  translate([-snip_plate_t, 0, 0]) rotate([90, 0, 90]) linear_extrude(snip_plate_t) soft(1) translate([-R - snip_over, 0]) square([2*(R + snip_over), z0 + snip_hand_h]); }
-module snips() { translate([front_w + 5, wall + 27 + snip_hand_d/2, base_t]) {
-    translate([snip_plate_t, 0, 0]) snip_hand();                                      // left hand: inward is +x
-    translate([snip_total_w - snip_plate_t, 0, 0]) rotate([0, 0, 180]) snip_hand(); } }  // right hand: a turn, not a mirror
+function inset(r, d) = d >= r ? 0 : r - sqrt(r*r - (r - d)*(r - d));   // how far a rounded edge of radius r stands back, d below the top
+module soft(r = 1) { offset(r = r, $fn = 24) offset(delta = -r) children(); }
+module stadium(r) { hull() { circle(r = r, $fn = 48); translate([snip_W, 0]) circle(r = r, $fn = 48); } }
+module body2d(eo, ei) { Ri = snip_hand_in/2; R = Ri + snip_wall;                   // fingers and webs: front wall cut away between x = 0 and W
+  difference() { offset(delta = -eo) stadium(R);
+    union() { offset(delta = ei) stadium(Ri); translate([0, -R - 2]) square([snip_W, R + 2]); } } }
+module thumb2d(s, eo, ei) { Ri = snip_hand_in/2; x0 = s > 0 ? -0.5 : snip_W - snip_thumb_len;   // s = +1 left thumb, -1 right
+  soft(0.8) translate([x0, -Ri - snip_thumb_t + eo]) square([snip_thumb_len + 0.5, snip_thumb_t - eo - ei]); }
+module layered(h, ro, ri, which, s = 1) { n = 6; hs = max(ro, ri)/n;
+  translate([0, 0, hs*n]) linear_extrude(h - hs*n) { if (which == 0) body2d(0, 0); else thumb2d(s, 0, 0); }
+  for (k = [0:n-1]) { d = (k + 0.5)*hs; eo = inset(ro, d); ei = inset(ri, d);
+    translate([0, 0, hs*n - (k + 1)*hs]) linear_extrude(hs + 0.01) { if (which == 0) body2d(eo, ei); else thumb2d(s, eo, ei); } } }
+module snip_thumb(s) { Ri = snip_hand_in/2; z0 = snip_h + snip_tip_up; px = s > 0 ? 0 : snip_W;
+  translate([px, 0, z0]) rotate([0, -s*snip_tilt, 0]) translate([-px, 0, 0]) layered(snip_hand_h, 1.2, 2.5, 1, s);
+  // leg: from the thumb's underside down to the floor, leaning back toward the web as it descends
+  zt = z0 + snip_thumb_len*tan(snip_tilt) - 0.5; yc = -Ri - snip_thumb_t;
+  translate([0, yc, 0]) rotate([90, 0, 0]) translate([0, 0, -snip_thumb_t]) linear_extrude(snip_thumb_t)
+    polygon(s > 0 ? [[-3, 0], [2, 0], [snip_thumb_len - 0.5, zt], [-0.5, z0 - 0.5]]
+                  : [[snip_W + 3, 0], [snip_W - 2, 0], [snip_W - snip_thumb_len + 0.5, zt], [snip_W + 0.5, z0 - 0.5]]); }
+module snips() { R = snip_hand_in/2 + snip_wall; z0 = snip_h + snip_tip_up;
+  translate([front_w + 5 + R, wall + 27 + R, base_t]) {
+    translate([0, 0, z0]) layered(snip_hand_h, 1, 1.8, 0);                            // fingers and webs
+    translate([-R, R - snip_wall, 0]) cube([snip_W + 2*R, snip_wall, z0 + 0.01]);      // the back wall, down to the base
+    snip_thumb(1); snip_thumb(-1); } }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
