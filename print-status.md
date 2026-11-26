@@ -6,15 +6,15 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | Project | State | Open |
 |---|---|---|
 | halmet-enclosure-mount | done | |
-| din-rail-psu-mount | done after the hole tweaks in progress | tweaks, then reprint |
-| heater-fan-mount | reprint | first print had the pot hole in the wrong place; the 2026-11-22 ASA-CF reprint fell at layer 420 (k2-plus-mods printer notes, Camera); next try waits on a build plate choice; gauges not yet checked on the boat |
+| din-rail-psu-mount | done | |
+| heater-fan-mount | ready, after the PETG items | first print had the pot hole in the wrong place; the 2026-11-22 ASA-CF reprint fell at layer 420 (k2-plus-mods printer notes, Camera); ASA-CF items come after the PETG queue; gauges not yet checked on the boat |
 | desk-presence-sensor | partly | gauge and tray printed; back and full assembly not |
-| bme688-cabin-screen | nearly done | reprint the cover only, from main (the 2026-11-22 03:37 cover came from the old file); fit it arch out; done if the holes work |
+| bme688-cabin-screen | done | |
 | printer-chute-transition | done, functional | friction fit poor; attach with tape or similar, no cyanoacrylate |
 | calibration | printed, not reviewed | review card: what the prints show |
-| photocell-flame-pod | next, priority 1 | nothing sliced or printed; gauge prints first |
-| esp32-freenove-universal-mount | next, priority 2 | Freenove universal breakout board; other boards get their own project |
-| shower-sump-platform | next, priority 3 | not printed |
+| photocell-flame-pod | next, priority 1 | nothing sliced or printed; no gauge |
+| esp32-freenove-universal-mount | done | Freenove universal breakout board; other boards get their own project |
+| shower-sump-platform | next, after the small parts | not printed |
 | lux-sensor-mount, lux-capsule, lux-tube-cap, gv30-lux-mount | needs design work | |
 | small-box-sensors, imu-tray, halpi2-endpoint-box, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |
 | rudder-angle-sensor, rudder-sensor-pedestal | low priority | |
