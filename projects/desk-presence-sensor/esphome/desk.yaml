@@ -1,3 +1,5 @@
+# BENCH COPY. The real firmware and radar tuning live in ~/home-automation (esphome/desk-presence-esp8266.yaml,
+# esphome/common/ld2410.yaml, docs/desk-presence-bringup.md). Edit and flash there; see this project's README.
 # Desk presence sensor, bench milestone: TM1637 sitting timer while the LD2410C sees you.
 # Pins are the README's Wiring table. Secrets: copy secrets.example.yaml to secrets.yaml.
 esphome:

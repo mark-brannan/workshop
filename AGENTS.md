@@ -115,3 +115,11 @@ Undecided is not a home. Work goes where its purpose is: choosing something for 
   `shop symphony` prints the index; a test fails on a link whose path left symphony's main.
 - Before designing a part that will be installed on the boat, read the symphony paths on its `Symphony:` line; firmware, pin choices and circuits there constrain the part.
 - A fact has one home. Don't copy a symphony table here; link it.
+
+## Sibling repo: home-automation (firmware and Home Assistant)
+
+Device firmware (ESPHome YAML), its sops-encrypted secrets and Home Assistant config live in `~/home-automation`
+([mark-brannan/home-automation](https://github.com/mark-brannan/home-automation)), not here. A project's `esphome/` folder
+here is a bench copy at most. For the desk presence sensor: `esphome/desk-presence-esp8266.yaml`, radar block
+`esphome/common/ld2410.yaml`, tuning without a reflash in `docs/desk-presence-bringup.md`. Look there before asking
+the user where firmware or secrets are.
