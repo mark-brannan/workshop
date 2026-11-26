@@ -8,7 +8,8 @@
 ``mode = "2d"`` at top level is a 2D model and also gets a DXF. Each
 ``part-<name>.scad`` beside it is a further printed part, built to ``out/<slug>_<name>.*``. Without
 OpenSCAD the .scad models are skipped, not failed (CI has none). An ``assembly.py`` beside them runs
-last, so its views are redrawn from the meshes just built.
+last, so its views are redrawn from the meshes just built. Each fresh 3MF that carries saved Orca
+settings is then sliced headless and Orca's warnings printed (``shop.orcacheck``); never a failure.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import overhang, solid
+from . import orcacheck, overhang, solid
 from .scad import build_scad, find_openscad, has_mode_variable
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -60,6 +61,10 @@ def build_project(proj: Path) -> int:
         if stl.stat().st_mtime >= started - 1:
             for w in solid.warnings(stl) + overhang.warnings(stl):
                 print(f"   WARNING {stl.name}: {w}")
+    for tmf in sorted((proj / "out").glob("*.3mf")):   # the slicer's own verdict, where the 3MF carries its settings
+        if tmf.stat().st_mtime >= started - 1:
+            for w in orcacheck.warnings(tmf):
+                print(f"   WARNING {tmf.name}: {w}")
     return rc
 
 
