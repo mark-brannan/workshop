@@ -47,7 +47,7 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 
 ## Layout (plan view from the user's seat, not to scale)
 
-Front row: A tray (short end toward the user), the calipers (head left), then B's 7 posts beside the calipers' right end in two columns (4 + 3). Back row: F (thin drivers, 45°) just behind the tray, then C (9 long drivers, 45°). Base 334 x 221. A vase-like area for rulers and long tools is wanted, not placed.
+Front row: A tray (short end toward the user), the calipers (head left), then B's 7 posts in one row along X, in line with the beam, past its right end. Back row: F (thin drivers, 45°) just behind the tray, then C (9 long drivers, 45°). Base 409 x 221. A vase-like area for rulers and long tools is wanted, not placed.
 
 C supports: a half-circle cradle (13 dia) at 30 along the driver, and a U-slot clip for the 3 mm shaft (open at the top, 4 above the axis) at 91 along the driver, above the footboard. The cradle is narrower than the 18 handles; confirm what it holds.
 
