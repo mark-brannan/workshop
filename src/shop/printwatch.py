@@ -39,6 +39,7 @@ HIGH_TEMP = ("ASA", "ABS")
 PLATES = {"frosted": 120, "smooth": 120, "pattern": 80, "epoxy": None}  # rated bed C; printer notes, Build plates
 SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "root@192.168.0.190"]
 CONFIG = "/mnt/UDISK/printer_data/config"
+GCODES = "/mnt/UDISK/printer_data/gcodes"
 # A firmware update resets these; each marker is a string the patched file holds (printer notes, Stalls).
 PATCHES = {
     "chamber check re-arms (verify_heater.py)": ("/usr/share/klipper/klippy/extras/verify_heater.py", "last_target = 0"),
@@ -192,15 +193,23 @@ def resolve(name: str) -> str:
 
 
 def read_job(name: str) -> Job:
-    meta = api("/server/files/metadata?filename=" + urllib.parse.quote(name))
-    req = urllib.request.Request(f"{URL}/server/files/gcodes/{urllib.parse.quote(name)}", headers={"X-Api-Key": _key()})
-    tool = re.compile(rb"^T\d+\b")
-    changes = []
-    with urllib.request.urlopen(req, timeout=30) as r:
-        for n, line in enumerate(r, 1):
-            if tool.match(line) and len(changes) < 3:
-                changes.append(f"line {n} {line.decode(errors='replace').strip()}")
-    return Job(name, meta.get("filament_type", "?"), float(meta.get("first_layer_bed_temp", 0)), float(meta.get("object_height", 0)), changes)
+    meta = api("/server/files/metadata?filename=" + urllib.parse.quote(name), timeout=30)
+    return Job(name, meta.get("filament_type", "?"), float(meta.get("first_layer_bed_temp", 0)), float(meta.get("object_height", 0)), toolchanges(name))
+
+
+def on_printer(cmd: str, timeout: float = 60) -> str:
+    """Run a shell command on the printer. Reads and edits gcode on its own disk: the web front end
+    gives 504 or times out on a whole-file download a few seconds after an upload."""
+    r = subprocess.run([*SSH, cmd], capture_output=True, text=True, timeout=timeout)
+    if r.returncode > 1:  # grep's 1 is "no match"
+        raise Refused(f"ssh to the printer failed ({r.returncode}): {r.stderr.strip().splitlines()[-1:]}")
+    return r.stdout
+
+
+def toolchanges(name: str) -> list[str]:
+    """The first three tool-change lines (``T0`` and the like) in the file on the printer."""
+    out = on_printer(f"grep -n -m 3 '^T[0-9]' {shlex.quote(GCODES + '/' + name)}")
+    return [f"line {ln.replace(':', ' ', 1)}" for ln in out.splitlines()]
 
 
 def read_patches() -> dict[str, int] | None:
@@ -294,10 +303,8 @@ def put(name: str, data: bytes) -> None:
 
 def restrip(name: str) -> None:
     """Strip the tool changes from the copy already on the printer."""
-    req = urllib.request.Request(f"{URL}/server/files/gcodes/{urllib.parse.quote(name)}", headers={"X-Api-Key": _key()})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        data = r.read()
-    put(name, spool_gcode(data))
+    on_printer(f"sed -i '/^T[0-9]/d' {shlex.quote(GCODES + '/' + name)}")
+    api("/server/files/metascan?filename=" + urllib.parse.quote(name), {}, timeout=60)  # the edit drops Moonraker's metadata
 
 
 def upload(a: argparse.Namespace) -> int:
@@ -588,8 +595,12 @@ def main(argv: list[str]) -> int:
     except urllib.error.HTTPError as e:
         print(f"watch {a.cmd}: the printer said {e.code} to {e.url.split('?')[0].removeprefix(URL)}: {e.reason}")
         return 1
-    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
-        print(f"watch {a.cmd}: cannot reach the printer at {URL} ({getattr(e, 'reason', e)}); is it on and on the network?")
+    except (urllib.error.URLError, TimeoutError, ConnectionError, subprocess.TimeoutExpired) as e:
+        why = getattr(e, "reason", e)
+        if isinstance(e, (TimeoutError, subprocess.TimeoutExpired)) or isinstance(why, TimeoutError):
+            print(f"watch {a.cmd}: a request to the printer at {URL} timed out ({why}); it may be up but busy, so retry before checking the network")
+        else:
+            print(f"watch {a.cmd}: cannot reach the printer at {URL} ({why}); is it on and on the network?")
         return 1
 
 

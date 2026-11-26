@@ -297,3 +297,14 @@ def test_an_exact_name_is_kept_and_a_missing_one_refused_in_words():
     assert pick_gcode("boxer.gcode", SLICES, None) == "boxer.gcode"
     with pytest.raises(Refused, match="not on the printer"):
         pick_gcode("lid.3mf", SLICES, None)
+
+
+def test_a_timeout_is_reported_as_a_timeout_not_as_unreachable(monkeypatch, capsys):
+    from shop import printwatch as pw
+
+    def slow(a):
+        raise TimeoutError("timed out")
+    monkeypatch.setattr(pw, "upload", slow)
+    assert pw.main(["upload", "x.gcode"]) == 1
+    out = capsys.readouterr().out
+    assert "timed out" in out and "cannot reach" not in out
