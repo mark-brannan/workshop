@@ -27,7 +27,7 @@ snip_L = (snip_h + snip_tip_up)*tan(snip_lean);                 // how far the w
 snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall + snip_L);   // outer width of the pair, feet included
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50;
 strip_block_w = strip_top_w + 2 + 2*(snip_wall + (strip_depth + 2)*tan(snip_lean) + 3);   // the ring's foot along X, fillets included
-snip_handle_w = 60;   // guess: the snips' handle span, not measured
+snip_handle_w = 85;   // the snips' handle span (user, ~85)
 strip_cc = (snip_handle_w + 60)/2 + 10;   // snips to strippers, centre to centre: half of each handle span and 10 between
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w/2 + strip_cc + strip_block_w/2 + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
