@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import time
+import zipfile
 from pathlib import Path
 
 import ezdxf
@@ -181,6 +182,23 @@ def split_bodies(stl: Path) -> list:
     return sorted(parts, key=lambda b: (round(b.bounds[0][1], 1), round(b.bounds[0][0], 1)))
 
 
+def part_names(scad: Path) -> list[str]:
+    """Names from a ``// parts: base, lid`` line, in split_bodies order (front to back, then left to right)."""
+    m = re.search(r"^//\s*parts:\s*(.+)$", Path(scad).read_text(), re.M)
+    return [n.strip() for n in m.group(1).split(",") if n.strip()] if m else []
+
+
+def name_object(tmf: Path, name: str) -> None:
+    """Replace OpenSCAD's default object name in a one-object 3MF."""
+    with zipfile.ZipFile(tmf) as z:
+        items = [(i, z.read(i.filename)) for i in z.infolist()]
+    with zipfile.ZipFile(tmf, "w", zipfile.ZIP_DEFLATED) as z:
+        for info, data in items:
+            if info.filename == "3D/3dmodel.model":
+                data = data.decode().replace('name="OpenSCAD Model"', f'name="{name}"', 1).encode()
+            z.writestr(info, data)
+
+
 def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool = False, *, render: bool = True, threemf: bool = False) -> dict:
     """Write ``name``.stl (and .dxf when ``two_d``, .3mf when asked) plus PNGs into ``outdir``.
 
@@ -213,14 +231,22 @@ def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool
         osc.run(scad_path, tmf, *three_d)
         paths["3mf"] = tmf
         bodies = split_bodies(paths["stl"]) if "stl" in paths else []
+        declared = part_names(scad_path)
+        base = name.removesuffix("_scad")
         if len(bodies) > 1:  # a plate: one object per body, so the slicer can move each
             from .plate import Placed, write_3mf
 
-            write_3mf([Placed(f"{name}-{i}", b) for i, b in enumerate(bodies, 1)], tmf)
+            if len(declared) != len(bodies):
+                paths["3mf_warning"] = (f"{len(bodies)} objects but {len(declared)} names on the '// parts:' line;"
+                                        f" objects are named {base}-1, {base}-2, ...: declare a name per part")
+                declared = [f"{base}-{i}" for i in range(1, len(bodies) + 1)]
+            write_3mf([Placed(n, b) for n, b in zip(declared, bodies)], tmf)
             if prior is not None:
                 paths["3mf_note"] = slicer3mf.archive(prior, tmf) + "; settings not carried onto a multi-object plate"
-        elif prior is not None:
-            paths["3mf_note"] = slicer3mf.carry(prior, tmf)
+        else:
+            name_object(tmf, declared[0] if declared else base)
+            if prior is not None:
+                paths["3mf_note"] = slicer3mf.carry(prior, tmf)
     paths["times"]["export"] = time.perf_counter() - t0
 
     if render:

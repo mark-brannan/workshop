@@ -2,6 +2,7 @@
 // Maxstupo's "DIN Rail Clip (Heat Insert Version)", Printables 420009 (CC BY 4.0), unchanged:
 // 60 x 18 x 7.5, centred on y, x from 0. Plate origin is the bed centre, +Y the back.
 // Each row is a pair: the right clip is the left one turned 180 degrees about Z (a turn, no mirror).
+// parts: clip-pair-1-left, clip-pair-1-right, clip-pair-2-left, clip-pair-2-right, clip-pair-3-left, clip-pair-3-right, clip-pair-4-left, clip-pair-4-right, clip-pair-5-left, clip-pair-5-right
 /* [Layout] */
 pairs = 5;     // rows
 gap_x = 6;     // between the two clips of a pair
