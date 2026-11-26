@@ -20,7 +20,7 @@ function foot_w(hd) = max(hd, 12)/2 + 3;       // footboard half-height, along i
 function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
-snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 10; snip_hand_in = 6; snip_hand_gap = 4; snip_arm_depth = 16;
+snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 10; snip_hand_in = 6; snip_hand_gap = 4; snip_arm_depth = 10;
 snip_cx = snip_w/2 + 2 + snip_hand_d/2;           // centre of the pair, from the holder's left edge
 snip_total_w = snip_w + 4 + snip_hand_d;
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
@@ -60,12 +60,12 @@ module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down: two open arms, each topped by a C-shaped hand that takes one shoulder
 // (shoulders 41 wide, 47 from the tip). Nothing between the arms. Hand sizes are guessed.
-module snip_hand(side) { translate([snip_cx + side*(snip_w/2+2), snip_arm_depth, snip_h + 2]) rotate([90,0,0]) difference() {
-    cylinder(d=snip_hand_d, h=snip_arm_depth, $fn=32);
-    translate([0,0,-1]) cylinder(d=snip_hand_in, h=snip_arm_depth+2, $fn=32);
-    translate([side > 0 ? -snip_hand_d/2 - 1 : 0, -snip_hand_gap/2, -1]) cube([snip_hand_d/2 + 1, snip_hand_gap, snip_arm_depth+2]); } }
+module snip_hand(side) { translate([snip_cx + side*(snip_w/2+2), snip_arm_depth/2, snip_h - 8]) difference() {
+    cylinder(d=snip_hand_d, h=10, $fn=32);          // axis up: seen from above, ⊂ ⊃, opening toward the other hand
+    translate([0,0,-1]) cylinder(d=snip_hand_in, h=12, $fn=32);
+    translate([side > 0 ? -snip_hand_d/2 - 1 : 0, -snip_hand_gap/2, -1]) cube([snip_hand_d/2 + 1, snip_hand_gap, 12]); } }
 module snips() { translate([front_w + 5, wall + 27, base_t]) {
-    for (side = [-1, 1]) { translate([snip_cx + side*(snip_w/2+2) - snip_arm_t/2, 0, 0]) cube([snip_arm_t, snip_arm_depth, snip_h + 2]); snip_hand(side); } } }
+    for (side = [-1, 1]) { translate([snip_cx + side*(snip_w/2+2), snip_arm_depth/2, 0]) cylinder(d=snip_hand_d, h=snip_h - 8, $fn=32); snip_hand(side); } } }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
