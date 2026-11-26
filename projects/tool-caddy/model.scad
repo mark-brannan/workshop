@@ -4,13 +4,13 @@
 /* [Layout] */
 wall = 3;
 base_t = 3;
-a_len = 85; a_wid = 50;          // zone A tray, open, flat
+a_len = 50; a_wid = 85;          // zone A tray, open, flat
 cal_len = 240; cal_wid = 78;     // calipers; jaw 45 toward the user, 31 behind the beam
 cal_beam = 16; cal_head = 40;    // beam width; head length along X (guess)
-c_pitch = 25; c_handle = 18; c_cols = 3; c_rows = 3;
+c_pitch = 25; c_handle = 18; c_cols = 9; c_rows = 1;
 b_n = 7; b_pitch = 15; b_post = 9.9; b_h = 25;
 f_n = 14; f_pitch = 6; f_depth = 85; f_h = 51;
-front_depth = 84;
+front_depth = 85;
 back_gap = 3;
 c_w = (c_cols-1)*c_pitch + c_handle + 2;
 b_w = (b_n-1)*b_pitch + b_post + 2*5;
