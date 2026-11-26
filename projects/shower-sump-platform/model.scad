@@ -1,4 +1,5 @@
 // Shower-sump platform: a flat deck the size of the sump's base, set at the height where the sump's
+// parts: platform
 // wings just reach the hull. Its two long edges are skirts leaning in at the hull's angle; they are the
 // bonding faces, bedded in thickened epoxy or 5200. Nothing reaches down to the keel.
 // Installed axes: X across the boat, Y fore-aft (+Y toward the bow), Z up; z = 0 at the deck's top.

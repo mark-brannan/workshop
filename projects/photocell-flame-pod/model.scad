@@ -1,4 +1,5 @@
 // Photocell flame pod: a small PETG shell for one LM393 photoresistor module.
+// parts: shell
 // Origin: inside floor corner at the photocell end, centred across. X along the module, header end at +X.
 // Print floor down, as modelled. The module sits component side up on two edge ledges and a boss.
 // Potted (default): a pin on the boss locates the board; epoxy fills to just under the trimpot top, so

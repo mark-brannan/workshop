@@ -36,7 +36,7 @@ SVG is an intermediate only; never the deliverable handed to the user.
 - Millimetres. Z up.
 - Print orientation is the model orientation unless the project README says otherwise.
 - A plate of several parts is one 3MF holding one object per part, never one merged object, so each can be moved in the slicer. `shop build` writes a model's separate bodies as separate objects; `shop plate` does the same.
-- Every object in a 3MF has a descriptive name for the part it is (`enclosure`, `lid`, `gauge-m3-boss`), never a tool default such as "OpenSCAD Model" or a bare index.
+- Every object in a 3MF has a descriptive name for the part it is (`enclosure`, `lid`, `gauge-m3-boss`), never a tool default such as "OpenSCAD Model" or a bare index. A model names its bodies on a `// parts: a, b, c` line (front to back, then left to right); `shop build` warns when the count is off.
 - Parts that go together and print together (an enclosure and its lid) share one 3MF, one object each. A part that prints on its own, at a different time (a gauge), gets its own 3MF; a related set of gauges may share one.
 - Supports are designed, not left to the slicer. Every overhang and ceiling in print orientation holds itself up by shape, for example:
   - a wall or slope at 45° or steeper, or the part reoriented so the overhang becomes a wall
@@ -48,7 +48,7 @@ SVG is an intermediate only; never the deliverable handed to the user.
   - a split into flat prints
 
   Where shape can't do it, model a breakaway support into the part. Flat overhangs and bridges tend to print badly even when short; avoid them where a shape will do, and raise any that remain with the user. The README says how each overhang is held. `shop build` warns on a flat overhang with its unsupported span; it never fails.
-- Every feature grows from the layer below it by at least one line width (~0.45 mm), never from a sliver, an edge or a point: a lip or hook stands on its rib's full width and leans out at 45°. The slicer drops what is narrower than a line, and the layer above it floats. `shop build` prints OrcaSlicer's own warnings for each 3MF that carries saved Orca settings.
+- Every feature grows from the layer below it by at least one line width (~0.45 mm), never from a sliver, an edge or a point: a lip or hook stands on its rib's full width and leans out at 45°. The slicer drops what is narrower than a line, and the layer above it floats. A feature may end in an edge or a point; it may not start from one. A breakaway support obeys this too: it is weak where it touches the part, never where it stands. `shop build` prints OrcaSlicer's own warnings for each 3MF that carries saved Orca settings.
 - A cable-tie point is a slit, a staple (a bar over a recess) or a gentle curve, never a V or teardrop. A slit's long side is square to the tie's run where it enters, and every edge the tie bends round is rounded or smooth. Draw the tie's path on the part before the print.
 - Prefer a method that builds the same mesh every time over one that doesn't, where either will do. `minkowski()` of non-convex shapes is one that doesn't: on Manifold its mesh changes from run to run and is often not a closed solid. `shop build` warns on a mesh that is not a closed solid, and on geometry that changed when no `.scad` did.
 - Parameters at the top of every model: a dataclass (Python) or Customizer-commented variables (OpenSCAD).

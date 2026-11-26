@@ -1,4 +1,5 @@
 // Onefinity touch-probe holder for a vertical surface: the probe drops in point first, as a diamond, and
+// parts: probe-holder
 // leans out 30 deg toward the user, its flat face resting on a support wall on the user's side; machined face
 // up, toward the wall, open between the fins. The two lower edges sit in a 90 deg V; the cords leave the two upper edges.
 // Probe frame: u across the face (X), v up the face, w through the thickness (+w = the support wall).

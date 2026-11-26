@@ -1,6 +1,7 @@
 // Fit-check gauge, generated: shop gauge projects/esp32-mrd066a-mount "base()" 1 8
 // Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
 // a hand-written gauge replaces this file and drops this first line.
+// parts: esp32-mrd066a-mount-gauge
 use <model.scad>
 
 /* [Gauge] */

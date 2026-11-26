@@ -24,6 +24,7 @@ MARK = "// Fit-check gauge, generated:"
 TEMPLATE = """{mark} shop gauge projects/{slug} "{call}" {args}
 // Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
 // a hand-written gauge replaces this file and drops this first line.
+// parts: {slug}-gauge
 use <model.scad>
 
 /* [Gauge] */

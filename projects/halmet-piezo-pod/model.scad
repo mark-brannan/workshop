@@ -1,4 +1,5 @@
 // HALMET piezo pod: a box with a snap-on lid on an engine-room bulkhead or deckhead.
+// parts: box
 // The XY-MOS trigger module sits in a seat on a plinth, its terminal pins in a blind pocket, two M2.5 screws at
 // the far end.
 // The flanged 12 V buzzer sits as low as the module allows, its ears on two bosses that grow out of the long
