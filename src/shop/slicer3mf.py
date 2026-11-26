@@ -56,6 +56,19 @@ def _same(a: list, b: list) -> bool:
     return len(a) == len(b) and all(abs(p - q) <= TOL for u, w in zip(a, b) for p, q in zip(u, w))
 
 
+def _archive(prior: bytes, fresh_path: Path) -> Path:
+    sha = hashlib.sha256(prior).hexdigest()[:8]
+    arch = Path(fresh_path).parent / "printed" / f"{Path(fresh_path).stem}.{sha}.3mf"
+    arch.parent.mkdir(exist_ok=True)
+    arch.write_bytes(prior)
+    return arch
+
+
+def archive(prior: bytes, fresh_path: Path) -> str:
+    """Keep the user's slicer project under ``printed/`` beside ``fresh_path``; returns what it did."""
+    return f"previous project archived as {_archive(prior, fresh_path).name}"
+
+
 def carry(prior: bytes | None, fresh_path: Path) -> str:
     """Fold ``prior`` (see ``read_prior``) into the freshly built ``fresh_path``; returns what it did."""
     if prior is None:
@@ -72,10 +85,7 @@ def carry(prior: bytes | None, fresh_path: Path) -> str:
         fresh_path.write_bytes(prior)
         return "geometry unchanged: slicer project kept"
 
-    sha = hashlib.sha256(prior).hexdigest()[:8]
-    arch = fresh_path.parent / "printed" / f"{fresh_path.stem}.{sha}.3mf"
-    arch.parent.mkdir(exist_ok=True)
-    arch.write_bytes(prior)
+    arch = _archive(prior, fresh_path)
 
     def fix_item(m):
         t = m[2].split()

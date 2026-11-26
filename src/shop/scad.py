@@ -173,6 +173,14 @@ def has_mode_variable(scad_path: Path) -> bool:
     return re.search(r'^\s*mode\s*=\s*"', scad_path.read_text(), re.M) is not None
 
 
+def split_bodies(stl: Path) -> list:
+    """The STL's separate bodies, front to back then left to right (stable names across builds)."""
+    import trimesh
+
+    parts = trimesh.load(stl, force="mesh").split(only_watertight=False)
+    return sorted(parts, key=lambda b: (round(b.bounds[0][1], 1), round(b.bounds[0][0], 1)))
+
+
 def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool = False, *, render: bool = True, threemf: bool = False) -> dict:
     """Write ``name``.stl (and .dxf when ``two_d``, .3mf when asked) plus PNGs into ``outdir``.
 
@@ -204,7 +212,14 @@ def build_scad(scad_path: Path | str, outdir: Path | str, name: str, two_d: bool
         prior = slicer3mf.read_prior(tmf)
         osc.run(scad_path, tmf, *three_d)
         paths["3mf"] = tmf
-        if prior is not None:
+        bodies = split_bodies(paths["stl"]) if "stl" in paths else []
+        if len(bodies) > 1:  # a plate: one object per body, so the slicer can move each
+            from .plate import Placed, write_3mf
+
+            write_3mf([Placed(f"{name}-{i}", b) for i, b in enumerate(bodies, 1)], tmf)
+            if prior is not None:
+                paths["3mf_note"] = slicer3mf.archive(prior, tmf) + "; settings not carried onto a multi-object plate"
+        elif prior is not None:
             paths["3mf_note"] = slicer3mf.carry(prior, tmf)
     paths["times"]["export"] = time.perf_counter() - t0
 

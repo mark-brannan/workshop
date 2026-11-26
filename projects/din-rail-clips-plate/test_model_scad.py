@@ -43,3 +43,14 @@ def test_each_pair_is_one_clip_turned_not_mirrored(plate):
         T.apply_translation(-c)
         assert T.volume == pytest.approx(l.volume, rel=1e-3)
         assert np.allclose(T.bounds, l.bounds, atol=0.1)
+
+
+def test_3mf_holds_each_clip_as_its_own_object(tmp_path):
+    import zipfile
+
+    for f in ("model.scad", "ref_din_clip_heat_insert.stl"):
+        (tmp_path / f).write_bytes((HERE / f).read_bytes())
+    tmf = build_scad(tmp_path / "model.scad", tmp_path, "plate", render=False, threemf=True)["3mf"]
+    model = zipfile.ZipFile(tmf).read("3D/3dmodel.model").decode()
+    assert model.count("<object ") == 10
+    assert model.count("<item ") == 10
