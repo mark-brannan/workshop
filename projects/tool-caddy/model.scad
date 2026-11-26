@@ -54,12 +54,20 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 36 + cal_beam/2;
   for (i=[0:b_n-1]) translate([x0+i*b_pitch, y0, base_t]) cylinder(d=b_post, h=b_h, $fn=32); }
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
-// Pockets, open top, tools nose down (inside sizes guessed, not measured)
-snip_w = 32; snip_d = 22; snip_h = 35; strip_w = 32; strip_d = 22; strip_h = 35;
+// Wire snips: nose down, held by their shoulders (41 wide, 47 from the tip) resting on the rim.
+// Slot narrower than 41; its thickness (14) and width (36) are guessed.
+snip_slot_w = 36; snip_slot_t = 14; snip_depth = 47;
+// Strippers: nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top, 50 deep;
+// handles stand about 120 above, 60 wide, 12 thick (not drawn).
+strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 40; strip_block_t = 12;
+module snips() { translate([front_w + 5, wall + 2, base_t]) difference() {
+    cube([snip_slot_w + 10, snip_slot_t + 6, snip_depth + 2]);
+    translate([5, 3, 2]) cube([snip_slot_w, snip_slot_t, snip_depth + 1]); } }
+module strippers() { translate([front_w + 5 + snip_slot_w + 10 + 6, wall + 2, base_t]) difference() {
+    cube([strip_block_w, strip_block_t, strip_depth + 2]);
+    translate([strip_block_w/2, (strip_block_t + strip_slot_t)/2, 2]) rotate([90, 0, 0]) linear_extrude(strip_slot_t)
+      polygon([[-strip_base_w/2, 0], [strip_base_w/2, 0], [strip_top_w/2, strip_depth + 1], [-strip_top_w/2, strip_depth + 1]]); } }
 module pocket(w, d, h) { difference() { cube([w+4, d+4, h]); translate([2,2,2]) cube([w, d, h]); } }
-bx = front_w + 5;                                 // right of the calipers
-module snips() { translate([bx, wall+36+cal_beam+8, base_t]) pocket(snip_w, snip_d, snip_h); }
-module strippers() { translate([bx + snip_w + 4 + 4, wall+36+cal_beam+8, base_t]) pocket(strip_w, strip_d, strip_h); }
 // Vase box for rulers and long tools: the back row's remaining width, right of C
 vase_x = wall + f_w + wall + c_w + wall;
 module vase() { translate([vase_x, f_y, base_t]) pocket(total_w - vase_x - wall - 4, total_d - f_y - wall - 4, 100); }
