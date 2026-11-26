@@ -18,3 +18,12 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | lux-capsule, gv30-lux-mount | needs design work | |
 | small-box-sensors, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |
 | rudder-angle-sensor, rudder-sensor-pedestal | low priority | |
+
+## Indefinitely deferred
+
+Never mention these in a status, queue or "not printed yet" answer. Only a direct question about one brings it up.
+
+- imu-tray
+- halpi2-endpoint-box
+- lux-sensor-mount
+- lux-tube-cap
