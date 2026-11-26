@@ -16,7 +16,7 @@ Prototype, not printed. Nothing here is measured.
 ![profile beside the original](out/din-rail-bench-stand_vs_original.png)
 ![assembly](out/din-rail-bench-stand_assembly.png)
 
-`view="assembly"` stands two brackets up with 300 mm rails and orange module envelopes (90 tall, 70 deep); the back rail's are red (65 deep).
+`view="assembly"` stands two brackets up with 300 mm rails and orange module envelopes (60 tall, 45 deep); the back rail's are red (55 deep).
 Front of the desk is +X (right in the side view).
 
 ## Sizes
@@ -25,16 +25,19 @@ Front of the desk is +X (right in the side view).
 |---|---|---|
 | Rail | TS35, 35 × 7.5 | standard |
 | Face slope | 60° above the desk | guess |
-| Tier pitch, along the face | 125 | 90 module + wiring room; guess |
-| Module envelope | 90 tall, 70 deep from the rail face; 65 on the back rail | 90 is standard; the depths are guesses |
-| Face set forward of the back post | 35, to fit the back rail's modules | the model; the test holds 5 mm to the frame |
+| Tier pitch, along the face | 70 | 60 module + 10 wiring room; guess |
+| Module envelope | 60 tall, 45 deep from the rail base; 55 on the back rail | guesses: the small boards planned, not 90 standard DIN gear |
+| Face angle and top | 60°, the top and its rail as the original's, unchanged | the original |
+| Tier 1 | 106.5 along the face from its foot, high enough that the back (AC) rail's modules clear it by 10 | the model; the test holds 10 |
+| Back (AC) rail | flat, its block flush with the back post, never behind it | Solace |
+| Flat rail | its block 2 clear in front of the face's foot, so the face stands on the foot bar | the model; a test holds it |
 | Gap, tier 1 envelope to flat-rail envelope | ≥ 10 (test) | guess |
 | Plate, across the rail | 20 | the original's, unscaled |
 | Bars | ladders 11 wide: two 3 mm strips, a 5 mm slot, a rung at least every 70 | the original's foot |
 | Rail slot | the TS35 section, 0.3 clearance each side of the sheet | guess; gauge it |
 | Bracing | the face ends in the top rail block; a crossbar from the back post meets that block 8 below the rail centre; a diagonal from 8 below the lower rail centre runs to the back rail block, a triangle with face and foot | the original's top corner and crossbar; the triangle is ours |
-| Footprint, side | 340 deep × 203 tall | the model |
-| Bracket volume | 166 cm³ each (was 102.5 with screw-on pads, 10 thick); the four rail blocks, 43 × 21.5 × 20 each, are most of the rise | the model |
+| Footprint, side | 179 deep × 181 tall (the original: 130 × 90) | the model |
+| Bracket volume | 99 cm³ each | the model |
 | Screw | M4 × 16 self-tapping: 4.6 clear through the cover and channel, 3.7 pilot 9 deep below the rail base | guess; printed holes run small, gauge it |
 
 ## How a rail is held

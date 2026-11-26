@@ -145,6 +145,16 @@ def envelope(c, out, d, d0=0.0):
 def test_module_envelopes_clear_each_other():
     # modules sit on the rails between the brackets, so only their spacing matters, not the frame
     t1, t2, fl, bk = (envelope(c, o, d) for (c, o), d in zip(SEATS, DEPTHS))
-    assert t1.distance(fl) >= 10   # room for the flat module's back wiring and a finger
-    assert t1.distance(t2) >= 10
-    assert bk.distance(t1) >= 10
+    tol = 1e-6
+    assert t1.distance(fl) >= 10 - tol   # room for the flat module's back wiring and a finger
+    assert t1.distance(t2) >= 10 - tol
+    assert bk.distance(t1) >= 10 - tol
+
+
+def test_face_stands_on_the_foot_in_front_of_the_flat_rail_block(bracket):
+    # the face's foot lands on the foot bar, not on the flat rail block's cover over its slot
+    block_back = P["flat_x"] - 17.5 - P["block_wall"]
+    assert block_back > FOOT0[0] + S / 2
+    gap = ((FOOT0[0] + S / 2 + block_back) / 2, W + 3)
+    assert not solid(bracket, gap)
+    assert solid(bracket, (FOOT0[0], W - 1))
