@@ -7,15 +7,14 @@ Several stands sit side by side. Each stand is two of these end brackets and fou
 two across the sloped face, one flat on the foot in front, and one flat at the back under the face for AC gear
 (a small PSU, mains terminals, relays), out of reach from the front.
 
-The idea, a pair of A-frame end brackets with the rail screwed to the sloped edge, is Szmalu's
-[DIN Rail Stand KIT](https://www.thingiverse.com/thing:3609072) (CC BY-NC), which holds one rail. Nothing of its mesh is used.
+The construction is Szmalu's [DIN Rail Stand KIT](https://www.thingiverse.com/thing:3609072) (CC BY-NC), which holds one rail:
+an A-frame end bracket, a thick plate of thin ladder bars, the rail passing through a slot of its own section.
+Nothing of its mesh is used; this one is scaled up to hold four rails.
 
 Prototype, not printed. Nothing here is measured.
 
-![dimensions](out/din-rail-bench-stand_dims.png)
-![side](out/din-rail-bench-stand_side.png)
+![profile beside the original](out/din-rail-bench-stand_vs_original.png)
 ![assembly](out/din-rail-bench-stand_assembly.png)
-![rear](out/din-rail-bench-stand_rear.png)
 
 `view="assembly"` stands two brackets up with 300 mm rails and orange module envelopes (90 tall, 70 deep); the back rail's are red (65 deep).
 Front of the desk is +X (right in the side view).
@@ -30,20 +29,31 @@ Front of the desk is +X (right in the side view).
 | Module envelope | 90 tall, 70 deep from the rail face; 65 on the back rail | 90 is standard; the depths are guesses |
 | Face set forward of the back post | 35, to fit the back rail's modules | the model; the test holds 5 mm to the frame |
 | Gap, tier 1 envelope to flat-rail envelope | ≥ 10 (test) | guess |
-| Footprint, side | 340 deep × 231 tall | the model |
-| Bracket volume | 102.5 cm³ each | the model |
-| Pilot hole | 3.7, 18 deep, for an M4 × 16 self-tapping screw | guess; printed holes run small, gauge it |
+| Plate, across the rail | 20 | the original's, unscaled |
+| Bars | ladders 11 wide: two 3 mm strips, a 5 mm slot, a rung at least every 70 | the original's foot |
+| Rail slot | the TS35 section, 0.3 clearance each side of the sheet | guess; gauge it |
+| Footprint, side | 340 deep × 232 tall | the model |
+| Bracket volume | 167 cm³ each (was 102.5 with screw-on pads, 10 thick); the four rail blocks, 43 × 21.5 × 20 each, are most of the rise | the model |
+| Screw | M4 × 16 self-tapping: 4.6 clear through the cover and channel, 3.7 pilot 9 deep below the rail base | guess; printed holes run small, gauge it |
 
 ## How a rail is held
 
-One M4 screw per rail end goes through a slot in the rail's base into a pilot hole in a pad on the bracket's edge,
-square to that edge. Cut each rail so a base slot sits over each bracket.
+The rail passes through the bracket in a slot of its own cross-section, cut through a solid block on the bar.
+The slot's flat faces hold the rail's base and lips from both sides, so it cannot move except along its length.
+One M4 screw per rail end, from the block's outer face, runs through the plastic in the rail's channel and a slot
+in its base into a pilot below, and pins it lengthwise. Slide the rail through both brackets;
+cut it so a base slot sits mid-plate (10 in from either face) at each bracket.
+
+Modules clip onto the rail between the brackets, so they only need room from each other, not from the frame.
 
 ## How it prints
 
-Flat, as modelled, 10 mm tall; no overhangs. The four pilot holes run sideways through the plate with a point-up
-(teardrop) top.
+Flat, as modelled, 20 mm tall; every wall is vertical, so no overhangs. The rail slots and ladder slots run straight
+through. The four screw holes run sideways at mid-height with a point-up (teardrop) top.
+
+Print the gauge first (`out/din-rail-bench-stand_gauge.3mf`, 8 cm³): one rail block, 10 tall.
+Slide a rail offcut through and drive the screw; adjust `rail_clr`, `clear_d`, `pilot_d` before the brackets.
 
 ## Open
 
-- Pilot hole fit for M4 in PETG: unmeasured.
+- Rail slot clearance and M4 hole fit in PETG: unmeasured; the gauge settles both.
