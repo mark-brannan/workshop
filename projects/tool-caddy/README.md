@@ -47,7 +47,7 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 
 ## Layout (plan view from the user's seat, not to scale)
 
-Front row: A tray (short end toward the user), the calipers (head left), then B's 7 posts in one row along X in line with the beam, past its right end; in front of B, S (wire snips) and W (strippers), clear of C and E. S: nose down, held by its shoulders (41 wide, 47 from the tip) on the rim of a 47 deep slot (36 x 14, guessed). W: nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top, 50 deep; handles stand ~120 above, 60 wide, 12 thick. Back row: F (thin drivers, 45 deg) behind the tray; C (9 long drivers) with its footboard just behind the caliper beam; V, a vase box for rulers and long tools, on the right in the space left. Base 409 x 192.
+Front row: A tray (short end toward the user), the calipers (head left), then B's 7 posts in one row along X at the front, past the beam's right end. Behind B: S, wire snips nose down, two open arms each topped by a C hand (10 dia max) that takes a shoulder (41 wide, 47 from the tip); and W, strippers nose down in a small tower with a 6 thick slot, 20 wide at the base widening to 30 at the top, 50 deep (handles stand ~120 above, 60 wide, 12 thick). Both clear of C and E. Back row: F (thin drivers, 45 deg) behind the tray; C (9 long drivers) with its footboard just behind the caliper beam; V, a vase box for rulers and long tools, on the right in the space left. Base 414 x 192.
 
 C supports: a half-circle cradle (13 dia) at 30 along the driver, and a U-slot clip for the 3 mm shaft (open at the top, 4 above the axis) at 91 along the driver, above the footboard. The cradle is narrower than the 18 handles; confirm what it holds.
 
