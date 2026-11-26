@@ -21,9 +21,10 @@ function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
 snip_w = 40; snip_h = 45; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
-snip_wall = 3; snip_thumb_t = 4; snip_thumb_len = 9; snip_clear = 2; snip_tilt = 15; snip_tip_up = 3;   // tip hangs 3 above the base
+snip_wall = 3; snip_thumb_t = 4; snip_thumb_len = 9; snip_clear = 2; snip_tilt = 15; snip_tip_up = 3; snip_lean = 8;   // tip hangs 3 above the base
 snip_W = snip_w + snip_clear - snip_hand_in;                 // web centre to web centre (32)
-snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall);      // outer width of the pair
+snip_L = (snip_h + snip_tip_up)*tan(snip_lean);                 // how far the wall's foot stands out from its top
+snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall + snip_L);   // outer width of the pair, feet included
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
@@ -60,27 +61,30 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 10;
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down, hung by the shoulders (45 from the tip, 40 wide, where the recurve begins).
-// One smooth wrap-around: a single back wall across the pair (the fingers) rises from the base and curls
-// forward at each end through a round web into a short thumb. Seen from above: ⊂ ⊃ joined at the back,
-// 10 inside, 3 wall, 12 tall, no floor between. The wall is a chain of round-topped pills, so the top
-// edge is fully rounded with no steps. Each thumb (4 thick, 9 long) rises 15 deg toward the inside; the pair
-// is 2 wider than the shoulders so they push up into the thumbs; a leg under each thumb leans back to the floor.
+// One continuous shape: a back wall across the pair curls forward at each end through a round web into a
+// short thumb, and the whole wall leans out 8 deg as it descends so it stands on the base at a steady angle
+// (nothing floats). Seen from above ⊂ ⊃ joined at the back, 10 inside at the top, 3 wall, 12 tall at the
+// top, no floor between. Top edge fully round. Each thumb (4 thick, 9 long) rises 15 deg toward the inside;
+// the pair is 2 wider than the shoulders so they push up into the thumbs; a leg under each thumb leans back.
 snip_hand_h = 12;
-module pill(d, h) { cylinder(d = d, h = h - d/2, $fn = 24); translate([0, 0, h - d/2]) sphere(d = d, $fn = 24); }
+module pill(d, h, fn = 48) { cylinder(d = d, h = h - d/2, $fn = fn); translate([0, 0, h - d/2]) sphere(d = d, $fn = fn); }
 module seg(p, q, dp, dq, hp, hq) { hull() { translate(p) pill(dp, hp); translate(q) pill(dq, hq); } }
-module snips() { Ri = snip_hand_in/2; r = Ri + snip_wall/2; R = Ri + snip_wall; z0 = snip_h + snip_tip_up; n = 12;
-  translate([front_w + 5 + R, wall + 27 + R, base_t]) {
-    seg([0, r, 0], [snip_W, r, 0], snip_wall, snip_wall, z0 + snip_hand_h, z0 + snip_hand_h);   // back wall, down to the base
-    for (s = [1, -1]) { cx = s > 0 ? 0 : snip_W;                                                   // s = +1 left hand, -1 right
-      for (i = [0:n-1]) { a0 = 90 + 180*i/n; a1 = 90 + 180*(i + 1)/n;                              // web: half circle round the shoulder's edge
-        seg([cx + s*r*cos(a0), r*sin(a0), z0], [cx + s*r*cos(a1), r*sin(a1), z0], snip_wall, snip_wall, snip_hand_h, snip_hand_h); }
+module slant(p, q, bp, bq, d, z0) { hull() { translate([p.x, p.y, z0]) pill(d, snip_hand_h); translate([q.x, q.y, z0]) pill(d, snip_hand_h);
+    translate([bp.x, bp.y, 0]) cylinder(d = d, h = 1, $fn = 48); translate([bq.x, bq.y, 0]) cylinder(d = d, h = 1, $fn = 48); } }
+module snips() { Ri = snip_hand_in/2; r = Ri + snip_wall/2; R = Ri + snip_wall; z0 = snip_h + snip_tip_up; n = 12; L = snip_L;
+  translate([front_w + 5 + R + L, wall + 27 + R + L, base_t]) {
+    slant([0, r], [snip_W, r], [0, r + L], [snip_W, r + L], snip_wall, z0);                     // back wall
+    for (s = [1, -1]) { cx = s > 0 ? 0 : snip_W;                                                 // s = +1 left hand, -1 right
+      for (i = [0:n-1]) { a0 = 90 + 180*i/n; a1 = 90 + 180*(i + 1)/n;                            // web: half circle round the shoulder's edge
+        slant([cx + s*r*cos(a0), r*sin(a0)], [cx + s*r*cos(a1), r*sin(a1)],
+              [cx + s*(r + L)*cos(a0), (r + L)*sin(a0)], [cx + s*(r + L)*cos(a1), (r + L)*sin(a1)], snip_wall, z0); }
       yt = -Ri - snip_thumb_t/2; ztip = z0 + snip_thumb_len*tan(snip_tilt);
-      seg([cx, -r, z0], [cx, yt, z0], snip_wall, snip_thumb_t, snip_hand_h, snip_hand_h);          // web into thumb
-      seg([cx, yt, z0], [cx + s*snip_thumb_len, yt, ztip], snip_thumb_t, snip_thumb_t, snip_hand_h, snip_hand_h);   // thumb
-      hull() { translate([cx + s*(snip_thumb_len - 1), yt, ztip - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 24);   // leg, leaning back as it descends
-        translate([cx + s*0.5, yt, z0 - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 24);
-        translate([cx - s*1.5, yt, 0]) cylinder(d = 3.5, h = 0.5, $fn = 24);
-        translate([cx + s*2.5, yt, 0]) cylinder(d = 3.5, h = 0.5, $fn = 24); } } } }
+      translate([0, 0, z0]) seg([cx, -r, 0], [cx, yt, 0], snip_wall, snip_thumb_t, snip_hand_h, snip_hand_h);   // web into thumb
+      seg([cx, yt, z0], [cx + s*snip_thumb_len, yt, ztip], snip_thumb_t, snip_thumb_t, snip_hand_h, snip_hand_h);
+      hull() { translate([cx + s*(snip_thumb_len - 1), yt, ztip - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 48);   // leg, leaning back
+        translate([cx + s*0.5, yt, z0 - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 48);
+        translate([cx - s*1.5, yt - snip_L, 0]) cylinder(d = 3.5, h = 0.5, $fn = 48);
+        translate([cx + s*2.5, yt - snip_L, 0]) cylinder(d = 3.5, h = 0.5, $fn = 48); } } } }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
