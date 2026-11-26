@@ -32,8 +32,9 @@ Front of the desk is +X (right in the side view).
 | Plate, across the rail | 20 | the original's, unscaled |
 | Bars | ladders 11 wide: two 3 mm strips, a 5 mm slot, a rung at least every 70 | the original's foot |
 | Rail slot | the TS35 section, 0.3 clearance each side of the sheet | guess; gauge it |
-| Footprint, side | 340 deep × 232 tall | the model |
-| Bracket volume | 167 cm³ each (was 102.5 with screw-on pads, 10 thick); the four rail blocks, 43 × 21.5 × 20 each, are most of the rise | the model |
+| Bracing | the face ends in the top rail block; a crossbar from the back post meets that block 8 below the rail centre; a diagonal from 8 below the lower rail centre runs to the back rail block, a triangle with face and foot | the original's top corner and crossbar; the triangle is ours |
+| Footprint, side | 340 deep × 203 tall | the model |
+| Bracket volume | 166 cm³ each (was 102.5 with screw-on pads, 10 thick); the four rail blocks, 43 × 21.5 × 20 each, are most of the rise | the model |
 | Screw | M4 × 16 self-tapping: 4.6 clear through the cover and channel, 3.7 pilot 9 deep below the rail base | guess; printed holes run small, gauge it |
 
 ## How a rail is held

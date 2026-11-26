@@ -6,7 +6,9 @@
 // After Szmalu's "DIN Rail Stand KIT" (Thingiverse 3609072; nothing of its mesh is used): each rail passes through
 // the bracket in a slot of its own cross-section, held between the slot's flat faces, and one M4 screw through
 // the slot's cover and the rail's base pins it lengthwise. The plate is thick across the rail and the bars are
-// ladders, two thin strips with a slot between, as the original's foot is.
+// ladders, two thin strips with a slot between, as the original's foot is. As the original, the face ends in the
+// top rail's block, and a crossbar from the back post meets that block just below the rail's centre; a diagonal
+// from just below the lower rail's centre to the back rail's block makes a triangle with the face and foot.
 //
 // The profile is drawn in 2D with x toward the front of the desk and y up, then extruded bracket_t:
 // print flat, as modelled; view="assembly" stands two brackets up with rails and module envelopes;
@@ -25,7 +27,6 @@ bracket_t = 20;           // thickness of the plate (print height), across the r
 /* [Rails] */
 s1 = 70;                  // tier 1 rail centre, along the face from its foot
 pitch = 125;              // tier 2 sits this far above tier 1, along the face
-face_over = 15;           // face runs this far past the top module's envelope
 flat_x = 280;             // flat rail centre, from the back of the stand
 back_x = 60;              // back (AC) rail centre, from the back of the stand
 face_shift = 35;          // face starts this far forward of the back post, to make room for the back rail
@@ -54,7 +55,7 @@ $fn = 48;
 e = 0.01;
 u = [-cos(a), sin(a)];            // up the face
 n = [sin(a), cos(a)];             // out of the face (toward the user)
-face_len = s1 + pitch + mod_h / 2 + face_over;
+face_len = s1 + pitch + 17.5 + block_wall + bar_w / 2;   // face ends at the top rail block, as the original
 foot0 = [bar_w / 2 + face_shift + face_len * cos(a), bar_w / 2];   // face centreline at its foot
 top = foot0 + face_len * u;                           // joined back to the post by a top bar
 foot_len = flat_x + mod_h / 2 + 10;
@@ -66,8 +67,12 @@ function edge(s) = foot0 + s * u + (bar_w / 2) * n;  // rail base on the face's 
 
 // rail seats: base point and outward direction
 seats = [[edge(s1), n], [edge(s1 + pitch), n], [[flat_x, bar_w], [0, 1]], [[back_x, bar_w], [0, 1]]];
-strut_from = [bar_w / 2, edge(s1 + pitch)[1] - bar_w * n[1]];
-strut_to = edge(s1 + pitch) - bar_w * n;
+function local(c, o, x, y) = c + x * [o[1], -o[0]] + y * o;
+below = 8;                                          // braces meet a block this far below the rail's centre line
+j2 = local(edge(s1 + pitch), n, below, -bar_w / 2);  // crossbar meets the tier 2 block, inside
+j1 = local(edge(s1), n, below, -bar_w / 2);          // diagonal meets the tier 1 block, inside
+k0 = [back_x + 17.5 + block_wall - bar_w / 2, bar_w + 7.5 + cover - bar_w / 2];   // back rail block, upper front corner
+cross_from = [bar_w / 2, j2[1]];
 
 module bar(p, q, w = bar_w) hull() { translate(p) circle(d = w); translate(q) circle(d = w); }
 module teardrop(d) hull() { circle(d = d); rotate(45) square(d / 2); }   // point +Y (print up after rotation)
@@ -96,7 +101,9 @@ module profile() {
             bar(post_foot, post_top);            // back post
             bar(post_top, top);                  // top bar, post to face
             bar(foot0, top);                     // sloped face
-            bar(strut_from, strut_to, 2 * strip);   // strut, back post to tier 2 block
+            hull() { at(seats[1][0], seats[1][1]) block2d(); translate(top) circle(d = bar_w); }   // apex: top block fills the corner, as the original
+            bar(cross_from, j2);                 // crossbar, post to tier 2 block below the rail centre
+            bar(j1, k0);                         // diagonal, tier 1 block to back rail block
             for (s = seats) at(s[0], s[1]) block2d();
         }
         difference() {
@@ -105,9 +112,11 @@ module profile() {
                 ladder_slot(post_foot, post_top);
                 ladder_slot(post_top, top);
                 ladder_slot(foot0, top);
+                ladder_slot(cross_from, j2);
+                ladder_slot(j1, k0);
             }
             for (s = seats) at(s[0], s[1]) offset(delta = strip) block2d();
-            for (p = [foot0, strut_from]) translate(p) circle(d = bar_w + 2 * strip);
+            for (p = [foot0, cross_from, j1, j2, k0]) translate(p) circle(d = bar_w + 2 * strip);
         }
         for (s = seats) at(s[0], s[1]) offset(delta = rail_clr) rail2d();
     }
