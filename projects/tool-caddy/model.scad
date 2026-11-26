@@ -61,30 +61,51 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 10;
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down, hung by the shoulders (45 from the tip, 40 wide, where the recurve begins).
-// One continuous shape: a back wall across the pair curls forward at each end through a round web into a
-// short thumb, and the whole wall leans out 8 deg as it descends so it stands on the base at a steady angle
-// (nothing floats). Seen from above ⊂ ⊃ joined at the back, 10 inside at the top, 3 wall, 12 tall at the
-// top, no floor between. Top edge fully round. Each thumb (4 thick, 9 long) rises 15 deg toward the inside;
-// the pair is 2 wider than the shoulders so they push up into the thumbs; a leg under each thumb leans back.
-snip_hand_h = 12;
-module pill(d, h, fn = 48) { cylinder(d = d, h = h - d/2, $fn = fn); translate([0, 0, h - d/2]) sphere(d = d, $fn = fn); }
-module seg(p, q, dp, dq, hp, hq) { hull() { translate(p) pill(dp, hp); translate(q) pill(dq, hq); } }
-module slant(p, q, bp, bq, d, z0) { hull() { translate([p.x, p.y, z0]) pill(d, snip_hand_h); translate([q.x, q.y, z0]) pill(d, snip_hand_h);
-    translate([bp.x, bp.y, 0]) cylinder(d = d, h = 1, $fn = 48); translate([bq.x, bq.y, 0]) cylinder(d = d, h = 1, $fn = 48); } }
-module snips() { Ri = snip_hand_in/2; r = Ri + snip_wall/2; R = Ri + snip_wall; z0 = snip_h + snip_tip_up; n = 12; L = snip_L;
-  translate([front_w + 5 + R + L, wall + 27 + R + L, base_t]) {
-    slant([0, r], [snip_W, r], [0, r + L], [snip_W, r + L], snip_wall, z0);                     // back wall
-    for (s = [1, -1]) { cx = s > 0 ? 0 : snip_W;                                                 // s = +1 left hand, -1 right
-      for (i = [0:n-1]) { a0 = 90 + 180*i/n; a1 = 90 + 180*(i + 1)/n;                            // web: half circle round the shoulder's edge
-        slant([cx + s*r*cos(a0), r*sin(a0)], [cx + s*r*cos(a1), r*sin(a1)],
-              [cx + s*(r + L)*cos(a0), (r + L)*sin(a0)], [cx + s*(r + L)*cos(a1), (r + L)*sin(a1)], snip_wall, z0); }
-      yt = -Ri - snip_thumb_t/2; ztip = z0 + snip_thumb_len*tan(snip_tilt);
-      translate([0, 0, z0]) seg([cx, -r, 0], [cx, yt, 0], snip_wall, snip_thumb_t, snip_hand_h, snip_hand_h);   // web into thumb
-      seg([cx, yt, z0], [cx + s*snip_thumb_len, yt, ztip], snip_thumb_t, snip_thumb_t, snip_hand_h, snip_hand_h);
-      hull() { translate([cx + s*(snip_thumb_len - 1), yt, ztip - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 48);   // leg, leaning back
-        translate([cx + s*0.5, yt, z0 - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 48);
-        translate([cx - s*1.5, yt - snip_L, 0]) cylinder(d = 3.5, h = 0.5, $fn = 48);
-        translate([cx + s*2.5, yt - snip_L, 0]) cylinder(d = 3.5, h = 0.5, $fn = 48); } } } }
+// One continuous swept wall: seen from above ⊂ ⊃ joined at the back. Its inner face runs from the left
+// thumb's tip, round the left web (10 inside), along the back wall, round the right web to the right thumb's
+// tip, one tangent-smooth curve. A single cross-section is swept along it: 3 thick (4 on the thumbs),
+// fully round on top, a 3 concave fillet each side at the base, and a lean that eases from vertical at the
+// shoulders out to the base (foot stands snip_L out). Thumbs (9 long) rise 15 deg toward the inside and end
+// in a round nose. One polyhedron, no hulls, no seams.
+snip_hand_h = 12; snip_fillet = 3; snip_lean_pow = 1.5; snip_thumb_ease = 3;
+function sn_smooth(x) = let(t = max(0, min(1, x))) t*t*(3 - 2*t);
+function sn_rise(x) = x <= 0 ? 0 : x < snip_thumb_ease ? x*x/(2*snip_thumb_ease) : x - snip_thumb_ease/2;
+function sn_off(z, z0) = z >= z0 ? 0 : snip_L*pow(1 - max(z, 0)/z0, snip_lean_pow);   // outward lean
+function sn_flare(z) = z >= snip_fillet ? 0 : snip_fillet - sqrt(snip_fillet*snip_fillet - pow(snip_fillet - max(z, 0), 2));
+// one cross-section: [u outward, z], 0.5 below the base up the inner face, over the round top, down the outer face
+function sn_profile(t, top, z0) = let(
+    zt = top - t/2, zs = concat([-0.5], [for (i = [0:7]) snip_fillet*pow(i/8, 1.6)], [for (i = [0:16]) snip_fillet + (zt - snip_fillet)*i/16]),
+    c = function(z) sn_off(z, z0) + t/2, h = function(z) t/2 + sn_flare(z))
+  concat([for (z = zs) [c(z) - h(z), z, c(z)]],
+         [for (i = [1:11]) let(a = 180 - 180*i/12) [c(zt) + t/2*cos(a), zt + t/2*sin(a), c(zt)]],
+         [for (j = [len(zs)-1:-1:0]) let(z = zs[j]) [c(z) + h(z), z, c(z)]]);
+module snips() { Ri = snip_hand_in/2; R = Ri + snip_wall; z0 = snip_h + snip_tip_up; L = snip_L; W = snip_W;
+  ztop = z0 + snip_hand_h; tl = snip_thumb_len; nt = 18; nc = 12;
+  // stations: [x, y, tangent, distance along the thumb from its root (<0: steps into the web), nose angle, tip direction]
+  thumb = function(x0, sx) concat([for (i = [0:nc-1]) [x0 + sx*tl, -Ri, [-1, 0], tl, 89.5*(1 - i/nc), [sx, 0]]],
+                                  [for (i = [0:nt]) let(d = tl*(1 - i/nt)) [x0 + sx*d, -Ri, [-1, 0], d, 0, [sx, 0]]]);
+  rt = thumb(W, -1);
+  st = concat(thumb(0, 1),
+    [for (i = [1:35]) let(a = 270 - 180*i/36) [Ri*cos(a), Ri*sin(a), [sin(a), -cos(a)], -1 - i, 0, [0, 0]]],
+    [for (i = [0:32]) [W*i/32, Ri, [1, 0], -100, 0, [0, 0]]],
+    [for (i = [1:35]) let(a = 90 - 180*i/36) [W + Ri*cos(a), Ri*sin(a), [sin(a), -cos(a)], -1 - (36 - i), 0, [0, 0]]],
+    [for (i = [len(rt)-1:-1:0]) rt[i]]);
+  profs = [for (p = st) let(
+      d = p[3], on = d >= 0, arcd = on ? 0 : -d - 1,                       // arcd: steps into the web from the thumb
+      t = snip_wall + (snip_thumb_t - snip_wall)*(on ? 1 : 1 - sn_smooth(arcd/8)),
+      top = ztop + (on ? tan(snip_tilt)*sn_rise(d) : 0),
+      n = [-p[2].y, p[2].x], phi = p[4], tip = p[5])
+    // the nose: each level of the section turns about its own centre line, so every level ends in a half circle
+    [for (uv = sn_profile(t, top, z0)) let(e = uv[0] - uv[2], u = uv[2] + e*cos(phi), f = abs(e)*sin(phi))
+      [p[0] + n.x*u + tip.x*f, p[1] + n.y*u + tip.y*f, uv[1]]]];
+  m = len(profs[0]); k = len(profs);
+  // the nose ends are near-flat slivers: close each as a strip pairing inner and outer points, never one bent polygon
+  cap = function(j, i) let(a = [i*m + j, i*m + j + 1, i*m + m - 2 - j, i*m + m - 1 - j],
+                           f = j + 1 == m - 2 - j ? [[a[0], a[1], a[3]]] : [a]) i == 0 ? f : [for (q = f) [for (v = [len(q)-1:-1:0]) q[v]]];
+  translate([front_w + 5 + R + L, wall + 27 + R + L, base_t])
+    polyhedron(points = [for (pr = profs) each pr],
+      faces = concat([for (i = [0:k-2], j = [0:m-1]) [i*m + j, (i+1)*m + j, (i+1)*m + (j+1)%m, i*m + (j+1)%m]],
+                     [for (j = [0:(m-3)/2]) each cap(j, 0)], [for (j = [0:(m-3)/2]) each cap(j, k-1)]), convexity = 6); }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
