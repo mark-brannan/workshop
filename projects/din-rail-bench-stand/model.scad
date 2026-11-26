@@ -29,9 +29,9 @@ bracket_t = 20;           // thickness of the plate (print height), across the r
 strut = 3;                // back post, face and crossbar: solid, 3 wide in the profile, as the original's
 
 /* [Rails] */
-s1 = 70;                  // tier 1 rail centre, along the face from its foot
-pitch = 125;              // tier 2 sits this far above tier 1, along the face
-flat_x = 280;             // flat rail centre, from the back of the stand
+s1 = 47.5;                  // tier 1 rail centre, along the face from its foot
+pitch = 70;              // tier 2 sits this far above tier 1, along the face
+flat_x = 141.5;             // flat rail centre, from the back of the stand
 back_x = 60;              // back (AC) rail centre, from the back of the stand
 
 /* [Rail slot] TS35 passes through, held between the slot's faces */
@@ -45,8 +45,8 @@ pilot_d = 3.7;            // guess; printed holes run small, gauge before trusti
 pilot_depth = 9;          // below the rail's base
 
 /* [Module envelope, for the assembly view and the clearance test] */
-mod_h = 90;               // DIN module height, across the rail (standard 90)
-mod_d = 70;               // module depth out from the rail base (guess: PSU 55-60, meters ~65)
+mod_h = 60;               // module height, across the rail (guess: the small boards planned, not 90 standard DIN gear)
+mod_d = 45;               // module depth out from the rail base (guess: buck/boost boards, meters)
 back_mod_d = 65;          // the back rail's modules: small PSU, terminals, relays (guess)
 rail_len = 300;           // rail length in the assembly view
 
