@@ -1,4 +1,5 @@
 // Desk presence sensor: D1 mini (ESP8266), LD2410C radar, SSD1306 OLED and a
+// parts: shell
 // TM1637 4-digit display in one box that tapes flat to a monitor arm.
 //
 // Three parts. The SHELL is the front face and all four walls in one print: both display

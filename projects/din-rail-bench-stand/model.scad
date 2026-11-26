@@ -1,4 +1,5 @@
 // DIN-rail bench stand: one end bracket of a pair, holding four TS35 rails.
+// parts: bench-stand-bracket
 // Two rails cross the sloped front face, one above the other; the third lies flat on the foot, in front of them;
 // the fourth lies flat inside the frame at the back, under the face, for AC gear: a small PSU, terminals, relays.
 // A rail spans between two brackets and is held at each by one M4 screw through a slot in its base, into a pilot

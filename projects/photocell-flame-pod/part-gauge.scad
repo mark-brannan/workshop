@@ -1,6 +1,7 @@
 // Fit-check gauge, generated: shop gauge projects/photocell-flame-pod "shell()" 1 4.5
 // Two horizontal slices of the finished part, re-extruded thin. Rerun the command to change it;
 // a hand-written gauge replaces this file and drops this first line.
+// parts: photocell-flame-pod-gauge
 use <model.scad>
 
 /* [Gauge] */
