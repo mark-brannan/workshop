@@ -1,6 +1,6 @@
 // Tool caddy, LONG layout (massing study, not a print): front row tray A then the calipers, head left;
 // back row C grid, B posts, F thin drivers, all in a line. X right, Y away from the user, Z up.
-// parts: base
+// parts: caddy
 /* [Layout] */
 wall = 3;
 base_t = 3;
@@ -21,7 +21,9 @@ function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
 total_w = max(front_w + 5 + b_w - 10 + 5, wall + f_w + wall + c_w + wall);
-total_d = wall + front_depth + wall + back_depth + wall;
+c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
+f_y = wall + front_depth + wall;
+total_d = max(f_y + zone_depth(f_handle, f_len), c_y + zone_depth(c_handle, c_len)) + wall;
 module tray_a() { translate([wall, wall, base_t]) difference() {
     cube([a_len, a_wid, 12]); translate([2,2,2]) cube([a_len-4, a_wid-4, 12]); } }
 module calipers() { x0 = wall + a_len + wall; y0 = wall + 31 + 5;
@@ -45,11 +47,20 @@ module angled(n, pitch, L, hd, hlen, sd, risers, cradle_d=0, clip_s=0) { hw = fo
       translate([-hd/2-2, yo+clip_s*k-1.5, 0]) cube([wd, 3, zo+clip_s*k+4]);
       translate([0, yo, zo]) rotate([-45,0,0]) for (i=[0:n-1]) translate([i*pitch,0,0]) cylinder(d=sd+0.4, h=L, $fn=24);
       for (i=[0:n-1]) translate([i*pitch-(sd+0.4)/2, yo+clip_s*k-2, zo+clip_s*k]) cube([sd+0.4, 4, 6]); } } }
-module c_zone() { translate([wall+f_w+wall+0.9+c_handle/2+1, wall+front_depth+wall, base_t])
+module c_zone() { translate([wall+f_w+wall+0.9+c_handle/2+1, c_y, base_t])
   angled(c_n, c_pitch, c_len, c_handle, c_hlen, c_shaft, [30], 13, 91); }
 // B: seven posts in one row along X, 15 c-c, in line with the calipers' beam, past its right end
 module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 36 + cal_beam/2;
   for (i=[0:b_n-1]) translate([x0+i*b_pitch, y0, base_t]) cylinder(d=b_post, h=b_h, $fn=32); }
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
-union() { color("steelblue") cube([total_w, total_d, base_t]); tray_a(); calipers(); c_zone(); b_posts(); f_zone(); }
+// Pockets, open top, tools nose down (inside sizes guessed, not measured)
+snip_w = 32; snip_d = 22; snip_h = 35; strip_w = 32; strip_d = 22; strip_h = 35;
+module pocket(w, d, h) { difference() { cube([w+4, d+4, h]); translate([2,2,2]) cube([w, d, h]); } }
+bx = front_w + 5;                                 // right of the calipers
+module snips() { translate([bx, wall+36+cal_beam+8, base_t]) pocket(snip_w, snip_d, snip_h); }
+module strippers() { translate([bx + snip_w + 4 + 4, wall+36+cal_beam+8, base_t]) pocket(strip_w, strip_d, strip_h); }
+// Vase box for rulers and long tools: the back row's remaining width, right of C
+vase_x = wall + f_w + wall + c_w + wall;
+module vase() { translate([vase_x, f_y, base_t]) pocket(total_w - vase_x - wall - 4, total_d - f_y - wall - 4, 100); }
+union() { color("steelblue") cube([total_w, total_d, base_t]); tray_a(); calipers(); c_zone(); b_posts(); f_zone(); snips(); strippers(); vase(); }
