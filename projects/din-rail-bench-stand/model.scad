@@ -32,7 +32,7 @@ strut = 3;                // back post, face and crossbar: solid, 3 wide in the 
 s1 = 47.5;                  // tier 1 rail centre, along the face from its foot
 pitch = 70;              // tier 2 sits this far above tier 1, along the face
 flat_x = 141.5;             // flat rail centre, from the back of the stand
-back_x = 60;              // back (AC) rail centre, from the back of the stand
+back_x = -7.5;              // back (AC) rail centre, from the back of the post: shifted rearward, its block straddles the post, clear of tier 1
 
 /* [Rail slot] TS35 passes through, held between the slot's faces */
 rail_clr = 0.3;           // slot clearance each side of the 1 mm rail sheet; guess, gauge it
@@ -47,7 +47,7 @@ pilot_depth = 9;          // below the rail's base
 /* [Module envelope, for the assembly view and the clearance test] */
 mod_h = 60;               // module height, across the rail (guess: the small boards planned, not 90 standard DIN gear)
 mod_d = 45;               // module depth out from the rail base (guess: buck/boost boards, meters)
-back_mod_d = 65;          // the back rail's modules: small PSU, terminals, relays (guess)
+back_mod_d = 55;          // the back rail's modules: a small DIN PSU (~55 deep, from memory), terminals, relays (guess)
 rail_len = 300;           // rail length in the assembly view
 
 /* [Gauge] */
@@ -64,6 +64,7 @@ face_len = s1 + pitch + rail_top;
 foot0 = [top_in - (strut / 2) * sin(a) + face_len * cos(a), bar_w / 2];   // face centreline at its foot
 top = foot0 + face_len * u;                           // the corner: face meets the post
 foot_len = flat_x + mod_h / 2 + 10;
+foot_x0 = min(bar_w / 2, back_x - 17.5 - block_wall + bar_w / 2);   // foot runs back under the back rail's block
 top_y = top[1] + (strut / 2) * cos(a);              // flat top: post, top block and face flush, as the original
 post_top = [strut / 2, top_y - strut / 2];
 post_foot = [strut / 2, bar_w / 2];
@@ -104,7 +105,7 @@ module ladder_slot(p, q) {
 module profile() {
     difference() {
         union() {
-            bar([bar_w / 2, bar_w / 2], foot_end);   // foot, on the desk, flush with the back of the post
+            bar([foot_x0, bar_w / 2], foot_end);   // foot, on the desk, flush with the back of the post
             bar(post_foot, post_top, strut);     // back post
             bar(foot0, top, strut);              // sloped face
             bar(j1, k0);                         // diagonal, tier 1 block to back rail block
@@ -112,7 +113,7 @@ module profile() {
         }
         difference() {
             union() {
-                ladder_slot([bar_w / 2, bar_w / 2], foot_end);
+                ladder_slot([foot_x0, bar_w / 2], foot_end);
                 ladder_slot(j1, k0);
             }
             for (s = own) at(s[0], s[1]) offset(delta = strip) block2d();
@@ -135,7 +136,7 @@ module screw_hole(c, o, z) {
 module bracket() {
     difference() {
         linear_extrude(bracket_t) union() {
-            intersection() { profile(); square([1000, top_y - szmalu_top_cut + 0.5]); }   // ours, below the original's top
+            intersection() { profile(); translate([-1000, 0]) square([2000, top_y - szmalu_top_cut + 0.5]); }   // ours, below the original's top
             translate([0, top_y]) szmalu_top();
         }
         for (s = own) screw_hole(s[0], s[1], bracket_t / 2);

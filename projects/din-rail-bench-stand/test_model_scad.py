@@ -65,7 +65,7 @@ def test_one_watertight_piece(bracket):
 
 
 def test_bounds(bracket):
-    assert np.allclose(bracket.bounds, [[0, 0, 0], [FOOT_LEN + W / 2, TOP_Y, T]], atol=0.1)
+    assert np.allclose(bracket.bounds, [[min(0, P["back_x"] - 17.5 - P["block_wall"]), 0, 0], [FOOT_LEN + W / 2, TOP_Y, T]], atol=0.1)
 
 
 def test_top_is_the_originals(bracket):
