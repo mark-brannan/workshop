@@ -1,18 +1,19 @@
 // DIN-rail (TS35) mount for the "MRD066A for esp32 terminal adapter" breakout (63 x 77, unknown brand) on four M2 standoffs.
 // Flat back; the preferred DIN clips (Printables 420009, ../din-rail-psu-mount/ref_din_clip_heat_insert.stl)
 // are printed apart and screwed on from the board side with countersunk M3. The rail runs along X, the board's
-// short side (63); the board stands tall, its long side (77) across the rail (Y), as do each clip's two screws.
+// long side (77), so both terminal strips lie along the rail and their wire entries face up and down, toward the
+// ducts; the short side (63) and each clip's two screws lie across the rail (Y).
 // Print as shown: plate flat on the bed, standoffs up, no supports.
 
 /* [Plate] */
-plate_l = 70.6;      // X, along the rail: hole_dx + 12
-plate_w = 84.9;      // Y, across the rail: hole_dy + 12
+plate_l = 84.9;      // X, along the rail: hole_dx + 12
+plate_w = 70.6;      // Y, across the rail: hole_dy + 12
 plate_t = 5;
 corner_r = 3;
 
-/* [Board holes] centres = inside-to-inside + one 2.2 hole: short side 56.4, long side 70.7 (diagonal 91.4 checks) */
-hole_dx = 58.6;
-hole_dy = 72.9;
+/* [Board holes] centres = inside-to-inside + one 2.2 hole: long side 70.7, short side 56.4 (diagonal 91.4 checks) */
+hole_dx = 72.9;
+hole_dy = 58.6;
 
 /* [Standoffs] */
 standoff_h = 6;      // above the plate; clears pins and solder on the board's back

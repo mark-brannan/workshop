@@ -56,14 +56,14 @@ def test_standoff_clears_back_of_board_and_fits_m3(base):
 
 
 def test_hole_spacing_matches_calipers():
-    # holes 2.2; inside edge to inside edge 56.4 (short, X) and 70.7 (long, Y); centres = inside + one hole
+    # holes 2.2; inside edge to inside edge 70.7 (long, X, along the rail) and 56.4 (short, Y); centres = inside + one hole
     d = 2.2
-    assert np.isclose(P["hole_dx"], 56.4 + d, atol=0.01)
-    assert np.isclose(P["hole_dy"], 70.7 + d, atol=0.01)
+    assert np.isclose(P["hole_dx"], 70.7 + d, atol=0.01)
+    assert np.isclose(P["hole_dy"], 56.4 + d, atol=0.01)
     # the inside-edge diagonal 91.4 is an independent check on both
     assert abs(np.hypot(P["hole_dx"], P["hole_dy"]) - d - 91.4) < 0.2
     # board 63 x 77: holes land inside the board, edge margin 0.5 to 1.2 (owner said ~0.5 by eye)
-    for span, edge in ((P["hole_dx"], 63), (P["hole_dy"], 77)):
+    for span, edge in ((P["hole_dx"], 77), (P["hole_dy"], 63)):
         assert 0.5 <= (edge - span - d) / 2 < 1.3
 
 
@@ -71,7 +71,7 @@ def test_four_countersunk_clip_holes_through_the_plate(base):
     xs = [float(v) for v in re.search(r"clip_xs\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text()).group(1).split(",")]
     ys = [float(v) for v in re.search(r"clip_ys\s*=\s*\[([^\]]*)\]", (HERE / "model.scad").read_text()).group(1).split(",")]
     assert len(xs) * len(ys) == 4
-    assert abs(ys[0] - ys[1]) == pytest.approx(51, abs=0.01)  # clip span across the rail = the board's long side (Y)
+    assert abs(ys[0] - ys[1]) == pytest.approx(51, abs=0.01)  # clip span across the rail = the board's short side (Y)
     for x in xs:
         for y in ys:
             assert hits(base, x, y) == [] and len(hits(base, x + 2.5, y)) > 0  # open through the shank; solid just beside it
