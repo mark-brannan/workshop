@@ -12,7 +12,12 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | bme688-cabin-screen | done | |
 | printer-chute-transition | done, functional | friction fit poor; attach with tape or similar, no cyanoacrylate |
 | calibration | printed, not reviewed | review card: what the prints show |
-| photocell-flame-pod | next, priority 1 | nothing sliced or printed; no gauge |
+| photocell-flame-pod | next, priority 1 | fit is good; reprint for the finish with the flame glyph on the cover, 3 shells + 3 covers on one plate (modelled); no gauge |
+| onefinity-probe-holder | next | never printed; no gauge |
+| esp32-mrd066a-mount | next | never printed |
+| din-rail-clips-plate | printing | started 2026-11-26 |
+| halmet-piezo-pod | new design | the chamber blocks too much sound; vent porting redesign, not a reprint |
+| din-rail-bench-stand | needs more work | never printed |
 | esp32-freenove-universal-mount | done | Freenove universal breakout board; other boards get their own project |
 | shower-sump-platform | next, after the small parts | not printed |
 | lux-capsule, gv30-lux-mount | needs design work | |
