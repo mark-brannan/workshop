@@ -7,15 +7,18 @@ base_t = 3;
 a_len = 50; a_wid = 85;          // zone A tray, open, flat
 cal_len = 240; cal_wid = 78;     // calipers; jaw 45 toward the user, 31 behind the beam
 cal_beam = 16; cal_head = 40;    // beam width; head length along X (guess)
-c_pitch = 25; c_handle = 18; c_cols = 9; c_rows = 1;
+c_n = 9; c_pitch = 25; c_handle = 18; c_hlen = 90; c_len = 155; c_shaft = 3;   // c_hlen guessed
 b_n = 7; b_pitch = 15; b_post = 9.9; b_h = 25;
-f_n = 14; f_pitch = 6; f_depth = 85; f_h = 51;
+f_n = 14; f_pitch = 6; f_len = 120; f_handle = 5.2; f_hlen = 87; f_shaft = 3;
+k = sin(45);
 front_depth = 85;
 back_gap = 3;
-c_w = (c_cols-1)*c_pitch + c_handle + 2;
+c_w = (c_n-1)*c_pitch + c_handle + 2;
 b_w = (b_n-1)*b_pitch + b_post + 2*5;
 f_w = (f_n-1)*f_pitch + 13;
-back_depth = max((c_rows-1)*c_pitch + c_handle + 2, f_depth);
+function foot_w(hd) = max(hd, 12)/2 + 3;       // footboard half-height, along its own slope
+function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
+back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
 total_w = max(front_w, wall + c_w + wall + b_w + wall + f_w + wall);
 total_d = wall + front_depth + wall + back_depth + wall;
@@ -24,13 +27,19 @@ module tray_a() { translate([wall, wall, base_t]) difference() {
 module calipers() { x0 = wall + a_len + wall; y0 = wall + 31 + 5;
   color("gray") translate([x0, y0, base_t]) { cube([cal_len, cal_beam, 3]);
     translate([0, -45+cal_beam-0, 0]) cube([cal_head, cal_wid, 3]); } }
-module c_grid() { x0 = wall + c_handle/2 + 1; y0 = wall + front_depth + wall + c_handle/2 + 1;
-  for (i=[0:c_cols-1], j=[0:c_rows-1]) translate([x0+i*c_pitch, y0+j*c_pitch, base_t])
-    difference() { cylinder(d=c_handle+4, h=40, $fn=40); translate([0,0,2]) cylinder(d=c_handle, h=40, $fn=40); } }
+// Drivers lie at 45 deg, swivel/handle end down at the front, tip up and back. The footboard is a
+// plate square to the drivers (its face at 45 deg the other way); two risers cradle the shafts.
+module angled(n, pitch, L, hd, hlen, sd, risers) { hw = foot_w(hd); zo = hw*k + 0.5; yo = hw*k; wd = (n-1)*pitch + hd + 4;
+  // footboard solid: sloped face on top, down to the base
+  translate([-hd/2-2, 0, 0]) rotate([90,0,90]) linear_extrude(wd) polygon([
+    [yo-hw*k, zo+hw*k], [yo+hw*k, zo-hw*k], [yo+hw*k, 0], [yo-hw*k, 0]]);
+  translate([0, yo, zo]) rotate([-45,0,0]) for (i=[0:n-1]) translate([i*pitch,0,0]) {
+    cylinder(d=hd, h=hlen, $fn=32); cylinder(d=sd, h=L, $fn=16); }
+  for (s = risers) translate([-hd/2-2, yo+s*k-1.5, 0]) cube([wd, 3, zo+s*k-hd/2*k]); }
+module c_zone() { translate([wall+0.9+c_handle/2+1, wall+front_depth+wall, base_t])
+  angled(c_n, c_pitch, c_len, c_handle, c_hlen, c_shaft, [30, 90]); }
 module b_posts() { x0 = wall + c_w + wall + 5 + b_post/2; y0 = wall + front_depth + wall + 8;
   for (i=[0:b_n-1]) translate([x0+i*b_pitch, y0, base_t]) cylinder(d=b_post, h=b_h, $fn=32); }
-module f_zone() { x0 = wall + c_w + wall + b_w + wall + 6; y0 = wall + front_depth + wall + 2;
-  for (i=[0:f_n-1]) translate([x0+i*f_pitch, y0, base_t]) hull() { cube([4, 1, 1]);
-    translate([0, f_depth-6, f_h-1]) cube([4, 1, 1]); }
-  translate([x0-3, y0-3, base_t]) cube([f_w, 2, 14]); }
-union() { color("steelblue") cube([total_w, total_d, base_t]); tray_a(); calipers(); c_grid(); b_posts(); f_zone(); }
+module f_zone() { translate([wall + c_w + wall + b_w + wall + 6, wall+front_depth+wall, base_t])
+  angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
+union() { color("steelblue") cube([total_w, total_d, base_t]); tray_a(); calipers(); c_zone(); b_posts(); f_zone(); }
