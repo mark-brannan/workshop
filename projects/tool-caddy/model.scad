@@ -25,7 +25,8 @@ snip_wall = 3; snip_thumb_t = 4; snip_thumb_len = 9; snip_clear = 2; snip_tilt =
 snip_W = snip_w + snip_clear - snip_hand_in;                 // web centre to web centre (32)
 snip_L = (snip_h + snip_tip_up)*tan(snip_lean);                 // how far the wall's foot stands out from its top
 snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall + snip_L);   // outer width of the pair, feet included
-strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
+strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50;
+strip_block_w = 2*(strip_slot_t/2 + 1 + snip_wall + (strip_depth + 2)*tan(snip_lean) + 3);   // the ring's foot across, fillets included
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
 f_y = wall + front_depth + wall;
@@ -70,12 +71,12 @@ module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
 snip_hand_h = 12; snip_fillet = 3; snip_lean_pow = 1.5; snip_thumb_ease = 3;
 function sn_smooth(x) = let(t = max(0, min(1, x))) t*t*(3 - 2*t);
 function sn_rise(x) = x <= 0 ? 0 : x < snip_thumb_ease ? x*x/(2*snip_thumb_ease) : x - snip_thumb_ease/2;
-function sn_off(z, z0) = z >= z0 ? 0 : snip_L*pow(1 - max(z, 0)/z0, snip_lean_pow);   // outward lean
+function sn_off(z, z0, L) = z >= z0 ? 0 : L*pow(1 - max(z, 0)/z0, snip_lean_pow);   // outward lean, L at the base
 function sn_flare(z) = z >= snip_fillet ? 0 : snip_fillet - sqrt(snip_fillet*snip_fillet - pow(snip_fillet - max(z, 0), 2));
 // one cross-section: [u outward, z], 0.5 below the base up the inner face, over the round top, down the outer face
-function sn_profile(t, top, z0) = let(
+function sn_profile(t, top, z0, L) = let(
     zt = top - t/2, zs = concat([-0.5], [for (i = [0:7]) snip_fillet*pow(i/8, 1.6)], [for (i = [0:16]) snip_fillet + (zt - snip_fillet)*i/16]),
-    c = function(z) sn_off(z, z0) + t/2, h = function(z) t/2 + sn_flare(z))
+    c = function(z) sn_off(z, z0, L) + t/2, h = function(z) t/2 + sn_flare(z))
   concat([for (z = zs) [c(z) - h(z), z, c(z)]],
          [for (i = [1:11]) let(a = 180 - 180*i/12) [c(zt) + t/2*cos(a), zt + t/2*sin(a), c(zt)]],
          [for (j = [len(zs)-1:-1:0]) let(z = zs[j]) [c(z) + h(z), z, c(z)]]);
@@ -90,28 +91,40 @@ module snips() { Ri = snip_hand_in/2; R = Ri + snip_wall; z0 = snip_h + snip_tip
     [for (i = [0:32]) [W*i/32, Ri, [1, 0], -100, 0, [0, 0]]],
     [for (i = [1:35]) let(a = 90 - 180*i/36) [W + Ri*cos(a), Ri*sin(a), [sin(a), -cos(a)], -1 - (36 - i), 0, [0, 0]]],
     [for (i = [len(rt)-1:-1:0]) rt[i]]);
-  profs = [for (p = st) let(
+  sweep([for (p = st) let(
       d = p[3], on = d >= 0, arcd = on ? 0 : -d - 1,                       // arcd: steps into the web from the thumb
       t = snip_wall + (snip_thumb_t - snip_wall)*(on ? 1 : 1 - sn_smooth(arcd/8)),
-      top = ztop + (on ? tan(snip_tilt)*sn_rise(d) : 0),
-      n = [-p[2].y, p[2].x], phi = p[4], tip = p[5])
-    // the nose: each level of the section turns about its own centre line, so every level ends in a half circle
-    [for (uv = sn_profile(t, top, z0)) let(e = uv[0] - uv[2], u = uv[2] + e*cos(phi), f = abs(e)*sin(phi))
+      top = ztop + (on ? tan(snip_tilt)*sn_rise(d) : 0))
+    [p[0], p[1], p[2], t, top, z0, L, p[4], p[5]]], false, [front_w + 5 + R + L, wall + 27 + R + L, base_t]); }
+// The sweep both holders share. A station: [x, y, tangent, thickness, top, z0 (lean ends), lean at base,
+// nose angle, tip direction]. The section's inner face sits on (x, y); outward is left of the tangent.
+// closed: the last station joins the first. Open: each end turns round its own centre line in a nose.
+module sweep(st, closed, at) {
+  profs = [for (p = st) let(n = [-p[2].y, p[2].x], phi = p[7], tip = p[8])
+    [for (uv = sn_profile(p[3], p[4], p[5], p[6])) let(e = uv[0] - uv[2], u = uv[2] + e*cos(phi), f = abs(e)*sin(phi))
       [p[0] + n.x*u + tip.x*f, p[1] + n.y*u + tip.y*f, uv[1]]]];
   m = len(profs[0]); k = len(profs);
   // the nose ends are near-flat slivers: close each as a strip pairing inner and outer points, never one bent polygon
   cap = function(j, i) let(a = [i*m + j, i*m + j + 1, i*m + m - 2 - j, i*m + m - 1 - j],
                            f = j + 1 == m - 2 - j ? [[a[0], a[1], a[3]]] : [a]) i == 0 ? f : [for (q = f) [for (v = [len(q)-1:-1:0]) q[v]]];
-  translate([front_w + 5 + R + L, wall + 27 + R + L, base_t])
-    polyhedron(points = [for (pr = profs) each pr],
-      faces = concat([for (i = [0:k-2], j = [0:m-1]) [i*m + j, (i+1)*m + j, (i+1)*m + (j+1)%m, i*m + (j+1)%m]],
-                     [for (j = [0:(m-3)/2]) each cap(j, 0)], [for (j = [0:(m-3)/2]) each cap(j, k-1)]), convexity = 6); }
-// Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
-// 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
-module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
-    cube([strip_block_w, strip_block_t, strip_depth + 2]);
-    translate([strip_block_w/2, (strip_block_t + strip_slot_t)/2, 2]) rotate([90, 0, 0]) linear_extrude(strip_slot_t)
-      polygon([[-strip_base_w/2, 0], [strip_base_w/2, 0], [strip_top_w/2, strip_depth + 1], [-strip_top_w/2, strip_depth + 1]]); } }
+  translate(at) polyhedron(points = [for (pr = profs) each pr],
+    faces = concat([for (i = [0:closed ? k-1 : k-2], j = [0:m-1]) let(i1 = (i+1)%k) [i*m + j, i1*m + j, i1*m + (j+1)%m, i*m + (j+1)%m]],
+                   closed ? [] : [for (j = [0:(m-3)/2]) each cap(j, 0)], closed ? [] : [for (j = [0:(m-3)/2]) each cap(j, k-1)]), convexity = 6); }
+// Strippers, nose down: the jaws 6 thick, 20 wide at the tip widening to 30 at 50 up; handles stand about
+// 120 above, 60 wide, 12 thick (not drawn). The same swept wall as the snips, closed into a ring round the
+// jaws: inside 2 over the jaws' thickness and their widest width, the long side front to back, standing on the
+// jaws' tips. Round top, base fillets, the lean easing out to the foot.
+strip_in_w = strip_slot_t + 2; strip_in_l = strip_top_w + 2; strip_h = strip_depth + 2; strip_z0 = strip_h - snip_hand_h;
+strip_L = strip_h*tan(snip_lean);
+strip_foot = strip_block_w/2;   // ring centre to the outer edge of the foot
+module strippers() { r = strip_in_w/2; S = strip_in_l - strip_in_w; n = 24;
+  // the inner face, clockwise seen from above: down the right side, round the front, up the left, round the back
+  st = concat([for (i = [0:15]) [r, S - S*i/16, [0, -1]]],
+    [for (i = [0:n-1]) let(a = -180*i/n) [r*cos(a), r*sin(a), [sin(a), -cos(a)]]],
+    [for (i = [0:15]) [-r, S*i/16, [0, 1]]],
+    [for (i = [0:n-1]) let(a = 180 - 180*i/n) [r*cos(a), S + r*sin(a), [sin(a), -cos(a)]]]);
+  sweep([for (p = st) [p[0], p[1], p[2], snip_wall, strip_h, strip_z0, strip_L, 0, [0, 0]]], true,
+        [front_w + 5 + snip_total_w + 6 + strip_foot, wall + 27 + strip_foot, base_t]); }
 module pocket(w, d, h) { difference() { cube([w+4, d+4, h]); translate([2,2,2]) cube([w, d, h]); } }
 // Vase box for rulers and long tools: the back row's remaining width, right of C
 vase_x = wall + f_w + wall + c_w + wall;
