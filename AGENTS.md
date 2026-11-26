@@ -36,6 +36,8 @@ SVG is an intermediate only; never the deliverable handed to the user.
 - Millimetres. Z up.
 - Print orientation is the model orientation unless the project README says otherwise.
 - A plate of several parts is one 3MF holding one object per part, never one merged object, so each can be moved in the slicer. `shop build` writes a model's separate bodies as separate objects; `shop plate` does the same.
+- Every object in a 3MF has a descriptive name for the part it is (`enclosure`, `lid`, `gauge-m3-boss`), never a tool default such as "OpenSCAD Model" or a bare index.
+- Parts that go together and print together (an enclosure and its lid) share one 3MF, one object each. A part that prints on its own, at a different time (a gauge), gets its own 3MF; a related set of gauges may share one.
 - Supports are designed, not left to the slicer. Every overhang and ceiling in print orientation holds itself up by shape, for example:
   - a wall or slope at 45° or steeper, or the part reoriented so the overhang becomes a wall
   - a point-up (teardrop) or small hexagonal hole
