@@ -15,6 +15,6 @@ Evidence for "printed" is the K2 Plus job history; a project is never done on a 
 | photocell-flame-pod | next, priority 1 | nothing sliced or printed; no gauge |
 | esp32-freenove-universal-mount | done | Freenove universal breakout board; other boards get their own project |
 | shower-sump-platform | next, after the small parts | not printed |
-| lux-sensor-mount, lux-capsule, lux-tube-cap, gv30-lux-mount | needs design work | |
-| small-box-sensors, imu-tray, halpi2-endpoint-box, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |
+| lux-capsule, gv30-lux-mount | needs design work | |
+| small-box-sensors, segment-display-enclosure, outside-sensor-pod | low priority | waiting on chips |
 | rudder-angle-sensor, rudder-sensor-pedestal | low priority | |
