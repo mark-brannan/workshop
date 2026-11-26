@@ -29,10 +29,10 @@ bracket_t = 20;           // thickness of the plate (print height), across the r
 strut = 3;                // back post, face and crossbar: solid, 3 wide in the profile, as the original's
 
 /* [Rails] */
-s1 = 47.5;                  // tier 1 rail centre, along the face from its foot
+s1 = 106.5;                  // tier 1 rail centre, along the face from its foot
 pitch = 70;              // tier 2 sits this far above tier 1, along the face
-flat_x = 141.5;             // flat rail centre, from the back of the stand
-back_x = -7.5;              // back (AC) rail centre, from the back of the post: shifted rearward, its block straddles the post, clear of tier 1
+flat_x = 108.5;             // flat rail centre, from the back of the stand
+back_x = 21.5;              // back (AC) rail centre: its block flush with the post's back, never behind it
 
 /* [Rail slot] TS35 passes through, held between the slot's faces */
 rail_clr = 0.3;           // slot clearance each side of the 1 mm rail sheet; guess, gauge it
