@@ -11,8 +11,9 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Zone | Holds | Count | Size | Pitch | Orientation |
 |---|---|---|---|---|---|
 | A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now | n/a | lying flat |
-| B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 18 c-c, all posts the same diameter | handle down, on a post |
-| D: small tray | whatever fits | open tray, no slots | 125 x ~65, in front of B; guess | n/a | lying flat |
+| B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 15 c-c, all posts the same diameter | handle down, on a post |
+| D: small tray | whatever fits | open tray, no slots | 100 x ~65, in front of B; guess | n/a | lying flat |
+| F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | upright, in the front row right of D |
 | E: calipers | cheap digital calipers, standard 150 mm | 1 | 241 long (9.5") x ~50 deep, in front of A and D; head ~76 (3") long, display up; depth a guess | n/a | lying flat, head on the left |
 | C: long drivers | assorted screwdrivers | 12 (fills the base; was ~9) | ~155 long | 20 c-c | tip down |
 
@@ -38,21 +39,21 @@ Two rows. Front row: the tray with its 50 side facing the user (85 deep), the he
 
 ```
  back    O  O  O  O  O  O  O  O  O  O  O  O   C: 12 holes, 20 c-c, 238 wide
-         [        ]  o  o  o  o  o  o  o    B: 7 posts, 18 c-c, 125 wide, ~15 deep
-         [ A tray ]  [ D tray          ]    A: 50 wide x 85 deep
-         [        ]  [                 ]    D: 125 wide x ~65 deep, open, size a guess
+         [        ]  o  o  o  o  o  o  o    B: 7 posts, 15 c-c, 100 wide, ~15 deep
+         [ A tray ]  [ D tray      ] ::::::::::::::    A: 50 x 85; F: ~14 holes, 6 c-c, ~91 wide
+         [        ]  [                 ]    D: 100 wide x ~65 deep, open, size a guess
          [ E calipers, head left       ]   241 x ~50
                          user
 ```
 
 Zone D is a second small open tray in the space in front of the posts; it takes B's width and the depth left under A's 85 after B's row (~15) and walls.
 
-Front row is 50 + 3 gap + 125 = 178. The back row now runs the full 247 base: 12 holes x 20 c-c = 238 across. B: 6 gaps x 18 = 108 between end posts, 8.5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
+Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back row: 12 holes x 20 c-c = 238 across. B: 6 gaps x 15 = 90 between end posts, 5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
 
 ## Open
 
-- Base is 247 wide (241 calipers + 3 wall each side). Rows sit flush left; the front row (178) leaves ~69 spare on the right, beside the caliper. Use or leave.
+- Base is 247 wide (241 calipers + 3 wall each side).
 
 - Which side of the tray the posts sit on, and whether the back row is centred or flush left.
-- B's 18 c-c is a fill-the-width choice; the driver handles' diameter is unmeasured, so check they clear each other.
+- F: all Ø12 swivels on one end at 6 c-c collide unless the swivels alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
