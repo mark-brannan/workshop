@@ -60,17 +60,21 @@ module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down: two open arms, each topped by a C-shaped hand that takes one shoulder
 // (shoulders 41 wide, 47 from the tip). Nothing between the arms. Hand sizes are guessed.
-// Each hand is a thin curved band (2.5 thick, 12 wide) rising from the base, bowing out and back in
-// to a C of 10 dia that takes one shoulder's edge: seen from the front, ⊂ ⊃, openings facing each other.
-snip_band_t = 2.5;
-module hand2d(sg) { R = snip_hand_d/2; zc = snip_h - R;
-  difference() {
-    union() { difference() { circle(r=R, $fn=48); circle(r=R-snip_band_t, $fn=48); }
-              translate([sg*(R - snip_band_t/2) - snip_band_t/2, -zc]) square([snip_band_t, zc]); }
+// Each hand: a thin C band (2.5 thick, 12 tall, 10 dia) lying flat, seen from above as ⊂ ⊃ with the
+// openings toward each other, so each takes one shoulder's edge sideways as the snips drop between.
+// It stands on a 2.5 thick plate at its outer edge; a 45 deg gusset holds the C's inner half.
+snip_band_t = 2.5; snip_hand_h = 12;
+module c2d(sg) { R = snip_hand_d/2;
+  difference() { difference() { circle(r=R, $fn=48); circle(r=R-snip_band_t, $fn=48); }
     translate([sg > 0 ? -R-1 : 0, -snip_hand_gap/2]) square([R+1, snip_hand_gap]); } }
+module snip_hand(sg) { R = snip_hand_d/2; zr = snip_h - snip_hand_h/2; xo = sg*(R - snip_band_t);   // stem inner face, from the C's centre
+  translate([0, 0, zr]) linear_extrude(snip_hand_h) c2d(sg);
+  translate([sg*R - (sg > 0 ? snip_band_t : 0), -snip_hand_d/2, 0]) cube([snip_band_t, snip_hand_d, zr]);
+  translate([0, snip_hand_d/2, zr]) rotate([90, 0, 0]) linear_extrude(snip_hand_d)
+    polygon(sg > 0 ? [[R - snip_band_t, 0], [-R, 0], [R - snip_band_t, -(2*R - snip_band_t)]]
+                   : [[-R + snip_band_t, 0], [R, 0], [-R + snip_band_t, -(2*R - snip_band_t)]]); }
 module snips() { translate([front_w + 5, wall + 27, base_t]) for (sg = [-1, 1])
-    translate([snip_cx + sg*(snip_w/2 + snip_band_t), snip_arm_depth, snip_h - snip_hand_d/2])
-      rotate([90, 0, 0]) linear_extrude(snip_arm_depth) hand2d(sg); }
+    translate([snip_cx + sg*(snip_w/2 + snip_band_t), snip_hand_d/2, 0]) snip_hand(sg); }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
