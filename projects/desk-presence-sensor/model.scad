@@ -100,6 +100,7 @@ tray_seat_w = 1.2;   // block under each side margin of the tray, along the wall
 ol_slack = 0.3;      // board edge to rib, per side
 ol_rib_t = 1.2;
 ol_beam_t = 1.2;     // OLED side beams, the full rib like the radar's (were 0.7; owner, 2026-11-25)
+ol_fillet_out = 1.5;  // outside root fillet of each OLED side beam: no sharp corner for a crack to start; about 1.0 tall at the wall
 
 /* [D1 mini, flat] (vendor drawing, not calipered) */
 d1_l = 34.2;         // Y, USB end up
@@ -248,15 +249,8 @@ module ol_lips() {
             union() {
                 polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
                 translate([sx*(ol_beam_t - 0.05)/2, zb + ol_lip/2]) square([ol_beam_t - 0.05, ol_lip + 0.6], center = true);   // the beam carried up behind the lip, 0.05 shy of its outer face: a 0.4 foot is under one line, and the slicer floats the lip
-                ol_gusset(sx, zb + 2*ol_lip + 0.3 - 0.05);   // outside brace to the face: the lip cannot break off its root
             }
     }
-}
-// 45 deg brace on the outside of a side beam, from the face to the lip's top, the beam's length; sunk 0.3 into the face.
-module ol_gusset(sx, top) {
-    g = top - face_t;
-    polygon([[0, face_t - 0.3], [sx*(ol_beam_t + g), face_t - 0.3], [sx*(ol_beam_t + g), face_t],
-             [sx*(ol_beam_t - 0.05), top], [0, top]]);
 }
 module ol_snap_cuts() {   // slots either side of each side beam and its outside thinned, sunk rd_groove into the face
     zc = face_t - rd_groove + 10; x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
@@ -304,8 +298,8 @@ module ol_beam_fillets() {
     x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
     for (sx = [-1, 1]) translate([0, y1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len + (ol_beam_t < ol_rib_t ? 0 : 1), center = true)   // full-rib beam: runs into the slots, which trim it flush
         if (ol_beam_t < ol_rib_t) translate([sx*(x_in + ol_beam_t), face_t - rd_groove]) scale([sx, 1]) fillet2d(rd_groove);
-        else translate([sx*(x_in + ol_beam_t), face_t]) scale([sx, 1])   // full-rib beam: fillet on the face, 0.5 tall at the wall; the arc cuts the wall at an angle, not tangent, so the mesh has no zero-width tip
-            difference() { translate([-0.1, -0.1]) square([0.9, 0.9]); translate([0.75, 0.8]) circle(0.8, $fn = 32); }
+        else translate([sx*(x_in + ol_beam_t), face_t]) scale([sx, 1])   // full-rib beam: fillet on the face; the arc cuts the wall at an angle, not tangent, so the mesh has no zero-width tip
+            difference() { translate([-0.1, -0.1]) square([ol_fillet_out + 0.1, ol_fillet_out + 0.1]); translate([0.94*ol_fillet_out, ol_fillet_out]) circle(ol_fillet_out, $fn = 48); }
 }
 module rd_beam_fillets() {
     x_in = rd_w/2 + rd_slack; y0 = rd_h/2 - 1 - rd_lip_len; y_in = rd_cy + rd_h/2 + rd_slack;
