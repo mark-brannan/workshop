@@ -20,10 +20,9 @@ function foot_w(hd) = max(hd, 12)/2 + 3;       // footboard half-height, along i
 function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
-snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
-snip_tilt = 20; snip_len = 18; snip_plate_t = 2.5;   // saddle tilts up toward the other one; 10-30 deg to be confirmed
-snip_cx = snip_w/2 + 1 + snip_plate_t;            // centre of the pair, from the holder's left edge
-snip_total_w = 2*snip_cx;
+snip_w = 40; snip_h = 45; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
+snip_wall = 2.5; snip_plate_t = 2.5; snip_clear = 1; snip_over = 0.5; snip_tip_up = 3;   // tip hangs 3 above the base
+snip_total_w = snip_w + snip_clear + 2*(snip_plate_t + snip_wall - snip_over);
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
@@ -59,22 +58,21 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 10;
   for (i=[0:b_n-1]) translate([x0+i*b_pitch, y0, base_t]) cylinder(d=b_post, h=b_h, $fn=32); }
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
-// Wire snips, nose down: two open arms, each topped by a C-shaped hand that takes one shoulder
-// (shoulders 41 wide, 47 from the tip). Nothing between the arms. Hand sizes are guessed.
-// Each hand: a thin C band (2.5 thick, 12 tall, 10 dia) lying flat, seen from above as ⊂ ⊃ with the
-// openings toward each other, so each takes one shoulder's edge sideways as the snips drop between.
-// It stands on a 2.5 thick plate at its outer edge; a 45 deg gusset holds the C's inner half.
-snip_band_t = 2.5; snip_hand_h = 12;
+// Wire snips, nose down, hung by the shoulders (45 from the tip, 40 wide, where the recurve begins).
+// Two lobster claws rise from rear plates, each a thin C seen from above, ⊂ ⊃, openings facing each other,
+// 10 inside, 2.5 wall: the snips drop in from above and each shoulder edge sits in a claw. A 45 deg bowl
+// under the C takes the shoulder's underside; a 45 deg rib joins it to the plate (support from behind only).
+snip_hand_h = 12;
 module soft(r = 1) { offset(r = r, $fn = 24) offset(delta = -r) children(); }   // rounds every convex corner
-// Each hand is a saddle: a rounded half-pipe (10 inside width, 2.5 wall, lips 3.5 above the axis) running
-// toward the other saddle, open at both ends and along the top, tilted up toward the inside by snip_tilt.
-// It hangs from a thin plate behind its outer end (rear support only; nothing under the saddle).
-module saddle2d() { R = snip_hand_d/2; Ri = snip_hand_in/2;
-  soft(1) difference() { union() { circle(r=R, $fn=48); translate([-R, 0]) square([2*R, 3.5]); }
-    union() { circle(r=Ri, $fn=48); translate([-Ri, 0]) square([2*Ri, 10]); } } }
-module snip_hand() { zo = snip_h - 5; R = snip_hand_d/2;                        // built for the left hand: inward is +x
-  translate([0, 0, zo]) rotate([0, -snip_tilt, 0]) rotate([90, 0, 90]) linear_extrude(snip_len) saddle2d();
-  translate([-snip_plate_t, 0, 0]) rotate([90, 0, 90]) linear_extrude(snip_plate_t) soft(1) translate([-R, 0]) square([2*R, zo + 2]); }
+module claw2d() { Ri = snip_hand_in/2; R = Ri + snip_wall - snip_over;           // ring centre at (R, 0); its back sinks 0.5 into the plate at x = 0
+  soft(1) difference() { translate([R, 0]) circle(r = R + snip_over, $fn = 48);
+    translate([R, 0]) union() { circle(r = Ri, $fn = 48); translate([0, -snip_hand_gap/2]) square([R + 1, snip_hand_gap]); } } }
+module snip_hand() { R = snip_hand_in/2 + snip_wall - snip_over; z0 = snip_h + snip_tip_up;   // left hand: inward is +x; z0 = shoulder rest
+  translate([0, 0, z0]) linear_extrude(snip_hand_h) claw2d();
+  translate([R, 0, z0 - R]) cylinder(r1 = 2.5, r2 = R, h = R + 0.5, $fn = 48);          // 45 deg bowl under the ring
+  translate([0, snip_wall/2, 0]) rotate([90, 0, 0]) linear_extrude(snip_wall)     // 45 deg rib from the plate to the bowl
+    polygon([[-0.5, z0 - R - 5.5], [R, z0 - R], [R, z0 + 0.5], [-0.5, z0 + 0.5]]);
+  translate([-snip_plate_t, 0, 0]) rotate([90, 0, 90]) linear_extrude(snip_plate_t) soft(1) translate([-R - snip_over, 0]) square([2*(R + snip_over), z0 + snip_hand_h]); }
 module snips() { translate([front_w + 5, wall + 27 + snip_hand_d/2, base_t]) {
     translate([snip_plate_t, 0, 0]) snip_hand();                                      // left hand: inward is +x
     translate([snip_total_w - snip_plate_t, 0, 0]) rotate([0, 0, 180]) snip_hand(); } }  // right hand: a turn, not a mirror
