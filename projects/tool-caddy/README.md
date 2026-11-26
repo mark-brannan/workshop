@@ -11,8 +11,8 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Zone | Holds | Count | Size | Pitch | Orientation |
 |---|---|---|---|---|---|
 | A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now | n/a | lying flat |
-| B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 15 c-c | handle down, on a post |
-| D: small tray | whatever fits | open tray, no slots | ~100 x ~65, in front of B; guess | n/a | lying flat |
+| B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 18 c-c (was 15, spread to fill the row) | handle down, on a post |
+| D: small tray | whatever fits | open tray, no slots | 125 x ~65, in front of B; guess | n/a | lying flat |
 | C: long drivers | assorted screwdrivers | ~9 | ~155 long | 20 c-c | tip down |
 
 ## Zone B: post
@@ -37,18 +37,18 @@ Two rows. Front row: the tray with its 50 side facing the user (85 deep), the he
 
 ```
  back    O  O  O  O  O  O  O  O  O          C: 9 holes, 20 c-c, ~178 wide
-         [        ]  o  o  o  o  o  o  o    B: 7 posts, 15 c-c, ~100 wide, ~15 deep
+         [        ]  o  o  o  o  o  o  o    B: 7 posts, 18 c-c, 125 wide, ~15 deep
          [ A tray ]  [ D tray          ]    A: 50 wide x 85 deep
-         [        ]  [                 ]    D: ~100 wide x ~65 deep, open, size a guess
+         [        ]  [                 ]    D: 125 wide x ~65 deep, open, size a guess
                          user
 ```
 
 Zone D is a second small open tray in the space in front of the posts; it takes B's width and the depth left under A's 85 after B's row (~15) and walls.
 
-Front row is about 50 + wall + 100 = ~160 wide; back row is ~178. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
+Front row is 50 + 3 gap + 125 = 178, matching the back row. B: 6 gaps x 18 = 108 between end posts, 8.5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
 
 ## Open
 
 - Which side of the tray the posts sit on, and whether the back row is centred or flush left.
-- Overall width: take the back row's ~178 and let the front row sit within it, or widen it to match.
+- B's 18 c-c is a fill-the-width choice; the driver handles' diameter is unmeasured, so check they clear each other.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
