@@ -60,37 +60,27 @@ module b_posts() { x0 = front_w + 5 + b_post/2; y0 = wall + 10;
 module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
   angled(f_n, f_pitch, f_len, f_handle, f_hlen, f_shaft, [20, 72]); }
 // Wire snips, nose down, hung by the shoulders (45 from the tip, 40 wide, where the recurve begins).
-// One hand-like part: the fingers are a single back wall across the whole pair, rising from the base and
-// curling forward at each end through a round web into a short thumb (the saddle). Seen from above:
-// ⊂ ⊃ joined at the back, openings facing each other, 10 inside, 3 wall, 12 tall, no floor between.
-// Each thumb is 9 long, 4 thick, tilted 15 deg up toward the inside; the pair is 2 wider than the
-// shoulders so they push up into the thumbs and catch. A leg under each thumb leans back as it goes down
-// to the floor (about 8 deg), so the thumb's underside is held. Rim rounded 1 outside, 1.8 on the inside edge.
+// One smooth wrap-around: a single back wall across the pair (the fingers) rises from the base and curls
+// forward at each end through a round web into a short thumb. Seen from above: ⊂ ⊃ joined at the back,
+// 10 inside, 3 wall, 12 tall, no floor between. The wall is a chain of round-topped pills, so the top
+// edge is fully rounded with no steps. Each thumb (4 thick, 9 long) rises 15 deg toward the inside; the pair
+// is 2 wider than the shoulders so they push up into the thumbs; a leg under each thumb leans back to the floor.
 snip_hand_h = 12;
-function inset(r, d) = d >= r ? 0 : r - sqrt(r*r - (r - d)*(r - d));   // how far a rounded edge of radius r stands back, d below the top
-module soft(r = 1) { offset(r = r, $fn = 24) offset(delta = -r) children(); }
-module stadium(r) { hull() { circle(r = r, $fn = 48); translate([snip_W, 0]) circle(r = r, $fn = 48); } }
-module body2d(eo, ei) { Ri = snip_hand_in/2; R = Ri + snip_wall;                   // fingers and webs: front wall cut away between x = 0 and W
-  difference() { offset(delta = -eo) stadium(R);
-    union() { offset(delta = ei) stadium(Ri); translate([0, -R - 2]) square([snip_W, R + 2]); } } }
-module thumb2d(s, eo, ei) { Ri = snip_hand_in/2; x0 = s > 0 ? -0.5 : snip_W - snip_thumb_len;   // s = +1 left thumb, -1 right
-  soft(0.8) translate([x0, -Ri - snip_thumb_t + eo]) square([snip_thumb_len + 0.5, snip_thumb_t - eo - ei]); }
-module layered(h, ro, ri, which, s = 1) { n = 6; hs = max(ro, ri)/n;
-  translate([0, 0, hs*n]) linear_extrude(h - hs*n) { if (which == 0) body2d(0, 0); else thumb2d(s, 0, 0); }
-  for (k = [0:n-1]) { d = (k + 0.5)*hs; eo = inset(ro, d); ei = inset(ri, d);
-    translate([0, 0, hs*n - (k + 1)*hs]) linear_extrude(hs + 0.01) { if (which == 0) body2d(eo, ei); else thumb2d(s, eo, ei); } } }
-module snip_thumb(s) { Ri = snip_hand_in/2; z0 = snip_h + snip_tip_up; px = s > 0 ? 0 : snip_W;
-  translate([px, 0, z0]) rotate([0, -s*snip_tilt, 0]) translate([-px, 0, 0]) layered(snip_hand_h, 1.2, 2.5, 1, s);
-  // leg: from the thumb's underside down to the floor, leaning back toward the web as it descends
-  zt = z0 + snip_thumb_len*tan(snip_tilt) - 0.5; yc = -Ri - snip_thumb_t;
-  translate([0, yc, 0]) rotate([90, 0, 0]) translate([0, 0, -snip_thumb_t]) linear_extrude(snip_thumb_t)
-    polygon(s > 0 ? [[-3, 0], [2, 0], [snip_thumb_len - 0.5, zt], [-0.5, z0 - 0.5]]
-                  : [[snip_W + 3, 0], [snip_W - 2, 0], [snip_W - snip_thumb_len + 0.5, zt], [snip_W + 0.5, z0 - 0.5]]); }
-module snips() { R = snip_hand_in/2 + snip_wall; z0 = snip_h + snip_tip_up;
+module pill(d, h) { cylinder(d = d, h = h - d/2, $fn = 24); translate([0, 0, h - d/2]) sphere(d = d, $fn = 24); }
+module seg(p, q, dp, dq, hp, hq) { hull() { translate(p) pill(dp, hp); translate(q) pill(dq, hq); } }
+module snips() { Ri = snip_hand_in/2; r = Ri + snip_wall/2; R = Ri + snip_wall; z0 = snip_h + snip_tip_up; n = 12;
   translate([front_w + 5 + R, wall + 27 + R, base_t]) {
-    translate([0, 0, z0]) layered(snip_hand_h, 1, 1.8, 0);                            // fingers and webs
-    translate([-R, R - snip_wall, 0]) cube([snip_W + 2*R, snip_wall, z0 + 0.01]);      // the back wall, down to the base
-    snip_thumb(1); snip_thumb(-1); } }
+    seg([0, r, 0], [snip_W, r, 0], snip_wall, snip_wall, z0 + snip_hand_h, z0 + snip_hand_h);   // back wall, down to the base
+    for (s = [1, -1]) { cx = s > 0 ? 0 : snip_W;                                                   // s = +1 left hand, -1 right
+      for (i = [0:n-1]) { a0 = 90 + 180*i/n; a1 = 90 + 180*(i + 1)/n;                              // web: half circle round the shoulder's edge
+        seg([cx + s*r*cos(a0), r*sin(a0), z0], [cx + s*r*cos(a1), r*sin(a1), z0], snip_wall, snip_wall, snip_hand_h, snip_hand_h); }
+      yt = -Ri - snip_thumb_t/2; ztip = z0 + snip_thumb_len*tan(snip_tilt);
+      seg([cx, -r, z0], [cx, yt, z0], snip_wall, snip_thumb_t, snip_hand_h, snip_hand_h);          // web into thumb
+      seg([cx, yt, z0], [cx + s*snip_thumb_len, yt, ztip], snip_thumb_t, snip_thumb_t, snip_hand_h, snip_hand_h);   // thumb
+      hull() { translate([cx + s*(snip_thumb_len - 1), yt, ztip - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 24);   // leg, leaning back as it descends
+        translate([cx + s*0.5, yt, z0 - 1.5]) cylinder(d = 3.5, h = 1.5, $fn = 24);
+        translate([cx - s*1.5, yt, 0]) cylinder(d = 3.5, h = 0.5, $fn = 24);
+        translate([cx + s*2.5, yt, 0]) cylinder(d = 3.5, h = 0.5, $fn = 24); } } } }
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
