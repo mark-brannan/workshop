@@ -15,7 +15,7 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | D: small tray | whatever fits | open tray, no slots | 100 x ~65, in front of B; guess | n/a | lying flat |
 | F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | 45°, swivel at the base, tip up and back; in the front row right of D |
 | E: calipers | cheap digital calipers, standard 150 mm | 1 | 241 long (9.5") x ~50 deep, in front of A and D; head ~76 (3") long, display up; depth a guess | n/a | lying flat, head on the left |
-| C: long drivers | assorted screwdrivers | 12 (fills the base; was ~9) | ~155 long | 20 c-c | tip down |
+| C: long drivers | assorted screwdrivers | 9, a 3 x 3 grid | ~155 long | 25 c-c both ways | tip down |
 
 ## Zone B: post
 
@@ -29,7 +29,7 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 
 | Item | Value | Note |
 |---|---|---|
-| Widest handle diameter | 18 | sets the 20 pitch (2 mm wall between) |
+| Widest handle diameter | 18 | 25 c-c leaves a 7 mm wall between |
 | Shaft diameter | just under 3; use 3 | tip-down hole |
 | Length | ~155 | |
 
@@ -39,7 +39,7 @@ Drivers lie at 45° in a vertical plane, swivel end down at the front, tip up an
 
 | Part | Along driver | Along deck | Height above swivel axis | Bore | Clip length |
 |---|---|---|---|---|---|
-| Footboard | 0 | 0 | ledge ~6 under the axis, under the swivel | n/a | n/a |
+| Footboard | 0 | 0 | face at 45° the other way (square to the drivers), swivels butt against it | n/a | n/a |
 | Riser 1 | 20 | 14.1 | 14.1 | 5 (start; handle is 5.2) | 5, variable |
 | Riser 2 | 72 | 50.9 | 50.9 | 4 | 2 |
 | Tip | 120 | 84.9 | 84.9 | | |
@@ -51,7 +51,9 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 Two rows. Front row: the tray with its 50 side facing the user (85 deep), the hex posts beside it in a line. Back row: the long drivers in a line.
 
 ```
- back    O  O  O  O  O  O  O  O  O  O  O  O   C: 12 holes, 20 c-c, 238 wide
+ back    O  O  O                              C: 3 x 3 grid, 25 c-c, ~75 x ~75
+         O  O  O
+         O  O  O
          [        ]  o  o  o  o  o  o  o    B: 7 posts, 15 c-c, 100 wide, ~15 deep
          [ A tray ]  [ D tray      ] ::::::::::::::    A: 50 x 85; F: ~14 holes, 6 c-c, ~91 wide
          [        ]  [                 ]    D: 100 wide x ~65 deep, open, size a guess
@@ -61,9 +63,11 @@ Two rows. Front row: the tray with its 50 side facing the user (85 deep), the he
 
 Zone D is a second small open tray in the space in front of the posts; it takes B's width and the depth left under A's 85 after B's row (~15) and walls.
 
-Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back row: 12 holes x 20 c-c = 238 across. B: 6 gaps x 15 = 90 between end posts, 5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
+Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back: C is a 3 x 3 grid, 2 x 25 = 50 between end holes, ~75 across and ~75 deep with the Ø18 handles and walls. B: 6 gaps x 15 = 90 between end posts, 5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
 
 ## Open
+
+- C is ~75 wide on a 247 base: where it sits (left, centre, right) and what fills the ~172 beside it.
 
 - Base is 247 wide (241 calipers + 3 wall each side).
 
