@@ -9,7 +9,7 @@ two across the sloped face, one flat on the foot in front, and one flat at the b
 
 The construction is Szmalu's [DIN Rail Stand KIT](https://www.thingiverse.com/thing:3609072) (CC BY-NC), which holds one rail:
 an A-frame end bracket, a thick plate of thin ladder bars, the rail passing through a slot of its own section.
-Nothing of its mesh is used; this one is scaled up to hold four rails.
+Its top, above the crossbar, is the original's profile cut from its mesh and used as is (`szmalu_top.scad`, CC BY-NC, attribution above); below that, this one is scaled up to hold four rails.
 
 Prototype, not printed. Nothing here is measured.
 

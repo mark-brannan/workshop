@@ -3,7 +3,7 @@
 // Two rails cross the sloped front face, one above the other; the third lies flat on the foot, in front of them;
 // the fourth lies flat inside the frame at the back, under the face, for AC gear: a small PSU, terminals, relays.
 //
-// After Szmalu's "DIN Rail Stand KIT" (Thingiverse 3609072; nothing of its mesh is used): each rail passes through
+// After Szmalu's "DIN Rail Stand KIT" (Thingiverse 3609072, CC BY-NC; its top, above the crossbar, is cut from its mesh and used as is: szmalu_top.scad): each rail passes through
 // the bracket in a slot of its own cross-section, held between the slot's flat faces, and one M4 screw through
 // the slot's cover and the rail's base pins it lengthwise. The plate is thick across the rail and the bars are
 // ladders, two thin strips with a slot between, as the original's foot is. The top is the original's: a solid 3 mm
@@ -14,6 +14,8 @@
 // The profile is drawn in 2D with x toward the front of the desk and y up, then extruded bracket_t:
 // print flat, as modelled; view="assembly" stands two brackets up with rails and module envelopes;
 // view="gauge" is one rail block, thin, to check the slot and screw fit before the bracket prints.
+
+include <szmalu_top.scad>   // the original's top, used as is
 
 /* [View] */
 view = "part";            // "part" (print), "assembly" or "gauge"
@@ -71,6 +73,7 @@ function edge(s) = foot0 + s * u + (strut / 2 - 7.5 - cover) * n;  // rail base,
 
 // rail seats: base point and outward direction
 seats = [[edge(s1), n], [edge(s1 + pitch), n], [[flat_x, bar_w], [0, 1]], [[back_x, bar_w], [0, 1]]];
+own = [seats[0], seats[2], seats[3]];             // seats with our own block; the top rail is held by the original's top
 function local(c, o, x, y) = c + x * [o[1], -o[0]] + y * o;
 below = 8;                                          // braces meet a block this far below the rail's centre line
 cross_y = local(edge(s1 + pitch), n, 17.5 + block_wall, -bar_w)[1] - strut / 2;   // crossbar's top meets the top block's bottom, as the original
@@ -104,20 +107,18 @@ module profile() {
             bar([bar_w / 2, bar_w / 2], foot_end);   // foot, on the desk, flush with the back of the post
             bar(post_foot, post_top, strut);     // back post
             bar(foot0, top, strut);              // sloped face
-            hull() { at(seats[1][0], seats[1][1]) block2d(); translate([0, top_y - strut]) square([top_in, strut]); translate(top) circle(d = strut); }   // the top block fills the corner, as the original
-            bar([strut / 2, cross_y], [face_x(cross_y), cross_y], strut);   // crossbar, post to face, under the top block
             bar(j1, k0);                         // diagonal, tier 1 block to back rail block
-            for (s = seats) at(s[0], s[1]) block2d();
+            for (s = own) at(s[0], s[1]) block2d();
         }
         difference() {
             union() {
                 ladder_slot([bar_w / 2, bar_w / 2], foot_end);
                 ladder_slot(j1, k0);
             }
-            for (s = seats) at(s[0], s[1]) offset(delta = strip) block2d();
+            for (s = own) at(s[0], s[1]) offset(delta = strip) block2d();
             for (p = [foot0, post_foot, j1, k0]) translate(p) circle(d = bar_w + 2 * strip);
         }
-        for (s = seats) at(s[0], s[1]) offset(delta = rail_clr) rail2d();
+        for (s = own) at(s[0], s[1]) offset(delta = rail_clr) rail2d();
     }
 }
 
@@ -133,8 +134,11 @@ module screw_hole(c, o, z) {
 
 module bracket() {
     difference() {
-        linear_extrude(bracket_t) intersection() { profile(); translate([0, 0]) square([1000, top_y]); }   // flush with the back of the post and flat on top
-        for (s = seats) screw_hole(s[0], s[1], bracket_t / 2);
+        linear_extrude(bracket_t) union() {
+            intersection() { profile(); square([1000, top_y - szmalu_top_cut + 0.5]); }   // ours, below the original's top
+            translate([0, top_y]) szmalu_top();
+        }
+        for (s = own) screw_hole(s[0], s[1], bracket_t / 2);
     }
 }
 

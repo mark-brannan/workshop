@@ -3,6 +3,7 @@
 The bracket prints flat: its profile is in XY (x toward the desk's front, y up in use), extruded bracket_t in Z.
 """
 
+import json
 import math
 import re
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import trimesh
+from shapely import affinity
 from shapely.geometry import Point, Polygon
 from shop.scad import build_scad, find_openscad
 from shop.testing import ray_hits
@@ -47,6 +49,7 @@ def local(c, out, x, y):
 
 def solid(bracket, pt):
     return len(ray_hits(bracket, (pt[0], pt[1], T + 5), (0, 0, -1))) > 0
+OWN = [SEATS[0], SEATS[2], SEATS[3]]   # the top rail is held by the original's top, not our block
 DEPTHS = [P["mod_d"]] * 3 + [P["back_mod_d"]]
 
 
@@ -66,13 +69,17 @@ def test_bounds(bracket):
 
 
 def test_top_is_the_originals(bracket):
-    # as Szmalu's: a solid 3 mm post, flat on top, flush with the top rail block; the face's outer line meets the
-    # flat top top_in forward of the post's back; a 3 mm crossbar whose top meets the top block's bottom
-    assert solid(bracket, (S / 2, TOP_Y / 2)) and not solid(bracket, (S + 0.5, TOP_Y / 2))
-    assert solid(bracket, (P["top_in"] - 0.5, TOP_Y - 0.5)) and not solid(bracket, (P["top_in"] + 1.5, TOP_Y - 0.5))
-    c2 = SEATS[1][0]
-    low = local(c2, N, 17.5 + P["block_wall"], -W)[1]
-    assert solid(bracket, (S + 5, low - S / 2)) and not solid(bracket, (S + 5, low - S - 0.5))
+    # above the crossbar's bottom the profile is Szmalu's, point for point (szmalu_top.scad, cut from its mesh)
+    src = (HERE / "szmalu_top.scad").read_text()
+    cut = float(re.search(r"szmalu_top_cut = ([\d.]+);", src).group(1))
+    pts = json.loads(re.search(r"points = (\[\[.*?\]\])", src).group(1))
+    paths = json.loads(re.search(r"paths = (\[\[.*?\]\])", src).group(1))
+    orig = Polygon([pts[i] for i in paths[0]], [[pts[i] for i in r] for r in paths[1:]])
+    orig = affinity.translate(orig, 0, TOP_Y)
+    grid = [(x, y) for x in np.arange(-0.5, 40, 1.0) for y in np.arange(TOP_Y - cut + 0.5, TOP_Y + 1, 1.0)]
+    grid = [q for q in grid if orig.exterior.distance(Point(q)) > 0.2]   # away from the outline, where facets round
+    wrong = [q for q in grid if solid(bracket, q) != orig.contains(Point(q))]
+    assert not wrong, wrong[:5]
 
 
 def test_diagonal_joins_the_tier_1_block_below_the_rail_centre(bracket):
@@ -103,7 +110,7 @@ def test_each_rail_passes_through_and_is_held_between_flat_faces(bracket):
     # the rail's own section is open plastic-free through the plate; a millimetre past the slot either side of the
     # base, and over the lips, is plastic: the rail sits between flat faces, closed round by the block
     rail = Polygon(RAIL).buffer(-0.1)
-    for c, out in SEATS:
+    for c, out in OWN:
         x0, y0, x1, y1 = rail.bounds
         pts = [(x, y) for x in np.arange(x0, x1, 0.5) for y in np.arange(y0, y1, 0.25) if rail.contains(Point(x, y))]
         hit = [p for p in pts if solid(bracket, local(c, out, *p))]
@@ -118,7 +125,7 @@ def test_each_rail_passes_through_and_is_held_between_flat_faces(bracket):
 
 
 def test_screw_hole_runs_through_the_cover_and_rail_base_into_a_pilot(bracket):
-    for c, out in SEATS:
+    for c, out in OWN:
         o = local(c, out, 0, 7.5 + P["cover"] + 5)
         h = ray_hits(bracket, (o[0], o[1], T / 2), (-out[0], -out[1], 0))
         assert len(h), "the screw hole has no bottom"
