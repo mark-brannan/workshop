@@ -20,7 +20,7 @@ function foot_w(hd) = max(hd, 12)/2 + 3;       // footboard half-height, along i
 function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
-snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 10; snip_hand_in = 6; snip_hand_gap = 4; snip_arm_depth = 12;
+snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
 snip_cx = snip_w/2 + 2 + snip_hand_d/2;           // centre of the pair, from the holder's left edge
 snip_total_w = snip_w + 4 + snip_hand_d;
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
