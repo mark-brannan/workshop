@@ -10,9 +10,8 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 
 | Zone | Holds | Count | Size | Pitch | Orientation |
 |---|---|---|---|---|---|
-| A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now | n/a | lying flat |
+| A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now; in front of B | n/a | lying flat |
 | B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 15 c-c, all posts the same diameter | handle down, on a post |
-| D: small tray | whatever fits | open tray, no slots | 100 x ~65, in front of B; guess | n/a | lying flat |
 | F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | 45°, swivel at the base, tip up and back; in the front row right of D |
 | E: calipers | cheap digital calipers, standard 150 mm | 1 | 241 long (9.5") x ~50 deep, in front of A and D; head ~76 (3") long, display up; depth a guess | n/a | lying flat, head on the left |
 | C: long drivers | assorted screwdrivers | 9, a 3 x 3 grid | ~155 long | 25 c-c both ways | tip down |
@@ -48,30 +47,23 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 
 ## Layout (plan view from the user's seat, not to scale)
 
-Two rows. Front row: the tray with its 50 side facing the user (85 deep), the hex posts beside it in a line. Back row: the long drivers in a line.
+One row of three columns, calipers across the front. Left: C, the long drivers in a 3 x 3 grid. Middle: B, the hex posts, with tray A in front of them (50 side to the user). Right: F, the thin drivers at 45°. Tray D is dropped.
 
 ```
- back    O  O  O                              C: 3 x 3 grid, 25 c-c, ~75 x ~75
-         O  O  O
-         O  O  O
-         [        ]  o  o  o  o  o  o  o    B: 7 posts, 15 c-c, 100 wide, ~15 deep
-         [ A tray ]  [ D tray      ] ::::::::::::::    A: 50 x 85; F: ~14 holes, 6 c-c, ~91 wide
-         [        ]  [                 ]    D: 100 wide x ~65 deep, open, size a guess
-         [ E calipers, head left       ]   241 x ~50
+ C grid       B posts                 F
+ O  O  O      o o o o o o o           ::::::::::::::
+ O  O  O      [ A  ]                  (45°, footboard at the front)
+ O  O  O      [ 50 x 85 ]
+ [ E calipers 241 x ~50, head left               ]
                          user
 ```
 
-Zone D is a second small open tray in the space in front of the posts; it takes B's width and the depth left under A's 85 after B's row (~15) and walls.
-
-Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back: C is a 3 x 3 grid, 2 x 25 = 50 between end holes, ~75 across and ~75 deep with the Ø18 handles and walls. B: 6 gaps x 15 = 90 between end posts, 5 margin each side. Row depths: front 85 (tray A); back ~20 (handle Ø18 plus wall).
+Width: C 75 + 3 + B 100 + 3 + F 91 = 272. Calipers need 247, so the base is 272 and the caliper space has ~25 spare on the right. Depth: B's row ~15 plus A 85 = ~100 is the row's depth; C ~75; F ~91.
 
 ## Open
 
-- C is ~75 wide on a 247 base: where it sits (left, centre, right) and what fills the ~172 beside it.
-
-- Base is 247 wide (241 calipers + 3 wall each side).
-
-- Which side of the tray the posts sit on, and whether the back row is centred or flush left.
-- F: footprint is ~85 deep from the footboard to the tip's reach, plus the swivel's radius: a few mm past tray A's 85 depth. Push the zone back or accept.
-- F: all Ø12 swivels on one end at 6 c-c collide unless the swivels alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
+- A is 50 wide under a 100-wide post row, leaving 50 beside it. Rotate A to 85 x 50 to fill it, or leave.
+- Base is 272, not 247: narrow F to 66 (11 holes) to get back to 247, or keep.
+- F: footprint is ~85 deep from the footboard to the tip's reach, plus the swivel's radius.
+- F: all Ø12 swivels at 6 c-c collide unless they alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
