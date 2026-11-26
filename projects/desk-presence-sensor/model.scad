@@ -248,8 +248,15 @@ module ol_lips() {
             union() {
                 polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
                 translate([sx*(ol_beam_t - 0.05)/2, zb + ol_lip/2]) square([ol_beam_t - 0.05, ol_lip + 0.6], center = true);   // the beam carried up behind the lip, 0.05 shy of its outer face: a 0.4 foot is under one line, and the slicer floats the lip
+                ol_gusset(sx, zb + 2*ol_lip + 0.3 - 0.05);   // outside brace to the face: the lip cannot break off its root
             }
     }
+}
+// 45 deg brace on the outside of a side beam, from the face to the lip's top, the beam's length; sunk 0.3 into the face.
+module ol_gusset(sx, top) {
+    g = top - face_t;
+    polygon([[0, face_t - 0.3], [sx*(ol_beam_t + g), face_t - 0.3], [sx*(ol_beam_t + g), face_t],
+             [sx*(ol_beam_t - 0.05), top], [0, top]]);
 }
 module ol_snap_cuts() {   // slots either side of each side beam and its outside thinned, sunk rd_groove into the face
     zc = face_t - rd_groove + 10; x_in = ol_w/2 + ol_slack; y1 = ol_cy + ol_h/2 - 1;
