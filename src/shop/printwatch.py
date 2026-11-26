@@ -26,6 +26,7 @@ import shlex
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 from pathlib import Path
 import urllib.request
@@ -160,6 +161,34 @@ class Soak:
 
 def gcode(script: str) -> None:
     api("/printer/gcode/script", {"script": script}, timeout=60)
+
+
+class Refused(Exception):
+    """A plain-words reason a command cannot go on; printed without a traceback."""
+
+
+def pick_gcode(name: str, files: list[dict], running: str | None) -> str:
+    """The printer file meant by ``name``: itself, or the slicer's ``<stem>_<material>_<time>.gcode`` for a 3MF or bare stem.
+
+    Several slices of one stem: the one printing, else the newest upload."""
+    paths = {f["path"]: f.get("modified", 0) for f in files}
+    if name in paths:
+        return name
+    stem = Path(name).stem if Path(name).suffix.lower() in (".3mf", ".gcode", ".stl") else name
+    hits = sorted((p for p in paths if p.endswith(".gcode") and (Path(p).stem == stem or p.startswith(stem + "_"))),
+                  key=lambda p: paths[p], reverse=True)
+    if not hits:
+        raise Refused(f"{name} is not on the printer, and no {stem}_*.gcode is either. "
+                      "Slice it and send it to the printer from OrcaSlicer, or `shop watch upload <file.gcode>`.")
+    pick = running if running in hits else hits[0]
+    why = "printing now" if pick == running else "newest upload"
+    others = f"; also there: {', '.join(h for h in hits if h != pick)}" if len(hits) > 1 else ""
+    print(f"{name} -> {pick} ({why}{others})")
+    return pick
+
+
+def resolve(name: str) -> str:
+    return pick_gcode(name, api("/server/files/list?root=gcodes", timeout=60), running_file())
 
 
 def read_job(name: str) -> Job:
@@ -549,7 +578,19 @@ def main(argv: list[str]) -> int:
     fr.add_argument("layer", type=int)
     fr.add_argument("out")
     a = p.parse_args(argv)
-    return {"preflight": preflight, "upload": upload, "start": start, "run": run, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
+    try:
+        if a.cmd in ("preflight", "start", "run", "soak") and a.file is not None:
+            a.file = resolve(a.file)
+        return {"preflight": preflight, "upload": upload, "start": start, "run": run, "soak": soak, "frame": frame, "next": next_}[a.cmd](a)
+    except Refused as e:
+        print(f"watch {a.cmd}: {e}")
+        return 1
+    except urllib.error.HTTPError as e:
+        print(f"watch {a.cmd}: the printer said {e.code} to {e.url.split('?')[0].removeprefix(URL)}: {e.reason}")
+        return 1
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+        print(f"watch {a.cmd}: cannot reach the printer at {URL} ({getattr(e, 'reason', e)}); is it on and on the network?")
+        return 1
 
 
 if __name__ == "__main__":
