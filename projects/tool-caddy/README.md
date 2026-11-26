@@ -13,7 +13,7 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now; in front of B | n/a | lying flat |
 | B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 15 c-c, all posts the same diameter | handle down, on a post |
 | F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | 45°, swivel at the base, tip up and back; in the front row right of D |
-| E: calipers | cheap digital calipers, standard 150 mm | 1 | 241 long (9.5") x ~50 deep, in front of A and D; head ~76 (3") long, display up; depth a guess | n/a | lying flat, head on the left |
+| E: calipers | cheap digital calipers, 150 mm | 1 | 240 (9.45") x 78 (jaw 3.07"): jaw 45 toward the user and 31 behind the beam, beam ~16 wide; zone ~84 deep | n/a | flat, head left, display up |
 | C: long drivers | assorted screwdrivers | 9, a 3 x 3 grid | ~155 long | 25 c-c both ways | tip down |
 
 ## Zone B: post
@@ -47,23 +47,25 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 
 ## Layout (plan view from the user's seat, not to scale)
 
-One row of three columns, calipers across the front. Left: C, the long drivers in a 3 x 3 grid. Middle: B, the hex posts, with tray A in front of them (50 side to the user). Right: F, the thin drivers at 45°. Tray D is dropped.
+Back row, left to right: column of C (the 3 x 3 grid) with B (7 posts) in front of it, then tray A, then F. Calipers across the front.
 
 ```
- C grid       B posts                 F
- O  O  O      o o o o o o o           ::::::::::::::
- O  O  O      [ A  ]                  (45°, footboard at the front)
- O  O  O      [ 50 x 85 ]
- [ E calipers 241 x ~50, head left               ]
-                         user
+ C grid    A tray    F thin
+ O O O     [    ]    :::::::
+ O O O     [    ]
+ O O O     [    ]
+ o o o o o o o
+ [ E calipers 240 x 78, head left ]
+              user
 ```
 
-Width: C 75 + 3 + B 100 + 3 + F 91 = 272. Calipers need 247, so the base is 272 and the caliper space has ~25 spare on the right. Depth: B's row ~15 plus A 85 = ~100 is the row's depth; C ~75; F ~91.
+Width: C/B column 100 + 3 + A 50 + 3 + F 91 = 247; calipers 240 + 3 wall each side = 246. Row depth ~95 (C 75 + B 15 + gap); F ~91; A 85. Calipers zone ~84 deep, so the base is ~180 deep.
+
+Caliper outline traced from the vendor photo (9.45" long, jaw 3.07"); the jaw lies 45 mm to the front of the beam and 31 mm behind.
 
 ## Open
 
-- A is 50 wide under a 100-wide post row, leaving 50 beside it. Rotate A to 85 x 50 to fill it, or leave.
-- Base is 272, not 247: narrow F to 66 (11 holes) to get back to 247, or keep.
+- Caliper jaw side (front vs back of the beam) is my pick from the photo's orientation; a different pose is a turn, not a mirror.
 - F: footprint is ~85 deep from the footboard to the tip's reach, plus the swivel's radius.
 - F: all Ø12 swivels at 6 c-c collide unless they alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
