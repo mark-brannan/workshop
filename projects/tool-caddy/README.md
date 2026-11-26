@@ -33,6 +33,15 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Shaft diameter | just under 3; use 3 | tip-down hole |
 | Length | ~155 | |
 
+## Zone F: clips
+
+Owner's numbers, recorded as stated; which end "the end" is, and whether the diameter is the driver's or the clip's bore, is unconfirmed.
+
+| Clip | From the end | Diameter | Length |
+|---|---|---|---|
+| 1 | 72 | 4 | 2 |
+| 2 | 20 | 5 | 5 to start, variable |
+
 ## Layout (plan view from the user's seat, not to scale)
 
 Two rows. Front row: the tray with its 50 side facing the user (85 deep), the hex posts beside it in a line. Back row: the long drivers in a line.
@@ -55,5 +64,6 @@ Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back row: 12 hole
 - Base is 247 wide (241 calipers + 3 wall each side).
 
 - Which side of the tray the posts sit on, and whether the back row is centred or flush left.
+- F: with clips, are they upright (as drawn) or lying flat? The layout depends on it.
 - F: all Ø12 swivels on one end at 6 c-c collide unless the swivels alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
