@@ -274,3 +274,37 @@ def test_a_short_part_gets_about_five_frames_and_a_tall_one_keeps_the_old_schedu
 def test_checkpoint_due_uses_the_part_s_layer_count():
     assert checkpoint_due(23, {10}, count=46) == 22
     assert checkpoint_due(23, {22}, count=46) is None
+
+
+SLICES = [{"path": "box_PETG_36m32s.gcode", "modified": 1}, {"path": "box_PETG_42m43s.gcode", "modified": 3},
+          {"path": "box_PETG_41m59s.gcode", "modified": 2}, {"path": "boxer.gcode", "modified": 9}]
+
+
+def test_a_3mf_name_resolves_to_its_newest_slice():
+    # 2026-11-25: `shop watch run box.3mf` hit a raw 404 traceback; the printer holds box_PETG_<time>.gcode.
+    from shop.printwatch import pick_gcode
+    assert pick_gcode("box.3mf", SLICES, None) == "box_PETG_42m43s.gcode"
+
+
+def test_the_printing_slice_wins_over_the_newest():
+    from shop.printwatch import pick_gcode
+    assert pick_gcode("box", SLICES, "box_PETG_36m32s.gcode") == "box_PETG_36m32s.gcode"
+
+
+def test_an_exact_name_is_kept_and_a_missing_one_refused_in_words():
+    import pytest
+    from shop.printwatch import Refused, pick_gcode
+    assert pick_gcode("boxer.gcode", SLICES, None) == "boxer.gcode"
+    with pytest.raises(Refused, match="not on the printer"):
+        pick_gcode("lid.3mf", SLICES, None)
+
+
+def test_a_timeout_is_reported_as_a_timeout_not_as_unreachable(monkeypatch, capsys):
+    from shop import printwatch as pw
+
+    def slow(a):
+        raise TimeoutError("timed out")
+    monkeypatch.setattr(pw, "upload", slow)
+    assert pw.main(["upload", "x.gcode"]) == 1
+    out = capsys.readouterr().out
+    assert "timed out" in out and "cannot reach" not in out

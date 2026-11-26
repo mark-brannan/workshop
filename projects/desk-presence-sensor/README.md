@@ -2,6 +2,13 @@
 
 Symphony: none yet
 
+**Firmware and radar tuning live in the home-automation repo, not here:** `~/home-automation`
+([mark-brannan/home-automation](https://github.com/mark-brannan/home-automation)),
+`esphome/desk-presence-esp8266.yaml` with the radar block in `esphome/common/ld2410.yaml`.
+Secrets are sops-encrypted there (`esphome/secrets.sops.yaml`); never decrypt or hunt for them from
+workshop. Tuning needs no reflash: `docs/desk-presence-bringup.md` ("Tuning") through
+`http://desk-presence.local/` on the LAN. `esphome/desk.yaml` here is the bench copy only.
+
 Purpose: a sitting timer for the desk. An LD2410C radar senses you in the chair, a D1 mini
 (ESP8266) counts, the TM1637 shows the timer and the OLED shows troubleshooting and other stats.
 The box is 45 wide to match the monitor arm stem. Its flat back tapes to the arm with double-sided
