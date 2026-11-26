@@ -26,8 +26,10 @@ snip_W = snip_w + snip_clear - snip_hand_in;                 // web centre to we
 snip_L = (snip_h + snip_tip_up)*tan(snip_lean);                 // how far the wall's foot stands out from its top
 snip_total_w = snip_W + 2*(snip_hand_in/2 + snip_wall + snip_L);   // outer width of the pair, feet included
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50;
-strip_block_w = 2*(strip_slot_t/2 + 1 + snip_wall + (strip_depth + 2)*tan(snip_lean) + 3);   // the ring's foot across, fillets included
-total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
+strip_block_w = strip_top_w + 2 + 2*(snip_wall + (strip_depth + 2)*tan(snip_lean) + 3);   // the ring's foot along X, fillets included
+snip_handle_w = 60;   // guess: the snips' handle span, not measured
+strip_cc = (snip_handle_w + 60)/2 + 10;   // snips to strippers, centre to centre: half of each handle span and 10 between
+total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w/2 + strip_cc + strip_block_w/2 + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
 f_y = wall + front_depth + wall;
 total_d = max(f_y + zone_depth(f_handle, f_len), c_y + zone_depth(c_handle, c_len)) + wall;
@@ -112,19 +114,19 @@ module sweep(st, closed, at) {
                    closed ? [] : [for (j = [0:(m-3)/2]) each cap(j, 0)], closed ? [] : [for (j = [0:(m-3)/2]) each cap(j, k-1)]), convexity = 6); }
 // Strippers, nose down: the jaws 6 thick, 20 wide at the tip widening to 30 at 50 up; handles stand about
 // 120 above, 60 wide, 12 thick (not drawn). The same swept wall as the snips, closed into a ring round the
-// jaws: inside 2 over the jaws' thickness and their widest width, the long side front to back, standing on the
-// jaws' tips. Round top, base fillets, the lean easing out to the foot.
+// jaws: inside 2 over the jaws' thickness and their widest width, 52 tall, standing on the jaws' tips. Its
+// long side runs along X, in the snips' plane, so both pairs of handles face the same way, side by side
+// strip_cc apart. Round top, base fillets, the lean easing out to the foot.
 strip_in_w = strip_slot_t + 2; strip_in_l = strip_top_w + 2; strip_h = strip_depth + 2; strip_z0 = strip_h - snip_hand_h;
 strip_L = strip_h*tan(snip_lean);
-strip_foot = strip_block_w/2;   // ring centre to the outer edge of the foot
 module strippers() { r = strip_in_w/2; S = strip_in_l - strip_in_w; n = 24;
-  // the inner face, clockwise seen from above: down the right side, round the front, up the left, round the back
-  st = concat([for (i = [0:15]) [r, S - S*i/16, [0, -1]]],
-    [for (i = [0:n-1]) let(a = -180*i/n) [r*cos(a), r*sin(a), [sin(a), -cos(a)]]],
-    [for (i = [0:15]) [-r, S*i/16, [0, 1]]],
-    [for (i = [0:n-1]) let(a = 180 - 180*i/n) [r*cos(a), S + r*sin(a), [sin(a), -cos(a)]]]);
+  // the inner face, clockwise seen from above: along the back, round the right end, along the front, round the left
+  st = concat([for (i = [0:15]) [-S/2 + S*i/16, r, [1, 0]]],
+    [for (i = [0:n-1]) let(a = 90 - 180*i/n) [S/2 + r*cos(a), r*sin(a), [sin(a), -cos(a)]]],
+    [for (i = [0:15]) [S/2 - S*i/16, -r, [-1, 0]]],
+    [for (i = [0:n-1]) let(a = 270 - 180*i/n) [-S/2 + r*cos(a), r*sin(a), [sin(a), -cos(a)]]]);
   sweep([for (p = st) [p[0], p[1], p[2], snip_wall, strip_h, strip_z0, strip_L, 0, [0, 0]]], true,
-        [front_w + 5 + snip_total_w + 6 + strip_foot, wall + 27 + strip_foot, base_t]); }
+        [front_w + 5 + snip_total_w/2 + strip_cc, wall + 27 + snip_hand_in/2 + snip_wall + snip_L, base_t]); }
 module pocket(w, d, h) { difference() { cube([w+4, d+4, h]); translate([2,2,2]) cube([w, d, h]); } }
 // Vase box for rulers and long tools: the back row's remaining width, right of C
 vase_x = wall + f_w + wall + c_w + wall;
