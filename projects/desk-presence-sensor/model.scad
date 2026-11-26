@@ -242,12 +242,12 @@ module ol_lips() {
     zb = ol_board_z + ol_t + 0.1;
     for (sx = [-1, 1]) { x = xs(sx, ol_bot_x[0], ol_bot_x[1]);
         translate([0, ol_cy - ol_h/2 - ol_slack, 0]) yz(x[0], x[1])
-            polygon([[-0.2, zb - ol_slack - 0.2], [ol_hook, zb + ol_hook - ol_slack], [ol_hook, zb + ol_hook - ol_slack + 0.3],
-                     [-0.2, zb + 2*ol_hook - ol_slack + 0.3]]);
+            polygon([[-(ol_rib_t - 0.05), zb - ol_slack - 0.2], [-0.2, zb - ol_slack - 0.2], [ol_hook, zb + ol_hook - ol_slack], [ol_hook, zb + ol_hook - ol_slack + 0.3],
+                     [-(ol_rib_t - 0.05), zb + 2*ol_hook - ol_slack + 0.3]]);   // back filled over the rib, 0.05 shy of its outer face (no shared face): a 0.2 root is under one line, and the slicer floats the lip
         translate([sx*(ol_w/2 + ol_slack), ol_cy + ol_h/2 - 1 - ol_lip_len/2, 0]) rotate([90, 0, 0]) linear_extrude(ol_lip_len, center = true)
             union() {
                 polygon([[sx*0.2, zb], [-sx*ol_lip, zb + ol_lip], [-sx*ol_lip, zb + ol_lip + 0.3], [sx*0.2, zb + 2*ol_lip + 0.3]]);
-                translate([sx*0.3, zb - 0.1]) square([0.4, 0.5], center = true);   // foot sunk 0.2 into the beam: the lip starts 0.1 above its top
+                translate([sx*(ol_beam_t - 0.05)/2, zb + ol_lip/2]) square([ol_beam_t - 0.05, ol_lip + 0.6], center = true);   // the beam carried up behind the lip, 0.05 shy of its outer face: a 0.4 foot is under one line, and the slicer floats the lip
             }
     }
 }
