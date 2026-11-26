@@ -13,7 +13,7 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | A: precision drivers | very small screwdrivers | open tray, no slots | 85 long x 50 wide, flat and open for now | n/a | lying flat |
 | B: hex socket drivers | small hex socket drivers | 7 | 110 tall/long | 15 c-c, all posts the same diameter | handle down, on a post |
 | D: small tray | whatever fits | open tray, no slots | 100 x ~65, in front of B; guess | n/a | lying flat |
-| F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | upright, in the front row right of D |
+| F: thin metal drivers | thin metal screwdrivers, 120 long | ~14 (fills the width; count to confirm) | handle 87 long x Ø5.2; swivel on one end just under Ø12 | 6 c-c | 45°, swivel at the base, tip up and back; in the front row right of D |
 | E: calipers | cheap digital calipers, standard 150 mm | 1 | 241 long (9.5") x ~50 deep, in front of A and D; head ~76 (3") long, display up; depth a guess | n/a | lying flat, head on the left |
 | C: long drivers | assorted screwdrivers | 12 (fills the base; was ~9) | ~155 long | 20 c-c | tip down |
 
@@ -33,14 +33,18 @@ Prototype, not designed. Numbers are owner-stated, not calipered here; zone spac
 | Shaft diameter | just under 3; use 3 | tip-down hole |
 | Length | ~155 | |
 
-## Zone F: clips
+## Zone F: clips and risers
 
-Owner's numbers, recorded as stated; which end "the end" is, and whether the diameter is the driver's or the clip's bore, is unconfirmed.
+Drivers lie at 45° in a vertical plane, swivel end down at the front, tip up and back. Distances along the driver from the swivel end.
 
-| Clip | From the end | Diameter | Length |
-|---|---|---|---|
-| 1 | 72 | 4 | 2 |
-| 2 | 20 | 5 | 5 to start, variable |
+| Part | Along driver | Along deck | Height above swivel axis | Bore | Clip length |
+|---|---|---|---|---|---|
+| Footboard | 0 | 0 | ledge ~6 under the axis, under the swivel | n/a | n/a |
+| Riser 1 | 20 | 14.1 | 14.1 | 5 (start; handle is 5.2) | 5, variable |
+| Riser 2 | 72 | 50.9 | 50.9 | 4 | 2 |
+| Tip | 120 | 84.9 | 84.9 | | |
+
+Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The drivers' own numbers (4 and 5 bore against a Ø5.2 handle) are as stated and unreconciled.
 
 ## Layout (plan view from the user's seat, not to scale)
 
@@ -64,6 +68,6 @@ Front row: A 50 + 3 + B/D 100 + 3 + F 91 = 247, the full base. Back row: 12 hole
 - Base is 247 wide (241 calipers + 3 wall each side).
 
 - Which side of the tray the posts sit on, and whether the back row is centred or flush left.
-- F: with clips, are they upright (as drawn) or lying flat? The layout depends on it.
+- F: footprint is ~85 deep from the footboard to the tip's reach, plus the swivel's radius: a few mm past tray A's 85 depth. Push the zone back or accept.
 - F: all Ø12 swivels on one end at 6 c-c collide unless the swivels alternate ends or stagger in height. Confirm how they stand, the shaft diameter and how many.
 - Post and shaft fit allowances (printed holes run undersize; gauge first).
