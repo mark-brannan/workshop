@@ -21,8 +21,6 @@ placed around the engine room as flame detectors.
   for the 3 mm clear acrylic lid in `part-lid.scad`, laser cut from the DXF. The lid fits only this build, not the potted shell, and is not for printing.
 
 Shell outside 52.7 x 21.3 x 10.8; 12.4 with the cover on (was 15.1, to save engine-room space); 68.7 long over the tabs.
-**Plate** (`part-plate.scad`, `out/photocell-flame-pod_plate.3mf`): three shells down the middle, three covers away from the centre (left back, left front, front right; back right empty), bed centre at the origin, 216 x 73 overall.
-
 Shell about 4.6 cm³ (6 g PETG), cover 2.4 cm³ (3 g); about 4 ml of epoxy per pod (calculated from the model, not poured).
 
 ![shell with stand-ins](out/photocell-flame-pod_assembly_views.png)

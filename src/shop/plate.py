@@ -4,6 +4,9 @@ A ``.plate`` file lists STL paths (repo-relative, one per line, ``#`` comments).
 print orientation, may turn 90° about Z, and is shelf-packed onto the K2 Plus bed. Writes
 ``plates/out/<name>.3mf`` (one named object per part, so the slicer can print by object), a merged
 ``.stl`` and PNGs. Rebuild after any part's ``shop build``; the plate reads the current STLs.
+
+A line may end ``at X Y``: the part's footprint centre, mm from the bed centre, print orientation kept
+(no turn). Then every line needs one and nothing is packed; the same STL may be listed more than once.
 """
 
 from __future__ import annotations
@@ -29,9 +32,23 @@ class Placed:
     mesh: trimesh.Trimesh  # moved into bed coordinates
 
 
-def read_plate(path: Path) -> list[Path]:
-    lines = (ln.split("#", 1)[0].strip() for ln in path.read_text().splitlines())
-    return [ROOT / ln for ln in lines if ln]
+def read_plate(path: Path) -> list[tuple[Path, tuple[float, float] | None]]:
+    lines = (ln.split("#", 1)[0].split() for ln in path.read_text().splitlines())
+    return [(ROOT / ln[0], (float(ln[2]), float(ln[3])) if len(ln) == 4 and ln[1] == "at" else None) for ln in lines if ln]
+
+
+def place(parts: list[tuple[str, trimesh.Trimesh, tuple[float, float]]], bed=BED, margin=MARGIN) -> list[Placed]:
+    """Put each part's footprint centre at its (x, y) from the bed centre; raises ValueError off the bed."""
+    placed = []
+    for name, m, (x, y) in parts:
+        m = m.copy()
+        c = m.bounds.mean(axis=0)
+        m.apply_translation((bed[0] / 2 + x - c[0], bed[1] / 2 + y - c[1], -m.bounds[0][2]))
+        lo, hi = m.bounds
+        if lo[0] < margin or lo[1] < margin or hi[0] > bed[0] - margin or hi[1] > bed[1] - margin:
+            raise ValueError(f"{name}: off the bed at ({x:g}, {y:g})")
+        placed.append(Placed(name, m))
+    return placed
 
 
 def pack(parts: list[tuple[str, trimesh.Trimesh]], bed=BED, margin=MARGIN, gap=GAP) -> list[Placed]:
@@ -89,8 +106,15 @@ def write_3mf(placed: list[Placed], path: Path) -> None:
 def build(plate: Path) -> Path:
     from .render import render_png
 
-    parts = [(p.stem, trimesh.load(p, force="mesh")) for p in read_plate(plate)]
-    placed = pack(parts)
+    entries = read_plate(plate)
+    meshes = {p: trimesh.load(p, force="mesh") for p, _ in entries}
+    if entries and all(at for _, at in entries):
+        placed = place([(f"{p.stem}-{i}" if sum(q == p for q, _ in entries) > 1 else p.stem, meshes[p], at)
+                        for i, (p, at) in enumerate(entries, 1)])
+    elif any(at for _, at in entries):
+        raise SystemExit(f"{plate.name}: give every part an `at X Y`, or none")
+    else:
+        placed = pack([(p.stem, meshes[p]) for p, _ in entries])
     out = plate.parent / "out"
     out.mkdir(exist_ok=True)
     tmf = out / f"{plate.stem}.3mf"

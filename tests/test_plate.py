@@ -35,3 +35,22 @@ def test_3mf_holds_one_named_object_per_part(tmp_path):
     write_3mf(placed, out)
     model = zipfile.ZipFile(out).read("3D/3dmodel.model").decode()
     assert model.count("<object ") == 2 and 'name="b0"' in model and 'name="b1"' in model
+
+
+def test_placed_parts_keep_their_pose_and_sit_where_asked():
+    from shop.plate import place
+
+    a, b = boxes((20, 10, 5), (20, 10, 5))
+    placed = place([("a", a[1], (-80, 26)), ("b", b[1], (80, -26))])
+    for p, (x, y) in zip(placed, [(-80, 26), (80, -26)]):
+        c = p.mesh.bounds.mean(axis=0)
+        assert (c[0] - BED[0] / 2, c[1] - BED[1] / 2) == pytest.approx((x, y))
+        assert p.mesh.bounds[0][2] == pytest.approx(0)
+        assert p.mesh.extents == pytest.approx([20, 10, 5])  # not turned
+
+
+def test_placing_off_the_bed_refuses():
+    from shop.plate import place
+
+    with pytest.raises(ValueError, match="off the bed"):
+        place([("a", boxes((20, 10, 5))[0][1], (170, 0))])

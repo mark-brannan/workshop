@@ -1,0 +1,8 @@
+# Three flame pods: shells down the middle, covers away from the centre (left back, left front, front right; back right empty).
+# Rebuild with: shop plate plates/flame-pods.plate   (after `shop build projects/photocell-flame-pod`)
+projects/photocell-flame-pod/out/photocell-flame-pod_scad.stl   at 0 26
+projects/photocell-flame-pod/out/photocell-flame-pod_scad.stl   at 0 0
+projects/photocell-flame-pod/out/photocell-flame-pod_scad.stl   at 0 -26
+projects/photocell-flame-pod/out/photocell-flame-pod_cover.stl  at -80 26
+projects/photocell-flame-pod/out/photocell-flame-pod_cover.stl  at -80 -26
+projects/photocell-flame-pod/out/photocell-flame-pod_cover.stl  at 80 -26
