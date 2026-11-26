@@ -89,15 +89,15 @@ def test_diagonal_joins_the_tier_1_block_below_the_rail_centre(bracket):
     for a_, b_ in ((j1, k0),):
         d = (b_ - a_) / np.linalg.norm(b_ - a_)
         side = np.array([-d[1], d[0]])
-        mid = (a_ + b_) / 2
-        assert solid(bracket, mid + (W / 2 - P["strip"] / 2) * side) and solid(bracket, mid - (W / 2 - P["strip"] / 2) * side)
+        mid = (a_ + b_) / 2   # a solid 3 mm strut, as the original's
+        assert solid(bracket, mid) and not solid(bracket, mid + (S / 2 + 1) * side) and not solid(bracket, mid - (S / 2 + 1) * side)
     assert P["below"] > 0 and j1[1] < c1[1]
 
 
-def test_gauge_is_one_rail_block(tmp_path):
+def test_gauge_is_one_rail_holder(tmp_path):
     g = trimesh.load(build_scad(HERE / "part-gauge.scad", tmp_path, "gauge", render=False)["stl"])
-    assert g.is_watertight
-    assert np.allclose(g.extents, [35 + 2 * P["block_wall"], W + 7.5 + P["cover"], P["gauge_t"]], atol=0.1)
+    assert g.is_watertight and len(g.split(only_watertight=False)) == 1
+    assert np.allclose(g.extents, [35 + 2 * P["block_wall"], P["holder_under"] + 7.5 + P["cover"], P["gauge_t"]], atol=0.1)
 
 
 def test_volume_window(bracket):
@@ -124,17 +124,6 @@ def test_each_rail_passes_through_and_is_held_between_flat_faces(bracket):
             assert solid(bracket, local(c, out, x, 7.5 + clr))
 
 
-def test_screw_hole_runs_through_the_cover_and_rail_base_into_a_pilot(bracket):
-    for c, out in OWN:
-        o = local(c, out, 0, 7.5 + P["cover"] + 5)
-        h = ray_hits(bracket, (o[0], o[1], T / 2), (-out[0], -out[1], 0))
-        assert len(h), "the screw hole has no bottom"
-        assert np.linalg.norm(h[0][:2] - o) > 5 + 7.5 + P["cover"] + P["pilot_depth"] - 0.5
-        q = local(c, out, 0, -P["pilot_depth"] / 2)    # pilot narrower than the clearance: plastic 2 mm off its axis
-        assert solid(bracket, local(c, out, 2.1, -P["pilot_depth"] / 2))
-        assert solid(bracket, q) and len(ray_hits(bracket, (q[0], q[1], T + 5), (0, 0, -1))) == 4
-
-
 def envelope(c, out, d, d0=0.0):
     """A module's side outline, from d0 to d out from the rail's base."""
     along = np.array([out[1], -out[0]])
@@ -149,12 +138,3 @@ def test_module_envelopes_clear_each_other():
     assert t1.distance(fl) >= 10 - tol   # room for the flat module's back wiring and a finger
     assert t1.distance(t2) >= 10 - tol
     assert bk.distance(t1) >= 10 - tol
-
-
-def test_face_stands_on_the_foot_in_front_of_the_flat_rail_block(bracket):
-    # the face's foot lands on the foot bar, not on the flat rail block's cover over its slot
-    block_back = P["flat_x"] - 17.5 - P["block_wall"]
-    assert block_back > FOOT0[0] + S / 2
-    gap = ((FOOT0[0] + S / 2 + block_back) / 2, W + 3)
-    assert not solid(bracket, gap)
-    assert solid(bracket, (FOOT0[0], W - 1))

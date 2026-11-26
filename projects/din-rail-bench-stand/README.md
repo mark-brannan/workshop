@@ -30,34 +30,29 @@ Front of the desk is +X (right in the side view).
 | Face angle and top | 60°, the top and its rail as the original's, unchanged | the original |
 | Tier 1 | 106.5 along the face from its foot, high enough that the back (AC) rail's modules clear it by 10 | the model; the test holds 10 |
 | Back (AC) rail | flat, its block flush with the back post, never behind it | Solace |
-| Flat rail | its block 2 clear in front of the face's foot, so the face stands on the foot bar | the model; a test holds it |
+| Flat rail | 108.5 from the back; the face runs into its holder, as the original's face runs through its holders | the model |
 | Gap, tier 1 envelope to flat-rail envelope | ≥ 10 (test) | guess |
 | Plate, across the rail | 20 | the original's, unscaled |
-| Bars | ladders 11 wide: two 3 mm strips, a 5 mm slot, a rung at least every 70 | the original's foot |
-| Rail slot | the TS35 section, 0.3 clearance each side of the sheet | guess; gauge it |
-| Bracing | the face ends in the top rail block; a crossbar from the back post meets that block 8 below the rail centre; a diagonal from 8 below the lower rail centre runs to the back rail block, a triangle with face and foot | the original's top corner and crossbar; the triangle is ours |
-| Footprint, side | 179 deep × 181 tall (the original: 130 × 90) | the model |
-| Bracket volume | 99 cm³ each | the model |
-| Screw | M4 × 16 self-tapping: 4.6 clear through the cover and channel, 3.7 pilot 9 deep below the rail base | guess; printed holes run small, gauge it |
+| Bars | post, face, crossbar and diagonal solid 3 mm; the foot a 10 mm ladder, two 3 mm strips and a 4 mm slot | the original's (Light), measured off its mesh |
+| Rail holder | the original's, lifted from its top rail at every seat: two hooks round the lips, the channel open between, no screw | the original |
+| Bracing | the original's top and crossbar; a 3 mm diagonal from below tier 1's centre to the back rail's holder, a triangle with face and foot, as the Pro's diagonal | the original; the diagonal's ends are ours |
+| Footprint, side | 154 deep × 180 tall (the original: 130 × 90) | the model |
+| Bracket volume | 80 cm³ each | the model |
 
 ## How a rail is held
 
-The rail passes through the bracket in a slot of its own cross-section, cut through a solid block on the bar.
-The slot's flat faces hold the rail's base and lips from both sides, so it cannot move except along its length.
-One M4 screw per rail end, from the block's outer face, runs through the plastic in the rail's channel and a slot
-in its base into a pilot below, and pins it lengthwise. Slide the rail through both brackets;
-cut it so a base slot sits mid-plate (10 in from either face) at each bracket.
+As the original holds its rails: the rail slides through a slot of its own section in the original's holder,
+two hooks round its lips with the channel open between. Nothing pins it lengthwise but the slot's grip, as in the original.
 
 Modules clip onto the rail between the brackets, so they only need room from each other, not from the frame.
 
 ## How it prints
 
-Flat, as modelled, 20 mm tall; every wall is vertical, so no overhangs. The rail slots and ladder slots run straight
-through. The four screw holes run sideways at mid-height with a point-up (teardrop) top.
+Flat, as modelled, 20 mm tall; every wall is vertical, so no overhangs. The rail slots and ladder slot run straight through.
 
-Print the gauge first (`out/din-rail-bench-stand_gauge.3mf`, 8 cm³): one rail block, 10 tall.
-Slide a rail offcut through and drive the screw; adjust `rail_clr`, `clear_d`, `pilot_d` before the brackets.
+Print the gauge first (`out/din-rail-bench-stand_gauge.3mf`, 5.5 cm³): one rail holder, 10 tall, a strut under it.
+Slide a rail offcut through and feel the grip before the brackets.
 
 ## Open
 
-- Rail slot clearance and M4 hole fit in PETG: unmeasured; the gauge settles both.
+- The holder's grip on a rail in PETG: unmeasured; the gauge settles it.
