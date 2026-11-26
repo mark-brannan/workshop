@@ -47,19 +47,17 @@ Bores at 6 c-c leave a 1 mm web between neighbours (Ø5) and 2 mm (Ø4). The dri
 
 ## Layout (plan view from the user's seat, not to scale)
 
-Back row, left to right: column of C (the 3 x 3 grid) with B (7 posts) in front of it, then tray A, then F. Calipers across the front.
+Front row: A tray (short end toward the user) left of the calipers' head; B's 7 posts in front of the beam. Back row: C (9 long drivers at 45°) then F (thin drivers at 45°). Base 320 x 221.
 
 ```
- C grid    A tray    F thin
- O O O     [    ]    :::::::
- O O O     [    ]
- O O O     [    ]
- o o o o o o o
- [ E calipers 240 x 78, head left ]
+ C  9 long drivers, 45°      F thin 45°
+ ...........................  :::::::
+ A tray   E head | beam ------------ |
+ [  ]     [  ]   o o o o o o o   <- B posts, in front of the beam
               user
 ```
 
-Width: C/B column 100 + 3 + A 50 + 3 + F 91 = 247; calipers 240 + 3 wall each side = 246. Row depth ~95 (C 75 + B 15 + gap); F ~91; A 85. Calipers zone ~84 deep, so the base is ~180 deep.
+C supports: a half-circle cradle (13 dia) at 30 along the driver, and a U-slot clip for the 3 mm shaft (open at the top, 4 above the axis) at 91 along the driver, above the footboard. The cradle is narrower than the 18 handles; confirm what it holds.
 
 Caliper outline traced from the vendor photo (9.45" long, jaw 3.07"); the jaw lies 45 mm to the front of the beam and 31 mm behind.
 
