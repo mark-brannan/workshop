@@ -21,9 +21,9 @@ function zone_depth(hd, L) = foot_w(hd)*k + L*k + foot_w(hd)*k;
 back_depth = max(zone_depth(c_handle, c_len), zone_depth(f_handle, f_len));
 front_w = wall + a_len + wall + cal_len + wall;
 snip_w = 41; snip_h = 47; snip_arm_t = 6; snip_hand_d = 15; snip_hand_in = 10; snip_hand_gap = 8;   // outer 15, bore 10 (user), opening 8 guessed snip_arm_depth = 12;
-snip_off = snip_w/2 - snip_hand_in/2 + 1;         // hand centre from the pair centre: the bore's closed end clears the shoulder edge by 1
-snip_cx = snip_off + snip_hand_d/2;           // centre of the pair, from the holder's left edge
-snip_total_w = 2*snip_off + snip_hand_d;
+snip_tilt = 20; snip_len = 18; snip_plate_t = 2.5;   // saddle tilts up toward the other one; 10-30 deg to be confirmed
+snip_cx = snip_w/2 + 1 + snip_plate_t;            // centre of the pair, from the holder's left edge
+snip_total_w = 2*snip_cx;
 strip_slot_t = 6; strip_base_w = 20; strip_top_w = 30; strip_depth = 50; strip_block_w = 44; strip_block_t = 14;
 total_w = max(front_w + 5 + b_w - 10 + 5, front_w + 5 + snip_total_w + 6 + strip_block_w + 5, wall + f_w + wall + c_w + wall);
 c_y = wall + 36 + cal_beam + 3;      // C footboard sits just behind the calipers' beam
@@ -66,19 +66,18 @@ module f_zone() { translate([wall + 6, wall+front_depth+wall, base_t])
 // It stands on a 2.5 thick plate at its outer edge; a 45 deg gusset holds the C's inner half.
 snip_band_t = 2.5; snip_hand_h = 12;
 module soft(r = 1) { offset(r = r, $fn = 24) offset(delta = -r) children(); }   // rounds every convex corner
-snip_leg = 12;   // the U's legs run this far toward the other hand
-module c2d(sg) { R = snip_hand_d/2; Ri = snip_hand_in/2; soft(0.9)
-  difference() {
-    hull() { circle(r=R, $fn=48); translate([-sg*snip_leg - (sg > 0 ? 0 : 0), -R]) square([0.01, 2*R]); }
-    hull() { circle(r=Ri, $fn=48); translate([-sg*(snip_leg + 1), -Ri]) square([0.01, 2*Ri]); } } }
-module snip_hand(sg) { R = snip_hand_d/2; zr = snip_h - snip_hand_h/2; xo = sg*(R - snip_band_t);   // stem inner face, from the C's centre
-  translate([0, 0, zr]) linear_extrude(snip_hand_h) c2d(sg);
-  translate([0, snip_hand_d/2, 0]) rotate([90, 0, 0]) linear_extrude(snip_hand_d) soft(1) union() {   // stem plate and 45 deg gusset, corners rounded
-    translate([sg*R - (sg > 0 ? snip_band_t : 0), 0]) square([snip_band_t, zr + 1]);
-    translate([0, zr]) polygon(sg > 0 ? [[R - snip_band_t, 0], [-snip_leg, 0], [R - snip_band_t, -(R - snip_band_t + snip_leg)]]
-                                      : [[-R + snip_band_t, 0], [snip_leg, 0], [-R + snip_band_t, -(R - snip_band_t + snip_leg)]]); } }
-module snips() { translate([front_w + 5, wall + 27, base_t]) for (sg = [-1, 1])
-    translate([snip_cx + sg*snip_off, snip_hand_d/2, 0]) snip_hand(sg); }
+// Each hand is a saddle: a rounded half-pipe (10 inside width, 2.5 wall, lips 3.5 above the axis) running
+// toward the other saddle, open at both ends and along the top, tilted up toward the inside by snip_tilt.
+// It hangs from a thin plate behind its outer end (rear support only; nothing under the saddle).
+module saddle2d() { R = snip_hand_d/2; Ri = snip_hand_in/2;
+  soft(1) difference() { union() { circle(r=R, $fn=48); translate([-R, 0]) square([2*R, 3.5]); }
+    union() { circle(r=Ri, $fn=48); translate([-Ri, 0]) square([2*Ri, 10]); } } }
+module snip_hand() { zo = snip_h - 5; R = snip_hand_d/2;                        // built for the left hand: inward is +x
+  translate([0, 0, zo]) rotate([0, -snip_tilt, 0]) rotate([90, 0, 90]) linear_extrude(snip_len) saddle2d();
+  translate([-snip_plate_t, 0, 0]) rotate([90, 0, 90]) linear_extrude(snip_plate_t) soft(1) translate([-R, 0]) square([2*R, zo + 2]); }
+module snips() { translate([front_w + 5, wall + 27 + snip_hand_d/2, base_t]) {
+    translate([snip_plate_t, 0, 0]) snip_hand();                                      // left hand: inward is +x
+    translate([snip_total_w - snip_plate_t, 0, 0]) rotate([0, 0, 180]) snip_hand(); } }  // right hand: a turn, not a mirror
 // Strippers: a small tower, nose down in a 6 thick slot, 20 wide at the base widening to 30 at the top,
 // 50 deep; handles stand about 120 above, 60 wide, 12 thick (not drawn).
 module strippers() { translate([front_w + 5 + snip_total_w + 6, wall + 27, base_t]) difference() {
