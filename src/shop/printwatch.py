@@ -32,7 +32,10 @@ from pathlib import Path
 import urllib.request
 from dataclasses import dataclass, field
 
+from . import gcodeage
 from .printer import URL, _key, api, fetch
+
+ROOT = Path(__file__).resolve().parents[2]
 
 SAFE_Z = 10.0
 HIGH_TEMP = ("ASA", "ABS")
@@ -221,11 +224,22 @@ def read_patches() -> dict[str, int] | None:
     return {name: int(v or 0) for name, v in zip(PATCHES, out)}
 
 
+def age_check(name: str) -> Check:
+    """WARN when the model changed shape after this gcode was sliced; never a FAIL (gcodeage)."""
+    try:
+        header = on_printer(f"head -c 400 {shlex.quote(GCODES + '/' + name)}", timeout=30)
+        level, text = gcodeage.verdict(name, header, ROOT)
+    except (Refused, OSError, subprocess.SubprocessError) as e:
+        level, text = "WARN", f"gcode age unchecked: {e}"
+    return Check(level, text)
+
+
 def report(checks: list[Check]) -> int:
     for ch in checks:
         print(f"  {ch.level:4s}  {ch.text}" + (f"   fix: {ch.fix.splitlines()[0]}..." if ch.level == "FAIL" and ch.fix else ""))
     fails = sum(ch.level == "FAIL" for ch in checks)
-    print(f"preflight {'FAIL (' + str(fails) + ')' if fails else 'PASS'}")
+    warns = sum(ch.level == "WARN" for ch in checks)
+    print(f"preflight {'FAIL (' + str(fails) + ')' if fails else 'PASS'}" + (f", {warns} WARN above" if warns else ""))
     return 1 if fails else 0
 
 
@@ -242,7 +256,8 @@ def preflight(a: argparse.Namespace, fix: bool | None = None) -> int:
     macros = {o.split(" ", 1)[1] for o in api("/printer/objects/list")["objects"] if o.startswith("gcode_macro ")}
     patches = read_patches()
     print(f"preflight  {a.file}")
-    checks = job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches)
+    age = age_check(a.file)
+    checks = job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches) + [age]
     fixes = [ch.fix for ch in checks if ch.level == "FAIL" and ch.fix]
     strip = bool(job.toolchanges) and not a.cfs
     if not ((a.fix if fix is None else fix) and (fixes or strip)):
@@ -254,7 +269,7 @@ def preflight(a: argparse.Namespace, fix: bool | None = None) -> int:
         restrip(a.file)
         print("  sent  tool changes stripped from the file on the printer")
         job = read_job(a.file)
-    return report(job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches))
+    return report(job_checks(fetch(OBJECTS), job, a.plate, a.vents, a.cfs, macros, patches) + [age])
 
 
 def started(st: dict, name: str) -> bool:

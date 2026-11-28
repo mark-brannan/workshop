@@ -34,7 +34,7 @@ the printer, and says which.
    `smooth`, `pattern`, `epoxy`), rear vents (`closed`, `open`), feed (spool,
    or `--cfs`). A PETG job on the pattern plate with vents open and the spool is
    the default and needs no question.
-2. `preflight … --fix`. A FAIL with no fix goes to the user with its line.
+2. `preflight … --fix`. A FAIL with no fix goes to the user with its line. A `STALE GCODE` warning goes to the user with its line before `start`: the file on the printer was sliced before the model last changed shape.
 3. ASA or ABS: `soak` in the background; on PASS, go on.
 4. `start`.
 5. `next` in the background. On `CHECKPOINT`, Read the frame, send it with one
